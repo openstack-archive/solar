@@ -1,0 +1,34 @@
+---
+
+# ansible playbook to install all docker requirements
+# wrapped in ours resource entity
+
+id: docker
+type: resource
+handler: playbook
+version: v1
+run:
+    # all of this should be moved to regular ansible playbook
+    # we need to reuse as much as possible of ansible goodness
+    - shell: docker --version
+      ignore_errors: true
+      register: docker_version
+    - shell: curl -sSL https://get.docker.com/ubuntu/ | sudo sh
+      when: docker_version|failed
+    - shell: docker pull ubuntu
+    - shell: apt-get install -y python-pip
+    - shell: pip install -y {{item}}
+      with_items: docker.openstack_clients
+    - shell: docker-compose --version
+      register: compose
+      ignore_errors: true
+    - shell: curl -L https://github.com/docker/compose/releases/download/1.1.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+      when: compose|failed
+    - shell: chmod +x /usr/local/bin/docker-compose
+parameters:
+    openstack_clients:
+        default:
+            - keystoneclient
+            - novaclient
+            - glanceclient
+        required: true

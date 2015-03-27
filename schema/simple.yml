@@ -1,0 +1,78 @@
+---
+
+# we need strategy around versioning, because right now there is
+# too many moving components, and such approach doesnt scale
+version: v1
+# each orchestration item should have identity
+id: simple_profile
+# description should be optional
+description: "The basic openstack installation, everything on one node, without ha"
+type: profile
+# how to approach life cycle management? one way to do it is to add notion
+# of event (deployment, maintenance, upgrade, patch)
+# or maybe there will be no difference between them and we can
+# drop this field
+# event: deployment
+# this is custom executable that will prepare our definition for the
+# deployment by this handler
+driver: ansible
+# profile should be able to define resources that are not connected
+# to any role
+# resources:
+#    - ref: docker
+roles:
+    # id is used to specify that current entity created right here
+    - id: localhost
+      type: role
+      resources:
+        id: keys
+    - id: controller
+      type: role
+      # version: v1
+      resources:
+        # ref is used to specify that resource is created externally
+        - ref: images
+          overwrite:
+            list:
+                - kollaglue/centos-rdo-glance-registry
+                - kollaglue/centos-rdo-glance-api
+                - kollaglue/centos-rdo-keystone
+                - kollaglue/centos-rdo-mariadb-data
+                - kollaglue/centos-rdo-mariadb-app
+                - kollaglue/centos-rdo-nova-conductor:latest
+                - kollaglue/centos-rdo-nova-api:latest
+                - kollaglue/centos-rdo-nova-scheduler:latest
+                - kollaglue/centos-rdo-nova-libvirt
+                - kollaglue/centos-rdo-nova-network
+                - kollaglue/centos-rdo-nova-compute
+                - kollaglue/centos-rdo-rabbitmq
+      services:
+        - id: compute
+          type: service
+          resources:
+            # it is required that ebtables module will be loaded
+            # for nova-compute service, and it is not possible
+            # to load additional modules from container itself
+            - id: enable_ebtables
+              type: resource
+              handler: playbook
+              run:
+                - shell: modprobe ebtables
+            - ref: compose
+              # overwrite will be used to change default settings on resource
+              overwrite:
+                 # how to find them?
+                 # 1. relative path
+                 item: nova-compute-network.yml
+          # required to make roles and services loosely coupled
+          provides:
+              # how to fetch information for node?
+              endpoint: {{network.management.ip}}:{{compute.api.port}}
+        - id: rabbitmq
+          type: service
+          resources:
+            - ref: compose
+            overwrite:
+                item: rabbitmq.yml
+          endpoint: {{node.management.ip}}:5572
+        - ref: mariadb

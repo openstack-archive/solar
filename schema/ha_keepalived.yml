@@ -1,0 +1,23 @@
+---
+
+# keepalived ha configuration can be easily containerized
+
+
+version: v1
+# each orchestration item should have identity
+id: puppet_ha
+# description should be optional
+description: "The basic openstack installation, everything on one node, without ha"
+type: profile
+# how to approach life cycle management? one way to do it is to add notion
+# of event (deployment, maintenance, upgrade, patch)
+# or maybe there will be no difference between them and we can
+# drop this field
+# event: deployment
+# this is custom executable that will prepare our definition for the
+# deployment by this handler
+driver: puppet_master
+# profile should be able to define resources that are not connected
+# to any role
+resources:
+    - ref: docker

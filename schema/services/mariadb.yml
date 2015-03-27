@@ -1,0 +1,21 @@
+---
+
+id: mariadb
+type: service
+version: v1
+handler: ansible
+resources:
+    - id: mariadb_settings
+      type: service
+      handler: ansible
+      run:
+        - template: src=mariadb dest=mariadb.conf
+      parameters:
+        port: 8000
+        host: localhost
+        password: admin
+        user: admin
+    - ref: compose
+      overwrite:
+        item: maridb.yml
+endpoint: {{node.management.ip}}:4324
