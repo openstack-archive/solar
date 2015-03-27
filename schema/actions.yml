@@ -1,0 +1,13 @@
+actions:
+    - id: erase_node
+      tasks:
+          - shell: erase
+          - shell: reboot
+    - id: provision_centos
+      tasks:
+          - shell: fuel-agent --image
+          - shell: reboot
+    - id: deploy_compute
+      tasks:
+          - shell: deploy_compute
+

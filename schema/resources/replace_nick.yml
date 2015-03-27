@@ -1,0 +1,10 @@
+
+- id: nic
+  parameters:
+    first:
+        default: 1
+  events:
+    - run:
+        shell: echo 3
+
+fuel execute --res nic --action run --node 1,2,3
