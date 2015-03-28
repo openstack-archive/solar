@@ -1,0 +1,19 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    - shell: docker --version
+      ignore_errors: true
+      register: docker_version
+    - shell: curl -sSL https://get.docker.com/ubuntu/ | sudo sh
+      when: docker_version|failed
+    - shell: docker pull ubuntu
+    - shell: apt-get install -y python-pip
+    - shell: pip install -y {{item}}
+      with_items:
+        - keystoneclient
+        - novaclient
+        - glanceclient
+- include: compose.yml
+- include: openstack.yml
