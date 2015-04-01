@@ -6,3 +6,4 @@
 # vagrant
 .vagrant
 
+tmp/
