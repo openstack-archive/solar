@@ -1,2 +1,2 @@
 include *.txt
-recursive-include solar/templates *
+recursive-include solar/ *
