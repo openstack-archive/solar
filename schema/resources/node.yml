@@ -5,8 +5,7 @@ type: resource
 handler: ansible
 version: v1
 input:
-  ssh_host: localhost
+  ssh_host: 127.0.0.1
   ssh_port: 2222
+  connection_type: local
   name: first
-  user: vagrant
-  key: .vagrant/machines/default/virtualbox/private_key

@@ -16,6 +16,10 @@
 On create "golden" resource should be moved to special place
 """
 
+import subprocess
+
+from copy import deepcopy
+
 import sys
 
 import textwrap
@@ -39,6 +43,7 @@ class Cmd(object):
             description='Supported actions',
             help='Provide of one valid actions')
         self.register_actions()
+        self.dbm = DirDBM('tmp/created/')
 
     def register_actions(self):
         parser = self.subparser.add_parser('create')
@@ -48,11 +53,24 @@ class Cmd(object):
             '--resource',
             required=True)
         parser.add_argument(
-            '-u', '--uid', help='Identifier or resource'
+            '-t', '--tags', nargs='+',
+            help='Identifier or resource'
             )
 
-        parser = self.subparser.add_parser('actions')
-        parser.set_defaults(func=getattr(self, 'actions'))
+        parser = self.subparser.add_parser('prepare')
+        parser.set_defaults(func=getattr(self, 'prepare'))
+        parser.add_argument(
+            '-a',
+            '--action',
+            required=True)
+        parser.add_argument(
+            '-r',
+            '--resources',
+            nargs='+',
+            required=True)
+
+        parser = self.subparser.add_parser('exec')
+        parser.set_defaults(func=getattr(self, 'execute'))
         parser.add_argument(
             '-a',
             '--action',
@@ -70,6 +88,9 @@ class Cmd(object):
             '--resource',
             required=True)
 
+        parser = self.subparser.add_parser('clear')
+        parser.set_defaults(func=getattr(self, 'clear'))
+
     def parse(self, args):
         parsed = self.parser.parse_args(args)
         return parsed.func(parsed)
@@ -78,21 +99,23 @@ class Cmd(object):
         resource = args.resource
 
         storage = Storage.from_files('./schema/resources')
-        dbm = DirDBM('tmp/created/')
 
-        resource_uid = '{0}_{1}'.format(resource, args.uid)
-        dbm[resource_uid] = yaml.dump(storage.get(resource),
-                                      default_flow_style=False)
+        resource_uid = '{0}_{1}'.format(resource, '_'.join(args.tags))
+        data = deepcopy(storage.get(resource))
+        data['tags'] = args.tags
+        self.dbm[resource_uid] = yaml.dump(
+            data, default_flow_style=False)
+
+    def clear(self, args):
+        self.dbm.clear()
 
     def show(self, args):
-        dbm = DirDBM('tmp/created/')
-        print dbm[args.resource]
+        print self.dbm[args.resource]
 
+    def prepare(self, args):
 
-    def actions(self, args):
-        storage = Storage.from_files('./schema/resources')
         orch = ansible.AnsibleOrchestration(
-            [storage.get(r) for r in args.resources])
+            [yaml.load(self.dbm[r]) for r in args.resources])
 
         utils.create_dir('tmp/group_vars')
         with open('tmp/hosts', 'w') as f:
@@ -106,7 +129,12 @@ class Cmd(object):
                 yaml.dump(getattr(orch, args.action)(),
                 default_flow_style=False))
 
-
+    def execute(self, args):
+        self.prepare(args)
+        sub = subprocess.Popen(
+            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
+        out, err = sub.communicate()
+        print out
 
 def main():
     api = Cmd()
