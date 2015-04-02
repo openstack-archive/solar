@@ -9,3 +9,6 @@
     - shell: curl -sSL https://get.docker.com/ | sudo sh
       when: docker_version | failed
     - shell: docker pull debian:jessie
+      # Setup development env for solar
+    - apt: name=python-virtualenv state=present
+    - shell: python /vagrant/solar/setup.py develop
