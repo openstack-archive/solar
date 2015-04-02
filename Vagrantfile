@@ -6,7 +6,8 @@ VAGRANTFILE_API_VERSION = "2"
 
 init_script = <<SCRIPT
 apt-get update
-apt-get -y install ansible
+apt-get -y install python-pip python-dev
+pip install ansible
 ansible-playbook -i "localhost," -c local /vagrant/main.yml
 SCRIPT
 
