@@ -19,9 +19,11 @@ actions:
             register: docker_version
           - shell: curl -sSL https://get.docker.com/ubuntu/ | sudo sh
             when: docker_version|failed
-          - shell: docker pull debian:jessie
+          - shell: docker pull {{ docker.base_image }}
     remove:
       - hosts: [docker]
         sudo: yes
         tasks:
-          - shell: apt-get remove -y docker
+          - shell: apt-get remove -y lxc-docker
+input:
+  base_image: ubuntu

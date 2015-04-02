@@ -2,3 +2,7 @@
 
 # how to control other services by pacemaker/corosync? if they will
 # be installed in containers
+
+
+# how we will manage primary and non-primary analog or resources?
+# maybe they should be just assigned by user ?
