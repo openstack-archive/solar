@@ -5,7 +5,7 @@ type: resource
 handler: ansible
 version: v1
 input:
-  ssh_host: 127.0.0.1
+  ssh_host: localhost
   ssh_port: 2222
   name: first
   user: vagrant

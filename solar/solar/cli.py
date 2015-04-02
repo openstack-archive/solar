@@ -11,56 +11,103 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+"""Solar CLI api
 
+On create "golden" resource should be moved to special place
+"""
 
 import sys
 
+import textwrap
 import argparse
 import yaml
 
 from solar import utils
 from solar.core import ansible
 from solar.interfaces.db import Storage
+from solar.interfaces.db.dir import DirDBM
 
 
-def parse():
+class Cmd(object):
 
-    parser = argparse.ArgumentParser()
+    def __init__(self):
+        self.parser = argparse.ArgumentParser(
+            description=textwrap.dedent(__doc__),
+            formatter_class=argparse.RawDescriptionHelpFormatter)
+        self.subparser = self.parser.add_subparsers(
+            title='actions',
+            description='Supported actions',
+            help='Provide of one valid actions')
+        self.register_actions()
 
-    parser.add_argument(
-        '-a',
-        '--action',
-        help='action to execute',
-        required=True)
+    def register_actions(self):
+        parser = self.subparser.add_parser('create')
+        parser.set_defaults(func=getattr(self, 'create'))
+        parser.add_argument(
+            '-r',
+            '--resource',
+            required=True)
+        parser.add_argument(
+            '-u', '--uid', help='Identifier or resource'
+            )
 
-    parser.add_argument(
-        '-r',
-        '--resources',
-        help='list of resources',
-        nargs='+',
-        required=True)
+        parser = self.subparser.add_parser('actions')
+        parser.set_defaults(func=getattr(self, 'actions'))
+        parser.add_argument(
+            '-a',
+            '--action',
+            required=True)
+        parser.add_argument(
+            '-r',
+            '--resources',
+            nargs='+',
+            required=True)
 
-    return parser.parse_args()
+        parser = self.subparser.add_parser('show')
+        parser.set_defaults(func=getattr(self, 'show'))
+        parser.add_argument(
+            '-r',
+            '--resource',
+            required=True)
+
+    def parse(self, args):
+        parsed = self.parser.parse_args(args)
+        return parsed.func(parsed)
+
+    def create(self, args):
+        resource = args.resource
+
+        storage = Storage.from_files('./schema/resources')
+        dbm = DirDBM('tmp/created/')
+
+        resource_uid = '{0}_{1}'.format(resource, args.uid)
+        dbm[resource_uid] = yaml.dump(storage.get(resource),
+                                      default_flow_style=False)
+
+    def show(self, args):
+        dbm = DirDBM('tmp/created/')
+        print dbm[args.resource]
+
+
+    def actions(self, args):
+        storage = Storage.from_files('./schema/resources')
+        orch = ansible.AnsibleOrchestration(
+            [storage.get(r) for r in args.resources])
+
+        utils.create_dir('tmp/group_vars')
+        with open('tmp/hosts', 'w') as f:
+            f.write(orch.inventory)
+
+        with open('tmp/group_vars/all', 'w') as f:
+            f.write(yaml.dump(orch.vars, default_flow_style=False))
+
+        with open('tmp/main.yml', 'w') as f:
+            f.write(
+                yaml.dump(getattr(orch, args.action)(),
+                default_flow_style=False))
+
 
 
 def main():
-    args = parse()
-
-    print 'ACTION %s' % args.action
-    print 'RESOURCES %s' % args.resources
-
-    storage = Storage.from_files('./schema/resources')
-    orch = ansible.AnsibleOrchestration(
-        [storage.get(r) for r in args.resources])
-
-    utils.create_dir('tmp/group_vars')
-    with open('tmp/hosts', 'w') as f:
-        f.write(orch.inventory)
-
-    with open('tmp/group_vars/all', 'w') as f:
-        f.write(yaml.dump(orch.vars, default_flow_style=False))
-
-    with open('tmp/main.yml', 'w') as f:
-        f.write(
-            yaml.dump(getattr(orch, args.action)(),
-            default_flow_style=False))
+    api = Cmd()
+    api.parse(sys.argv[1:])
