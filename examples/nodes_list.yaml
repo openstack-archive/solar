@@ -1,0 +1,4 @@
+- id: 6176aaa2-d97f-11e4-8dbe-080027c2ffdb
+  ip: 127.0.0.1
+  ssh_port: 22
+  ssh_key: .vagrant/machines/default/virtualbox/private_key
