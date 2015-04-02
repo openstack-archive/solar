@@ -10,5 +10,9 @@
       when: docker_version | failed
     - shell: docker pull debian:jessie
       # Setup development env for solar
+    - apt: name=vim state=present
+    - apt: name=tmux state=present
+    - apt: name=htop state=present
     - apt: name=python-virtualenv state=present
-    - shell: python /vagrant/solar/setup.py develop
+    - apt: name=virtualenvwrapper state=present
+    - shell: python setup.py develop chdir=/vagrant/solar
