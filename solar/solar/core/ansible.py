@@ -8,8 +8,7 @@ from jinja2 import Template
 
 ANSIBLE_INVENTORY = """
 {% for node in nodes %}
-{{node.node.name}} ansible_ssh_host={{node.node.ssh_host}} ansible_ssh_port={{node.node.ssh_port}}
-
+{{node.node.name}} ansible_ssh_host={{node.node.ssh_host}} ansible_connection={{node.node.connection_type}}
 {% endfor %}
 
 {% for res in resources %}
