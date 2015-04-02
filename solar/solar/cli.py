@@ -18,6 +18,7 @@ import sys
 import argparse
 import yaml
 
+from solar import utils
 from solar.core import ansible
 from solar.interfaces.db import Storage
 
@@ -52,7 +53,7 @@ def main():
     orch = ansible.AnsibleOrchestration(
         [storage.get(r) for r in args.resources])
 
-
+    utils.create_dir('tmp/group_vars')
     with open('tmp/hosts', 'w') as f:
         f.write(orch.inventory)
 
