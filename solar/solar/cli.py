@@ -29,7 +29,7 @@ import yaml
 from solar import utils
 from solar.core import ansible
 from solar.interfaces.db import Storage
-from solar.interfaces.db.dir import DirDBM
+from solar.third_party.dir_dbm import DirDBM
 
 
 class Cmd(object):
