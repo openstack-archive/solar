@@ -13,13 +13,13 @@ class Discovery(base.BaseResource):
         os.path.dirname(__file__), '..', '..', '..',
         'examples', 'nodes_list.yaml')
 
-    def execute(self, db):
+    def execute(self):
         with io.open(self.FILE_PATH) as f:
             nodes = yaml.load(f)
 
         for node in nodes:
             node['tags'] = []
 
-        db['node_list'] = yaml.dump(nodes, default_flow_style=False)
+        self.db['node_list'] = yaml.dump(nodes, default_flow_style=False)
 
         return nodes

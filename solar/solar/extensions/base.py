@@ -1,3 +1,5 @@
+from solar.interfaces.db import get_db
+
 
 class BaseResource(object):
 
@@ -9,6 +11,7 @@ class BaseResource(object):
         """
         self.config = config
         self.uid = config['id']
+        self.db = get_db()
 
     def prepare(self):
         """Make some changes in database state."""
