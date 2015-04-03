@@ -17,6 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.provider "virtualbox" do |v|
     v.customize ["modifyvm", :id, "--memory", 2048]
+    v.name = "solar-dev"
   end
 
   config.vm.provision "shell", inline: init_script, privileged: true
