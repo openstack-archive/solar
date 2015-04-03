@@ -18,8 +18,6 @@ On create "golden" resource should be moved to special place
 
 import subprocess
 
-from copy import deepcopy
-
 import sys
 
 import textwrap
@@ -27,9 +25,9 @@ import argparse
 import yaml
 
 from solar import utils
+from solar.extensions.discovery import Discovery
 from solar.core import ansible
-from solar.interfaces.db import Storage
-from solar.interfaces.db.dir import DirDBM
+from solar.interfaces.db import get_db
 
 
 class Cmd(object):
@@ -43,7 +41,7 @@ class Cmd(object):
             description='Supported actions',
             help='Provide of one valid actions')
         self.register_actions()
-        self.dbm = DirDBM('tmp/created/')
+        self.db = get_db()
 
     def register_actions(self):
         parser = self.subparser.add_parser('create')
@@ -54,8 +52,7 @@ class Cmd(object):
             required=True)
         parser.add_argument(
             '-t', '--tags', nargs='+',
-            help='Identifier or resource'
-            )
+            help='Identifier or resource')
 
         parser = self.subparser.add_parser('prepare')
         parser.set_defaults(func=getattr(self, 'prepare'))
@@ -88,34 +85,32 @@ class Cmd(object):
             '--resource',
             required=True)
 
+        parser = self.subparser.add_parser('discover')
+        parser.set_defaults(func=getattr(self, 'discover'))
+
         parser = self.subparser.add_parser('clear')
         parser.set_defaults(func=getattr(self, 'clear'))
+
+    def discover(self, args):
+        Discovery({'id': 'discovery'}).execute()
 
     def parse(self, args):
         parsed = self.parser.parse_args(args)
         return parsed.func(parsed)
 
     def create(self, args):
-        resource = args.resource
-
-        storage = Storage.from_files('./schema/resources')
-
-        resource_uid = '{0}_{1}'.format(resource, '_'.join(args.tags))
-        data = deepcopy(storage.get(resource))
-        data['tags'] = args.tags
-        self.dbm[resource_uid] = yaml.dump(
-            data, default_flow_style=False)
+        self.db.create_resource(args.resource, args.tags)
 
     def clear(self, args):
-        self.dbm.clear()
+        self.db.clear()
 
     def show(self, args):
-        print self.dbm[args.resource]
+        print self.db[args.resource]
 
     def prepare(self, args):
 
         orch = ansible.AnsibleOrchestration(
-            [yaml.load(self.dbm[r]) for r in args.resources])
+            [yaml.load(self.db[r]) for r in args.resources])
 
         utils.create_dir('tmp/group_vars')
         with open('tmp/hosts', 'w') as f:
