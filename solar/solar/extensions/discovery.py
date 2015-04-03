@@ -7,9 +7,10 @@ from solar import utils
 from solar.extensions import base
 
 
-class Discovery(base.BaseResource):
+class Discovery(base.BaseExtension):
 
     VERSION = '1.0.0'
+    ID = 'discovery'
 
     FILE_PATH = os.path.join(
         os.path.dirname(__file__), '..', '..', '..',

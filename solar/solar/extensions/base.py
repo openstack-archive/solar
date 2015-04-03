@@ -1,16 +1,14 @@
 from solar.interfaces.db import get_db
 
 
-class BaseResource(object):
+class BaseExtension(object):
+
+    ID = None
+    NAME = None
 
     def __init__(self, config):
-        """
-        config - data described in configuration files
-        hosts  - can be overwritten if resource is inside of the role,
-                 or maybe change for some resource directly
-        """
         self.config = config
-        self.uid = config['id']
+        self.uid = self.ID
         self.db = get_db()
 
     def prepare(self):
