@@ -7,6 +7,8 @@ from copy import deepcopy
 
 import yaml
 
+from solar import utils
+
 
 def get_files(path, pattern):
     for root, dirs, files in os.walk(path):
@@ -19,6 +21,7 @@ class FileSystemDB(DirDBM):
     RESOURCES_PATH = './schema/resources'
 
     def __init__(self):
+        utils.create_dir('tmp/created/')
         super(FileSystemDB, self).__init__('tmp/created/')
         self.entities = {}
 
