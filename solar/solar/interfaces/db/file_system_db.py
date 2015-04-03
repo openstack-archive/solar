@@ -33,6 +33,9 @@ class FileSystemDB(DirDBM):
         data['tags'] = tags
         self[resource_uid] = yaml.dump(data, default_flow_style=False)
 
+    def get_copy(self, key):
+        return yaml.load(deepcopy(self[key]))
+
     def add(self, resource):
         if 'id' in resource:
             self.entities[resource['id']] = resource
