@@ -25,8 +25,8 @@ import argparse
 import yaml
 
 from solar import utils
+from solar.extensions import ansible
 from solar.extensions.discovery import Discovery
-from solar.core import ansible
 from solar.interfaces.db import get_db
 
 
