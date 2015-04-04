@@ -2,7 +2,8 @@
 - hosts: all
   sudo: yes
   tasks:
-    - shell: sh /vagrant/kolla/tools/genenv
+    - git:  repo=https://github.com/stackforge/kolla.git
+    - shell: sh kolla/tools/genenv
     - shell: docker pull {{item}}
       with_items:
         - kollaglue/centos-rdo-glance-registry
