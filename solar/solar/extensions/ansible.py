@@ -1,43 +1,46 @@
-
+import subprocess
 import yaml
 
-from solar.extensions import resource
+from solar import utils
+from solar.extensions import base
 
 from jinja2 import Template
 
 
 ANSIBLE_INVENTORY = """
 {% for node in nodes %}
-{{node.node.name}} ansible_ssh_host={{node.node.ssh_host}} ansible_connection={{node.node.connection_type}}
+{{node['name']}} ansible_ssh_host={{node['ssh_host']}} ansible_connection={{node['connection_type']}}
 {% endfor %}
 
 {% for res in resources %}
-[{{ res.uid }}]
-{% for node in nodes %} {{node.node.name}} {% endfor %} {% endfor %}
+[{{ res.id }}]
+{% for node in nodes %} {{node['name']}} {% endfor %} {% endfor %}
 """
 
 
-class AnsibleOrchestration(object):
+class AnsibleOrchestration(base.BaseExtension):
 
-    def __init__(self, resources):
-        self.resources = [resource(r) for r in resources
-                          if r['id'] != 'node']
-        self.nodes = [resource(r) for r in resources
-                      if r['id'] == 'node']
+    ID = 'ansible'
+    VERSION = '1.0.0'
+    PROVIDES = ['configure']
+
+    def __init__(self, *args, **kwargs):
+        super(AnsibleOrchestration, self).__init__(*args, **kwargs)
+
+        self.resources = self.core.get_data('resources')
+        self.nodes = self.core.get_data('nodes_resources')
 
     @property
     def inventory(self):
         temp = Template(ANSIBLE_INVENTORY)
-        node_data = [n.inventory for n in self.nodes]
-        return temp.render(nodes=node_data, resources=self.resources)
+        return temp.render(nodes=self.nodes, resources=self.resources)
 
     @property
     def vars(self):
         result = {}
 
         for res in self.resources:
-
-            compiled = Template(yaml.dump(res.inventory))
+            compiled = Template(utils.yaml_dump({res['id']: res.get('input', {})}))
             compiled = yaml.load(compiled.render(**result))
 
             result.update(compiled)
@@ -48,10 +51,19 @@ class AnsibleOrchestration(object):
         all_playbooks = []
 
         for res in self.resources:
-
-            all_playbooks.extend(res.execute(action))
+            all_playbooks.extend(res.get('actions', {}).get(action, {}))
 
         return all_playbooks
 
     def remove(self):
         return list(reversed(self.run(action='remove')))
+
+    def configure(self):
+        utils.create_dir('tmp/group_vars')
+        utils.write_to_file(self.inventory, 'tmp/hosts')
+        utils.yaml_dump_to(self.vars, 'tmp/group_vars/all')
+        utils.yaml_dump_to(self.run(), 'tmp/main.yml')
+
+        sub = subprocess.Popen(
+            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
+        out, err = sub.communicate()

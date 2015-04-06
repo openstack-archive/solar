@@ -5,24 +5,23 @@ class BaseExtension(object):
 
     ID = None
     NAME = None
+    PROVIDES = []
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, core_manager=None, config=None):
+        self.config = config or {}
         self.uid = self.ID
         self.db = get_db()
+
+        from solar.core.extensions_manager import ExtensionsManager
+        self.core = core_manager or ExtensionsManager()
 
     def prepare(self):
         """Make some changes in database state."""
 
     @property
-    def inventory(self):
-        """Return data that will be used for inventory"""
-        return {self.uid: self.input}
-
-    @property
     def input(self):
         return self.config.get('input', {})
 
-    def execute(self, action):
-        """Return data that will be used by orchestration framework"""
-        raise NotImplemented('Mandatory to overwrite')
+    @property
+    def output(self):
+        return self.config.get('output', {})

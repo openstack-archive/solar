@@ -13,7 +13,7 @@ def create_dir(dir_path):
         os.makedirs(dir_path)
 
 
-def load_yaml(file_path):
+def yaml_load(file_path):
     with io.open(file_path) as f:
         result = yaml.load(f)
 
@@ -24,9 +24,18 @@ def yaml_dump(yaml_data):
     return yaml.dump(yaml_data, default_flow_style=False)
 
 
+def write_to_file(data, file_path):
+    with open(file_path, 'w') as f:
+        f.write(data)
+
+
+def yaml_dump_to(data, file_path):
+    write_to_file(yaml_dump(data), file_path)
+
+
 def load_by_mask(mask):
     result = []
     for file_path in glob.glob(mask):
-        result.extend(load_yaml(file_path))
+        result.append(yaml_load(file_path))
 
     return result

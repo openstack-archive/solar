@@ -29,7 +29,7 @@ def find_extension(id_, version):
 
 
 def find_by_provider_from_profile(profile_path, provider):
-    profile = utils.load_yaml(profile_path)
+    profile = utils.yaml_load(profile_path)
     extensions = profile.get('extensions', [])
     result = None
     for ext in extensions:
