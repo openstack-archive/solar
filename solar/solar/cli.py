@@ -25,6 +25,7 @@ import argparse
 import yaml
 
 from solar import utils
+from solar import extensions
 from solar.extensions import ansible
 from solar.extensions.discovery import Discovery
 from solar.interfaces.db import get_db
@@ -90,6 +91,19 @@ class Cmd(object):
 
         parser = self.subparser.add_parser('clear')
         parser.set_defaults(func=getattr(self, 'clear'))
+
+        # Perform configuration
+        parser = self.subparser.add_parser('configure')
+        parser.set_defaults(func=getattr(self, 'configure'))
+        parser.add_argument(
+            '-p',
+            '--profile')
+        parser.add_argument(
+            '-t', '--tags', nargs='+', required=True,
+            help='A list of tags for deployment')
+
+    def configure(self, args):
+        extensions.find_by_provider_from_profile(args.profile, 'configure').configure()
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).execute()
