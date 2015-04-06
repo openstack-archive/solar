@@ -98,9 +98,6 @@ class Cmd(object):
         parser.add_argument(
             '-p',
             '--profile')
-        parser.add_argument(
-            '-t', '--tags', nargs='+', required=True,
-            help='A list of tags for deployment')
 
     def configure(self, args):
         extensions.find_by_provider_from_profile(args.profile, 'configure').configure()

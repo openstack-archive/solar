@@ -7,13 +7,14 @@ class BaseExtension(object):
     NAME = None
     PROVIDES = []
 
-    def __init__(self, core_manager=None, config=None):
+    def __init__(self, profile, core_manager=None, config=None):
         self.config = config or {}
         self.uid = self.ID
         self.db = get_db()
+        self.profile = profile
 
         from solar.core.extensions_manager import ExtensionsManager
-        self.core = core_manager or ExtensionsManager()
+        self.core = core_manager or ExtensionsManager(self.profile)
 
     def prepare(self):
         """Make some changes in database state."""

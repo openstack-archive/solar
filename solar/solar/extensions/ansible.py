@@ -28,7 +28,18 @@ class AnsibleOrchestration(base.BaseExtension):
         super(AnsibleOrchestration, self).__init__(*args, **kwargs)
 
         self.resources = self.core.get_data('resources')
-        self.nodes = self.core.get_data('nodes_resources')
+        self.nodes = self._get_nodes()
+
+    def _get_nodes(self):
+        nodes = []
+        for node in self.core.get_data('nodes_resources'):
+            if self.profile.tags <= set(node.get('tags', [])):
+                nodes.append(node)
+
+        return nodes
+
+    def _get_resources_for_nodes(self):
+        pass
 
     @property
     def inventory(self):

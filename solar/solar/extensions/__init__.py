@@ -29,17 +29,19 @@ def find_extension(id_, version):
 
 
 def find_by_provider_from_profile(profile_path, provider):
-    profile = utils.yaml_load(profile_path)
-    extensions = profile.get('extensions', [])
+    # Circular dependencies problem
+    from solar.core import extensions_manager
+    from solar.core import profile
+
+    profile = profile.Profile(utils.yaml_load(profile_path))
+    extensions = profile.extensions
     result = None
     for ext in extensions:
         result = find_extension(ext['id'], ext['version'])
         if result:
             break
 
-    # Circular dependencies problem
-    from solar.core.extensions_manager import ExtensionsManager
     # Create data manager
-    core_manager = ExtensionsManager()
+    core_manager = extensions_manager.ExtensionsManager(profile)
 
-    return result(core_manager)
+    return result(profile)
