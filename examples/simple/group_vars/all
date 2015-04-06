@@ -1,0 +1,10 @@
+docker:
+    base_image: ubuntu
+
+rabbitmq:
+    image: tutum/rabbitmq
+    name: rabbit-test1
+
+user:
+    name: test_name
+    password: test_pass

@@ -1,0 +1,5 @@
+
+- hosts: [rabbitmq]
+  sudo: yes
+  tasks:
+    - shell: docker run --name {{ rabbitmq.name }} -d {{ rabbitmq.image }}

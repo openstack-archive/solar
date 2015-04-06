@@ -1,0 +1,4 @@
+
+- include: docker/run.yml
+- include: rabbitmq/run.yml
+- include: user/run.yml

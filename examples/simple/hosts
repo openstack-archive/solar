@@ -1,0 +1,14 @@
+
+first ansible_connection=local
+
+[docker]
+
+first
+
+[rabbitmq]
+
+first
+
+[user]
+
+first

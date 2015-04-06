@@ -1,0 +1,5 @@
+
+- hosts: [rabbitmq]
+  sudo: yes
+  tasks:
+    - shell: docker exec -i {{rabbitmq.name}} /usr/sbin/rabbitmqctl delete_user {{user.name}}
