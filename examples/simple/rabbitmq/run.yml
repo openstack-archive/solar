@@ -2,4 +2,5 @@
 - hosts: [rabbitmq]
   sudo: yes
   tasks:
-    - shell: docker run --name {{ rabbitmq.name }} -d {{ rabbitmq.image }}
+    - shell: docker run --net="host" --privileged \
+        --name {{ rabbitmq.name }} -d {{ rabbitmq.image }}

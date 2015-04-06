@@ -12,3 +12,11 @@ first
 [user]
 
 first
+
+[rabbitmq_hosts]
+
+first
+
+[mariadb]
+
+first

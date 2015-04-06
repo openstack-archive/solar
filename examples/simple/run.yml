@@ -1,4 +1,5 @@
 
 - include: docker/run.yml
 - include: rabbitmq/run.yml
+- include: mariadb/run.yml
 - include: user/run.yml

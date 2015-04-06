@@ -1,0 +1,6 @@
+
+- hosts: [mariadb]
+  sudo: yes
+  tasks:
+    - shell: docker run -d --net="host" --privileged \
+        --name {{mariadb.name}} {{mariadb.image}}

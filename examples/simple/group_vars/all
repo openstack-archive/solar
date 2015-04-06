@@ -8,3 +8,7 @@ rabbitmq:
 user:
     name: test_name
     password: test_pass
+
+mariadb:
+    name: maria-test
+    image: tutum/mariadb
