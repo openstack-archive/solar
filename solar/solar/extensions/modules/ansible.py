@@ -1,3 +1,5 @@
+import os
+
 import subprocess
 import yaml
 
@@ -19,6 +21,12 @@ ANSIBLE_INVENTORY = """
  {% endfor %}
 {% endfor %}
 """
+
+
+def playbook(resource_path, playbook_name):
+    resource_dir = os.path.dirname(resource_path)
+    return {'include': '{0}'.format(
+        os.path.join(resource_dir,  playbook_name))}
 
 
 class AnsibleOrchestration(base.BaseExtension):
@@ -94,29 +102,71 @@ class AnsibleOrchestration(base.BaseExtension):
         result = {}
 
         for res in self.resources:
-            compiled = Template(utils.yaml_dump({res['id']: res.get('input', {})}))
+            compiled = Template(
+                utils.yaml_dump({res['id']: res.get('input', {})}))
             compiled = yaml.load(compiled.render(**result))
 
             result.update(compiled)
 
         return result
 
-    def run(self, action='run'):
-        all_playbooks = []
+    def prepare_from_profile(self, profile_action):
 
-        for res in self.resources:
-            all_playbooks.extend(res.get('actions', {}).get(action, {}))
+        paths = self.profile.get(profile_action)
+        if paths is None:
+            raise Exception('Action %s not supported', profile_action)
 
-        return all_playbooks
+        return self.prepare_many(paths)
 
-    def remove(self):
-        return list(reversed(self.run(action='remove')))
+    def prepare_many(self, paths):
 
-    def configure(self):
+        ansible_actions = []
+
+        for path in paths:
+            ansible_actions.extend(self.prepare_one(path))
+
+        return ansible_actions
+
+    def prepare_one(self, path):
+        """
+        :param path: docker.actions.run or openstack.action
+        """
+        steps = path.split('.')
+
+        if len(steps) < 2:
+            raise Exception('Path %s is not valid,'
+                            ' should be atleast 2 items', path)
+
+        resource = next(res for res in self.resources
+                        if res['id'] == steps[0])
+
+        action = resource
+        for step in steps[1:]:
+            action = action[step]
+
+        result = []
+        if isinstance(action, list):
+            for item in action:
+                result.append(playbook(resource['parent_path'], item))
+        else:
+            result.append(playbook(resource['parent_path'], action))
+
+        return result
+
+    def configure(self, profile_action='run', actions=None):
         utils.create_dir('tmp/group_vars')
         utils.write_to_file(self.inventory, 'tmp/hosts')
         utils.yaml_dump_to(self.vars, 'tmp/group_vars/all')
-        utils.yaml_dump_to(self.run(), 'tmp/main.yml')
+
+        if actions:
+            prepared = self.prepare_many(actions)
+        elif profile_action:
+            prepared = self.prepare_from_profile(profile_action)
+        else:
+            raise Exception('Either profile_action '
+                            'or actions should be provided.')
+
+        utils.yaml_dump_to(prepared, 'tmp/main.yml')
 
         sub = subprocess.Popen(
             ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])

@@ -46,53 +46,14 @@ class Cmd(object):
         self.register_actions()
         self.db = get_db()
 
+    def parse(self, args):
+        parsed = self.parser.parse_args(args)
+        return parsed.func(parsed)
+
     def register_actions(self):
-        parser = self.subparser.add_parser('create')
-        parser.set_defaults(func=getattr(self, 'create'))
-        parser.add_argument(
-            '-r',
-            '--resource',
-            required=True)
-        parser.add_argument(
-            '-t', '--tags', nargs='+',
-            help='Identifier or resource')
-
-        parser = self.subparser.add_parser('prepare')
-        parser.set_defaults(func=getattr(self, 'prepare'))
-        parser.add_argument(
-            '-a',
-            '--action',
-            required=True)
-        parser.add_argument(
-            '-r',
-            '--resources',
-            nargs='+',
-            required=True)
-
-        parser = self.subparser.add_parser('exec')
-        parser.set_defaults(func=getattr(self, 'execute'))
-        parser.add_argument(
-            '-a',
-            '--action',
-            required=True)
-        parser.add_argument(
-            '-r',
-            '--resources',
-            nargs='+',
-            required=True)
-
-        parser = self.subparser.add_parser('show')
-        parser.set_defaults(func=getattr(self, 'show'))
-        parser.add_argument(
-            '-r',
-            '--resource',
-            required=True)
 
         parser = self.subparser.add_parser('discover')
         parser.set_defaults(func=getattr(self, 'discover'))
-
-        parser = self.subparser.add_parser('clear')
-        parser.set_defaults(func=getattr(self, 'clear'))
 
         # Perform configuration
         parser = self.subparser.add_parser('configure')
@@ -100,49 +61,22 @@ class Cmd(object):
         parser.add_argument(
             '-p',
             '--profile')
+        parser.add_argument(
+            '-a',
+            '--actions',
+            nargs='+')
+        parser.add_argument(
+            '-pa',
+            '--profile_action')
 
     def configure(self, args):
-        extensions.find_by_provider_from_profile(args.profile, 'configure').configure()
+        extensions.find_by_provider_from_profile(
+            args.profile, 'configure').configure(
+            actions=args.actions, profile_action=args.profile_action)
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).execute()
 
-    def parse(self, args):
-        parsed = self.parser.parse_args(args)
-        return parsed.func(parsed)
-
-    def create(self, args):
-        self.db.create_resource(args.resource, args.tags)
-
-    def clear(self, args):
-        self.db.clear()
-
-    def show(self, args):
-        print self.db[args.resource]
-
-    def prepare(self, args):
-
-        orch = ansible.AnsibleOrchestration(
-            [yaml.load(self.db[r]) for r in args.resources])
-
-        utils.create_dir('tmp/group_vars')
-        with open('tmp/hosts', 'w') as f:
-            f.write(orch.inventory)
-
-        with open('tmp/group_vars/all', 'w') as f:
-            f.write(yaml.dump(orch.vars, default_flow_style=False))
-
-        with open('tmp/main.yml', 'w') as f:
-            f.write(
-                yaml.dump(getattr(orch, args.action)(),
-                default_flow_style=False))
-
-    def execute(self, args):
-        self.prepare(args)
-        sub = subprocess.Popen(
-            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
-        out, err = sub.communicate()
-        print out
 
 
 def main():
