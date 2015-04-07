@@ -27,8 +27,8 @@ class AnsibleOrchestration(base.BaseExtension):
     def __init__(self, *args, **kwargs):
         super(AnsibleOrchestration, self).__init__(*args, **kwargs)
 
-        self.resources = self.core.get_data('resources')
         self.nodes = self._get_nodes()
+        self.resources = self._get_resources_for_nodes(self.nodes)
 
     def _get_nodes(self):
         nodes = []
@@ -38,8 +38,29 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return nodes
 
-    def _get_resources_for_nodes(self):
-        pass
+    def _get_resources_for_nodes(self, nodes):
+        """Retrieves resources which required for nodes deployment"""
+        resources = []
+
+        for node in nodes:
+            node_tags = set(node.get('tags', []))
+            result_resources = self._get_resources_with_tags(node_tags)
+            resources.extend(result_resources)
+
+        return resources
+
+    def _get_resources_with_tags(self, tags):
+        resources = []
+        for resource in self.core.get_data('resources'):
+            resource_tags = set(resource.get('tags', []))
+            # If resource without tags, it means that it should
+            # not be assigned to any node
+            if not resource_tags:
+                continue
+            if resource_tags <= tags:
+                resources.append(resource)
+
+        return resources
 
     @property
     def inventory(self):

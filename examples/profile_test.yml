@@ -9,8 +9,5 @@ extensions:
   - id: ansible
     version: '1.0.0'
 
-define_tags:
+tags:
   - env/test_env
-  - rack/1
-  - rack/2
-  - datacenter/1
