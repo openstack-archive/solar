@@ -20,10 +20,11 @@ def get_files(path, pattern):
 
 class FileSystemDB(DirDBM):
     RESOURCES_PATH = './schema/resources'
+    STORAGE_PATH = 'tmp/storage/'
 
     def __init__(self):
-        utils.create_dir('tmp/created/')
-        super(FileSystemDB, self).__init__('tmp/created/')
+        utils.create_dir(self.STORAGE_PATH)
+        super(FileSystemDB, self).__init__(self.STORAGE_PATH)
         self.entities = {}
 
     def create_resource(self, resource, tags):
