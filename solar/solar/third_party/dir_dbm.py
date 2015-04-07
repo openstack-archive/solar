@@ -300,4 +300,3 @@ class DirDBM(object):
             return os.path.getmtime(path)
         else:
             raise KeyError, key
-

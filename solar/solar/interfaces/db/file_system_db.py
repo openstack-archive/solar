@@ -33,23 +33,40 @@ class FileSystemDB(DirDBM):
         resource_uid = '{0}_{1}'.format(resource, '_'.join(tags))
         data = deepcopy(self.get(resource))
         data['tags'] = tags
-        self[resource_uid] = utils.yaml_dump(data)
+        self[resource_uid] = self._serialize(data)
 
     def get_copy(self, key):
-        return yaml.load(deepcopy(self[key]))
+        return self._deserialize(deepcopy(self[key]))
 
     def add(self, obj):
         if 'id' in obj:
             self.entities[obj['id']] = obj
 
     def store_from_file(self, file_path):
-        self.store(utils.load_yaml(file_path))
+        self.store(self._deserialize(file_path))
 
-    def store(self, obj):
+    def store(self, collection, obj):
         if 'id' in obj:
-            self[obj['id']] = utils.yaml_dump(obj)
+            self[self._make_key(collection, obj['id'])] = self._serialize(obj)
         else:
             raise errors.CannotFindID('Cannot find id for object {0}'.format(obj))
+
+    def store_list(self, collection, objs):
+        for obj in objs:
+            self.store(collection, obj)
+
+    def get_list(self, collection):
+        collection_keys = filter(
+            lambda k: k.startswith('{0}-'.format(collection)),
+            self.keys())
+
+        return map(lambda k: self._deserialize(self[k]), collection_keys)
+
+    def get(self, collection, _id):
+        return utils._deserialize(self[self._make_key(collection, _id)])
+
+    def _make_key(self, collection, _id):
+        return '{0}-{1}'.format(collection, _id)
 
     def add_resource(self, resource):
         if 'id' in resource:
@@ -61,6 +78,20 @@ class FileSystemDB(DirDBM):
     def from_files(self, path):
         for file_path in get_files(path, '*.yml'):
             with open(file_path) as f:
-                entity = yaml.load(f)
+                entity = self._deserialize(f)
 
             self.add_resource(entity)
+
+    def _serialize(self, data):
+        return utils.yaml_dump(data)
+
+    def _deserialize(self, data):
+        return yaml.load(data)
+
+    def _encode(self, key):
+        """Override method of the parent not to use base64 as a key for encoding"""
+        return key
+
+    def _decode(self, key):
+        """Override method of the parent not to use base64 as a key for encoding"""
+        return key
