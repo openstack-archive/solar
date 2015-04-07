@@ -115,7 +115,8 @@ class DirDBM(object):
         @param v: value to associate with C{k}
         """
         assert type(k) == types.StringType, "DirDBM key must be a string"
-        assert type(v) == types.StringType, "DirDBM value must be a string"
+        # NOTE: Can be not a string if _writeFile in the child is redefined
+        # assert type(v) == types.StringType, "DirDBM value must be a string"
         k = self._encode(k)
 
         # we create a new file with extension .new, write the data to it, and
