@@ -62,7 +62,7 @@ class FileSystemDB(DirDBM):
 
         return map(lambda k: self[k], collection_keys)
 
-    def get(self, collection, _id):
+    def get_record(self, collection, _id):
         return self[self._make_key(collection, _id)]
 
     def _make_key(self, collection, _id):

@@ -89,9 +89,11 @@ class Cmd(object):
             pprint.pprint(self.db.get_list('profiles'))
 
     def configure(self, args):
+        profile = self.db.get_record('profiles', args.profile)
         extensions.find_by_provider_from_profile(
-            args.profile, 'configure').configure(
-            actions=args.actions, profile_action=args.profile_action)
+            profile, 'configure').configure(
+                actions=args.actions,
+                profile_action=args.profile_action)
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).execute()

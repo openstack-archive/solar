@@ -2,7 +2,7 @@ import glob
 import os
 
 from solar import utils
-from solar.core import profile
+from solar.core.profile import Profile
 from solar.extensions.base import BaseExtension
 # Import all modules from the directory in order
 # to make subclasses for extensions work
@@ -25,8 +25,8 @@ def find_extension(id_, version):
     return extensions[0]
 
 
-def find_by_provider_from_profile(profile_path, provider):
-    profile_ = profile.Profile(utils.yaml_load(profile_path))
+def find_by_provider_from_profile(profile, provider):
+    profile_ = Profile(profile)
     extensions = profile_.extensions
     result = None
     for ext in extensions:
