@@ -16,5 +16,6 @@
     - apt: name=python-virtualenv state=present
     - apt: name=virtualenvwrapper state=present
     - apt: name=ipython state=present
+    - apt: name=pudb state=present
       # Setup development env for solar
     - shell: python setup.py develop chdir=/vagrant/solar

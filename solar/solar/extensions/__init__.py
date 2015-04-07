@@ -1,16 +1,13 @@
-import os
 import glob
+import os
 
 from solar import utils
+from solar.core import profile
 from solar.extensions.base import BaseExtension
 # Import all modules from the directory in order
 # to make subclasses for extensions work
-modules = glob.glob(os.path.join(os.path.dirname(__file__), '*.py'))
-[__import__(os.path.basename(f)[:-3], locals(), globals()) for f in modules]
-
-
-def resource(config):
-    return playbook.Playbook(config)
+modules = glob.glob(os.path.join(os.path.dirname(__file__), 'modules', '*.py'))
+[__import__('%s.%s' % ('modules', os.path.basename(f)[:-3]), locals(), globals()) for f in modules]
 
 
 def get_all_extensions():
@@ -29,19 +26,12 @@ def find_extension(id_, version):
 
 
 def find_by_provider_from_profile(profile_path, provider):
-    # Circular dependencies problem
-    from solar.core import extensions_manager
-    from solar.core import profile
-
-    profile = profile.Profile(utils.yaml_load(profile_path))
-    extensions = profile.extensions
+    profile_ = profile.Profile(utils.yaml_load(profile_path))
+    extensions = profile_.extensions
     result = None
     for ext in extensions:
         result = find_extension(ext['id'], ext['version'])
         if result:
             break
 
-    # Create data manager
-    core_manager = extensions_manager.ExtensionsManager(profile)
-
-    return result(profile)
+    return result(profile_)
