@@ -1,0 +1,6 @@
+
+networks:
+    default:
+        ip: 10.0.0.2
+        cidr: 10.0.0.0/24
+        interface: eth1
