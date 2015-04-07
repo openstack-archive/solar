@@ -8,6 +8,7 @@ from copy import deepcopy
 import yaml
 
 from solar import utils
+from solar import errors
 
 
 def get_files(path, pattern):
@@ -31,11 +32,23 @@ class FileSystemDB(DirDBM):
         resource_uid = '{0}_{1}'.format(resource, '_'.join(tags))
         data = deepcopy(self.get(resource))
         data['tags'] = tags
-        self[resource_uid] = yaml.dump(data, default_flow_style=False)
+        self[resource_uid] = utils.yaml_dump(data)
 
-    def add(self, resource):
-        if 'id' in resource:
-            self.entities[resource['id']] = resource
+    def get_copy(self, key):
+        return yaml.load(deepcopy(self[key]))
+
+    def add(self, obj):
+        if 'id' in obj:
+            self.entities[obj['id']] = obj
+
+    def store_from_file(self, file_path):
+        self.store(utils.load_yaml(file_path))
+
+    def store(self, obj):
+        if 'id' in obj:
+            self[obj['id']] = utils.yaml_dump(obj)
+        else:
+            raise errors.CannotFindID('Cannot find id for object {0}'.format(obj))
 
     def add_resource(self, resource):
         if 'id' in resource:

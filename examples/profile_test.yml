@@ -1,0 +1,13 @@
+id: pf1
+type: profile
+
+extensions:
+  - id: profile
+    version: '1.0.0'
+  - id: file_discovery
+    version: '1.0.0'
+  - id: ansible
+    version: '1.0.0'
+
+tags:
+  - env/test_env
