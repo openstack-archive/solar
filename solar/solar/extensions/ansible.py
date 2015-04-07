@@ -50,7 +50,7 @@ class AnsibleOrchestration(base.BaseExtension):
             result_resources = self._get_resources_with_tags(node_tags)
             resources.extend(result_resources)
 
-        return resources
+        return dict((r['id'], r) for r in resources).values()
 
     def _get_resources_with_tags(self, tags):
         resources = []
