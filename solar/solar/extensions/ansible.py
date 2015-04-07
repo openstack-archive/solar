@@ -13,8 +13,11 @@ ANSIBLE_INVENTORY = """
 {% endfor %}
 
 {% for res in resources %}
-[{{ res.id }}]
-{% for node in nodes_mapping[res.id] %} {{node['name']}} {% endfor %} {% endfor %}
+ [{{ res.id }}]
+ {% for node in nodes_mapping[res.id] %}
+  {{node['name']}}
+ {% endfor %}
+{% endfor %}
 """
 
 
