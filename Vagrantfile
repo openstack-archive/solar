@@ -15,18 +15,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.box = "deb/jessie-amd64"
 
-  config.vm.provider "virtualbox" do |v|
-    v.customize ["modifyvm", :id, "--memory", 2048]
-  end
-
   config.vm.provision "shell", inline: init_script, privileged: true
 
-  config.vm.define "solar-dev" do |guest1|
+  config.vm.define "solar-dev", primary: true do |guest1|
     guest1.vm.network "private_network", ip: "10.0.0.2"
+    guest1.vm.host_name = "solar-dev"
+
+    guest1.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--memory", 2048]
+      v.name = "solar-dev"
+    end
   end
 
   config.vm.define "solar-dev2" do |guest2|
     guest2.vm.network "private_network", ip: "10.0.0.3"
+    guest2.vm.host_name = "solar-dev2"
+
+    guest2.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.name = "solar-dev2"
+    end
   end
 
 end
