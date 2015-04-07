@@ -14,7 +14,7 @@ ANSIBLE_INVENTORY = """
 
 {% for res in resources %}
 [{{ res.id }}]
-{% for node in nodes %} {{node['name']}} {% endfor %} {% endfor %}
+{% for node in nodes_mapping[res.id] %} {{node['name']}} {% endfor %} {% endfor %}
 """
 
 
@@ -65,7 +65,26 @@ class AnsibleOrchestration(base.BaseExtension):
     @property
     def inventory(self):
         temp = Template(ANSIBLE_INVENTORY)
-        return temp.render(nodes=self.nodes, resources=self.resources)
+        return temp.render(
+            nodes_mapping=self._make_nodes_services_mapping(),
+            resources=self.resources,
+            nodes=self.nodes)
+
+    def _make_nodes_services_mapping(self):
+        mapping = {}
+        for resource in self.resources:
+            mapping[resource['id']] = self._get_nodes_for_resource(resource)
+
+        return mapping
+
+    def _get_nodes_for_resource(self, resource):
+        resource_tags = set(resource['tags'])
+        nodes = []
+        for node in self.nodes:
+            if resource_tags <= set(node['tags']):
+                nodes.append(node)
+
+        return nodes
 
     @property
     def vars(self):
