@@ -16,12 +16,13 @@
 On create "golden" resource should be moved to special place
 """
 
+import argparse
 import subprocess
-
+import os
 import sys
+import pprint
 
 import textwrap
-import argparse
 import yaml
 
 from solar import utils
@@ -68,6 +69,24 @@ class Cmd(object):
         parser.add_argument(
             '-pa',
             '--profile_action')
+
+        # Profile actions
+        parser = self.subparser.add_parser('profile')
+        parser.set_defaults(func=getattr(self, 'profile'))
+        parser.add_argument('-l', '--list', dest='list', action='store_true')
+        group = parser.add_argument_group('create')
+        group.add_argument('-c', '--create', dest='create', action='store_true')
+        group.add_argument('-t', '--tags', nargs='+', default=['env/test_env'])
+        group.add_argument('-i', '--id', default=utils.generate_uuid())
+
+    def profile(self, args):
+        if args.create:
+            params = {'tags': args.tags, 'id': args.id}
+            profile_template_path = os.path.join(os.path.dirname(__file__), 'templates', 'profile.yml')
+            data = yaml.load(utils.render_template(profile_template_path, params))
+            self.db.store('profiles', data)
+        else:
+            pprint.pprint(self.db.get_list('profiles'))
 
     def configure(self, args):
         extensions.find_by_provider_from_profile(
