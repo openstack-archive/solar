@@ -64,12 +64,15 @@ class Cmd(object):
         parser.add_argument(
             '-a',
             '--actions',
-            nargs='+',
-            required=True)
+            nargs='+')
+        parser.add_argument(
+            '-pa',
+            '--profile_action')
 
     def configure(self, args):
         extensions.find_by_provider_from_profile(
-            args.profile, 'configure').configure(actions=args.actions)
+            args.profile, 'configure').configure(
+            actions=args.actions, profile_action=args.profile_action)
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).execute()

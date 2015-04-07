@@ -14,3 +14,6 @@ tags:
 
 run:
   - docker.actions.run
+
+remove:
+  - docker.actions.remove

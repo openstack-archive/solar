@@ -111,11 +111,12 @@ class AnsibleOrchestration(base.BaseExtension):
         return result
 
     def prepare_from_profile(self, profile_action):
-        if profile_action not in self.profile:
+
+        paths = self.profile.get(profile_action)
+        if paths is None:
             raise Exception('Action %s not supported', profile_action)
 
-        paths = self.profile[profile_action]
-        return self.execute_many(paths)
+        return self.prepare_many(paths)
 
     def prepare_many(self, paths):
 
