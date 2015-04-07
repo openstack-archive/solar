@@ -1,3 +1,5 @@
+import os
+
 import subprocess
 import yaml
 
@@ -19,6 +21,12 @@ ANSIBLE_INVENTORY = """
  {% endfor %}
 {% endfor %}
 """
+
+
+def playbook(resource_path, playbook_name):
+    resource_dir = os.path.dirname(resource_path)
+    return {'include': '{0}'.format(
+        os.path.join(resource_dir,  playbook_name))}
 
 
 class AnsibleOrchestration(base.BaseExtension):
@@ -102,22 +110,23 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return result
 
-    def execute_from_profile(self, profile_action):
+    def prepare_from_profile(self, profile_action):
         if profile_action not in self.profile:
             raise Exception('Action %s not supported', profile_action)
 
         paths = self.profile[profile_action]
         return self.execute_many(paths)
 
-    def execute_many(self, paths):
+    def prepare_many(self, paths):
 
         ansible_actions = []
 
         for path in paths:
-            ansible_actions.extend(self.execute_one(path))
+            ansible_actions.extend(self.prepare_one(path))
+
         return ansible_actions
 
-    def execute_one(self, path):
+    def prepare_one(self, path):
         """
         :param path: docker.actions.run or openstack.action
         """
@@ -133,14 +142,30 @@ class AnsibleOrchestration(base.BaseExtension):
         action = resource
         for step in steps[1:]:
             action = action[step]
-        return action
 
-    def configure(self):
+        result = []
+        if isinstance(action, list):
+            for item in action:
+                result.append(playbook(resource['parent_path'], item))
+        else:
+            result.append(playbook(resource['parent_path'], action))
+
+        return result
+
+    def configure(self, profile_action='run', actions=None):
         utils.create_dir('tmp/group_vars')
         utils.write_to_file(self.inventory, 'tmp/hosts')
         utils.yaml_dump_to(self.vars, 'tmp/group_vars/all')
-        utils.yaml_dump_to(
-            self.execute_from_profile('run'), 'tmp/main.yml')
+
+        if actions:
+            prepared = self.prepare_many(actions)
+        elif profile_action:
+            prepared = self.prepare_from_profile(profile_action)
+        else:
+            raise Exception('Either profile_action '
+                            'or actions should be provided.')
+
+        utils.yaml_dump_to(prepared, 'tmp/main.yml')
 
         sub = subprocess.Popen(
             ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])

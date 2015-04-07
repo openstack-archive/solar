@@ -15,7 +15,12 @@ class Resources(base.BaseExtension):
     FILE_MASK = os.path.join(
         # TODO(pkaminski): no way we need '..' here...
         os.path.dirname(__file__), '..', '..', '..', '..',
-        'schema', 'resources', '*.yml')
+        'examples', 'resources', '*.yml')
 
     def resources(self):
-        return utils.load_by_mask(self.FILE_MASK)
+        resources = []
+        for file_path in utils.find_by_mask(self.FILE_MASK):
+            res = utils.yaml_load(file_path)
+            res['parent_path'] = file_path
+            resources.append(res)
+        return resources

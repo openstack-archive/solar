@@ -33,9 +33,14 @@ def yaml_dump_to(data, file_path):
     write_to_file(yaml_dump(data), file_path)
 
 
+def find_by_mask(mask):
+    for file_path in  glob.glob(mask):
+        yield os.path.abspath(file_path)
+
+
 def load_by_mask(mask):
     result = []
-    for file_path in glob.glob(mask):
+    for file_path in find_by_mask(mask):
         result.append(yaml_load(file_path))
 
     return result
