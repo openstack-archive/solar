@@ -12,8 +12,14 @@ extensions:
 tags:
   - env/test_env
 
+# NOTE(dshulyak) it is mandatory for some profiles to user graph based
+# api to provide order of execution for different events
 run:
   - docker.actions.run
+  - mariadb.actions.run
+  - mariadb.actions.wait
+  - mariadb.actions.users
 
 remove:
+  - mariadb.actions.remove
   - docker.actions.remove

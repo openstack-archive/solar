@@ -1,0 +1,9 @@
+
+- hosts: [mariadb]
+  sudo: yes
+  tasks:
+    - shell: docker exec -t {{mariadb.name}} mysql -uroot -e "select 1"
+      register: result
+      until: result.rc == 0
+      retries: 10
+      delay: 0.5
