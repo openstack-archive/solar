@@ -26,9 +26,11 @@ import yaml
 
 from solar import utils
 from solar import extensions
-from solar.extensions import ansible
-from solar.extensions.discovery import Discovery
 from solar.interfaces.db import get_db
+
+# NOTE: these are extensions, they shouldn't be imported here
+from solar.extensions.modules import ansible
+from solar.extensions.modules.discovery import Discovery
 
 
 class Cmd(object):
@@ -141,6 +143,7 @@ class Cmd(object):
             ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
         out, err = sub.communicate()
         print out
+
 
 def main():
     api = Cmd()

@@ -3,7 +3,6 @@ import os
 
 import yaml
 
-from solar import utils
 from solar.extensions import base
 
 
@@ -14,7 +13,8 @@ class Discovery(base.BaseExtension):
     PROVIDES = ['nodes_resources']
 
     FILE_PATH = os.path.join(
-        os.path.dirname(__file__), '..', '..', '..',
+        # TODO(pkaminski): no way we need '..' here...
+        os.path.dirname(__file__), '..', '..', '..', '..',
         'examples', 'nodes_list.yaml')
 
     def execute(self):
