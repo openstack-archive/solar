@@ -11,3 +11,6 @@ extensions:
 
 tags:
   - env/test_env
+
+run:
+  - docker.actions.run

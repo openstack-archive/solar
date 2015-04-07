@@ -94,29 +94,53 @@ class AnsibleOrchestration(base.BaseExtension):
         result = {}
 
         for res in self.resources:
-            compiled = Template(utils.yaml_dump({res['id']: res.get('input', {})}))
+            compiled = Template(
+                utils.yaml_dump({res['id']: res.get('input', {})}))
             compiled = yaml.load(compiled.render(**result))
 
             result.update(compiled)
 
         return result
 
-    def run(self, action='run'):
-        all_playbooks = []
+    def execute_from_profile(self, profile_action):
+        if profile_action not in self.profile:
+            raise Exception('Action %s not supported', profile_action)
 
-        for res in self.resources:
-            all_playbooks.extend(res.get('actions', {}).get(action, {}))
+        paths = self.profile[profile_action]
+        return self.execute_many(paths)
 
-        return all_playbooks
+    def execute_many(self, paths):
 
-    def remove(self):
-        return list(reversed(self.run(action='remove')))
+        ansible_actions = []
+
+        for path in paths:
+            ansible_actions.extend(self.execute_one(path))
+        return ansible_actions
+
+    def execute_one(self, path):
+        """
+        :param path: docker.actions.run or openstack.action
+        """
+        steps = path.split('.')
+
+        if len(steps) < 2:
+            raise Exception('Path %s is not valid,'
+                            ' should be atleast 2 items', path)
+
+        resource = next(res for res in self.resources
+                        if res['id'] == steps[0])
+
+        action = resource
+        for step in steps[1:]:
+            action = action[step]
+        return action
 
     def configure(self):
         utils.create_dir('tmp/group_vars')
         utils.write_to_file(self.inventory, 'tmp/hosts')
         utils.yaml_dump_to(self.vars, 'tmp/group_vars/all')
-        utils.yaml_dump_to(self.run(), 'tmp/main.yml')
+        utils.yaml_dump_to(
+            self.execute_from_profile('run'), 'tmp/main.yml')
 
         sub = subprocess.Popen(
             ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
