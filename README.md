@@ -36,5 +36,5 @@ vim tmp/storage/nodes-id.yaml
 ```
 * perform deployment
 ```
-solar configure --profile prf1
+solar configure --profile prf1 -pa run
 ```
