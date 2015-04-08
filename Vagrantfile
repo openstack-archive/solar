@@ -8,7 +8,7 @@ init_script = <<SCRIPT
 apt-get update
 apt-get -y install python-pip python-dev
 pip install ansible
-ansible-playbook -i "localhost," -c local /vagrant/main.yml
+ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml
 SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|

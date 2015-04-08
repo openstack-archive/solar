@@ -3,12 +3,6 @@
 - hosts: all
   sudo: yes
   tasks:
-    - shell: docker --version
-      ignore_errors: true
-      register: docker_version
-    - shell: curl -sSL https://get.docker.com/ | sudo sh
-      when: docker_version | failed
-    - shell: docker pull debian:jessie
       # Setup additional development tools
     - apt: name=vim state=present
     - apt: name=tmux state=present
