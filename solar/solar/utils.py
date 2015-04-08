@@ -4,6 +4,10 @@ import yaml
 import logging
 import os
 
+from uuid import uuid4
+
+from jinja2 import Template
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,3 +48,14 @@ def load_by_mask(mask):
         result.append(yaml_load(file_path))
 
     return result
+
+
+def generate_uuid():
+    return str(uuid4())
+
+
+def render_template(template_path, params):
+    with io.open(template_path) as f:
+        temp = Template(f.read())
+
+    return temp.render(**params)

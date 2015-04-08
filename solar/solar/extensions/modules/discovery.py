@@ -12,6 +12,8 @@ class Discovery(base.BaseExtension):
     ID = 'discovery'
     PROVIDES = ['nodes_resources']
 
+    COLLECTION_NAME = 'nodes'
+
     FILE_PATH = os.path.join(
         # TODO(pkaminski): no way we need '..' here...
         os.path.dirname(__file__), '..', '..', '..', '..',
@@ -24,12 +26,12 @@ class Discovery(base.BaseExtension):
         for node in nodes:
             node['tags'] = []
 
-        self.db['node_list'] = yaml.dump(nodes, default_flow_style=False)
+        self.db.store_list(self.COLLECTION_NAME, nodes)
 
         return nodes
 
     def nodes_resources(self):
-        nodes_list = self.db.get_copy('node_list')
+        nodes_list = self.db.get_list(self.COLLECTION_NAME)
         nodes_resources = []
 
         for node in nodes_list:

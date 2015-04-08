@@ -1,4 +1,4 @@
-id: pf1
+id: {{id}}
 type: profile
 
 extensions:
@@ -9,8 +9,7 @@ extensions:
   - id: ansible
     version: '1.0.0'
 
-tags:
-  - env/test_env
+tags: {{tags}}
 
 # NOTE(dshulyak) it is mandatory for some profiles to user graph based
 # api to provide order of execution for different events
