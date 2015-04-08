@@ -137,8 +137,12 @@ class AnsibleOrchestration(base.BaseExtension):
             raise Exception('Path %s is not valid,'
                             ' should be atleast 2 items', path)
 
-        resource = next(res for res in self.resources
-                        if res['id'] == steps[0])
+        resources = filter(lambda r: r['id'] == steps[0], self.resources)
+        # NOTE: If there are not resouces for this tags, just skip it
+        if not resources:
+            return []
+
+        resource = resources[0]
 
         action = resource
         for step in steps[1:]:
