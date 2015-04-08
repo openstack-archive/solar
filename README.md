@@ -33,7 +33,6 @@ vim tmp/storage/nodes-id.yaml
 * in order to assign resouce to the node use the same the same
   method, i.e. add in tags list for node your service e.g.
   'service/docker'
-```
 * perform deployment
 ```
 solar configure --profile prf1 -pa run
