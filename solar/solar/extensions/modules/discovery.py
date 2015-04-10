@@ -19,7 +19,7 @@ class Discovery(base.BaseExtension):
         os.path.dirname(__file__), '..', '..', '..', '..',
         'examples', 'nodes_list.yaml')
 
-    def execute(self):
+    def discover(self):
         with io.open(self.FILE_PATH) as f:
             nodes = yaml.load(f)
 
