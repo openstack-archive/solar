@@ -20,15 +20,17 @@ class Discovery(base.BaseExtension):
         'examples', 'nodes_list.yaml')
 
     def discover(self):
+        nodes_to_store = []
         with io.open(self.FILE_PATH) as f:
             nodes = yaml.load(f)
 
         for node in nodes:
-            node['tags'] = ['node/{0}'.format(node['id'])]
+            exist_node = self.db.get_record(self.COLLECTION_NAME, node['id'])
+            if not exist_node:
+                node['tags'] = ['node/{0}'.format(node['id'])]
+                nodes_to_store.append(node)
 
-        self.db.store_list(self.COLLECTION_NAME, nodes)
-
-        return nodes
+        self.db.store_list(self.COLLECTION_NAME, nodes_to_store)
 
     def nodes_resources(self):
         nodes_list = self.db.get_list(self.COLLECTION_NAME)
