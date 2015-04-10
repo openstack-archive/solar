@@ -45,9 +45,9 @@ class Discovery(base.BaseExtension):
             node_resource['version'] = self.VERSION
             node_resource['tags'] = node['tags']
             node_resource['output'] = node
-            node_resource['ssh_host'] = node['ip']
-            # TODO replace it with ssh type
-            node_resource['connection_type'] = 'local'
+            node_resource['ip'] = node['ip']
+            node_resource['ssh_user'] = node['ssh_user']
+            node_resource['ssh_private_key_path'] = node['ssh_private_key_path']
 
             nodes_resources.append(node_resource)
 
