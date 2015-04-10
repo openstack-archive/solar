@@ -24,7 +24,7 @@ class Discovery(base.BaseExtension):
             nodes = yaml.load(f)
 
         for node in nodes:
-            node['tags'] = []
+            node['tags'] = ['node/{0}'.format(node['id'])]
 
         self.db.store_list(self.COLLECTION_NAME, nodes)
 
