@@ -13,4 +13,4 @@ input:
     users:
         - name: test1
           password: test1
-tags: [n/1]
+tags: [service/mariadb]

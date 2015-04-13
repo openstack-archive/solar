@@ -7,4 +7,5 @@ actions:
     remove: simple/docker/remove.yml
 input:
   base_image: ubuntu
-tags: [n/1]
+tags: [service/docker]
+
