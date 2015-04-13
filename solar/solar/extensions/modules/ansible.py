@@ -11,7 +11,7 @@ from jinja2 import Template
 
 ANSIBLE_INVENTORY = """
 {% for node in nodes %}
-{{node['name']}} ansible_ssh_host={{node['ssh_host']}} ansible_connection={{node['connection_type']}}
+{{node.name}} ansible_ssh_host={{node.ip}} ansible_connection=ssh ansible_ssh_user={{node.ssh_user}} ansible_ssh_private_key_file={{node.ssh_private_key_path}}
 {% endfor %}
 
 {% for res in resources %}
@@ -173,5 +173,6 @@ class AnsibleOrchestration(base.BaseExtension):
         utils.yaml_dump_to(prepared, 'tmp/main.yml')
 
         sub = subprocess.Popen(
-            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'])
+            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'],
+            env=dict(os.environ, ANSIBLE_HOST_KEY_CHECKING='False'))
         out, err = sub.communicate()

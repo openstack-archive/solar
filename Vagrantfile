@@ -18,6 +18,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: init_script, privileged: true
 
   config.vm.define "solar-dev", primary: true do |guest1|
+    guest1.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     guest1.vm.network "private_network", ip: "10.0.0.2"
     guest1.vm.host_name = "solar-dev"
 

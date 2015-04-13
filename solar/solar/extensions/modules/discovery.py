@@ -19,16 +19,18 @@ class Discovery(base.BaseExtension):
         os.path.dirname(__file__), '..', '..', '..', '..',
         'examples', 'nodes_list.yaml')
 
-    def execute(self):
+    def discover(self):
+        nodes_to_store = []
         with io.open(self.FILE_PATH) as f:
             nodes = yaml.load(f)
 
         for node in nodes:
-            node['tags'] = []
+            exist_node = self.db.get_record(self.COLLECTION_NAME, node['id'])
+            if not exist_node:
+                node['tags'] = ['node/{0}'.format(node['id'])]
+                nodes_to_store.append(node)
 
-        self.db.store_list(self.COLLECTION_NAME, nodes)
-
-        return nodes
+        self.db.store_list(self.COLLECTION_NAME, nodes_to_store)
 
     def nodes_resources(self):
         nodes_list = self.db.get_list(self.COLLECTION_NAME)
@@ -43,9 +45,9 @@ class Discovery(base.BaseExtension):
             node_resource['version'] = self.VERSION
             node_resource['tags'] = node['tags']
             node_resource['output'] = node
-            node_resource['ssh_host'] = node['ip']
-            # TODO replace it with ssh type
-            node_resource['connection_type'] = 'local'
+            node_resource['ip'] = node['ip']
+            node_resource['ssh_user'] = node['ssh_user']
+            node_resource['ssh_private_key_path'] = node['ssh_private_key_path']
 
             nodes_resources.append(node_resource)
 

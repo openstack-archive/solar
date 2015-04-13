@@ -96,7 +96,7 @@ class Cmd(object):
                 profile_action=args.profile_action)
 
     def discover(self, args):
-        Discovery({'id': 'discovery'}).execute()
+        Discovery({'id': 'discovery'}).discover()
 
 
 
