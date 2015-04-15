@@ -1,6 +1,0 @@
-
-- hosts: [rabbitmq]
-  sudo: yes
-  tasks:
-    - shell: docker run --net="host" --privileged \
-        --name {{ rabbitmq.name }} -d {{ rabbitmq.image }}

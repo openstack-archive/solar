@@ -1,6 +1,0 @@
-
-- hosts: [mariadb]
-  sudo: yes
-  tasks:
-    - shell: docker stop {{ mariadb.name }}
-    - shell: docker rm {{ mariadb.name }}
