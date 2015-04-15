@@ -20,7 +20,7 @@ def get_files(path, pattern):
 
 class FileSystemDB(DirDBM):
     RESOURCES_PATH = './schema/resources'
-    STORAGE_PATH = 'tmp/storage/'
+    STORAGE_PATH = '/vagrant/tmp/storage/'
 
     def __init__(self):
         utils.create_dir(self.STORAGE_PATH)
