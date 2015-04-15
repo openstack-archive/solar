@@ -1,0 +1,10 @@
+id: data_container
+handler: ansible
+version: 1.0.0
+actions:
+    run: run.yml
+    remove: remove.yml
+input:
+    host:
+    image: 
+    export_volumes:    

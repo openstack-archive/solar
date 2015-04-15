@@ -1,0 +1,9 @@
+id: mariadb_user
+handler: ansible
+version: 1.0.0
+actions:
+    run: run.yml
+    remove: remove.yml
+input:
+    name: name
+    password: password

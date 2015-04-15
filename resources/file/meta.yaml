@@ -1,0 +1,8 @@
+id: file
+handler: shell
+version: 1.0.0
+actions:
+    run: run.sh
+    remove: remove.sh
+input:
+    path: /tmp/test_file
