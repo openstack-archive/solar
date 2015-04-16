@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 from collections import defaultdict
+import itertools
+import networkx as nx
 
 import db
 
@@ -46,9 +48,24 @@ def assign_connections(reciver, connections):
 def connection_graph():
     resource_dependencies = {}
 
-    for source, destinations in CLIENTS.items():
-        resource_dependencies[source] = [
-            destination[0] for destination in destinations
-        ]
+    for source, destination_values in CLIENTS.items():
+        resource_dependencies.setdefault(source, set())
+        for src, destinations in destination_values.items():
+            resource_dependencies[source].update([
+                destination[0] for destination in destinations
+            ])
 
-    return resource_dependencies
+    g = nx.DiGraph()
+
+    # TODO: tags as graph node attributes
+    for source, destinations in resource_dependencies.items():
+        g.add_node(source)
+        g.add_nodes_from(destinations)
+        g.add_edges_from(
+            itertools.izip(
+                itertools.repeat(source),
+                destinations
+            )
+        )
+
+    return g
