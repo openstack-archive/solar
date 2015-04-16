@@ -5,4 +5,4 @@ actions:
 input:
     ip:
     ssh_key:
-    user:
+    ssh_user:

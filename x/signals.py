@@ -12,11 +12,51 @@ CLIENTS_CONFIG_KEY = 'clients-data-file'
 CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
 
 
-def connect(emitter, reciver, mappings):
+def guess_mappings(emitter, receiver):
+    """Guess connection mapping between emitter and receiver.
+
+    Suppose emitter and receiver have inputs:
+    ip, ssh_key, ssh_user
+
+    Then we return a connection mapping like this:
+
+    {
+        'ip': '<receiver>.ip',
+        'ssh_key': '<receiver>.ssh_key',
+        'ssh_user': '<receiver>.ssh_user'
+    }
+
+    If receiver accepts inputs that are not present in emitter,
+    error is thrown -- such cases require manual intervention.
+
+    :param emitter:
+    :param receiver:
+    :return:
+    """
+
+    ret = {}
+
+    diff = set(receiver.requires).difference(emitter.requires)
+    if diff:
+        raise Exception(
+            'The following inputs are not provided by emitter: {}.'
+            'You need to set the connection manually.'.format(diff)
+        )
+
+    for key in receiver.requires:
+        ret[key] = '{}.{}'.format(emitter.name, key)
+
+    return ret
+
+
+def connect(emitter, receiver, mappings=None):
+    if mappings is None:
+        mappings = guess_mappings(emitter, receiver)
+
     for src, dst in mappings:
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
-        CLIENTS[emitter.name][src].append((reciver.name, dst))
+        CLIENTS[emitter.name][src].append((receiver.name, dst))
 
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
