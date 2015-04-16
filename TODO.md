@@ -1,10 +1,10 @@
 # TODO
 
-- łączymy automatycznie po nazwach (pkaminski)
-- tagi trzymane w resource
+- connections are made automaticly(pkaminski)
+- tags are kept in resource mata file
 - ansible handler (loles)
 - cli
-- szablony configow
+- config templates
 
 # DONE
-- graf jest budowany z CLIENTS, CLIENTS zapisywane jako JSON (pkaminski)
+- graph is build from CLIENT dict, clients are stored in JSON file (pkaminski)
