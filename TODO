@@ -1,0 +1,6 @@
+- łaczymy automatycznie po nazwach
+- graf jest budowany z CLIENTS, CLIENTS zapisywane jako JSON
+- tagi trzymane w resource
+- ansible handler (loles)
+- cli
+- szablony configow
