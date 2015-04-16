@@ -2,6 +2,6 @@ id: data_container
 handler: ansible
 version: 1.0.0
 input:
-    host:
+    ip:
     image: 
     export_volumes:    
