@@ -42,7 +42,7 @@ class Resource(object):
 
     def _validate_args(self, args):
         for req in self.requires:
-            if not req in args:
+            if req not in args:
                 raise Exception('Requirement `{0}` is missing in args'.format(req))
 
 
@@ -57,10 +57,16 @@ def create(name, base_path, dest_path, args, connections={}):
     dest_path = os.path.join(dest_path, name)
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     meta_file = os.path.join(dest_path, 'meta.yaml')
+    actions_path = os.path.join(base_path, 'actions')
 
     meta = yaml.load(open(base_meta_file).read())
     meta['id'] = name
     meta['version'] = '1.0.0'
+    meta['actions'] = {}
+
+    if os.path.exists(actions_path):
+        for f in os.listdir(actions_path):
+            meta['actions'][os.path.splitext(f)[0]] = f
 
     resource = Resource(name, meta, args, dest_path)
     signals.assign_connections(resource, connections)
