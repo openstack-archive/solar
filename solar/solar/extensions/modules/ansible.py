@@ -22,6 +22,7 @@ ANSIBLE_INVENTORY = """
 {% endfor %}
 """
 
+BASE_PATH=utils.read_config()['tmp']
 
 def playbook(resource_path, playbook_name):
     resource_dir = os.path.dirname(resource_path)
@@ -158,9 +159,9 @@ class AnsibleOrchestration(base.BaseExtension):
         return result
 
     def configure(self, profile_action='run', actions=None):
-        utils.create_dir('tmp/group_vars')
-        utils.write_to_file(self.inventory, 'tmp/hosts')
-        utils.yaml_dump_to(self.vars, 'tmp/group_vars/all')
+        utils.create_dir(BASE_PATH + '/group_vars')
+        utils.write_to_file(self.inventory, BASE_PATH + '/hosts')
+        utils.yaml_dump_to(self.vars, BASE_PATH + '/group_vars/all')
 
         if actions:
             prepared = self.prepare_many(actions)
@@ -170,9 +171,11 @@ class AnsibleOrchestration(base.BaseExtension):
             raise Exception('Either profile_action '
                             'or actions should be provided.')
 
-        utils.yaml_dump_to(prepared, 'tmp/main.yml')
+        utils.yaml_dump_to(prepared, BASE_PATH + '/main.yml')
 
         sub = subprocess.Popen(
-            ['ansible-playbook', '-i', 'tmp/hosts', 'tmp/main.yml'],
+            ['ansible-playbook', '-i',
+              BASE_PATH + '/hosts',
+              BASE_PATH + '/main.yml'],
             env=dict(os.environ, ANSIBLE_HOST_KEY_CHECKING='False'))
         out, err = sub.communicate()
