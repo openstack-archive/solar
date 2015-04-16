@@ -3,11 +3,14 @@ from collections import defaultdict
 
 import db
 
+
 CLIENTS = defaultdict(lambda: defaultdict(list))
+
 
 def connect(emitter, reciver, mappings):
     for src, dst in mappings:
         CLIENTS[emitter.name][src].append((reciver.name, dst))
+
 
 def notify(source, key, value):
     if key in CLIENTS[source.name]:
@@ -18,6 +21,7 @@ def notify(source, key, value):
             else:
                 #XXX resource deleted?
                 pass
+
 
 def assign_connections(reciver, connections):
     mappings = defaultdict(list)

@@ -56,7 +56,7 @@ class Empty(object):
         pass
 
 
-HANDLERS = {'ansible' : Ansible,
+HANDLERS = {'ansible': Ansible,
             'shell': Shell,
             'none': Empty}
 

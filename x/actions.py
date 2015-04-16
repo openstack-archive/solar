@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import handlers
 
+
 def resource_action(resource, action):
     handler = resource.metadata['handler']
     handler = handlers.get(handler)
