@@ -82,7 +82,7 @@ class Cmd(object):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
             profile_template_path = os.path.join(
-                utils.read_config()['templates-dir'], 'profile.yml'
+                utils.read_config()['template-dir'], 'profile.yml'
             )
             data = yaml.load(utils.render_template(profile_template_path, params))
             self.db.store('profiles', data)
