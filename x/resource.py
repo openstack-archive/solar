@@ -8,6 +8,8 @@ import actions
 import signals
 import db
 
+from x import utils
+
 
 class Resource(object):
     def __init__(self, name, metadata, args, base_dir):
@@ -63,6 +65,7 @@ def create(name, base_path, dest_path, args, connections={}):
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}
+    meta['input'] = args
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
@@ -77,3 +80,27 @@ def create(name, base_path, dest_path, args, connections={}):
         f.write(yaml.dump(meta))
     db.resource_add(name, resource)
     return resource
+
+
+def load(dest_path):
+    meta_file = os.path.join(dest_path, 'meta.yaml')
+    meta = utils.load_file(meta_file)
+    name = meta['id']
+    args = meta['input']
+
+    resource = Resource(name, meta, args, dest_path)
+
+    db.resource_add(name, resource)
+
+    return resource
+
+
+def load_all(dest_path):
+    ret = {}
+
+    for name in os.listdir(dest_path):
+        resource_path = os.path.join(dest_path, name)
+        resource = load(resource_path)
+        ret[resource.name] = resource
+
+    return ret
