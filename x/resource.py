@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import json
 import os
 import shutil
 
@@ -24,8 +25,8 @@ class Resource(object):
 
     def __repr__(self):
         return "Resource('name={0}', metadata={1}, args={2}, base_dir='{3}')".format(self.name,
-                                                                                     self.metadata,
-                                                                                     self.args,
+                                                                                     json.dumps(self.metadata),
+                                                                                     json.dumps(self.args),
                                                                                      self.base_dir)
 
     def update(self, args):

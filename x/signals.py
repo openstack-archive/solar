@@ -12,7 +12,7 @@ CLIENTS_CONFIG_KEY = 'clients-data-file'
 CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
 
 
-def guess_mappings(emitter, receiver):
+def guess_mapping(emitter, receiver):
     """Guess connection mapping between emitter and receiver.
 
     Suppose emitter and receiver have inputs:
@@ -49,11 +49,11 @@ def guess_mappings(emitter, receiver):
     return ret
 
 
-def connect(emitter, receiver, mappings=None):
-    if mappings is None:
-        mappings = guess_mappings(emitter, receiver)
+def connect(emitter, receiver, mapping=None):
+    if mapping is None:
+        mapping = guess_mapping(emitter, receiver)
 
-    for src, dst in mappings:
+    for src, dst in mapping.items():
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
         CLIENTS[emitter.name][src].append((receiver.name, dst))
