@@ -59,3 +59,7 @@ def render_template(template_path, params):
         temp = Template(f.read())
 
     return temp.render(**params)
+
+
+def read_config():
+    return yaml_load('/vagrant/config.yml')

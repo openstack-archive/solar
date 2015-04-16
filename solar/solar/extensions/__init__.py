@@ -1,12 +1,14 @@
 import glob
 import os
 
-from solar import utils
 from solar.core.profile import Profile
 from solar.extensions.base import BaseExtension
+from solar import utils
 # Import all modules from the directory in order
 # to make subclasses for extensions work
-modules = glob.glob(os.path.join(os.path.dirname(__file__), 'modules', '*.py'))
+modules = glob.glob(
+    os.path.join(utils.read_config()['extensions-dir'], 'modules', '*.py')
+)
 [__import__('%s.%s' % ('modules', os.path.basename(f)[:-3]), locals(), globals()) for f in modules]
 
 

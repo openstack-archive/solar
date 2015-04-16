@@ -19,8 +19,8 @@ def get_files(path, pattern):
 
 
 class FileSystemDB(DirDBM):
-    RESOURCES_PATH = './schema/resources'
-    STORAGE_PATH = '/vagrant/tmp/storage/'
+    RESOURCES_PATH = utils.read_config()['file-system-db']['resources-path']
+    STORAGE_PATH = utils.read_config()['file-system-db']['storage-path']
 
     def __init__(self):
         utils.create_dir(self.STORAGE_PATH)

@@ -17,7 +17,6 @@ On create "golden" resource should be moved to special place
 """
 
 import argparse
-import subprocess
 import os
 import sys
 import pprint
@@ -25,12 +24,12 @@ import pprint
 import textwrap
 import yaml
 
-from solar import utils
 from solar import extensions
 from solar.interfaces.db import get_db
+from solar import utils
 
 # NOTE: these are extensions, they shouldn't be imported here
-from solar.extensions.modules import ansible
+# Maybe each extension can also extend the CLI with parsers
 from solar.extensions.modules.discovery import Discovery
 
 
@@ -82,7 +81,9 @@ class Cmd(object):
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
-            profile_template_path = os.path.join(os.path.dirname(__file__), 'templates', 'profile.yml')
+            profile_template_path = os.path.join(
+                utils.read_config()['templates-dir'], 'profile.yml'
+            )
             data = yaml.load(utils.render_template(profile_template_path, params))
             self.db.store('profiles', data)
         else:
