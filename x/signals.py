@@ -20,6 +20,7 @@ def connect(emitter, reciver, mappings):
 
 
 def notify(source, key, value):
+    CLIENTS.setdefault(source.name, [])
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
             resource = db.get_resource(client)

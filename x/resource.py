@@ -88,5 +88,19 @@ def load(dest_path):
     name = meta['id']
     args = meta['input']
 
-    return Resource(name, meta, args, dest_path)
+    resource = Resource(name, meta, args, dest_path)
 
+    db.resource_add(name, resource)
+
+    return resource
+
+
+def load_all(dest_path):
+    ret = {}
+
+    for name in os.listdir(dest_path):
+        resource_path = os.path.join(dest_path, name)
+        resource = load(resource_path)
+        ret[resource.name] = resource
+
+    return ret
