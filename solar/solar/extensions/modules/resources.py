@@ -1,7 +1,7 @@
 import os
 
-from solar import utils
 from solar.extensions import base
+from solar import utils
 
 
 class Resources(base.BaseExtension):
@@ -13,9 +13,8 @@ class Resources(base.BaseExtension):
     # Rewrite it to use golden resources from
     # the storage
     FILE_MASK = os.path.join(
-        # TODO(pkaminski): no way we need '..' here...
-        os.path.dirname(__file__), '..', '..', '..', '..',
-        'examples', 'resources', '*.yml')
+        utils.read_config()['examples-dir'],
+        'resources', '*.yml')
 
     def resources(self):
         resources = []

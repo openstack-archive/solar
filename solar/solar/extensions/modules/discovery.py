@@ -4,6 +4,7 @@ import os
 import yaml
 
 from solar.extensions import base
+from solar import utils
 
 
 class Discovery(base.BaseExtension):
@@ -15,9 +16,9 @@ class Discovery(base.BaseExtension):
     COLLECTION_NAME = 'nodes'
 
     FILE_PATH = os.path.join(
-        # TODO(pkaminski): no way we need '..' here...
-        os.path.dirname(__file__), '..', '..', '..', '..',
-        'examples', 'nodes_list.yaml')
+        utils.read_config()['examples-dir'],
+        'nodes_list.yaml'
+    )
 
     def discover(self):
         nodes_to_store = []

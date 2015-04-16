@@ -1,0 +1,9 @@
+examples-dir: /vagrant/examples
+
+extensions-dir: /vagrant/solar/solar/extensions
+
+file-system-db:
+  resources-path: ./schema/resources
+  storage-path: /vagrant/tmp/storage
+
+template-dir: /vagrant/templates
