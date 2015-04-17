@@ -55,6 +55,19 @@ def init_cli_connect():
 
     cli.add_command(connect)
 
+    @click.command()
+    @click.argument('emitter')
+    @click.argument('receiver')
+    def disconnect(receiver, emitter):
+        print 'Disconnect', emitter, receiver
+        emitter = xr.load(emitter)
+        receiver = xr.load(receiver)
+        print emitter
+        print receiver
+        xs.disconnect(emitter, receiver)
+
+    cli.add_command(disconnect)
+
 
 def init_cli_connections():
     @click.group()

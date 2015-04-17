@@ -61,6 +61,16 @@ def connect(emitter, receiver, mapping=None):
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
+def disconnect(emitter, receiver):
+    for src, destinations in CLIENTS[emitter.name].items():
+        CLIENTS[emitter.name][src] = [
+            destination for destination in destinations
+            if destination[0] != receiver.name
+        ]
+
+    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
 def notify(source, key, value):
     CLIENTS.setdefault(source.name, [])
     if key in CLIENTS[source.name]:

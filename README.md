@@ -77,4 +77,7 @@ python cli.py connect rs/mariadb_nova_data rs/node1 --mapping '{"host" : "node1.
 # View connections
 python cli.py connections show
 python cli.py connections graph
+
+# Disconnect
+python cli.py disconnect rs/mariadb_nova_data rs/node1
 ```
