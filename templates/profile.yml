@@ -16,6 +16,8 @@ run:
   - mariadb.actions.run
   - mariadb.actions.wait
   - mariadb.actions.users
+  - keystone.actions.run
+  - haproxy.actions.run
 
 remove:
   - mariadb.actions.remove
