@@ -2,10 +2,12 @@ id: docker
 type: resource
 handler: ansible
 version: v1
+
 actions:
     run: simple/docker/run.yml
     remove: simple/docker/remove.yml
+
 input:
   base_image: ubuntu
-tags: [service/docker]
 
+tags: [service/docker]
