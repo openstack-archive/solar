@@ -1,13 +1,13 @@
-id: docker_1
+id: docker_2
 type: resource
 handler: ansible
 version: v1
-
 actions:
     run: simple/docker/run.yml
     remove: simple/docker/remove.yml
-
 input:
   base_image: ubuntu
-
+  node:
+    link: node_2
 tags: [service/docker]
+

@@ -25,8 +25,9 @@ import textwrap
 import yaml
 
 from solar import extensions
-from solar.interfaces.db import get_db
 from solar import utils
+from solar.core import data
+from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
 # Maybe each extension can also extend the CLI with parsers
@@ -78,6 +79,9 @@ class Cmd(object):
         group.add_argument('-t', '--tags', nargs='+', default=['env/test_env'])
         group.add_argument('-i', '--id', default=utils.generate_uuid())
 
+        parser = self.subparser.add_parser('data')
+        parser.set_defaults(func=getattr(self, 'data'))
+
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
@@ -98,6 +102,26 @@ class Cmd(object):
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()
+
+    def data(self, args):
+
+        resources = [
+            {'id': 'service/1',
+             'tags': ['service'],
+             'input': {'node': {'link':'node/1'}}},
+             {'id': 'service/2',
+             'tags': ['service'],
+             'input': {'node': {'link':'node/2'}}},
+             {'id': 'node/1',
+              'input':{'host_ip': '10.0.0.2'},
+              'tags': ['service']},
+             {'id': 'node/2',
+              'input': {'host_ip': '10.0.0.3'},
+              'tags': ['service']}]
+
+        dg = data.DataGraph(resources)
+
+        pprint.pprint(dg.resolve())
 
 
 

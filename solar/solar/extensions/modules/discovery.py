@@ -45,7 +45,7 @@ class Discovery(base.BaseExtension):
             node_resource['type'] = 'resource'
             node_resource['version'] = self.VERSION
             node_resource['tags'] = node['tags']
-            node_resource['output'] = node
+            node_resource['input'] = node
             node_resource['ip'] = node['ip']
             node_resource['ssh_user'] = node['ssh_user']
             node_resource['ssh_private_key_path'] = node['ssh_private_key_path']

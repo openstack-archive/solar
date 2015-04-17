@@ -5,20 +5,22 @@ import yaml
 
 from solar import utils
 from solar.extensions import base
+from solar.core import data
 
 from jinja2 import Template
 
 
 ANSIBLE_INVENTORY = """
-{% for node in nodes %}
-{{node.name}} ansible_ssh_host={{node.ip}} ansible_connection=ssh ansible_ssh_user={{node.ssh_user}} ansible_ssh_private_key_file={{node.ssh_private_key_path}}
+{% for key, res in resources.items() %}
+{% if res.node %}
+{{key}} ansible_ssh_host={{res.node.ip}} ansible_connection=ssh ansible_ssh_user={{res.node.ssh_user}} ansible_ssh_private_key_file={{res.node.ssh_private_key_path}}
+{% endif %}
 {% endfor %}
-
-{% for res in resources %}
- [{{ res.id }}]
- {% for node in nodes_mapping[res.id] %}
-  {{node['name']}}
- {% endfor %}
+{% for key, group in groups.items() %}
+[{{key}}]
+{% for item in group %}
+{{item}}
+{% endfor %}
 {% endfor %}
 """
 
@@ -74,13 +76,10 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return resources
 
-    @property
-    def inventory(self):
+
+    def inventory(self, **kwargs):
         temp = Template(ANSIBLE_INVENTORY)
-        return temp.render(
-            nodes_mapping=self._make_nodes_services_mapping(),
-            resources=self.resources,
-            nodes=self.nodes)
+        return temp.render(**kwargs)
 
     def _make_nodes_services_mapping(self):
         mapping = {}
@@ -89,27 +88,6 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return mapping
 
-    def _get_nodes_for_resource(self, resource):
-        resource_tags = set(resource['tags'])
-        nodes = []
-        for node in self.nodes:
-            if resource_tags <= set(node['tags']):
-                nodes.append(node)
-
-        return nodes
-
-    @property
-    def vars(self):
-        result = {}
-
-        for res in self.resources:
-            compiled = Template(
-                utils.yaml_dump({res['id']: res.get('input', {})}))
-            compiled = yaml.load(compiled.render(**result))
-
-            result.update(compiled)
-
-        return result
 
     def prepare_from_profile(self, profile_action):
 
@@ -159,9 +137,27 @@ class AnsibleOrchestration(base.BaseExtension):
         return result
 
     def configure(self, profile_action='run', actions=None):
-        utils.create_dir(BASE_PATH + '/group_vars')
-        utils.write_to_file(self.inventory, BASE_PATH + '/hosts')
-        utils.yaml_dump_to(self.vars, BASE_PATH + '/group_vars/all')
+        dg = data.DataGraph(self.nodes + self.resources)
+        resolved = dg.resolve()
+
+        groups = {}
+
+        for key, resource in resolved.items():
+            if resource.get('node'):
+                for tag in resource.get('tags', []):
+                    groups.setdefault(tag, [])
+                    groups[tag].append(key)
+
+        utils.create_dir('tmp/group_vars')
+        utils.create_dir('tmp/host_vars')
+        utils.write_to_file(
+            self.inventory(
+                resources=resolved, groups=groups), 'tmp/hosts')
+
+
+        for item, value in resolved.items():
+            utils.yaml_dump_to(
+                value, 'tmp/host_vars/{0}'.format(item))
 
         if actions:
             prepared = self.prepare_many(actions)

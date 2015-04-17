@@ -2,11 +2,13 @@ id: mariadb
 type: resource
 handler: ansible
 version: v1
+
 actions:
   run: simple/mariadb/run.yml
   remove: simple/mariadb/remove.yml
   wait: simple/mariadb/wait.yml
   users: simple/mariadb/users.yml
+
 input:
   name: mariadb-test
   image: kollaglue/fedora-rdo-mariadb-app
