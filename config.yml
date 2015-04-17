@@ -1,3 +1,5 @@
+tmp: /vagrant/tmp
+
 examples-dir: /vagrant/examples
 
 extensions-dir: /vagrant/solar/solar/extensions
