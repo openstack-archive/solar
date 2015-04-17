@@ -69,6 +69,12 @@ python cli.py resource create mariadb_nova_data x/resources/data_container/ rs/ 
 # View resources
 python cli.py resource show rs/mariadb_keystone_data
 
+# Show all resources at location rs/
+python cli.py resource show rs/ --all
+
+# Show resources with specific tag
+python cli.py resources show rs/ --tag test
+
 # Connect resources
 python cli.py connect rs/node2 rs/mariadb_keystone_data
 
@@ -87,4 +93,9 @@ python cli.py connections graph
 
 # Disconnect
 python cli.py disconnect rs/mariadb_nova_data rs/node1
+
+# Tag a resource:
+python cli.py resource tag rs/node1 test-tag
+# Remove tag
+python cli.py resource tag rs/node1 test-tag --delete
 ```
