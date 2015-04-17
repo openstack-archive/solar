@@ -2,5 +2,12 @@
 - hosts: [mariadb]
   sudo: yes
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{mariadb.name}} {{mariadb.image}}
+    # REMOVE BEFORE PUSHING into the repo
+    - shell: docker rm -f {{mariadb.name}} || true
+    - shell: docker run \
+        -d \
+        --net="host" \
+        --privileged \
+        --name {{mariadb.name}} \
+        -e "MARIADB_ROOT_PASSWORD={{mariadb.root_password}}" \
+        {{mariadb.image}}
