@@ -31,11 +31,11 @@ class Resource(object):
 
     def update(self, args):
         for key, value in args.iteritems():
-            resource_key = self.args.get(key, None)
-            if resource_key:
-                self.args[key] = value
-                self.changed.append(key)
-                signals.notify(self, key, value)
+            self.args[key] = value
+            self.changed.append(key)
+            signals.notify(self, key, value)
+
+        self.save()
 
     def action(self, action):
         if action in self.actions:
@@ -47,6 +47,12 @@ class Resource(object):
         for req in self.requires:
             if req not in args:
                 raise Exception('Requirement `{0}` is missing in args'.format(req))
+
+    # TODO: versioning
+    def save(self):
+        meta_file = os.path.join(self.base_dir, 'meta.yaml')
+        with open(meta_file, 'w') as f:
+            f.write(yaml.dump(self.metadata))
 
 
 def create(name, base_path, dest_path, args, connections={}):
@@ -77,8 +83,7 @@ def create(name, base_path, dest_path, args, connections={}):
 
     #save
     shutil.copytree(base_path, dest_path)
-    with open(meta_file, 'w') as f:
-        f.write(yaml.dump(meta))
+    resource.save()
     db.resource_add(name, resource)
     return resource
 

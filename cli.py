@@ -1,6 +1,7 @@
 import click
 import json
 import networkx as nx
+import os
 
 from x import resource as xr
 from x import signals as xs
@@ -36,6 +37,22 @@ def init_cli_resource():
         print xr.load(path)
 
     resource.add_command(show)
+
+    @click.command()
+    @click.argument('path')
+    @click.argument('args')
+    def update(args, path):
+        print 'Update', path, args
+        args = json.loads(args)
+        # Need to load all resources for bubbling effect to take place
+        # TODO: resources can be scattered around, this is a simple
+        #   situation when we assume resources are all in one directory
+        base_path, name = os.path.split(path)
+        all = xr.load_all(base_path)
+        r = all[name]
+        r.update(args)
+
+    resource.add_command(update)
 
 
 def init_cli_connect():

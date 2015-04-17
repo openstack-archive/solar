@@ -9,9 +9,9 @@ node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.3'
 
 node2 = resource.create('node2', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
 
-keystone_db_data = resource.create('mariadb_keystone_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'host': '', 'ssh_user': '', 'ssh_key': ''}, connections={'host' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})
+keystone_db_data = resource.create('mariadb_keystone_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})
 
-nova_db_data = resource.create('mariadb_nova_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'host': '', 'ssh_user': '', 'ssh_key': ''}, connections={'host' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})
+nova_db_data = resource.create('mariadb_nova_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})
 ```
 
 to make connection after resource is created use `signal.connect`
@@ -62,17 +62,21 @@ python cli.py resource create node1 x/resources/ro_node/ rs/ '{"ip":"10.0.0.3", 
 
 python cli.py resource create node2 x/resources/ro_node/ rs/ '{"ip":"10.0.0.4", "ssh_key" : "/vagrant/tmp/keys/ssh_private", "ssh_user":"vagrant"}'
 
-python cli.py resource create mariadb_keystone_data x/resources/data_container/ rs/ '{"image": "mariadb", "export_volumes" : ["/var/lib/mysql"], "host": "", "ssh_user": "", "ssh_key": ""}'
+python cli.py resource create mariadb_keystone_data x/resources/data_container/ rs/ '{"image": "mariadb", "export_volumes" : ["/var/lib/mysql"], "ip": "", "ssh_user": "", "ssh_key": ""}'
 
-python cli.py resource create mariadb_nova_data x/resources/data_container/ rs/ '{"image" : "mariadb", "export_volumes" : ["/var/lib/mysql"], "host": "", "ssh_user": "", "ssh_key": ""}'
+python cli.py resource create mariadb_nova_data x/resources/data_container/ rs/ '{"image" : "mariadb", "export_volumes" : ["/var/lib/mysql"], "ip": "", "ssh_user": "", "ssh_key": ""}'
 
 # View resources
 python cli.py resource show rs/mariadb_keystone_data
 
 # Connect resources
-python cli.py connect rs/mariadb_keystone_data rs/node2 --mapping '{"host" : "node2.ip", "ssh_key":"node2.ssh_key", "ssh_user":"node2.ssh_user"}'
+python cli.py connect rs/node2 rs/mariadb_keystone_data
 
-python cli.py connect rs/mariadb_nova_data rs/node1 --mapping '{"host" : "node1.ip", "ssh_key":"node1.ssh_key", "ssh_user":"node1.ssh_user"}'
+python cli.py connect rs/node1 rs/mariadb_nova_data
+
+# Test update
+python cli.py update rs/node2 '{"ip": "1.1.1.1"}'
+python cli.py resource show rs/mariadb_keystone_data  # --> IP is 1.1.1.1
 
 # View connections
 python cli.py connections show

@@ -26,34 +26,24 @@ def guess_mapping(emitter, receiver):
         'ssh_user': '<receiver>.ssh_user'
     }
 
-    If receiver accepts inputs that are not present in emitter,
-    error is thrown -- such cases require manual intervention.
-
     :param emitter:
     :param receiver:
     :return:
     """
+    guessed = {}
+    for key in emitter.requires:
+        if key in receiver.requires:
+            guessed[key] = '{}.{}'.format(emitter.name, key)
 
-    ret = {}
-
-    diff = set(receiver.requires).difference(emitter.requires)
-    if diff:
-        raise Exception(
-            'The following inputs are not provided by emitter: {}.'
-            'You need to set the connection manually.'.format(diff)
-        )
-
-    for key in receiver.requires:
-        ret[key] = '{}.{}'.format(emitter.name, key)
-
-    return ret
+    return guessed
 
 
 def connect(emitter, receiver, mapping=None):
-    if mapping is None:
-        mapping = guess_mapping(emitter, receiver)
+    mapping = mapping or {}
+    guessed = guess_mapping(emitter, receiver)
+    guessed.update(mapping)
 
-    for src, dst in mapping.items():
+    for src, dst in guessed.items():
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
         CLIENTS[emitter.name][src].append((receiver.name, dst))
@@ -73,26 +63,28 @@ def disconnect(emitter, receiver):
 
 def notify(source, key, value):
     CLIENTS.setdefault(source.name, [])
+    print 'Notify', source.name, key, value, CLIENTS[source.name]
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
             resource = db.get_resource(client)
+            print 'Resource found', client
             if resource:
                 resource.update({r_key: value})
             else:
-                #XXX resource deleted?
+                print 'Resource {} deleted?'.format(client)
                 pass
 
 
-def assign_connections(reciver, connections):
+def assign_connections(receiver, connections):
     mappings = defaultdict(list)
     for key, dest in connections.iteritems():
         resource, r_key = dest.split('.')
         resource = db.get_resource(resource)
         value = resource.args[r_key]
-        reciver.args[key] = value
+        receiver.args[key] = value
         mappings[resource].append((r_key, key))
     for resource, r_mappings in mappings.iteritems():
-        connect(resource, reciver, r_mappings)
+        connect(resource, receiver, r_mappings)
 
 
 def connection_graph():
