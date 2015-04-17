@@ -2,8 +2,6 @@
 - hosts: [mariadb]
   sudo: yes
   tasks:
-    # REMOVE BEFORE PUSHING into the repo
-    - shell: docker rm -f {{mariadb.name}} || true
     - shell: docker run \
         -d \
         --net="host" \

@@ -5,7 +5,6 @@
     - file: state=directory path=/etc/solar/{{haproxy.name}}
       # TODO Remove hardcoded path
     - template: src=/vagrant/examples/resources/templates/haproxy.cfg.j2 dest=/etc/solar/{{haproxy.name}}/haproxy.cfg backup=yes
-    - shell: docker rm -f {{haproxy.name}} || true
     - shell: docker run -d \
         --net="host" \
         --privileged \
