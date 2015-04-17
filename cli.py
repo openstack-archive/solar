@@ -35,9 +35,37 @@ def init_cli_resource():
     resource.add_command(create)
 
     @click.command()
+    @click.argument('resource_path')
+    @click.argument('tag_name')
+    @click.option('--add/--delete', default=True)
+    def tag(add, tag_name, resource_path):
+        print 'Tag', resource_path, tag_name, add
+        r = xr.load(resource_path)
+        if add:
+            r.add_tag(tag_name)
+        else:
+            r.remove_tag(tag_name)
+        r.save()
+
+    resource.add_command(tag)
+
+    @click.command()
     @click.argument('path')
-    def show(path):
-        print xr.load(path)
+    @click.option('--all/--one', default=False)
+    @click.option('--tag', default=None)
+    def show(tag, all, path):
+        if all or tag:
+            for name, resource in xr.load_all(path).items():
+                show = True
+                if tag:
+                    if tag not in resource.tags:
+                        show = False
+
+                if show:
+                    print resource
+                    print
+        else:
+            print xr.load(path)
 
     resource.add_command(show)
 

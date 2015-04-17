@@ -13,7 +13,7 @@ from x import utils
 
 
 class Resource(object):
-    def __init__(self, name, metadata, args, base_dir):
+    def __init__(self, name, metadata, args, base_dir, tags=None):
         self.name = name
         self.base_dir = base_dir
         self.metadata = metadata
@@ -22,12 +22,25 @@ class Resource(object):
         self._validate_args(args)
         self.args = args
         self.changed = []
+        self.tags = tags or []
 
     def __repr__(self):
-        return "Resource('name={0}', metadata={1}, args={2}, base_dir='{3}')".format(self.name,
-                                                                                     json.dumps(self.metadata),
-                                                                                     json.dumps(self.args),
-                                                                                     self.base_dir)
+        return ("Resource('name={0}', metadata={1}, args={2}, "
+                "base_dir='{3}', tags={4})").format(self.name,
+                                                    json.dumps(self.metadata),
+                                                    json.dumps(self.args),
+                                                    self.base_dir,
+                                                    self.tags)
+
+    def add_tag(self, tag):
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    def remove_tag(self, tag):
+        try:
+            self.tags.remove(tag)
+        except ValueError:
+            pass
 
     def update(self, args):
         for key, value in args.iteritems():
@@ -50,6 +63,8 @@ class Resource(object):
 
     # TODO: versioning
     def save(self):
+        self.metadata['tags'] = self.tags
+
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:
             f.write(yaml.dump(self.metadata))
@@ -65,7 +80,6 @@ def create(name, base_path, dest_path, args, connections={}):
 
     dest_path = os.path.join(dest_path, name)
     base_meta_file = os.path.join(base_path, 'meta.yaml')
-    meta_file = os.path.join(dest_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
     meta = yaml.load(open(base_meta_file).read())
@@ -73,6 +87,7 @@ def create(name, base_path, dest_path, args, connections={}):
     meta['version'] = '1.0.0'
     meta['actions'] = {}
     meta['input'] = args
+    meta['tags'] = []
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
@@ -93,8 +108,9 @@ def load(dest_path):
     meta = utils.load_file(meta_file)
     name = meta['id']
     args = meta['input']
+    tags = meta.get('tags', [])
 
-    resource = Resource(name, meta, args, dest_path)
+    resource = Resource(name, meta, args, dest_path, tags=tags)
 
     db.resource_add(name, resource)
 
