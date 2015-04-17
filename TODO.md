@@ -6,6 +6,7 @@
 - ansible handler (loles)
 - config templates
 - Deploy HAProxy, Keystone and MariaDB
+- Handler also can requires some data, for example ansible:  ip, ssh_key, ssh_user 
 
 # DONE
 - connections are made automaticly(pkaminski)
