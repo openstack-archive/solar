@@ -1,0 +1,19 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+      # Setup additional development tools
+    - apt: name=vim state=present
+    - apt: name=tmux state=present
+    - apt: name=htop state=present
+    - apt: name=python-virtualenv state=present
+    - apt: name=virtualenvwrapper state=present
+    - apt: name=ipython state=present
+    - apt: name=python-pudb state=present
+
+    # Graph drawing
+    - apt: name=python-matplotlib state=present
+
+      # Setup development env for solar
+    #- shell: python setup.py develop chdir=/vagrant/solar

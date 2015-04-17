@@ -80,6 +80,9 @@ python cli.py resource show rs/mariadb_keystone_data  # --> IP is 1.1.1.1
 
 # View connections
 python cli.py connections show
+
+# Outputs graph to 'graph.png' file, please note that arrows don't have "normal" pointers, but just the line is thicker
+# please see http://networkx.lanl.gov/_modules/networkx/drawing/nx_pylab.html
 python cli.py connections graph
 
 # Disconnect
