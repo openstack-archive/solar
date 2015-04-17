@@ -1,4 +1,5 @@
 id: docker_2
+class: docker
 type: resource
 handler: ansible
 version: v1
@@ -9,5 +10,7 @@ input:
   base_image: ubuntu
   node:
     link: node_2
-tags: [service/docker]
+tags:
+    - service/docker
+    - env/test_env
 

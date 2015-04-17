@@ -42,7 +42,7 @@ class AnsibleOrchestration(base.BaseExtension):
         super(AnsibleOrchestration, self).__init__(*args, **kwargs)
 
         self.nodes = self._get_nodes()
-        self.resources = self._get_resources_for_nodes(self.nodes)
+        self.resources = self._get_resources()
 
     def _get_nodes(self):
         nodes = []
@@ -52,42 +52,19 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return nodes
 
-    def _get_resources_for_nodes(self, nodes):
+    def _get_resources(self):
         """Retrieves resources which required for nodes deployment"""
         resources = []
 
-        for node in nodes:
-            node_tags = set(node.get('tags', []))
-            result_resources = self._get_resources_with_tags(node_tags)
-            resources.extend(result_resources)
-
-        return dict((r['id'], r) for r in resources).values()
-
-    def _get_resources_with_tags(self, tags):
-        resources = []
         for resource in self.core.get_data('resources'):
-            resource_tags = set(resource.get('tags', []))
-            # If resource without tags, it means that it should
-            # not be assigned to any node
-            if not resource_tags:
-                continue
-            if resource_tags <= tags:
+            if self.profile.tags <= set(resource.get('tags', [])):
                 resources.append(resource)
 
         return resources
 
-
     def inventory(self, **kwargs):
         temp = Template(ANSIBLE_INVENTORY)
         return temp.render(**kwargs)
-
-    def _make_nodes_services_mapping(self):
-        mapping = {}
-        for resource in self.resources:
-            mapping[resource['id']] = self._get_nodes_for_resource(resource)
-
-        return mapping
-
 
     def prepare_from_profile(self, profile_action):
 
@@ -116,10 +93,10 @@ class AnsibleOrchestration(base.BaseExtension):
             raise Exception('Path %s is not valid,'
                             ' should be atleast 2 items', path)
 
-        resources = filter(lambda r: r['id'] == steps[0], self.resources)
-        # NOTE: If there are not resouces for this tags, just skip it
-        if not resources:
-            return []
+        # #(dshulyak)
+        # it is not obvious - but we dont need to run same playbook
+        # for several times
+        resources = filter(lambda r: r['class'] == steps[0], self.resources)
 
         resource = resources[0]
 
@@ -153,7 +130,6 @@ class AnsibleOrchestration(base.BaseExtension):
         utils.write_to_file(
             self.inventory(
                 resources=resolved, groups=groups), 'tmp/hosts')
-
 
         for item, value in resolved.items():
             utils.yaml_dump_to(
