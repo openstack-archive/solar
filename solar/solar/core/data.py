@@ -1,5 +1,6 @@
 
 import copy
+import json
 
 from itertools import imap, ifilter
 from pprint import pprint
@@ -9,6 +10,13 @@ import jinja2
 import mock
 
 from jinja2 import Template
+
+
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 class Node(object):
@@ -140,17 +148,42 @@ class DataGraph(nx.DiGraph):
         return rendered_accum
 
     def render(self, value, context, previous_render):
-        if isinstance(value, dict):
-            result_dict = {}
-            for k, v in value.items():
-                result_dict[k] = self.render(v, context, previous_render)
 
-            return result_dict
+        if isinstance(value, dict):
+            # Handle iterators
+            if value.get('with_items'):
+                if len(value.keys()) != 2:
+                    raise Exception("Iterator should have two elements '{0}'".format(value))
+
+                result_list = []
+                iter_key = (set(value.keys()) - set(['with_items'])).pop()
+
+                rendered_with_items = []
+                if isinstance(value['with_items'], list):
+                    rendered_with_items = value['with_items']
+                elif isinstance(value['with_items'], str):
+                    rendered_with_items = json.loads(self.render(value['with_items'], context, previous_render))
+                else:
+                    raise Exception('Cannot iterate over dict "{0}"'.format(value))
+
+                for item in rendered_with_items:
+                    iter_ctx = copy.deepcopy(context)
+                    iter_ctx[iter_key] = item
+                    result_list.append(self.render(value[iter_key], iter_ctx, previous_render))
+
+                return result_list
+
+            else:
+                # Handle usual data
+                result_dict = {}
+                for k, v in value.items():
+                    result_dict[k] = self.render(v, context, previous_render)
+
+                return result_dict
         elif isinstance(value, list):
             return map(lambda v: self.render(v, context, previous_render), value)
         elif isinstance(value, str):
             env = Template(value)
-            tags_call_mock = mock.MagicMock()
 
             def first_with_tags(*args):
                 for uid, resource in previous_render.items():
@@ -160,7 +193,14 @@ class DataGraph(nx.DiGraph):
                 # TODO Should we fail here?
                 return mock.MagicMock()
 
-            env.globals['with_tags'] = tags_call_mock
+            def with_tags(*args):
+                resources_with_tags = filter(
+                        lambda n: n[1]['tags'] & set(args),
+                        previous_render.items())
+
+                return json.dumps(map(lambda n: n[1], resources_with_tags), cls=SetEncoder)
+
+            env.globals['with_tags'] = with_tags
             env.globals['first_with_tags'] = first_with_tags
 
             return env.render(**context)
