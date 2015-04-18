@@ -2,3 +2,5 @@ six>=1.9.0
 pyyaml
 jinja2
 networkx
+mock
+
