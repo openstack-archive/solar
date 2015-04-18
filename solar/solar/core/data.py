@@ -108,7 +108,8 @@ class DataGraph(nx.DiGraph):
         merged = {}
         for node in self.nodes:
             merged.setdefault(node.uid, {})
-            merged[node.uid] = list(self.resources_with_tags(node.tags))
+            merged[node.uid]['resources'] = list(self.resources_with_tags(node.tags))
+            merged[node.uid]['node'] = node
 
         return merged
 
@@ -116,46 +117,48 @@ class DataGraph(nx.DiGraph):
         return filter(lambda n: n.uid == uid, self.nodes)[0]
 
     def resolve(self):
-        data = {}
+        rendered_accum = {}
         render_order = nx.topological_sort(self.reverse())
 
         # Use provided order to render resources
         for resource_id in render_order:
             # Iterate over all resources which are assigned for node
-            for node_id, resources in self.merge_nodes_resources().items():
+            for node_id, node_data in self.merge_nodes_resources().items():
                 # Render resources which should be rendered regarding to order
-                for resource in filter(lambda r: r.uid == resource_id, resources):
+                for resource in filter(lambda r: r.uid == resource_id, node_data['resources']):
                     # Create render context
                     ctx = {
-                        'this': resource.values
+                        'this': resource.values,
                     }
                     ctx['this']['node'] = self.get_node(node_id).config
-                    data['{0}-{1}'.format(node_id, resource.uid)] = self.render(resource.values, ctx)
 
-        return data
+                    rendered = self.render(resource.values, ctx, rendered_accum)
 
-    def render(self, value, context):
+                    rendered['tags'] = resource.tags
+                    rendered_accum['{0}-{1}'.format(node_id, resource.uid)] = rendered
+
+        return rendered_accum
+
+    def render(self, value, context, previous_render):
         if isinstance(value, dict):
             result_dict = {}
             for k, v in value.items():
-                result_dict[k] = self.render(v, context)
+                result_dict[k] = self.render(v, context, previous_render)
 
             return result_dict
         elif isinstance(value, list):
-            return map(lambda v: self.render(v, context), value)
+            return map(lambda v: self.render(v, context, previous_render), value)
         elif isinstance(value, str):
             env = Template(value)
             tags_call_mock = mock.MagicMock()
 
             def first_with_tags(*args):
-                print self.merge_nodes_resources()
-                obj = mock.MagicMock()
-                objs = filter(lambda n: set(n['tags']) & set(args), self.merge_nodes_resources().items)
+                for uid, resource in previous_render.items():
+                    if resource['tags'] & set(args):
+                        return resource
 
-                if objs:
-                    obj = objs[0]
-
-                return obj
+                # TODO Should we fail here?
+                return mock.MagicMock()
 
             env.globals['with_tags'] = tags_call_mock
             env.globals['first_with_tags'] = first_with_tags
