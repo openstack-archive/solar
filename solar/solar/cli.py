@@ -106,18 +106,42 @@ class Cmd(object):
     def data(self, args):
 
         resources = [
-            {'id': 'service/1',
-             'tags': ['service'],
-             'input': {'node': {'link':'node/1'}}},
-             {'id': 'service/2',
-             'tags': ['service'],
-             'input': {'node': {'link':'node/2'}}},
-             {'id': 'node/1',
-              'input':{'host_ip': '10.0.0.2'},
-              'tags': ['service']},
-             {'id': 'node/2',
-              'input': {'host_ip': '10.0.0.3'},
-              'tags': ['service']}]
+             {'id': 'mariadb',
+              'tags': ['service/mariadb', 'entrypoint/mariadb'],
+              'input': {
+                  'ip_addr': '{{ self.node.ip }}' }},
+
+            {'id': 'keystone',
+             'tags': ['service/keystone'],
+             'input': {
+                 'admin_port': '35357',
+                 'public_port': '5000',
+                 'db_addr': '{{ first_with_tags("entrypoint/mariadb").node.ip }}'}},
+
+             {'id': 'haproxy',
+              'tags': ['service/haproxy'],
+              'input': {
+                  'services': [
+                      {'service_name': 'keystone-admin',
+                       'bind': '*:8080',
+                       'some_params': '{{ with_tags("service/trololo", "avsd/vdf") }}',
+                       'backends': {
+                           'with_items': '{{ with_tags("service/keystone") }}',
+                           'item': {'name': '{{ item.keystone.name }}', 'addr': '{{ item.node.ip }}:{{ item.node.admin_port }}'}}},
+
+                      {'service_name': 'keystone-pub',
+                       'bind': '*:8081',
+                       'backends': {
+                           'with_items': '{{ with_tags("service/keystone") }}',
+                           'item': {'name': '{{ item.keystone.name }}', 'addr': '{{ item.node.ip }}:{{ item.node.public_port }}'}}}]}},
+
+             {'id': 'n-1',
+              'input': {'ip': '10.0.0.2'},
+              'tags': ['node/1', 'service/keystone']},
+
+             {'id': 'n-2',
+              'input': {'ip': '10.0.0.3'},
+              'tags': ['node/2', 'service/mariadb', 'service/haproxy', 'service/keystone']}]
 
         dg = data.DataGraph(resources)
 
