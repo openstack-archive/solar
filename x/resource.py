@@ -21,6 +21,7 @@ class Resource(object):
         self.requires = metadata['input'].keys()
         self._validate_args(args)
         self.args = args
+        self.input_types = metadata.get('input-types', {})
         self.changed = []
         self.tags = tags or []
 
@@ -42,9 +43,14 @@ class Resource(object):
         except ValueError:
             pass
 
-    def update(self, args):
+    def update(self, args, emitter_name=None):
         for key, value in args.iteritems():
-            self.args[key] = value
+            if self.input_types.get(key, '') == 'list':
+                if emitter_name is None:
+                    raise Exception('I need to know then emitter when updating input of list type')
+                self.args[key][emitter_name] = value
+            else:
+                self.args[key] = value
             self.changed.append(key)
             signals.notify(self, key, value)
 

@@ -3,3 +3,5 @@ handler: ansible
 version: 1.0.0
 input:
     servers:
+input-types:
+    servers: list

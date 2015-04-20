@@ -44,9 +44,10 @@ def connect(emitter, receiver, mapping=None):
     guessed.update(mapping)
 
     for src, dst in guessed.items():
-        # disconnect all receiver inputs
-        # TODO: check if receiver input is of list type first
-        disconnect_receiver_by_input(receiver, dst)
+        # Disconnect all receiver inputs
+        # Check if receiver input is of list type first
+        if receiver.input_types.get(dst, '') != 'list':
+            disconnect_receiver_by_input(receiver, dst)
 
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
@@ -57,11 +58,28 @@ def connect(emitter, receiver, mapping=None):
 
 def disconnect(emitter, receiver):
     for src, destinations in CLIENTS[emitter.name].items():
+        destinations = [
+            destination for destination in destinations
+            if destination[0] == receiver.name
+        ]
+
+        for destination in destinations:
+            receiver_input = destination[1]
+            if receiver.input_types.get(receiver_input, '') == 'list':
+                print 'Removing input {} from {}'.format(receiver_input, receiver.name)
+                # TODO: update here? We're deleting an input...
+                receiver.args[receiver_input] = {
+                    k: v for k, v in receiver.args.get(receiver_input, {}).items()
+                    if k != emitter.name
+                }
+
         CLIENTS[emitter.name][src] = [
             destination for destination in destinations
             if destination[0] != receiver.name
         ]
 
+    # Inputs might have changed
+    receiver.save()
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
@@ -88,7 +106,7 @@ def notify(source, key, value):
             resource = db.get_resource(client)
             print 'Resource found', client
             if resource:
-                resource.update({r_key: value})
+                resource.update({r_key: value}, emitter_name=source.name)
             else:
                 print 'Resource {} deleted?'.format(client)
                 pass
