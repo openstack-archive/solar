@@ -2,5 +2,10 @@
 - hosts: [mariadb]
   sudo: yes
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{mariadb.name}} {{mariadb.image}}
+    - shell: docker run \
+        -d \
+        --net="host" \
+        --privileged \
+        --name {{mariadb.name}} \
+        -e "MARIADB_ROOT_PASSWORD={{mariadb.root_password}}" \
+        {{mariadb.image}}

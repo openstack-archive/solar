@@ -1,0 +1,9 @@
+
+- hosts: [keystone]
+  sudo: yes
+  tasks:
+    - shell: docker run -d --net="host" --privileged \
+        -e "DB_ROOT_PASSWORD={{mariadb.root_password}}" \
+        -e "KEYSTONE_PUBLIC_SERVICE_PORT={{keystone.public_port}}" \
+        -e "KEYSTONE_ADMIN_SERVICE_PORT={{keystone.admin_port}}" \
+        --name {{keystone.name}} {{keystone.image}}
