@@ -7,6 +7,7 @@ def resource_action(resource, action):
     with handlers.get(handler)([resource]) as h:
         h.action(resource, action)
 
+
 def tag_action(tag, action):
     #TODO
     pass

@@ -5,6 +5,6 @@ from x.handlers.base import BaseHandler
 
 
 class Shell(BaseHandler):
-    def action(self, resource, action):
-        action_file = self._compile_action_file(resource, action)
+    def action(self, resource, action_name):
+        action_file = self._compile_action_file(resource, action_name)
         subprocess.call(['bash', action_file])

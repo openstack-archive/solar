@@ -33,7 +33,7 @@ def guess_mapping(emitter, receiver):
     guessed = {}
     for key in emitter.requires:
         if key in receiver.requires:
-            guessed[key] = '{}.{}'.format(emitter.name, key)
+            guessed[key] = key
 
     return guessed
 
@@ -44,6 +44,10 @@ def connect(emitter, receiver, mapping=None):
     guessed.update(mapping)
 
     for src, dst in guessed.items():
+        # disconnect all receiver inputs
+        # TODO: check if receiver input is of list type first
+        disconnect_receiver_by_input(receiver, dst)
+
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
         CLIENTS[emitter.name][src].append((receiver.name, dst))
@@ -59,6 +63,21 @@ def disconnect(emitter, receiver):
         ]
 
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
+def disconnect_receiver_by_input(receiver, input):
+    """Find receiver connection by input and disconnect it.
+
+    :param receiver:
+    :param input:
+    :return:
+    """
+    for emitter_name, inputs in CLIENTS.items():
+        if input in inputs:
+            inputs[input] = [
+                destination for destination in inputs[input]
+                if destination[0] != receiver.name
+            ]
 
 
 def notify(source, key, value):

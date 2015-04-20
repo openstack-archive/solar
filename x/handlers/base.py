@@ -37,8 +37,8 @@ class BaseHandler(object):
             tpl = Template(f.read())
             tpl = tpl.render(args)
 
-            with open(dest_file, 'w') as f:
-                f.write(tpl)
+            with open(dest_file, 'w') as g:
+                g.write(tpl)
 
     def _make_args(self, resource):
         args = {'name' : resource.name}

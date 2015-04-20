@@ -6,9 +6,9 @@ from x.handlers.base import BaseHandler
 
 
 class Ansible(BaseHandler):
-    def action(self, resource, action):
+    def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
-        playbook_file = self._create_playbook(resource, action)
+        playbook_file = self._create_playbook(resource, action_name)
         subprocess.call(['ansible-playbook', '-i', inventory_file, playbook_file])
 
     #def _get_connection(self, resource):
