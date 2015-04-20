@@ -25,7 +25,7 @@ def yaml_load(file_path):
 
 
 def yaml_dump(yaml_data):
-    return yaml.dump(yaml_data, default_flow_style=False)
+    return yaml.safe_dump(yaml_data, default_flow_style=False)
 
 
 def write_to_file(data, file_path):
