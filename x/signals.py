@@ -44,7 +44,7 @@ def connect(emitter, receiver, mapping=None):
     #guessed.update(mapping)
     mapping = mapping or guessed
 
-    for src, dst in guessed.items():
+    for src, dst in mapping.items():
         # Disconnect all receiver inputs
         # Check if receiver input is of list type first
         if receiver.input_types.get(dst, '') != 'list':
