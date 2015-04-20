@@ -204,3 +204,7 @@ class DataGraph(nx.DiGraph):
             env.globals['first_with_tags'] = first_with_tags
 
             return env.render(**context)
+        else:
+            # If non of above return value, e.g. if there is
+            # interger, float etc
+            return value
