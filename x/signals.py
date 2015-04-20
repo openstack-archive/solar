@@ -33,7 +33,7 @@ def guess_mapping(emitter, receiver):
     guessed = {}
     for key in emitter.requires:
         if key in receiver.requires:
-            guessed[key] = '{}.{}'.format(emitter.name, key)
+            guessed[key] = key
 
     return guessed
 
