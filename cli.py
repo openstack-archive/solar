@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import os
 
+from x import actions as xa
+from x import deployment as xd
 from x import resource as xr
 from x import signals as xs
 
@@ -21,6 +23,16 @@ def init_cli_resource():
         pass
 
     cli.add_command(resource)
+
+    @click.command()
+    @click.argument('resource_path')
+    @click.argument('action_name')
+    def action(action_name, resource_path):
+        print 'action', resource_path, action_name
+        r = xr.load(resource_path)
+        xa.resource_action(r, action_name)
+
+    resource.add_command(action)
 
     @click.command()
     @click.argument('name')
@@ -144,9 +156,20 @@ def init_cli_connections():
     connections.add_command(graph)
 
 
+def init_cli_deployment_config():
+    @click.command()
+    @click.argument('filepath')
+    def deploy(filepath):
+        print 'Deploying from file {}'.format(filepath)
+        xd.deploy(filepath)
+
+    cli.add_command(deploy)
+
+
 if __name__ == '__main__':
     init_cli_resource()
     init_cli_connect()
     init_cli_connections()
+    init_cli_deployment_config()
 
     cli()

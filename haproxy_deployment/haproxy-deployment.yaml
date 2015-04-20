@@ -1,0 +1,166 @@
+# HAProxy deployment with MariaDB, Keystone and Nova
+
+workdir: /vagrant
+resource-save-path: rs/
+test-suite: haproxy_deployment.haproxy_deployment
+
+resources:
+  - name: node1
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.3
+      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_user: vagrant
+  - name: node2
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.4
+      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_user: vagrant
+  - name: node3
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.5
+      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_user: vagrant
+  - name: node4
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.6
+      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_user: vagrant
+  - name: node5
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.7
+      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_user: vagrant
+
+  - name: mariadb_keystone1_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: mariadb_keystone2_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: keystone1
+    model: x/resources/keystone/
+    args:
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: keystone2
+    model: x/resources/keystone/
+    args:
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: haproxy_keystone_config
+    model: x/resources/haproxy_config/
+    args:
+      servers: {}
+      ssh_user:
+      ssh_key:
+
+  - name: mariadb_nova1_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: mariadb_nova2_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: nova1
+    model: x/resources/nova/
+    args:
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: nova2
+    model: x/resources/nova/
+    args:
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: haproxy_nova_config
+    model: x/resources/haproxy_config/
+    args:
+      servers: {}
+      ssh_user:
+      ssh_key:
+
+  - name: haproxy
+    model: x/resources/haproxy/
+    args:
+      ip:
+      configs: {}
+      ssh_user:
+      ssh_key:
+
+
+connections:
+  - emitter: node1
+    receiver: mariadb_keystone1_data
+  - emitter: node2
+    receiver: mariadb_keystone2_data
+  - emitter: mariadb_keystone1_data
+    receiver: keystone1
+  - emitter: mariadb_keystone2_data
+    receiver: keystone2
+  - emitter: keystone1
+    receiver: haproxy_keystone_config
+    mapping:
+      ip: servers
+  - emitter: keystone2
+    receiver: haproxy_keystone_config
+    mapping:
+      ip: servers
+
+  - emitter: node3
+    receiver: mariadb_nova1_data
+  - emitter: node4
+    receiver: mariadb_nova2_data
+  - emitter: mariadb_nova1_data
+    receiver: nova1
+  - emitter: mariadb_nova2_data
+    receiver: nova2
+  - emitter: nova1
+    receiver: haproxy_nova_config
+    mapping:
+      ip: servers
+  - emitter: nova2
+    receiver: haproxy_nova_config
+    mapping:
+      ip: servers
+
+  - emitter: node5
+    receiver: haproxy
+  - emitter: haproxy_keystone_config
+    receiver: haproxy
+    mapping:
+      server: configs
+  - emitter: haproxy_nova_config
+    receiver: haproxy
+    mapping:
+      server: configs
