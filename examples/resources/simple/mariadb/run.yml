@@ -1,11 +1,13 @@
 
-- hosts: [mariadb]
+- hosts: [service/mariadb]
   sudo: yes
   tasks:
+    - shell: docker rm -f {{name}} || true
     - shell: docker run \
         -d \
         --net="host" \
         --privileged \
-        --name {{mariadb.name}} \
-        -e "MARIADB_ROOT_PASSWORD={{mariadb.root_password}}" \
-        {{mariadb.image}}
+        --name {{name}} \
+        -e "MARIADB_ROOT_PASSWORD={{root_password}}" \
+        -e "BIND_ADDRESS={{bind_ip}}" \
+        {{image}}

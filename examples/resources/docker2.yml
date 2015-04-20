@@ -11,6 +11,4 @@ input:
   node:
     link: node_2
 tags:
-    - service/docker
-    - env/test_env
-
+    - service/docker2

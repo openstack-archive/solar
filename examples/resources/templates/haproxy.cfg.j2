@@ -17,7 +17,7 @@ listen stats :1936
     stats uri /
     #stats auth Username:Password
 
-{% for service in haproxy.services %}
+{% for service in services %}
 listen {{ service.service_name }}
     bind {{service.bind}}
     {% for backend in service.backends %}

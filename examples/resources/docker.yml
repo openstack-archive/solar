@@ -1,4 +1,4 @@
-id: docker_1
+id: docker
 class: docker
 type: resource
 handler: ansible

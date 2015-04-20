@@ -1,12 +1,13 @@
 
-- hosts: [haproxy]
+- hosts: [service/haproxy]
   sudo: yes
   tasks:
-    - file: state=directory path=/etc/solar/{{haproxy.name}}
+    - file: state=directory path=/etc/solar/{{name}}
       # TODO Remove hardcoded path
-    - template: src=/vagrant/examples/resources/templates/haproxy.cfg.j2 dest=/etc/solar/{{haproxy.name}}/haproxy.cfg backup=yes
+    - template: src=/vagrant/examples/resources/templates/haproxy.cfg.j2 dest=/etc/solar/{{name}}/haproxy.cfg backup=yes
+    - shell: docker rm -f {{name}} || true
     - shell: docker run -d \
         --net="host" \
         --privileged \
-        -v /etc/solar/{{haproxy.name}}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
-        --name {{haproxy.name}} {{haproxy.image}}
+        -v /etc/solar/{{name}}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
+        --name {{name}} {{image}}

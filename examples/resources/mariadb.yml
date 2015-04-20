@@ -1,4 +1,5 @@
 id: mariadb
+class: mariadb
 type: resource
 handler: ansible
 version: v1
@@ -10,10 +11,13 @@ actions:
   users: simple/mariadb/users.yml
 
 input:
+  bind_ip: "{{ this.node.ip }}"
   name: mariadb-test
   image: kollaglue/fedora-rdo-mariadb-app
   root_password: test1
   users:
     - name: test1
       password: test1
-tags: [service/mariadb]
+tags:
+  - service/mariadb
+  - entrypoint/mariadb

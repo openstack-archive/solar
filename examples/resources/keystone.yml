@@ -1,4 +1,5 @@
 id: keystone
+class: keystone
 type: resource
 handler: ansible
 version: v1
@@ -8,8 +9,10 @@ actions:
   remove: simple/keystone/remove.yml
 
 input:
+  db_root_password: '{{ first_with_tags("entrypoint/mariadb").root_password }}'
+  db_host: '{{ first_with_tags("entrypoint/mariadb").node.ip }}'
   admin_port: 35357
-  public_port: 5000 
+  public_port: 5000
   name: keystone-test
   image: kollaglue/centos-rdo-keystone
 
