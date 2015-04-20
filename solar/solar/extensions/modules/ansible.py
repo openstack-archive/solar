@@ -42,7 +42,7 @@ class AnsibleOrchestration(base.BaseExtension):
         super(AnsibleOrchestration, self).__init__(*args, **kwargs)
 
         self.nodes = self._get_nodes()
-        self.resources = self._get_resources()
+        self.resources = self._get_resources_for_nodes(self.nodes)
 
     def _get_nodes(self):
         nodes = []
@@ -52,12 +52,26 @@ class AnsibleOrchestration(base.BaseExtension):
 
         return nodes
 
-    def _get_resources(self):
+    def _get_resources_for_nodes(self, nodes):
         """Retrieves resources which required for nodes deployment"""
         resources = []
 
+        for node in nodes:
+            node_tags = set(node.get('tags', []))
+            result_resources = self._get_resources_with_tags(node_tags)
+            resources.extend(result_resources)
+
+        return dict((r['id'], r) for r in resources).values()
+
+    def _get_resources_with_tags(self, tags):
+        resources = []
         for resource in self.core.get_data('resources'):
-            if self.profile.tags <= set(resource.get('tags', [])):
+            resource_tags = set(resource.get('tags', []))
+            # If resource without tags, it means that it should
+            # not be assigned to any node
+            if not resource_tags:
+                continue
+            if resource_tags & tags:
                 resources.append(resource)
 
         return resources
@@ -93,11 +107,10 @@ class AnsibleOrchestration(base.BaseExtension):
             raise Exception('Path %s is not valid,'
                             ' should be atleast 2 items', path)
 
-        # #(dshulyak)
+        # NOTE(dshulyak)
         # it is not obvious - but we dont need to run same playbook
         # for several times
         resources = filter(lambda r: r['class'] == steps[0], self.resources)
-
         resource = resources[0]
 
         action = resource
@@ -114,7 +127,7 @@ class AnsibleOrchestration(base.BaseExtension):
         return result
 
     def configure(self, profile_action='run', actions=None):
-        dg = data.DataGraph(self.nodes + self.resources)
+        dg = data.DataGraph(self.resources, self.nodes)
         resolved = dg.resolve()
 
         groups = {}
