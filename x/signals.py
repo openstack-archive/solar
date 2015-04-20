@@ -44,6 +44,12 @@ def connect(emitter, receiver, mapping=None):
     guessed.update(mapping)
 
     for src, dst in guessed.items():
+        # Copy emitter's values to receiver
+        if receiver.input_types.get(dst, '') != 'list':
+            receiver.args[dst] = emitter.args[src]
+        elif src in emitter.args:
+            receiver.args[dst][emitter.name] = emitter.args[src]
+
         # Disconnect all receiver inputs
         # Check if receiver input is of list type first
         if receiver.input_types.get(dst, '') != 'list':
@@ -53,6 +59,7 @@ def connect(emitter, receiver, mapping=None):
         CLIENTS[emitter.name].setdefault(src, [])
         CLIENTS[emitter.name][src].append((receiver.name, dst))
 
+    receiver.save()
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
@@ -114,12 +121,12 @@ def notify(source, key, value):
 
 def assign_connections(receiver, connections):
     mappings = defaultdict(list)
-    for key, dest in connections.iteritems():
-        resource, r_key = dest.split('.')
-        resource = db.get_resource(resource)
-        value = resource.args[r_key]
-        receiver.args[key] = value
-        mappings[resource].append((r_key, key))
+    #for key, dest in connections.iteritems():
+    #    resource, r_key = dest.split('.')
+    #    resource = db.get_resource(resource)
+    #    value = resource.args[r_key]
+    #    receiver.args[key] = value
+    #    mappings[resource].append((r_key, key))
     for resource, r_mappings in mappings.iteritems():
         connect(resource, receiver, r_mappings)
 
