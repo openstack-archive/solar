@@ -39,9 +39,10 @@ def guess_mapping(emitter, receiver):
 
 
 def connect(emitter, receiver, mapping=None):
-    mapping = mapping or {}
+    #mapping = mapping or {}
     guessed = guess_mapping(emitter, receiver)
-    guessed.update(mapping)
+    #guessed.update(mapping)
+    mapping = mapping or guessed
 
     for src, dst in guessed.items():
         # Disconnect all receiver inputs
