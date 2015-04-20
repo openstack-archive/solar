@@ -1,11 +1,9 @@
 # Deploying stuff from YAML definition
 
-import imp
 import os
 import shutil
 import yaml
 
-#from x import actions as xa
 from x import db
 from x import resource as xr
 from x import signals as xs
@@ -43,8 +41,6 @@ def deploy(filename):
 
     # Run all tests
     if 'test-suite' in config:
-        #test_suite_path = os.path.join(workdir, config['test-suite'])
         print 'Running tests from {}'.format(config['test-suite'])
-        #test_suite = imp.load_source('main', test_suite_path)
         test_suite = __import__(config['test-suite'], {}, {}, ['main'])
         test_suite.main()
