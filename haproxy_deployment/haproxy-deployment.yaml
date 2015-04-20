@@ -159,8 +159,8 @@ connections:
   - emitter: haproxy_keystone_config
     receiver: haproxy
     mapping:
-      server: configs
+      servers: configs
   - emitter: haproxy_nova_config
     receiver: haproxy
     mapping:
-      server: configs
+      servers: configs

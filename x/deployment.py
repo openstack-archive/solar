@@ -37,7 +37,7 @@ def deploy(filename):
     for connection in config['connections']:
         emitter = db.get_resource(connection['emitter'])
         receiver = db.get_resource(connection['receiver'])
-        mapping = config.get('mapping')
+        mapping = connection.get('mapping')
         print 'Connecting ', emitter.name, receiver.name, mapping
         xs.connect(emitter, receiver, mapping=mapping)
 
