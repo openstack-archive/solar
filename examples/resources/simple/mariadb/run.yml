@@ -2,7 +2,6 @@
 - hosts: [service/mariadb]
   sudo: yes
   tasks:
-    - shell: docker rm -f {{name}} || true
     - shell: docker run \
         -d \
         --net="host" \

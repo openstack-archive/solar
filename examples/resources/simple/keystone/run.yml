@@ -2,7 +2,6 @@
 - hosts: [service/keystone]
   sudo: yes
   tasks:
-    - shell: docker rm -f {{name}} || true
       # NOTE(eli): specify restart policy (--restart parameter) for
       # keystone conatiner if there are more than 2 keystone containers
       # to be deployed, they both will perform db migration and will fail,

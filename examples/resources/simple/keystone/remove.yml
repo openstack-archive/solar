@@ -1,5 +1,5 @@
 
-- hosts: [service/mariadb]
+- hosts: [service/keystone]
   sudo: yes
   tasks:
     - shell: docker rm -f {{ name }} || true

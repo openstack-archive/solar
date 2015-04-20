@@ -20,5 +20,7 @@ run:
   - haproxy.actions.run
 
 remove:
+  - haproxy.actions.remove
+  - keystone.actions.remove
   - mariadb.actions.remove
   - docker.actions.remove
