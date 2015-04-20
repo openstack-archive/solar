@@ -18,7 +18,7 @@ class Ansible(object):
     def __init__(self):
         pass
 
-    def action(self, resource, action):
+    def action(self, resource, action_name):
         pass
 
     def _get_connection(self, resource):
@@ -37,22 +37,22 @@ class Shell(object):
     def __init__(self):
         pass
 
-    def action(self, resource, action):
-        action_file = resource.metadata['actions'][action]
+    def action(self, resource, action_name):
+        action_file = resource.metadata['actions'][action_name]
         action_file = os.path.join(resource.base_dir, action_file)
         with open(action_file) as f:
             tpl = Template(f.read())
             tpl = tpl.render(resource.args)
 
             tmp_file = tempfile.mkstemp(text=True)[1]
-            with open(tmp_file, 'w') as f:
-                f.write(tpl)
+            with open(tmp_file, 'w') as g:
+                g.write(tpl)
 
             subprocess.call(['bash', tmp_file])
 
 
 class Empty(object):
-    def action(self, resource, action):
+    def action(self, resource, action_name):
         pass
 
 
