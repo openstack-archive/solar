@@ -43,12 +43,12 @@ class Resource(object):
         except ValueError:
             pass
 
-    def update(self, args, emitter_name=None):
+    def update(self, args, emitter=None):
         for key, value in args.iteritems():
             if self.input_types.get(key, '') == 'list':
-                if emitter_name is None:
-                    raise Exception('I need to know then emitter when updating input of list type')
-                self.args[key][emitter_name] = value
+                if emitter is None:
+                    raise Exception('I need to know the emitter when updating input of list type')
+                self.args[key][emitter.name] = value
             else:
                 self.args[key] = value
             self.changed.append(key)

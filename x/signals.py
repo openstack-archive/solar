@@ -44,12 +44,6 @@ def connect(emitter, receiver, mapping=None):
     guessed.update(mapping)
 
     for src, dst in guessed.items():
-        # Copy emitter's values to receiver
-        if receiver.input_types.get(dst, '') != 'list':
-            receiver.args[dst] = emitter.args[src]
-        elif src in emitter.args:
-            receiver.args[dst][emitter.name] = emitter.args[src]
-
         # Disconnect all receiver inputs
         # Check if receiver input is of list type first
         if receiver.input_types.get(dst, '') != 'list':
@@ -58,6 +52,10 @@ def connect(emitter, receiver, mapping=None):
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
         CLIENTS[emitter.name][src].append((receiver.name, dst))
+
+        # Copy emitter's values to receiver
+        if src in emitter.args:
+            receiver.update({dst: emitter.args[src]}, emitter=emitter)
 
     receiver.save()
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
@@ -106,14 +104,14 @@ def disconnect_receiver_by_input(receiver, input):
 
 
 def notify(source, key, value):
-    CLIENTS.setdefault(source.name, [])
+    CLIENTS.setdefault(source.name, {})
     print 'Notify', source.name, key, value, CLIENTS[source.name]
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
             resource = db.get_resource(client)
             print 'Resource found', client
             if resource:
-                resource.update({r_key: value}, emitter_name=source.name)
+                resource.update({r_key: value}, emitter=source)
             else:
                 print 'Resource {} deleted?'.format(client)
                 pass

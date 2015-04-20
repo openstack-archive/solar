@@ -25,9 +25,9 @@ python cli.py resource create mariadb_nova1_data x/resources/data_container/ rs/
 python cli.py resource create mariadb_nova2_data x/resources/data_container/ rs/ '{"image" : "mariadb", "export_volumes" : ["/var/lib/mysql"], "ip": "", "ssh_user": "", "ssh_key": ""}'
 python cli.py resource create nova1 x/resources/nova/ rs/ '{"ip": "", "ssh_user": "", "ssh_key": ""}'
 python cli.py resource create nova2 x/resources/nova/ rs/ '{"ip": "", "ssh_user": "", "ssh_key": ""}'
-python cli.py resource create haproxy_nova_config x/resources/haproxy_config/ rs/ '{"servers": {}, "ssh_user": "", "ssh_key": ""}'
+python cli.py resource create haproxy_nova_config x/resources/haproxy_config/ rs/ '{"ip": "", "servers": {}, "ssh_user": "", "ssh_key": ""}'
 
-python cli.py resource create haproxy x/resources/haproxy/ rs/ '{"configs": {}, "ssh_user": "", "ssh_key": ""}'
+python cli.py resource create haproxy x/resources/haproxy/ rs/ '{"ip": "", "configs": {}, "ssh_user": "", "ssh_key": ""}'
 
 
 # Connect resources
