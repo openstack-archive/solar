@@ -1,5 +1,20 @@
 # x
 
+## HAProxy deployment
+
+```
+cd /vagrant
+python cli.py deploy haproxy_deployment/haproxy-deployment.yaml
+```
+
+or from Python shell:
+
+```
+from x import deployment
+
+deployment.deploy('/vagrant/haproxy_deployment/haproxy-deployment.yaml')
+```
+
 ## Usage:
 
 Creating resources:
