@@ -15,7 +15,7 @@ CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
 def guess_mapping(emitter, receiver):
     """Guess connection mapping between emitter and receiver.
 
-    Suppose emitter and receiver have inputs:
+    Suppose emitter and receiver have common inputs:
     ip, ssh_key, ssh_user
 
     Then we return a connection mapping like this:
@@ -39,9 +39,7 @@ def guess_mapping(emitter, receiver):
 
 
 def connect(emitter, receiver, mapping=None):
-    #mapping = mapping or {}
     guessed = guess_mapping(emitter, receiver)
-    #guessed.update(mapping)
     mapping = mapping or guessed
 
     for src, dst in mapping.items():
@@ -50,16 +48,20 @@ def connect(emitter, receiver, mapping=None):
         if receiver.input_types.get(dst, '') != 'list':
             disconnect_receiver_by_input(receiver, dst)
 
-        CLIENTS.setdefault(emitter.name, {})
-        CLIENTS[emitter.name].setdefault(src, [])
-        CLIENTS[emitter.name][src].append((receiver.name, dst))
-
-        # Copy emitter's values to receiver
-        if src in emitter.args:
-            receiver.update({dst: emitter.args[src]}, emitter=emitter)
+        connect_src_dst(emitter, src, receiver, dst)
 
     receiver.save()
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
+def connect_src_dst(emitter, src, receiver, dst):
+    CLIENTS.setdefault(emitter.name, {})
+    CLIENTS[emitter.name].setdefault(src, [])
+    CLIENTS[emitter.name][src].append((receiver.name, dst))
+
+    # Copy emitter's values to receiver
+    if src in emitter.args:
+        receiver.update({dst: emitter.args[src]}, emitter=emitter)
 
 
 def disconnect(emitter, receiver):
@@ -79,10 +81,7 @@ def disconnect(emitter, receiver):
                     if k != emitter.name
                 }
 
-        CLIENTS[emitter.name][src] = [
-            destination for destination in destinations
-            if destination[0] != receiver.name
-        ]
+        disconnect_by_src(emitter, src, receiver)
 
     # Inputs might have changed
     receiver.save()
@@ -97,11 +96,16 @@ def disconnect_receiver_by_input(receiver, input):
     :return:
     """
     for emitter_name, inputs in CLIENTS.items():
-        if input in inputs:
-            inputs[input] = [
-                destination for destination in inputs[input]
-                if destination[0] != receiver.name
-            ]
+        emitter = db.get_resource(emitter_name)
+        disconnect_by_src(emitter, input, receiver)
+
+
+def disconnect_by_src(emitter, src, receiver):
+    if src in CLIENTS[emitter.name]:
+        CLIENTS[emitter.name][src] = [
+            destination for destination in CLIENTS[emitter.name][src]
+            if destination[0] != receiver.name
+        ]
 
 
 def notify(source, key, value):
@@ -120,12 +124,9 @@ def notify(source, key, value):
 
 def assign_connections(receiver, connections):
     mappings = defaultdict(list)
-    #for key, dest in connections.iteritems():
-    #    resource, r_key = dest.split('.')
-    #    resource = db.get_resource(resource)
-    #    value = resource.args[r_key]
-    #    receiver.args[key] = value
-    #    mappings[resource].append((r_key, key))
+    for key, dest in connections.iteritems():
+        resource, r_key = dest.split('.')
+        mappings[resource].append((r_key, key))
     for resource, r_mappings in mappings.iteritems():
         connect(resource, receiver, r_mappings)
 
