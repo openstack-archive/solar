@@ -132,11 +132,11 @@ resources:
     model: x/resources/docker_container
     args:
       ip:
-      image: haproxy
+      image: tutum/haproxy
       ssh_user:
       ssh_key:
       host_binds:
-        - /etc/haproxy: /vagrant/haproxy-etc
+        - /etc/haproxy: /etc/haproxy
       volume_binds:
 
 

@@ -6,6 +6,8 @@ input:
     image: 
     host_binds:
     volume_binds:
+    ssh_user:
+    ssh_key:
 input-types:
     host_binds: list
     volume_binds: list

@@ -29,6 +29,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "solar-dev2" do |guest2|
+    guest2.vm.provision "shell", inline: init_script, privileged: true
     guest2.vm.network "private_network", ip: "10.0.0.3"
     guest2.vm.host_name = "solar-dev2"
 
@@ -39,6 +40,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "solar-dev3" do |guest3|
+    guest3.vm.provision "shell", inline: init_script, privileged: true
     guest3.vm.network "private_network", ip: "10.0.0.4"
     guest3.vm.host_name = "solar-dev3"
 
@@ -49,6 +51,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "solar-dev4" do |guest4|
+    guest4.vm.provision "shell", inline: init_script, privileged: true
     guest4.vm.network "private_network", ip: "10.0.0.5"
     guest4.vm.host_name = "solar-dev4"
 
@@ -59,6 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "solar-dev5" do |guest5|
+    guest5.vm.provision "shell", inline: init_script, privileged: true
     guest5.vm.network "private_network", ip: "10.0.0.6"
     guest5.vm.host_name = "solar-dev5"
 
@@ -69,8 +73,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "solar-dev6" do |guest6|
+    guest6.vm.provision "shell", inline: init_script, privileged: true
     guest6.vm.network "private_network", ip: "10.0.0.7"
-    guest6.vm.host_name = "solar-dev5"
+    guest6.vm.host_name = "solar-dev6"
 
     guest6.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--memory", 256]

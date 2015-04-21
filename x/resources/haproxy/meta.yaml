@@ -4,5 +4,7 @@ version: 1.0.0
 input:
     ip:
     configs:
+    ssh_user:
+    ssh_key:
 input-types:
     configs: list

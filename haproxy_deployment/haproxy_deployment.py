@@ -55,6 +55,8 @@ class TestHAProxyDeployment(unittest.TestCase):
         haproxy = db.get_resource('haproxy')
 
         self.assertEqual(node5.args['ip'], haproxy.args['ip'])
+        self.assertEqual(node5.args['ssh_key'], haproxy.args['ssh_key'])
+        self.assertEqual(node5.args['ssh_user'], haproxy.args['ssh_user'])
         #self.assertItemsEqual(
         #    haproxy.args['configs'],
         #    {

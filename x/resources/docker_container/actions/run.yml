@@ -2,5 +2,18 @@
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{ name }} {{ image }}
+    - apt: name=python-pip state=present
+    - shell: pip install docker-py
+    - service: name=docker state=started
+    - file: path=/etc/haproxy/haproxy.cfg state=touch
+    - template: src=/vagrant/haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+    - docker:
+       name: {{ name }}
+       image: {{ image }}
+       state: running
+       volumes:
+       {% for bind in host_binds %}
+       {% for src, dst in bind.items () %}
+       - {{ src }}:{{ dst }}
+       {% endfor %}
+       {% endfor %}
