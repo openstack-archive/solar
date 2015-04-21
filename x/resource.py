@@ -21,6 +21,7 @@ class Resource(object):
         self.requires = metadata['input'].keys()
         self._validate_args(args)
         self.args = args
+        self.metadata['input'] = args
         self.input_types = metadata.get('input-types', {})
         self.changed = []
         self.tags = tags or []
@@ -92,7 +93,6 @@ def create(name, base_path, dest_path, args, connections={}):
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}
-    meta['input'] = args
     meta['tags'] = []
 
     if os.path.exists(actions_path):
@@ -102,7 +102,7 @@ def create(name, base_path, dest_path, args, connections={}):
     resource = Resource(name, meta, args, dest_path)
     signals.assign_connections(resource, connections)
 
-    #save
+    # save
     shutil.copytree(base_path, dest_path)
     resource.save()
     db.resource_add(name, resource)

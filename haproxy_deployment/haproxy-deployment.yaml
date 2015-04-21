@@ -58,12 +58,14 @@ resources:
     model: x/resources/keystone/
     args:
       ip:
+      image: TEST
       ssh_user:
       ssh_key:
   - name: keystone2
     model: x/resources/keystone/
     args:
       ip:
+      image: TEST
       ssh_user:
       ssh_key:
   - name: haproxy_keystone_config
@@ -95,12 +97,14 @@ resources:
     model: x/resources/nova/
     args:
       ip:
+      image: TEST
       ssh_user:
       ssh_key:
   - name: nova2
     model: x/resources/nova/
     args:
       ip:
+      image: TEST
       ssh_user:
       ssh_key:
   - name: haproxy_nova_config
@@ -110,13 +114,30 @@ resources:
       ssh_user:
       ssh_key:
 
+  #- name: haproxy-config-container
+  #  model: x/resources/data_container/
+  #  args:
+  #    ip:
+  #    image: haproxy-config
+  #    export_volumes:
+  #      - haproxy-config
+  #- name: haproxy-config
+  #  model: x/resources/haproxy/
+  #  args:
+  #    ip:
+  #    configs: {}
+  #    ssh_user:
+  #    ssh_key:
   - name: haproxy
-    model: x/resources/haproxy/
+    model: x/resources/docker_container
     args:
       ip:
-      configs: {}
+      image: haproxy
       ssh_user:
       ssh_key:
+      host_binds:
+        - /etc/haproxy: /vagrant/haproxy-etc
+      volume_binds:
 
 
 connections:
@@ -154,13 +175,25 @@ connections:
     mapping:
       ip: servers
 
+  # HAProxy config container
+  #- emitter: node5
+  #  receiver: haproxy-config-container
+  #- emitter: haproxy-config-container
+  #  receiver: haproxy-config
+  #- emitter: haproxy_keystone_config
+  #  receiver: haproxy-config
+  #  mapping:
+  #    servers: configs
+  #- emitter: haproxy_nova_config
+  #  receiver: haproxy-config
+  #  mapping:
+  #    servers: configs
+
+  # HAProxy service
   - emitter: node5
     receiver: haproxy
-  - emitter: haproxy_keystone_config
-    receiver: haproxy
-    mapping:
-      servers: configs
-  - emitter: haproxy_nova_config
-    receiver: haproxy
-    mapping:
-      servers: configs
+
+  #- emitter: haproxy-config
+  #  receiver: haproxy
+  #  mapping:
+

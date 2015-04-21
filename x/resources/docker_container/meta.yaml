@@ -2,5 +2,10 @@ id: container
 handler: ansible
 version: 1.0.0
 input:
+    ip:
     image: 
+    host_binds:
     volume_binds:
+input-types:
+    host_binds: list
+    volume_binds: list
