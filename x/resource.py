@@ -19,7 +19,7 @@ class Resource(object):
         self.metadata = metadata
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
         self.requires = metadata['input'].keys()
-        self._validate_args(args)
+        self._validate_args(args, metadata['input'])
         self.args = args
         self.metadata['input'] = args
         self.input_types = metadata.get('input-types', {})
@@ -63,10 +63,15 @@ class Resource(object):
         else:
             raise Exception('Uuups, action is not available')
 
-    def _validate_args(self, args):
+    def _validate_args(self, args, inputs):
         for req in self.requires:
             if req not in args:
-                raise Exception('Requirement `{0}` is missing in args'.format(req))
+                # If metadata input is filled with a value, use it as default
+                # and don't report an error
+                if inputs.get(req):
+                    args[req] = inputs[req]
+                else:
+                    raise Exception('Requirement `{0}` is missing in args'.format(req))
 
     # TODO: versioning
     def save(self):

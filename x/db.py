@@ -11,3 +11,9 @@ def resource_add(key, value):
 
 def get_resource(key):
     return RESOURCE_DB.get(key, None)
+
+
+def clear():
+    global RESOURCE_DB
+
+    RESOURCE_DB = {}

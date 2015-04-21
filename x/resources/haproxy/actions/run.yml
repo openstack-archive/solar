@@ -1,6 +1,22 @@
 # TODO
 - hosts: [{{ ip }}]
   sudo: yes
+  vars:
+    config_dir: {{ config_dir }}
+    haproxy_ip: {{ ip }}
+    haproxy_services:
+      {% for service, servers in configs.items() %}
+      - name: {{ service }}
+        servers:
+          {% for name, ip in servers.items() %}
+          - name: {{ name }}
+            ip: {{ ip }}
+            port: {{ configs_ports[service][name] }}
+          {% endfor %}
+      {% endfor %}
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{ name }} {{ image }}
+    - apt: name=python-pip state=present
+    - shell: pip install docker-py
+    - service: name=docker state=started
+    - file: path=/etc/haproxy/haproxy.cfg state=touch
+    - template: src=/vagrant/haproxy.cfg dest=/etc/haproxy/haproxy.cfg

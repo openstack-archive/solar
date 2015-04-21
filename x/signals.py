@@ -2,6 +2,7 @@
 from collections import defaultdict
 import itertools
 import networkx as nx
+import os
 
 import db
 
@@ -10,6 +11,16 @@ from x import utils
 
 CLIENTS_CONFIG_KEY = 'clients-data-file'
 CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
+
+
+def clear():
+    global CLIENTS
+
+    CLIENTS = {}
+
+    path = utils.read_config()[CLIENTS_CONFIG_KEY]
+    if os.path.exists(path):
+        os.remove(path)
 
 
 def guess_mapping(emitter, receiver):

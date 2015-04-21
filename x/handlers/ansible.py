@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import subprocess
+import yaml
 
 from x.handlers.base import BaseHandler
 
@@ -11,7 +12,9 @@ class Ansible(BaseHandler):
         playbook_file = self._create_playbook(resource, action_name)
         print 'inventory_file', inventory_file
         print 'playbook_file', playbook_file
-        subprocess.call(['ansible-playbook', '-i', inventory_file, playbook_file])
+        call_args = ['ansible-playbook', '-i', inventory_file, playbook_file]
+        print 'EXECUTING: ', ' '.join(call_args)
+        subprocess.call(call_args)
 
     #def _get_connection(self, resource):
     #    return {'ssh_user': '',
