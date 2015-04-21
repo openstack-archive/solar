@@ -9,6 +9,8 @@ class Ansible(BaseHandler):
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
         playbook_file = self._create_playbook(resource, action_name)
+        print 'inventory_file', inventory_file
+        print 'playbook_file', playbook_file
         subprocess.call(['ansible-playbook', '-i', inventory_file, playbook_file])
 
     #def _get_connection(self, resource):
@@ -23,6 +25,7 @@ class Ansible(BaseHandler):
         print user
         print ssh_key
         inventory = inventory.format(host, host, user, ssh_key)
+        print inventory
         directory = self.dirs[r.name]
         inventory_path = os.path.join(directory, 'inventory')
         with open(inventory_path, 'w') as inv:

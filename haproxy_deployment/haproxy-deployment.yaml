@@ -9,31 +9,31 @@ resources:
     model: x/resources/ro_node/
     args:
       ip: 10.0.0.3
-      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_key: /vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key
       ssh_user: vagrant
   - name: node2
     model: x/resources/ro_node/
     args:
       ip: 10.0.0.4
-      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_key: /vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key
       ssh_user: vagrant
   - name: node3
     model: x/resources/ro_node/
     args:
       ip: 10.0.0.5
-      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_key: /vagrant/.vagrant/machines/solar-dev4/virtualbox/private_key
       ssh_user: vagrant
   - name: node4
     model: x/resources/ro_node/
     args:
       ip: 10.0.0.6
-      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_key: /vagrant/.vagrant/machines/solar-dev5/virtualbox/private_key
       ssh_user: vagrant
   - name: node5
     model: x/resources/ro_node/
     args:
       ip: 10.0.0.7
-      ssh_key: /vagrant/tmp/keys/ssh_private
+      ssh_key: /vagrant/.vagrant/machines/solar-dev6/virtualbox/private_key
       ssh_user: vagrant
 
   - name: mariadb_keystone1_data

@@ -12,6 +12,9 @@
     - apt: name=ipython state=present
     - apt: name=python-pudb state=present
 
+    # requirements
+    - shell: pip install -r /vagrant/requirements.txt
+
     # Graph drawing
     - apt: name=python-matplotlib state=present
 
