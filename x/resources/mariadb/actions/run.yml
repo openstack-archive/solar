@@ -1,6 +1,12 @@
-
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{ name }} {{ image }}
+    - name: mariadb container
+      docker:
+        name: {{ name }}
+        image: {{ image }}
+        state: running
+        ports:
+        - {{ port }}:3306
+        env:
+            MYSQL_ROOT_PASSWORD: {{ root_password }}
