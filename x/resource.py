@@ -23,7 +23,7 @@ class Resource(object):
         self._validate_args(args, metadata['input'])
         self.args = {}
         for arg_name, arg_value in args.items():
-            type_ = metadata.get('input-types', {}).get(arg_name, 'simple')
+            type_ = metadata.get('input-types', {}).get(arg_name) or 'simple'
             self.args[arg_name] = observer.create(type_, self, arg_name, arg_value)
         self.metadata['input'] = args
         self.input_types = metadata.get('input-types', {})

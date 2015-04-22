@@ -19,6 +19,12 @@ class BaseObserver(object):
     def __repr__(self):
         return '[{}:{}]'.format(self.attached_to.name, self.name)
 
+    def __eq__(self, other):
+        if isinstance(other, BaseObserver):
+            return self.value == other.value
+
+        return self.value == other
+
     def notify(self, emitter):
         """
         :param emitter: Observer

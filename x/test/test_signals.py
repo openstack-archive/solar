@@ -22,32 +22,32 @@ input:
             'sample2', sample_meta_dir, {'values': None}
         )
         xs.connect(sample1, sample2)
-        self.assertDictEqual(
-            sample1.args['values'].value,
-            sample2.args['values'].value,
+        self.assertEqual(
+            sample1.args['values'],
+            sample2.args['values'],
         )
 
         # Check update
         sample1.update({'values': {'a': 2}})
-        self.assertDictEqual(
-            sample1.args['values'].value,
+        self.assertEqual(
+            sample1.args['values'],
             {'a': 2}
         )
-        self.assertDictEqual(
-            sample1.args['values'].value,
-            sample2.args['values'].value,
+        self.assertEqual(
+            sample1.args['values'],
+            sample2.args['values'],
         )
 
         # Check disconnect
         # TODO: should sample2.value be reverted to original value?
         xs.disconnect(sample1, sample2)
         sample1.update({'values': {'a': 3}})
-        self.assertDictEqual(
-            sample1.args['values'].value,
+        self.assertEqual(
+            sample1.args['values'],
             {'a': 3}
         )
-        self.assertDictEqual(
-            sample2.args['values'].value,
+        self.assertEqual(
+            sample2.args['values'],
             {'a': 2}
         )
 
@@ -82,28 +82,28 @@ input-types:
         )
 
         xs.connect(sample1, list_input_single, mapping={'ip': 'ips'})
-        self.assertDictEqual(
-            list_input_single.args['ips'].value,
+        self.assertEqual(
+            list_input_single.args['ips'],
             {
-                'sample1': sample1.args['ip'].value,
+                'sample1': sample1.args['ip'],
             }
         )
 
         xs.connect(sample2, list_input_single, mapping={'ip': 'ips'})
-        self.assertDictEqual(
-            list_input_single.args['ips'].value,
+        self.assertEqual(
+            list_input_single.args['ips'],
             {
-                'sample1': sample1.args['ip'].value,
-                'sample2': sample2.args['ip'].value,
+                'sample1': sample1.args['ip'],
+                'sample2': sample2.args['ip'],
             }
         )
 
         # Test disconnect
         xs.disconnect(sample2, list_input_single)
-        self.assertDictEqual(
-            list_input_single.args['ips'].value,
+        self.assertEqual(
+            list_input_single.args['ips'],
             {
-                'sample1': sample1.args['ip'].value,
+                'sample1': sample1.args['ip'],
             }
         )
 
@@ -139,32 +139,32 @@ input-types:
         )
 
         xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
-        self.assertDictEqual(
-            list_input_multi.args['ips'].value,
+        self.assertEqual(
+            list_input_multi.args['ips'],
             {
-                'sample1': sample1.args['ip'].value,
+                'sample1': sample1.args['ip'],
             }
         )
-        self.assertDictEqual(
-            list_input_multi.args['ports'].value,
+        self.assertEqual(
+            list_input_multi.args['ports'],
             {
-                'sample1': sample1.args['port'].value,
+                'sample1': sample1.args['port'],
             }
         )
 
         xs.connect(sample2, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
-        self.assertDictEqual(
-            list_input_multi.args['ips'].value,
+        self.assertEqual(
+            list_input_multi.args['ips'],
             {
-                'sample1': sample1.args['ip'].value,
-                'sample2': sample2.args['ip'].value,
+                'sample1': sample1.args['ip'],
+                'sample2': sample2.args['ip'],
             }
         )
-        self.assertDictEqual(
-            list_input_multi.args['ports'].value,
+        self.assertEqual(
+            list_input_multi.args['ports'],
             {
-                'sample1': sample1.args['port'].value,
-                'sample2': sample2.args['port'].value,
+                'sample1': sample1.args['port'],
+                'sample2': sample2.args['port'],
             }
         )
 
