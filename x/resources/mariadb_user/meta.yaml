@@ -5,5 +5,11 @@ actions:
     run: run.yml
     remove: remove.yml
 input:
-    name: name
-    password: password
+    password:
+    db:
+    login_password:
+    login_port:
+    login_user:
+    ip: 
+    ssh_key: 
+    ssh_user: 

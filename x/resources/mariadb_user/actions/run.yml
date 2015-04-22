@@ -1,0 +1,13 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: mariadb user
+      mysql_user:
+        name: {{name}}
+        password: {{password}}
+        priv: {{db}}.*:ALL
+        state: present
+        login_user: root
+        login_password: {{login_password}}
+        login_port: {{login_port}}
+        login_host: 127.0.0.1
