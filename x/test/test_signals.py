@@ -23,8 +23,8 @@ input:
         )
         xs.connect(sample1, sample2)
         self.assertItemsEqual(
-            sample1.args['values'],
-            sample2.args['values'],
+            sample1.args['values'].value,
+            sample2.args['values'].value,
         )
 
 
@@ -59,18 +59,18 @@ input-types:
 
         xs.connect(sample1, list_input_single, mapping={'ip': 'ips'})
         self.assertItemsEqual(
-            list_input_single.args['ips'],
+            list_input_single.args['ips'].value,
             {
-                'sample1': sample1.args['ip'],
+                'sample1': sample1.args['ip'].value,
             }
         )
 
         xs.connect(sample2, list_input_single, mapping={'ip': 'ips'})
         self.assertItemsEqual(
-            list_input_single.args['ips'],
+            list_input_single.args['ips'].value,
             {
-                'sample1': sample1.args['ip'],
-                'sample2': sample2.args['ip'],
+                'sample1': sample1.args['ip'].value,
+                'sample2': sample2.args['ip'].value,
             }
         )
 
@@ -107,31 +107,31 @@ input-types:
 
         xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
         self.assertItemsEqual(
-            list_input_multi.args['ips'],
+            list_input_multi.args['ips'].value,
             {
-                'sample1': sample1.args['ip'],
+                'sample1': sample1.args['ip'].value,
             }
         )
         self.assertItemsEqual(
-            list_input_multi.args['ports'],
+            list_input_multi.args['ports'].value,
             {
-                'sample1': sample1.args['port'],
+                'sample1': sample1.args['port'].value,
             }
         )
 
         xs.connect(sample2, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
         self.assertItemsEqual(
-            list_input_multi.args['ips'],
+            list_input_multi.args['ips'].value,
             {
-                'sample1': sample1.args['ip'],
-                'sample2': sample2.args['ip'],
+                'sample1': sample1.args['ip'].value,
+                'sample2': sample2.args['ip'].value,
             }
         )
         self.assertItemsEqual(
-            list_input_multi.args['ports'],
+            list_input_multi.args['ports'].value,
             {
-                'sample1': sample1.args['port'],
-                'sample2': sample2.args['port'],
+                'sample1': sample1.args['port'].value,
+                'sample2': sample2.args['port'].value,
             }
         )
 

@@ -1,14 +1,15 @@
 # -*- coding: UTF-8 -*-
+import copy
 import json
 import os
 import shutil
 
 import yaml
 
-import actions
-import signals
-import db
-
+from x import actions
+from x import db
+from x import observer
+from x import signals
 from x import utils
 
 
@@ -20,7 +21,10 @@ class Resource(object):
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
         self.requires = metadata['input'].keys()
         self._validate_args(args, metadata['input'])
-        self.args = args
+        self.args = {}
+        for arg_name, arg_value in args.items():
+            type_ = metadata.get('input-types', {}).get(arg_name, 'simple')
+            self.args[arg_name] = observer.create(type_, self, arg_name, arg_value)
         self.metadata['input'] = args
         self.input_types = metadata.get('input-types', {})
         self.changed = []
@@ -30,9 +34,12 @@ class Resource(object):
         return ("Resource('name={0}', metadata={1}, args={2}, "
                 "base_dir='{3}', tags={4})").format(self.name,
                                                     json.dumps(self.metadata),
-                                                    json.dumps(self.args),
+                                                    json.dumps(self.args_dict()),
                                                     self.base_dir,
                                                     self.tags)
+
+    def args_dict(self):
+        return {k: v.value for k, v in self.args.items()}
 
     def add_tag(self, tag):
         if tag not in self.tags:
@@ -44,18 +51,27 @@ class Resource(object):
         except ValueError:
             pass
 
-    def update(self, args, emitter=None):
-        for key, value in args.iteritems():
-            if self.input_types.get(key, '') == 'list':
-                if emitter is None:
-                    raise Exception('I need to know the emitter when updating input of list type')
-                self.args[key][emitter.name] = value
-            else:
-                self.args[key] = value
-            self.changed.append(key)
-            signals.notify(self, key, value)
+    def notify(self, emitter):
+        """Update resource's args from emitter's args.
 
-        self.save()
+        :param emitter: Resource
+        :return:
+        """
+        for key, value in emitter.args.iteritems():
+            self.args[key].notify(value)
+
+    def update(self, args):
+        """This method updates resource's args with a simple dict.
+
+        :param args:
+        :return:
+        """
+        # Update will be blocked if this resource is listening
+        # on some input that is to be updated -- we should only listen
+        # to the emitter and not be able to change the input's value
+
+        for key, value in args.iteritems():
+            self.args[key].update(value)
 
     def action(self, action):
         if action in self.actions:
@@ -75,11 +91,14 @@ class Resource(object):
 
     # TODO: versioning
     def save(self):
-        self.metadata['tags'] = self.tags
+        metadata = copy.deepcopy(self.metadata)
+
+        metadata['tags'] = self.tags
+        metadata['args'] = self.args_dict()
 
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:
-            f.write(yaml.dump(self.metadata))
+            f.write(yaml.dump(metadata))
 
 
 def create(name, base_path, dest_path, args, connections={}):
@@ -111,6 +130,7 @@ def create(name, base_path, dest_path, args, connections={}):
     shutil.copytree(base_path, dest_path)
     resource.save()
     db.resource_add(name, resource)
+
     return resource
 
 
@@ -135,5 +155,7 @@ def load_all(dest_path):
         resource_path = os.path.join(dest_path, name)
         resource = load(resource_path)
         ret[resource.name] = resource
+
+    signals.reconnect_all()
 
     return ret

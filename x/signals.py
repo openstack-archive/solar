@@ -62,17 +62,36 @@ def connect(emitter, receiver, mapping=None):
         connect_src_dst(emitter, src, receiver, dst)
 
     receiver.save()
-    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
 def connect_src_dst(emitter, src, receiver, dst):
+    if src not in emitter.args:
+        return
+
     CLIENTS.setdefault(emitter.name, {})
     CLIENTS[emitter.name].setdefault(src, [])
     CLIENTS[emitter.name][src].append((receiver.name, dst))
 
+    emitter.args[src].subscribe(receiver.args[dst])
+
     # Copy emitter's values to receiver
-    if src in emitter.args:
-        receiver.update({dst: emitter.args[src]}, emitter=emitter)
+    #receiver.update({dst: emitter.args[src]}, emitter=emitter)
+
+    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
+def reconnect_all():
+    """Reconstruct connections for resource inputs from CLIENTS.
+
+    :return:
+    """
+    for emitter_name, dest_dict in CLIENTS.items():
+        emitter = db.get_resource(emitter_name)
+        for emitter_input, destinations in dest_dict.items():
+            for receiver_name, receiver_input in destinations:
+                receiver = db.get_resource(receiver_name)
+                receiver.args[receiver_input].subscribe(
+                    emitter.args[emitter_input])
 
 
 def disconnect(emitter, receiver):
