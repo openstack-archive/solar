@@ -156,6 +156,6 @@ def load_all(dest_path):
         resource = load(resource_path)
         ret[resource.name] = resource
 
-    signals.reconnect_all()
+    signals.Connections.reconnect_all()
 
     return ret

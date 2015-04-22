@@ -18,7 +18,7 @@ def deploy(filename):
 
     # Clean stuff first
     db.clear()
-    xs.clear()
+    xs.Connections.clear()
     shutil.rmtree(resource_save_path, ignore_errors=True)
     os.makedirs(resource_save_path)
 

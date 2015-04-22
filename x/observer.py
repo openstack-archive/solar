@@ -1,3 +1,6 @@
+from x import signals
+
+
 class BaseObserver(object):
     type_ = None
 
@@ -58,6 +61,14 @@ class BaseObserver(object):
             return
         self.receivers.append(receiver)
         receiver.subscribed(self)
+
+        signals.Connections.add(
+            self.attached_to,
+            self.name,
+            receiver.attached_to,
+            receiver.name
+        )
+
         receiver.notify(self)
 
     def subscribed(self, emitter):

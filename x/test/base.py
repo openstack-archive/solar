@@ -16,7 +16,7 @@ class BaseResourceTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.storage_dir)
         db.clear()
-        xs.clear()
+        xs.Connections.clear()
 
     def make_resource_meta(self, meta_yaml):
         meta = yaml.load(meta_yaml)

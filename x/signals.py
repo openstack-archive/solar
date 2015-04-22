@@ -13,14 +13,41 @@ CLIENTS_CONFIG_KEY = 'clients-data-file'
 CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
 
 
-def clear():
-    global CLIENTS
+class Connections(object):
+    @staticmethod
+    def add(emitter, src, receiver, dst):
+        if src not in emitter.args:
+            return
 
-    CLIENTS = {}
+        CLIENTS.setdefault(emitter.name, {})
+        CLIENTS[emitter.name].setdefault(src, [])
+        CLIENTS[emitter.name][src].append((receiver.name, dst))
 
-    path = utils.read_config()[CLIENTS_CONFIG_KEY]
-    if os.path.exists(path):
-        os.remove(path)
+        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+    @staticmethod
+    def reconnect_all():
+        """Reconstruct connections for resource inputs from CLIENTS.
+
+        :return:
+        """
+        for emitter_name, dest_dict in CLIENTS.items():
+            emitter = db.get_resource(emitter_name)
+            for emitter_input, destinations in dest_dict.items():
+                for receiver_name, receiver_input in destinations:
+                    receiver = db.get_resource(receiver_name)
+                    receiver.args[receiver_input].subscribe(
+                        emitter.args[emitter_input])
+
+    @staticmethod
+    def clear():
+        global CLIENTS
+
+        CLIENTS = {}
+
+        path = utils.read_config()[CLIENTS_CONFIG_KEY]
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def guess_mapping(emitter, receiver):
@@ -59,36 +86,9 @@ def connect(emitter, receiver, mapping=None):
         if receiver.args[dst].type_ != 'list':
             disconnect_receiver_by_input(receiver, dst)
 
-        connect_src_dst(emitter, src, receiver, dst)
+        emitter.args[src].subscribe(receiver.args[dst])
 
     receiver.save()
-
-
-def connect_src_dst(emitter, src, receiver, dst):
-    if src not in emitter.args:
-        return
-
-    CLIENTS.setdefault(emitter.name, {})
-    CLIENTS[emitter.name].setdefault(src, [])
-    CLIENTS[emitter.name][src].append((receiver.name, dst))
-
-    emitter.args[src].subscribe(receiver.args[dst])
-
-    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
-
-
-def reconnect_all():
-    """Reconstruct connections for resource inputs from CLIENTS.
-
-    :return:
-    """
-    for emitter_name, dest_dict in CLIENTS.items():
-        emitter = db.get_resource(emitter_name)
-        for emitter_input, destinations in dest_dict.items():
-            for receiver_name, receiver_input in destinations:
-                receiver = db.get_resource(receiver_name)
-                receiver.args[receiver_input].subscribe(
-                    emitter.args[emitter_input])
 
 
 def disconnect(emitter, receiver):
