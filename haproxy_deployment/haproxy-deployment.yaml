@@ -116,13 +116,6 @@ resources:
       ssh_user:
       ssh_key:
 
-  #- name: haproxy-config-container
-  #  model: x/resources/data_container/
-  #  args:
-  #    ip:
-  #    image: haproxy-config
-  #    export_volumes:
-  #      - haproxy-config
   - name: haproxy-config
     model: x/resources/haproxy/
     args:
@@ -136,6 +129,7 @@ resources:
     args:
       ip:
       image: tutum/haproxy
+      ports: {}
       ssh_user:
       ssh_key:
       host_binds: {}
@@ -185,10 +179,6 @@ connections:
   - emitter: node5
     receiver: haproxy-config
 
-  #- emitter: node5
-  #  receiver: haproxy-config-container
-  #- emitter: haproxy-config-container
-  #  receiver: haproxy-config
   - emitter: haproxy_keystone_config
     receiver: haproxy-config
     mapping:
@@ -204,15 +194,7 @@ connections:
     receiver: haproxy
     mapping:
       ip: ip
+      configs_ports: ports
       ssh_user: ssh_user
       ssh_key: ssh_key
       config_dir: host_binds
-
-  # HAProxy service
-  #- emitter: node5
-  #  receiver: haproxy
-
-  #- emitter: haproxy-config
-  #  receiver: haproxy
-  #  mapping:
-

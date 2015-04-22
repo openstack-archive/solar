@@ -1,39 +1,34 @@
-import os
-import shutil
-import tempfile
 import unittest
-import yaml
 
-from x import db
-from x import resource as xr
+import base
+
 from x import signals as xs
 
 
-class TestListInput(unittest.TestCase):
-    def setUp(self):
-        self.storage_dir = tempfile.mkdtemp()
+class TestBaseInput(base.BaseResourceTest):
+    def test_input_dict_type(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  values: {}
+        """)
 
-    def tearDown(self):
-        shutil.rmtree(self.storage_dir)
-        db.clear()
-        xs.clear()
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'values': {'a': 1, 'b': 2}}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'values': None}
+        )
+        xs.connect(sample1, sample2)
+        self.assertItemsEqual(
+            sample1.args['values'],
+            sample2.args['values'],
+        )
 
-    def make_resource_meta(self, meta_yaml):
-        meta = yaml.load(meta_yaml)
 
-        path = os.path.join(self.storage_dir, meta['id'])
-        os.makedirs(path)
-        with open(os.path.join(path, 'meta.yaml'), 'w') as f:
-            f.write(meta_yaml)
-
-        return path
-
-    def create_resource(self, name, src, args):
-        dst = os.path.join(self.storage_dir, 'rs', name)
-        os.makedirs(dst)
-
-        return xr.create(name, src, dst, args)
-
+class TestListInput(base.BaseResourceTest):
     def test_list_input_single(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -78,7 +73,6 @@ input-types:
                 'sample2': sample2.args['ip'],
             }
         )
-
 
     def test_list_input_multi(self):
         sample_meta_dir = self.make_resource_meta("""

@@ -92,6 +92,10 @@ class TestHAProxyDeployment(unittest.TestCase):
             },
             haproxy.args['host_binds']
         )
+        self.assertItemsEqual(
+            haproxy.args['ports'],
+            haproxy_config.args['configs_ports'],
+        )
 
 
 def main():
