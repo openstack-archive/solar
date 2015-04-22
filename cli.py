@@ -146,10 +146,11 @@ def init_cli_connections():
     # TODO: this requires graphing libraries
     @click.command()
     def graph():
-        g = xs.connection_graph()
+        #g = xs.connection_graph()
+        g = xs.detailed_connection_graph()
 
         nx.write_dot(g, 'graph.dot')
-        subprocess.call(['dot', '-Tps', 'graph.dot', '-o', 'graph.ps'])
+        subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
 
         # Matplotlib
         #pos = nx.spring_layout(g)

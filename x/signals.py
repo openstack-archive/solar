@@ -166,3 +166,17 @@ def connection_graph():
         )
 
     return g
+
+
+def detailed_connection_graph():
+    g = nx.MultiDiGraph()
+
+    for emitter_name, destination_values in CLIENTS.items():
+        for emitter_input, receivers in CLIENTS[emitter_name].items():
+            for receiver_name, receiver_input in receivers:
+                label = emitter_input
+                if emitter_input != receiver_input:
+                    label = '{}:{}'.format(emitter_input, receiver_input)
+                g.add_edge(emitter_name, receiver_name, label=label)
+
+    return g
