@@ -74,9 +74,6 @@ def connect_src_dst(emitter, src, receiver, dst):
 
     emitter.args[src].subscribe(receiver.args[dst])
 
-    # Copy emitter's values to receiver
-    #receiver.update({dst: emitter.args[src]}, emitter=emitter)
-
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 

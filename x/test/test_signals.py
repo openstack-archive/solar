@@ -39,6 +39,7 @@ input:
         )
 
         # Check disconnect
+        # TODO: should sample2.value be reverted to original value?
         xs.disconnect(sample1, sample2)
         sample1.update({'values': {'a': 3}})
         self.assertDictEqual(
@@ -94,6 +95,15 @@ input-types:
             {
                 'sample1': sample1.args['ip'].value,
                 'sample2': sample2.args['ip'].value,
+            }
+        )
+
+        # Test disconnect
+        xs.disconnect(sample2, list_input_single)
+        self.assertDictEqual(
+            list_input_single.args['ips'].value,
+            {
+                'sample1': sample1.args['ip'].value,
             }
         )
 

@@ -51,7 +51,11 @@ class BaseObserver(object):
             self.log('No multiple subscriptions from {}'.format(receiver))
             return
         self.receivers.append(receiver)
+        receiver.subscribed(self)
         receiver.notify(self)
+
+    def subscribed(self, emitter):
+        self.log('Subscribed {}'.format(emitter))
 
     def unsubscribe(self, receiver):
         """
@@ -61,8 +65,12 @@ class BaseObserver(object):
         self.log('Unsubscribe {}'.format(receiver))
         if self.find_receiver(receiver):
             self.receivers.remove(receiver)
+            receiver.unsubscribed(self)
         # TODO: ?
         #receiver.notify(self)
+
+    def unsubscribed(self, emitter):
+        self.log('Unsubscribed {}'.format(emitter))
 
 
 class Observer(BaseObserver):
@@ -76,6 +84,7 @@ class Observer(BaseObserver):
 
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
+        # Copy emitter's values to receiver
         self.value = emitter.value
         for receiver in self.receivers:
             receiver.notify(self)
@@ -98,10 +107,19 @@ class ListObserver(BaseObserver):
 
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
+        # Copy emitter's values to receiver
         self.value[emitter.attached_to.name] = emitter.value
         for receiver in self.receivers:
             receiver.notify(self)
         self.attached_to.save()
+
+    def unsubscribed(self, emitter):
+        """
+        :param receiver: Observer
+        :return:
+        """
+        self.log('Unsubscribed emitter {}'.format(emitter))
+        self.value.pop(emitter.attached_to.name)
 
 
 def create(type_, *args, **kwargs):
