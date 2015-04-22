@@ -93,19 +93,13 @@ def reconnect_all():
 
 def disconnect(emitter, receiver):
     for src, destinations in CLIENTS[emitter.name].items():
-        destinations = [
-            destination for destination in destinations
-            if destination[0] == receiver.name
-        ]
+        disconnect_by_src(emitter, src, receiver)
 
         for destination in destinations:
             receiver_input = destination[1]
             if receiver.args[receiver_input].type_ != 'list':
                 print 'Removing input {} from {}'.format(receiver_input, receiver.name)
             emitter.args[src].unsubscribe(receiver.args[receiver_input])
-
-    # Inputs might have changed
-    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
 def disconnect_receiver_by_input(receiver, input):
@@ -126,6 +120,8 @@ def disconnect_by_src(emitter, src, receiver):
             destination for destination in CLIENTS[emitter.name][src]
             if destination[0] != receiver.name
         ]
+
+    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
 def notify(source, key, value):
