@@ -1,10 +1,11 @@
 import click
 import json
-import matplotlib
-matplotlib.use('Agg')  # don't show windows
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use('Agg')  # don't show windows
+#import matplotlib.pyplot as plt
 import networkx as nx
 import os
+import subprocess
 
 from x import actions as xa
 from x import deployment as xd
@@ -145,13 +146,19 @@ def init_cli_connections():
     # TODO: this requires graphing libraries
     @click.command()
     def graph():
-        g = xs.connection_graph()
-        pos = nx.spring_layout(g)
-        nx.draw_networkx_nodes(g, pos)
-        nx.draw_networkx_edges(g, pos, arrows=True)
-        nx.draw_networkx_labels(g, pos)
-        plt.axis('off')
-        plt.savefig('graph.png')
+        #g = xs.connection_graph()
+        g = xs.detailed_connection_graph()
+
+        nx.write_dot(g, 'graph.dot')
+        subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+
+        # Matplotlib
+        #pos = nx.spring_layout(g)
+        #nx.draw_networkx_nodes(g, pos)
+        #nx.draw_networkx_edges(g, pos, arrows=True)
+        #nx.draw_networkx_labels(g, pos)
+        #plt.axis('off')
+        #plt.savefig('graph.png')
 
     connections.add_command(graph)
 

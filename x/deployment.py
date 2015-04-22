@@ -17,9 +17,8 @@ def deploy(filename):
     resource_save_path = os.path.join(workdir, config['resource-save-path'])
 
     # Clean stuff first
-    clients_file = os.path.join(workdir, 'clients.json')
-    if os.path.exists(clients_file):
-        os.remove(clients_file)
+    db.clear()
+    xs.clear()
     shutil.rmtree(resource_save_path, ignore_errors=True)
     os.makedirs(resource_save_path)
 

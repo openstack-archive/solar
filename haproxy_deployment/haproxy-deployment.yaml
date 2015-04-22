@@ -72,6 +72,8 @@ resources:
     model: x/resources/haproxy_config/
     args:
       servers: {}
+      listen_port: 5000
+      ports: {}
       ssh_user:
       ssh_key:
 
@@ -111,33 +113,30 @@ resources:
     model: x/resources/haproxy_config/
     args:
       servers: {}
+      listen_port: 8774
+      ports: {}
       ssh_user:
       ssh_key:
 
-  #- name: haproxy-config-container
-  #  model: x/resources/data_container/
-  #  args:
-  #    ip:
-  #    image: haproxy-config
-  #    export_volumes:
-  #      - haproxy-config
-  #- name: haproxy-config
-  #  model: x/resources/haproxy/
-  #  args:
-  #    ip:
-  #    configs: {}
-  #    ssh_user:
-  #    ssh_key:
+  - name: haproxy-config
+    model: x/resources/haproxy/
+    args:
+      ip:
+      listen_ports: {}
+      configs: {}
+      configs_ports: {}
+      ssh_user:
+      ssh_key:
   - name: haproxy
     model: x/resources/docker_container
     args:
       ip:
-      image: haproxy
+      image: tutum/haproxy
+      ports: {}
       ssh_user:
       ssh_key:
-      host_binds:
-        - /etc/haproxy: /vagrant/haproxy-etc
-      volume_binds:
+      host_binds: {}
+      volume_binds: {}
 
 
 connections:
@@ -153,10 +152,12 @@ connections:
     receiver: haproxy_keystone_config
     mapping:
       ip: servers
+      port: ports
   - emitter: keystone2
     receiver: haproxy_keystone_config
     mapping:
       ip: servers
+      port: ports
 
   - emitter: node3
     receiver: mariadb_nova1_data
@@ -170,30 +171,35 @@ connections:
     receiver: haproxy_nova_config
     mapping:
       ip: servers
+      port: ports
   - emitter: nova2
     receiver: haproxy_nova_config
     mapping:
       ip: servers
+      port: ports
 
   # HAProxy config container
-  #- emitter: node5
-  #  receiver: haproxy-config-container
-  #- emitter: haproxy-config-container
-  #  receiver: haproxy-config
-  #- emitter: haproxy_keystone_config
-  #  receiver: haproxy-config
-  #  mapping:
-  #    servers: configs
-  #- emitter: haproxy_nova_config
-  #  receiver: haproxy-config
-  #  mapping:
-  #    servers: configs
-
-  # HAProxy service
   - emitter: node5
+    receiver: haproxy-config
+
+  - emitter: haproxy_keystone_config
+    receiver: haproxy-config
+    mapping:
+      listen_port: listen_ports
+      ports: configs_ports
+      servers: configs
+  - emitter: haproxy_nova_config
+    receiver: haproxy-config
+    mapping:
+      listen_port: listen_ports
+      ports: configs_ports
+      servers: configs
+
+  - emitter: haproxy-config
     receiver: haproxy
-
-  #- emitter: haproxy-config
-  #  receiver: haproxy
-  #  mapping:
-
+    mapping:
+      ip: ip
+      listen_ports: ports
+      ssh_user: ssh_user
+      ssh_key: ssh_key
+      config_dir: host_binds

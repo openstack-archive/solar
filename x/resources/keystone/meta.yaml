@@ -3,4 +3,5 @@ handler: ansible
 version: 1.0.0
 input:
     ip:
+    port: 5000
     image: garland/docker-openstack-keystone

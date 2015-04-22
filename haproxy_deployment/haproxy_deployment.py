@@ -25,6 +25,13 @@ class TestHAProxyDeployment(unittest.TestCase):
                 'keystone2': keystone2.args['ip'],
             }
         )
+        self.assertDictEqual(
+            haproxy_keystone_config.args['ports'],
+            {
+                'keystone1': keystone1.args['port'],
+                'keystone2': keystone2.args['port'],
+            }
+        )
 
     def test_nova_config(self):
         node3 = db.get_resource('node3')
@@ -47,21 +54,55 @@ class TestHAProxyDeployment(unittest.TestCase):
                 'nova2': nova2.args['ip'],
             }
         )
+        self.assertDictEqual(
+            haproxy_nova_config.args['ports'],
+            {
+                'nova1': nova1.args['port'],
+                'nova2': nova2.args['port'],
+            }
+        )
 
     def test_haproxy(self):
         node5 = db.get_resource('node5')
         haproxy_keystone_config = db.get_resource('haproxy_keystone_config')
         haproxy_nova_config = db.get_resource('haproxy_nova_config')
         haproxy = db.get_resource('haproxy')
+        haproxy_config = db.get_resource('haproxy-config')
 
         self.assertEqual(node5.args['ip'], haproxy.args['ip'])
-        #self.assertItemsEqual(
-        #    haproxy.args['configs'],
-        #    {
-        #        'haproxy_keystone_config': haproxy_keystone_config.args['servers'],
-        #        'haproxy_nova_config': haproxy_nova_config.args['servers'],
-        #    }
-        #)
+        self.assertEqual(node5.args['ssh_key'], haproxy.args['ssh_key'])
+        self.assertEqual(node5.args['ssh_user'], haproxy.args['ssh_user'])
+        self.assertDictEqual(
+            haproxy_config.args['configs'],
+            {
+                'haproxy_keystone_config': haproxy_keystone_config.args['servers'],
+                'haproxy_nova_config': haproxy_nova_config.args['servers'],
+            }
+        )
+        self.assertDictEqual(
+            haproxy_config.args['configs_ports'],
+            {
+                'haproxy_keystone_config': haproxy_keystone_config.args['ports'],
+                'haproxy_nova_config': haproxy_nova_config.args['ports'],
+            }
+        )
+        self.assertDictEqual(
+            haproxy_config.args['listen_ports'],
+            {
+                'haproxy_keystone_config': haproxy_keystone_config.args['listen_port'],
+                'haproxy_nova_config': haproxy_nova_config.args['listen_port'],
+            }
+        )
+        self.assertDictEqual(
+            {
+                'haproxy-config': haproxy_config.args['config_dir'],
+            },
+            haproxy.args['host_binds']
+        )
+        self.assertDictEqual(
+            haproxy.args['ports'],
+            haproxy_config.args['listen_ports'],
+        )
 
 
 def main():
