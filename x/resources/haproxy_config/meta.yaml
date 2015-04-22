@@ -2,7 +2,7 @@ id: haproxy_config
 handler: ansible
 version: 1.0.0
 input:
-    port:
+    listen_port:
     ports:
     servers:
 input-types:

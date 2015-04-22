@@ -89,8 +89,8 @@ class TestHAProxyDeployment(unittest.TestCase):
         self.assertDictEqual(
             haproxy_config.args['listen_ports'],
             {
-                'haproxy_keystone_config': haproxy_keystone_config.args['port'],
-                'haproxy_nova_config': haproxy_nova_config.args['port'],
+                'haproxy_keystone_config': haproxy_keystone_config.args['listen_port'],
+                'haproxy_nova_config': haproxy_nova_config.args['listen_port'],
             }
         )
         self.assertDictEqual(
