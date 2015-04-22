@@ -10,10 +10,9 @@
        image: {{ image }}
        state: running
        ports:
-         {% for name, ports_dict in ports.items() %}
-         # TODO: this is ugly
+         {% for name, port in ports.items() %}
          # {{ name }}
-         - {{ ports_dict.values()[0] }}:{{ ports_dict.values()[0] }}
+         - {{ port }}:{{ port }}
          {% endfor %}
        volumes:
          # TODO: host_binds might need more work

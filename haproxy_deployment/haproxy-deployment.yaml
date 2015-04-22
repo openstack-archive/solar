@@ -72,6 +72,7 @@ resources:
     model: x/resources/haproxy_config/
     args:
       servers: {}
+      port: 5000
       ports: {}
       ssh_user:
       ssh_key:
@@ -112,6 +113,7 @@ resources:
     model: x/resources/haproxy_config/
     args:
       servers: {}
+      port: 8774
       ports: {}
       ssh_user:
       ssh_key:
@@ -120,6 +122,7 @@ resources:
     model: x/resources/haproxy/
     args:
       ip:
+      listen_ports: {}
       configs: {}
       configs_ports: {}
       ssh_user:
@@ -182,11 +185,13 @@ connections:
   - emitter: haproxy_keystone_config
     receiver: haproxy-config
     mapping:
+      port: listen_ports
       ports: configs_ports
       servers: configs
   - emitter: haproxy_nova_config
     receiver: haproxy-config
     mapping:
+      port: listen_ports
       ports: configs_ports
       servers: configs
 
@@ -194,7 +199,7 @@ connections:
     receiver: haproxy
     mapping:
       ip: ip
-      configs_ports: ports
+      listen_ports: ports
       ssh_user: ssh_user
       ssh_key: ssh_key
       config_dir: host_binds

@@ -4,10 +4,12 @@ version: 1.0.0
 input:
     ip:
     config_dir: /etc/haproxy
+    listen_ports:
     configs:
     configs_ports:
     ssh_user:
     ssh_key:
 input-types:
+    listen_ports: list
     configs: list
     configs_ports: list
