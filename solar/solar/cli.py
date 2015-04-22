@@ -117,7 +117,7 @@ class Cmd(object):
                  'name': 'keystone-test',
                  'admin_port': '35357',
                  'public_port': '5000',
-                 'db_addr': '{{ first_with_tags("entrypoint/mariadb").node.ip }}'}},
+                 'db_addr': {'first_with_tags': ["entrypoint/mariadb"], 'item': '{{ item.node.ip }}'}}},
 
              {'id': 'haproxy',
               'tags': ['service/haproxy'],
@@ -126,14 +126,14 @@ class Cmd(object):
                       {'service_name': 'keystone-admin',
                        'bind': '*:8080',
                        'backends': {
-                           'with_items': '{{ with_tags("service/keystone") }}',
+                           'with_tags': ["service/keystone"],
                            'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.admin_port }}'}}},
 
                       {'service_name': 'keystone-pub',
                        'bind': '*:8081',
                        'backends': {
-                           'with_items': '{{ with_tags("service/keystone") }}',
-                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.public_port }}'}}}]}},
+                           'with_tags': ["service/keystone"],
+                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.public_port }}'}}}]}}
         ]
 
         nodes = [

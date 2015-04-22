@@ -12,13 +12,6 @@ import mock
 from jinja2 import Template
 
 
-class SetEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, set):
-            return list(obj)
-        return json.JSONEncoder.default(self, obj)
-
-
 class Node(object):
 
     def __init__(self, config):
@@ -53,34 +46,18 @@ class Resource(object):
         called_with_tags = []
 
         if isinstance(value, dict):
+            if value.get('first_with_tags'):
+                called_with_tags.extend(value.get('first_with_tags'))
+            elif value.get('with_tags'):
+                called_with_tags.extend(value.get('with_tags'))
+
             for k, v in value.items():
                 self.depends_on(value=v, tags=tags)
         elif isinstance(value, list):
             for e in value:
                 self.depends_on(value=e, tags=tags)
         elif isinstance(value, str):
-            env = Template(value)
-            tags_call_mock = mock.MagicMock()
-
-            env.globals['with_tags'] = tags_call_mock
-            env.globals['first_with_tags'] = tags_call_mock
-
-            try:
-                env.render()
-            except jinja2.exceptions.UndefinedError:
-                # On dependency resolving stage we should
-                # not handle rendering errors, we need
-                # only information about graph, this
-                # information can be provided by tags
-                # filtering calls
-                pass
-
-            # Get arguments, which are tags, and flatten the list
-            used_tags = sum(map(
-                lambda call: list(call[0]),
-                tags_call_mock.call_args_list), [])
-
-            called_with_tags.extend(used_tags)
+            return value
 
         tags.extend(called_with_tags)
 
@@ -151,22 +128,48 @@ class DataGraph(nx.DiGraph):
 
         if isinstance(value, dict):
             # Handle iterators
-            if value.get('with_items'):
+            if value.get('first_with_tags') or value.get('with_tags'):
+
                 if len(value.keys()) != 2:
                     raise Exception("Iterator should have two elements '{0}'".format(value))
 
-                result_list = []
-                iter_key = (set(value.keys()) - set(['with_items'])).pop()
+                def with_tags(*args):
+                    resources_with_tags = filter(
+                        lambda n: n[1]['tags'] & set(list(*args)),
+                        previous_render.items())
 
-                rendered_with_items = []
-                if isinstance(value['with_items'], list):
-                    rendered_with_items = value['with_items']
-                elif isinstance(value['with_items'], str):
-                    rendered_with_items = json.loads(self.render(value['with_items'], context, previous_render))
+                    return map(lambda n: n[1], resources_with_tags)
+
+                method_name = 'with_tags'
+                if value.get('first_with_tags'):
+                    method_name = 'first_with_tags'
+
+                iter_key = (set(value.keys()) - set([method_name])).pop()
+
+                items = []
+                if isinstance(value[method_name], list):
+                    items = with_tags(value[method_name])
+                elif isinstance(value[method_name], str):
+                    items = with_tags([value[method_name]])
                 else:
                     raise Exception('Cannot iterate over dict "{0}"'.format(value))
 
-                for item in rendered_with_items:
+                # first_with_tags returns a single object, hence we should
+                # render a single object
+                if value.get('first_with_tags'):
+                    if len(items) > 1:
+                        raise Exception('Returns too many objects, check that '
+                                        'tags assigned properly "{0}"'.format(value))
+
+                    iter_ctx = copy.deepcopy(context)
+                    iter_ctx[iter_key] = items[0]
+                    return self.render(value[iter_key], iter_ctx, previous_render)
+
+                # If it's with_tags construction, than it returns a list
+                # we should render each element and return a list of rendered
+                # elements
+                result_list = []
+                for item in items:
                     iter_ctx = copy.deepcopy(context)
                     iter_ctx[iter_key] = item
                     result_list.append(self.render(value[iter_key], iter_ctx, previous_render))
@@ -184,25 +187,6 @@ class DataGraph(nx.DiGraph):
             return map(lambda v: self.render(v, context, previous_render), value)
         elif isinstance(value, str):
             env = Template(value)
-
-            def first_with_tags(*args):
-                for uid, resource in previous_render.items():
-                    if resource['tags'] & set(args):
-                        return resource
-
-                # TODO Should we fail here?
-                return mock.MagicMock()
-
-            def with_tags(*args):
-                resources_with_tags = filter(
-                        lambda n: n[1]['tags'] & set(args),
-                        previous_render.items())
-
-                return json.dumps(map(lambda n: n[1], resources_with_tags), cls=SetEncoder)
-
-            env.globals['with_tags'] = with_tags
-            env.globals['first_with_tags'] = first_with_tags
-
             return env.render(**context)
         else:
             # If non of above return value, e.g. if there is

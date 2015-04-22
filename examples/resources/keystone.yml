@@ -9,8 +9,12 @@ actions:
   remove: simple/keystone/remove.yml
 
 input:
-  db_root_password: '{{ first_with_tags("entrypoint/mariadb").root_password }}'
-  db_host: '{{ first_with_tags("entrypoint/mariadb").node.ip }}'
+  db_root_password:
+    first_with_tags: ["entrypoint/mariadb"]
+    item: '{{ item.root_password }}'
+  db_host:
+    first_with_tags: ["entrypoint/mariadb"]
+    item: '{{ item.node.ip }}'
   admin_port: 35357
   public_port: 5000
   name: keystone-test
