@@ -2,6 +2,10 @@
 - hosts: [service/haproxy]
   sudo: yes
   tasks:
+    - shell: docker ps | grep -q {{name}}
+      ignore_errors: true
+      register: is_running
+
     - file: state=directory path=/etc/solar/{{name}}
       # TODO Remove hardcoded path
     - template: src=/vagrant/examples/resources/templates/haproxy.cfg.j2 dest=/etc/solar/{{name}}/haproxy.cfg backup=yes
@@ -10,3 +14,4 @@
         --privileged \
         -v /etc/solar/{{name}}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro \
         --name {{name}} {{image}}
+      when: is_running|failed

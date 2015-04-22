@@ -2,6 +2,9 @@
 - hosts: [service/mariadb]
   sudo: yes
   tasks:
+    - shell: docker ps | grep -q {{name}}
+      ignore_errors: true
+      register: is_running
     - shell: docker run \
         -d \
         --net="host" \
@@ -10,3 +13,4 @@
         -e "MARIADB_ROOT_PASSWORD={{root_password}}" \
         -e "BIND_ADDRESS={{bind_ip}}" \
         {{image}}
+      when: is_running|failed

@@ -2,6 +2,9 @@
 - hosts: [service/keystone]
   sudo: yes
   tasks:
+    - shell: docker ps | grep -q {{name}}
+      ignore_errors: true
+      register: is_running
       # NOTE(eli): specify restart policy (--restart parameter) for
       # keystone conatiner if there are more than 2 keystone containers
       # to be deployed, they both will perform db migration and will fail,
@@ -14,3 +17,4 @@
         -e "MARIADB_SERVICE_HOST={{db_host}}" \
         --restart="on-failure:10" \
         --name {{name}} {{image}}
+      when: is_running|failed
