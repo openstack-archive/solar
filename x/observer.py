@@ -33,6 +33,13 @@ class BaseObserver(object):
         """
         raise NotImplementedError
 
+    def find_receiver(self, receiver):
+        fltr = [r for r in self.receivers
+                if r.attached_to == receiver.attached_to
+                and r.name == receiver.name]
+        if fltr:
+            return fltr[0]
+
     def subscribe(self, receiver):
         """
         :param receiver: Observer
@@ -40,10 +47,7 @@ class BaseObserver(object):
         """
         self.log('Subscribe {}'.format(receiver))
         # No multiple subscriptions
-        fltr = [r for r in self.receivers
-                if r.attached_to == receiver.attached_to
-                and r.name == receiver.name]
-        if fltr:
+        if self.find_receiver(receiver):
             self.log('No multiple subscriptions from {}'.format(receiver))
             return
         self.receivers.append(receiver)
@@ -55,7 +59,8 @@ class BaseObserver(object):
         :return:
         """
         self.log('Unsubscribe {}'.format(receiver))
-        self.receivers.remove(receiver)
+        if self.find_receiver(receiver):
+            self.receivers.remove(receiver)
         # TODO: ?
         #receiver.notify(self)
 

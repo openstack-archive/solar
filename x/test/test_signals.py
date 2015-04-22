@@ -22,9 +22,32 @@ input:
             'sample2', sample_meta_dir, {'values': None}
         )
         xs.connect(sample1, sample2)
-        self.assertItemsEqual(
+        self.assertDictEqual(
             sample1.args['values'].value,
             sample2.args['values'].value,
+        )
+
+        # Check update
+        sample1.update({'values': {'a': 2}})
+        self.assertDictEqual(
+            sample1.args['values'].value,
+            {'a': 2}
+        )
+        self.assertDictEqual(
+            sample1.args['values'].value,
+            sample2.args['values'].value,
+        )
+
+        # Check disconnect
+        xs.disconnect(sample1, sample2)
+        sample1.update({'values': {'a': 3}})
+        self.assertDictEqual(
+            sample1.args['values'].value,
+            {'a': 3}
+        )
+        self.assertDictEqual(
+            sample2.args['values'].value,
+            {'a': 2}
         )
 
 
@@ -58,7 +81,7 @@ input-types:
         )
 
         xs.connect(sample1, list_input_single, mapping={'ip': 'ips'})
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_single.args['ips'].value,
             {
                 'sample1': sample1.args['ip'].value,
@@ -66,7 +89,7 @@ input-types:
         )
 
         xs.connect(sample2, list_input_single, mapping={'ip': 'ips'})
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_single.args['ips'].value,
             {
                 'sample1': sample1.args['ip'].value,
@@ -106,13 +129,13 @@ input-types:
         )
 
         xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_multi.args['ips'].value,
             {
                 'sample1': sample1.args['ip'].value,
             }
         )
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_multi.args['ports'].value,
             {
                 'sample1': sample1.args['port'].value,
@@ -120,14 +143,14 @@ input-types:
         )
 
         xs.connect(sample2, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_multi.args['ips'].value,
             {
                 'sample1': sample1.args['ip'].value,
                 'sample2': sample2.args['ip'].value,
             }
         )
-        self.assertItemsEqual(
+        self.assertDictEqual(
             list_input_multi.args['ports'].value,
             {
                 'sample1': sample1.args['port'].value,

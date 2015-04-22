@@ -56,7 +56,7 @@ def connect(emitter, receiver, mapping=None):
     for src, dst in mapping.items():
         # Disconnect all receiver inputs
         # Check if receiver input is of list type first
-        if receiver.input_types.get(dst, '') != 'list':
+        if receiver.args[dst].type_ != 'list':
             disconnect_receiver_by_input(receiver, dst)
 
         connect_src_dst(emitter, src, receiver, dst)
@@ -103,18 +103,11 @@ def disconnect(emitter, receiver):
 
         for destination in destinations:
             receiver_input = destination[1]
-            if receiver.input_types.get(receiver_input, '') == 'list':
+            if receiver.args[receiver_input].type_ != 'list':
                 print 'Removing input {} from {}'.format(receiver_input, receiver.name)
-                # TODO: update here? We're deleting an input...
-                receiver.args[receiver_input] = {
-                    k: v for k, v in receiver.args.get(receiver_input, {}).items()
-                    if k != emitter.name
-                }
-
-        disconnect_by_src(emitter, src, receiver)
+            emitter.args[src].unsubscribe(receiver.args[receiver_input])
 
     # Inputs might have changed
-    receiver.save()
     utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
