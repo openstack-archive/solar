@@ -16,7 +16,8 @@
     - shell: pip install -r /vagrant/requirements.txt
 
     # Graph drawing
-    - apt: name=python-matplotlib state=present
+    #- apt: name=python-matplotlib state=present
+    - apt: name=python-graphviz state=present
 
       # Setup development env for solar
     #- shell: python setup.py develop chdir=/vagrant/solar
