@@ -71,9 +71,10 @@ resources:
   - name: haproxy_keystone_config
     model: x/resources/haproxy_config/
     args:
-      servers: {}
+      name: keystone
+      servers: []
       listen_port: 5000
-      ports: {}
+      ports: []
       ssh_user:
       ssh_key:
 
@@ -112,9 +113,10 @@ resources:
   - name: haproxy_nova_config
     model: x/resources/haproxy_config/
     args:
-      servers: {}
+      name: nova
+      servers: []
       listen_port: 8774
-      ports: {}
+      ports: []
       ssh_user:
       ssh_key:
 
@@ -122,9 +124,10 @@ resources:
     model: x/resources/haproxy/
     args:
       ip:
-      listen_ports: {}
-      configs: {}
-      configs_ports: {}
+      listen_ports: []
+      configs: []
+      configs_names: []
+      configs_ports: []
       ssh_user:
       ssh_key:
   - name: haproxy
@@ -132,11 +135,11 @@ resources:
     args:
       ip:
       image: tutum/haproxy
-      ports: {}
+      ports: []
       ssh_user:
       ssh_key:
-      host_binds: {}
-      volume_binds: {}
+      host_binds: []
+      volume_binds: []
 
 
 connections:
@@ -186,12 +189,14 @@ connections:
     receiver: haproxy-config
     mapping:
       listen_port: listen_ports
+      name: configs_names
       ports: configs_ports
       servers: configs
   - emitter: haproxy_nova_config
     receiver: haproxy-config
     mapping:
       listen_port: listen_ports
+      name: configs_names
       ports: configs_ports
       servers: configs
 

@@ -10,8 +10,7 @@
        image: {{ image }}
        state: running
        ports:
-         {% for name, port in ports.items() %}
-         # {{ name }}
+         {% for port in ports %}
          - {{ port }}:{{ port }}
          {% endfor %}
        volumes:
@@ -19,6 +18,6 @@
          # Currently it's not that trivial to pass custom src: dst here
          # (when a config variable is passed here from other resource)
          # so we mount it to the same directory as on host
-         {% for emitter, bind in host_binds.items() %}
-         - {{ bind }}:{{ bind }}
+         {% for bind in host_binds %}
+         - {{ bind['src'] }}:{{ bind['dst'] }}:{{ bind.get('mode', 'ro') }}
          {% endfor %}

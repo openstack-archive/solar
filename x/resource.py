@@ -94,7 +94,7 @@ class Resource(object):
         metadata = copy.deepcopy(self.metadata)
 
         metadata['tags'] = self.tags
-        metadata['args'] = self.args_dict()
+        metadata['input'] = self.args_dict()
 
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:

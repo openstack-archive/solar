@@ -33,16 +33,17 @@ class BaseHandler(object):
         return dest_file
 
     def _compile_file(self, template, dest_file, args):
+        print 'Rendering', template, args
         with open(template) as f:
             tpl = Template(f.read())
-            tpl = tpl.render(args)
+            tpl = tpl.render(args, zip=zip)
 
             with open(dest_file, 'w') as g:
                 g.write(tpl)
 
     def _make_args(self, resource):
-        args = {'name' : resource.name}
-        args.update(resource.args)
+        args = {'name': resource.name}
+        args.update(resource.args_dict())
         return args
 
 

@@ -51,6 +51,44 @@ input:
             {'a': 2}
         )
 
+    def test_multiple_resource_disjoint_connect(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+  port:
+        """)
+        sample_ip_meta_dir = self.make_resource_meta("""
+id: sample-ip
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+        """)
+        sample_port_meta_dir = self.make_resource_meta("""
+id: sample-port
+handler: ansible
+version: 1.0.0
+input:
+  port:
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'ip': None, 'port': None}
+        )
+        sample_ip = self.create_resource(
+            'sample-ip', sample_ip_meta_dir, {'ip': '10.0.0.1'}
+        )
+        sample_port = self.create_resource(
+            'sample-port', sample_port_meta_dir, {'port': '8000'}
+        )
+        xs.connect(sample_ip, sample)
+        xs.connect(sample_port, sample)
+        self.assertEqual(sample.args['ip'], sample_ip.args['ip'])
+        self.assertEqual(sample.args['port'], sample_port.args['port'])
+
 
 class TestListInput(base.BaseResourceTest):
     def test_list_input_single(self):
@@ -78,33 +116,33 @@ input-types:
             'sample2', sample_meta_dir, {'ip': '10.0.0.2'}
         )
         list_input_single = self.create_resource(
-            'list-input-single', list_input_single_meta_dir, {'ips': {}}
+            'list-input-single', list_input_single_meta_dir, {'ips': []}
         )
 
         xs.connect(sample1, list_input_single, mapping={'ip': 'ips'})
         self.assertEqual(
             list_input_single.args['ips'],
-            {
-                'sample1': sample1.args['ip'],
-            }
+            [
+                sample1.args['ip'],
+            ]
         )
 
         xs.connect(sample2, list_input_single, mapping={'ip': 'ips'})
         self.assertEqual(
             list_input_single.args['ips'],
-            {
-                'sample1': sample1.args['ip'],
-                'sample2': sample2.args['ip'],
-            }
+            [
+                sample1.args['ip'],
+                sample2.args['ip'],
+            ]
         )
 
         # Test disconnect
         xs.disconnect(sample2, list_input_single)
         self.assertEqual(
             list_input_single.args['ips'],
-            {
-                'sample1': sample1.args['ip'],
-            }
+            [
+                sample1.args['ip'],
+            ]
         )
 
     def test_list_input_multi(self):
@@ -135,37 +173,58 @@ input-types:
             'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': '1001'}
         )
         list_input_multi = self.create_resource(
-            'list-input-multi', list_input_multi_meta_dir, {'ips': {}, 'ports': {}}
+            'list-input-multi', list_input_multi_meta_dir, {'ips': [], 'ports': []}
         )
 
         xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
-        self.assertEqual(
-            list_input_multi.args['ips'],
-            {
-                'sample1': sample1.args['ip'],
-            }
-        )
-        self.assertEqual(
-            list_input_multi.args['ports'],
-            {
-                'sample1': sample1.args['port'],
-            }
-        )
+        self.assertEqual(list_input_multi.args['ips'], [sample1.args['ip']])
+        self.assertEqual(list_input_multi.args['ports'], [sample1.args['port']])
 
         xs.connect(sample2, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
         self.assertEqual(
             list_input_multi.args['ips'],
-            {
-                'sample1': sample1.args['ip'],
-                'sample2': sample2.args['ip'],
-            }
+            [
+                sample1.args['ip'],
+                sample2.args['ip'],
+            ]
         )
         self.assertEqual(
             list_input_multi.args['ports'],
-            {
-                'sample1': sample1.args['port'],
-                'sample2': sample2.args['port'],
-            }
+            [
+                sample1.args['port'],
+                sample2.args['port'],
+            ]
+        )
+
+
+class TestMultiInput(base.BaseResourceTest):
+    def test_multi_input(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+    port:
+        """)
+        receiver_meta_dir = self.make_resource_meta("""
+id: receiver
+handler: ansible
+version: 1.0.0
+input:
+    server:
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'ip': '10.0.0.1', 'port': '5000'}
+        )
+        receiver = self.create_resource(
+            'receiver', receiver_meta_dir, {'server': None}
+        )
+        xs.connect(sample, receiver, mapping={'ip, port': 'server'})
+        self.assertItemsEqual(
+            (sample.args['ip'], sample.args['port']),
+            receiver.args['server'],
         )
 
 

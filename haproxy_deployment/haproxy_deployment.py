@@ -20,17 +20,17 @@ class TestHAProxyDeployment(unittest.TestCase):
 
         self.assertEqual(
             haproxy_keystone_config.args['servers'],
-            {
-                'keystone1': keystone1.args['ip'],
-                'keystone2': keystone2.args['ip'],
-            }
+            [
+                keystone1.args['ip'],
+                keystone2.args['ip'],
+            ]
         )
         self.assertEqual(
             haproxy_keystone_config.args['ports'],
-            {
-                'keystone1': keystone1.args['port'],
-                'keystone2': keystone2.args['port'],
-            }
+            [
+                keystone1.args['port'],
+                keystone2.args['port'],
+            ]
         )
 
     def test_nova_config(self):
@@ -49,17 +49,17 @@ class TestHAProxyDeployment(unittest.TestCase):
 
         self.assertEqual(
             haproxy_nova_config.args['servers'],
-            {
-                'nova1': nova1.args['ip'],
-                'nova2': nova2.args['ip'],
-            }
+            [
+                nova1.args['ip'],
+                nova2.args['ip'],
+            ]
         )
         self.assertEqual(
             haproxy_nova_config.args['ports'],
-            {
-                'nova1': nova1.args['port'],
-                'nova2': nova2.args['port'],
-            }
+            [
+                nova1.args['port'],
+                nova2.args['port'],
+            ]
         )
 
     def test_haproxy(self):
@@ -74,29 +74,29 @@ class TestHAProxyDeployment(unittest.TestCase):
         self.assertEqual(node5.args['ssh_user'], haproxy.args['ssh_user'])
         self.assertEqual(
             haproxy_config.args['configs'],
-            {
-                'haproxy_keystone_config': haproxy_keystone_config.args['servers'],
-                'haproxy_nova_config': haproxy_nova_config.args['servers'],
-            }
+            [
+                haproxy_keystone_config.args['servers'],
+                haproxy_nova_config.args['servers'],
+            ]
         )
         self.assertEqual(
             haproxy_config.args['configs_ports'],
-            {
-                'haproxy_keystone_config': haproxy_keystone_config.args['ports'],
-                'haproxy_nova_config': haproxy_nova_config.args['ports'],
-            }
+            [
+                haproxy_keystone_config.args['ports'],
+                haproxy_nova_config.args['ports'],
+            ]
         )
         self.assertEqual(
             haproxy_config.args['listen_ports'],
-            {
-                'haproxy_keystone_config': haproxy_keystone_config.args['listen_port'],
-                'haproxy_nova_config': haproxy_nova_config.args['listen_port'],
-            }
+            [
+                haproxy_keystone_config.args['listen_port'],
+                haproxy_nova_config.args['listen_port'],
+            ]
         )
         self.assertEqual(
-            {
-                'haproxy-config': haproxy_config.args['config_dir'],
-            },
+            [
+                haproxy_config.args['config_dir'],
+            ],
             haproxy.args['host_binds']
         )
         self.assertEqual(
