@@ -83,6 +83,14 @@ class BaseObserver(object):
         if self.find_receiver(receiver):
             self.receivers.remove(receiver)
             receiver.unsubscribed(self)
+
+        signals.Connections.remove(
+            self.attached_to,
+            self.name,
+            receiver.attached_to,
+            receiver.name
+        )
+
         # TODO: ?
         #receiver.notify(self)
 
@@ -95,8 +103,6 @@ class Observer(BaseObserver):
 
     def __init__(self, *args, **kwargs):
         super(Observer, self).__init__(*args, **kwargs)
-        # TODO:
-        # Simple observer can be attached to at most one emitter
         self.emitter = None
 
     def notify(self, emitter):
@@ -114,9 +120,16 @@ class Observer(BaseObserver):
             receiver.notify(self)
         self.attached_to.save()
 
-    def subscribe(self, receiver):
-        # TODO:
-        super(Observer, self).subscribe(receiver)
+    def subscribed(self, emitter):
+        super(Observer, self).subscribed(emitter)
+        # Simple observer can be attached to at most one emitter
+        if self.emitter is not None:
+            self.emitter.unsubscribe(self)
+        self.emitter = emitter
+
+    def unsubscribed(self, emitter):
+        super(Observer, self).unsubscribed(emitter)
+        self.emitter = None
 
 
 class ListObserver(BaseObserver):
@@ -124,13 +137,13 @@ class ListObserver(BaseObserver):
 
     def __init__(self, *args, **kwargs):
         super(ListObserver, self).__init__(*args, **kwargs)
-        self.connected = []
+        self.emitters = []
 
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
         # Copy emitter's values to receiver
         #self.value[emitter.attached_to.name] = emitter.value
-        idx = self._connected_idx(emitter)
+        idx = self._emitter_idx(emitter)
         self.value[idx] = emitter.value
         for receiver in self.receivers:
             receiver.notify(self)
@@ -138,7 +151,7 @@ class ListObserver(BaseObserver):
 
     def subscribed(self, emitter):
         super(ListObserver, self).subscribed(emitter)
-        self.connected.append((emitter.attached_to.name, emitter.name))
+        self.emitters.append((emitter.attached_to.name, emitter.name))
         self.value.append(emitter.value)
 
     def unsubscribed(self, emitter):
@@ -148,12 +161,12 @@ class ListObserver(BaseObserver):
         """
         self.log('Unsubscribed emitter {}'.format(emitter))
         #self.value.pop(emitter.attached_to.name)
-        idx = self._connected_idx(emitter)
-        self.connected.pop(idx)
+        idx = self._emitter_idx(emitter)
+        self.emitters.pop(idx)
         self.value.pop(idx)
 
-    def _connected_idx(self, emitter):
-        return self.connected.index((emitter.attached_to.name, emitter.name))
+    def _emitter_idx(self, emitter):
+        return self.emitters.index((emitter.attached_to.name, emitter.name))
 
 
 def create(type_, *args, **kwargs):

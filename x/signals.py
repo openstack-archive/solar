@@ -26,6 +26,15 @@ class Connections(object):
         utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
     @staticmethod
+    def remove(emitter, src, receiver, dst):
+        CLIENTS[emitter.name][src] = [
+            destination for destination in CLIENTS[emitter.name][src]
+            if destination != (receiver.name, dst)
+        ]
+
+        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+    @staticmethod
     def reconnect_all():
         """Reconstruct connections for resource inputs from CLIENTS.
 

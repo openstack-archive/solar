@@ -89,6 +89,37 @@ input:
         self.assertEqual(sample.args['ip'], sample_ip.args['ip'])
         self.assertEqual(sample.args['port'], sample_port.args['port'])
 
+    def test_simple_observer_unsubscription(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'ip': None}
+        )
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'ip': '10.0.0.1'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'ip': '10.0.0.2'}
+        )
+
+        xs.connect(sample1, sample)
+        self.assertEqual(sample1.args['ip'], sample.args['ip'])
+        self.assertEqual(len(sample1.args['ip'].receivers), 1)
+
+        xs.connect(sample2, sample)
+        self.assertEqual(sample2.args['ip'], sample.args['ip'])
+        # sample should be unsubscribed from sample1 and subscribed to sample2
+        self.assertEqual(len(sample1.args['ip'].receivers), 0)
+
+        sample1.update({'ip': '10.0.0.3'})
+        self.assertEqual(sample2.args['ip'], sample.args['ip'])
+
 
 class TestListInput(base.BaseResourceTest):
     def test_list_input_single(self):
