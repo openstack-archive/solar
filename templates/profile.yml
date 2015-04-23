@@ -12,12 +12,14 @@ tags: {{tags}}
 # NOTE(dshulyak) it is mandatory for some profiles to user graph based
 # api to provide order of execution for different events
 run:
+  - containers.actions.clean_list
   - docker.actions.run
   - mariadb.actions.run
   - mariadb.actions.wait
   - mariadb.actions.users
   - keystone.actions.run
   - haproxy.actions.run
+  - containers.actions.ensure
 
 remove:
   - haproxy.actions.remove
