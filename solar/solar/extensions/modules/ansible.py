@@ -159,7 +159,7 @@ class AnsibleOrchestration(base.BaseExtension):
         utils.yaml_dump_to(prepared, BASE_PATH + '/main.yml')
 
         sub = subprocess.Popen(
-            ['ansible-playbook', '-i',
+            ['ansible-playbook', '-v', '-i',
               BASE_PATH + '/hosts',
               BASE_PATH + '/main.yml'],
             env=dict(os.environ, ANSIBLE_HOST_KEY_CHECKING='False'))
