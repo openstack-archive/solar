@@ -1,3 +1,4 @@
+import copy
 import io
 import os
 
@@ -38,7 +39,7 @@ class Discovery(base.BaseExtension):
         nodes_resources = []
 
         for node in nodes_list:
-            node_resource = {}
+            node_resource = copy.deepcopy(node.get('attrs', {}))
             node_resource['id'] = node['id']
             node_resource['name'] = node['id']
             node_resource['handler'] = 'data'

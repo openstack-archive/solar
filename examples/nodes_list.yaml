@@ -7,3 +7,5 @@
   ip: 10.0.0.3
   ssh_user: vagrant
   ssh_private_key_path: /vagrant/tmp/keys/ssh_private
+  attrs:
+    keystone_admin_port: 77777
