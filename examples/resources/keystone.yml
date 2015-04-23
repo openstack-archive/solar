@@ -17,7 +17,7 @@ input:
     item: '{{ item.node.ip }}'
   admin_port: 35357
   public_port: 5000
-  name: keystone-test
+  name: solar.keystone-test
   image: kollaglue/centos-rdo-keystone
 
 tags: [service/keystone]

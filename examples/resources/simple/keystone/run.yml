@@ -2,6 +2,8 @@
 - hosts: [service/keystone]
   sudo: yes
   tasks:
+    - shell: echo {{name}} >> /var/lib/solar/containers_list
+
     - shell: docker ps | grep -q {{name}}
       ignore_errors: true
       register: is_running

@@ -9,7 +9,7 @@ actions:
   remove: simple/haproxy/remove.yml
 
 input:
-  name: haproxy-test
+  name: solar.haproxy-test
   image: 'haproxy:1.5'
 
   services:

@@ -12,7 +12,7 @@ actions:
 
 input:
   bind_ip: "{{ this.node.ip }}"
-  name: mariadb-test
+  name: solar.mariadb-test
   image: kollaglue/fedora-rdo-mariadb-app
   root_password: test1
   users:
