@@ -19,9 +19,14 @@ class Connections(object):
         if src not in emitter.args:
             return
 
+        # TODO: implement general circular detection, this one is simple
+        if [emitter.name, src] in CLIENTS.get(receiver.name, {}).get(dst, []):
+            raise Exception('Attempted to create cycle in dependencies. Not nice.')
+
         CLIENTS.setdefault(emitter.name, {})
         CLIENTS[emitter.name].setdefault(src, [])
-        CLIENTS[emitter.name][src].append((receiver.name, dst))
+        if [receiver.name, dst] not in CLIENTS[emitter.name][src]:
+            CLIENTS[emitter.name][src].append([receiver.name, dst])
 
         utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
@@ -29,7 +34,7 @@ class Connections(object):
     def remove(emitter, src, receiver, dst):
         CLIENTS[emitter.name][src] = [
             destination for destination in CLIENTS[emitter.name][src]
-            if destination != (receiver.name, dst)
+            if destination != [receiver.name, dst]
         ]
 
         utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
@@ -45,8 +50,8 @@ class Connections(object):
             for emitter_input, destinations in dest_dict.items():
                 for receiver_name, receiver_input in destinations:
                     receiver = db.get_resource(receiver_name)
-                    receiver.args[receiver_input].subscribe(
-                        emitter.args[emitter_input])
+                    emitter.args[emitter_input].subscribe(
+                        receiver.args[receiver_input])
 
     @staticmethod
     def clear():
@@ -151,7 +156,7 @@ def assign_connections(receiver, connections):
     mappings = defaultdict(list)
     for key, dest in connections.iteritems():
         resource, r_key = dest.split('.')
-        mappings[resource].append((r_key, key))
+        mappings[resource].append([r_key, key])
     for resource, r_mappings in mappings.iteritems():
         connect(resource, receiver, r_mappings)
 

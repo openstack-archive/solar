@@ -120,6 +120,27 @@ input:
         sample1.update({'ip': '10.0.0.3'})
         self.assertEqual(sample2.args['ip'], sample.args['ip'])
 
+    def test_circular_connection_prevention(self):
+        # TODO: more complex cases
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'ip': '10.0.0.1'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'ip': '10.0.0.2'}
+        )
+        xs.connect(sample1, sample2)
+
+        with self.assertRaises(Exception):
+            xs.connect(sample2, sample1)
+
 
 class TestListInput(base.BaseResourceTest):
     def test_list_input_single(self):
