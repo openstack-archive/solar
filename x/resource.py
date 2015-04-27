@@ -34,9 +34,23 @@ class Resource(object):
         return ("Resource('name={0}', metadata={1}, args={2}, "
                 "base_dir='{3}', tags={4})").format(self.name,
                                                     json.dumps(self.metadata),
-                                                    json.dumps(self.args_dict()),
+                                                    json.dumps(self.args_show()),
                                                     self.base_dir,
                                                     self.tags)
+
+    def args_show(self):
+        def formatter(v):
+            if isinstance(v, observer.ListObserver):
+                return v.value
+            elif isinstance(v, observer.Observer):
+                return {
+                    'emitter': v.emitter.attached_to.name if v.emitter else None,
+                    'value': v.value,
+                }
+
+            return v
+
+        return {k: formatter(v) for k, v in self.args.items()}
 
     def args_dict(self):
         return {k: v.value for k, v in self.args.items()}

@@ -43,7 +43,7 @@ class BaseHandler(object):
 
     def _make_args(self, resource):
         args = {'name': resource.name}
-        args.update(resource.args_dict())
+        args.update(resource.args)
         return args
 
 

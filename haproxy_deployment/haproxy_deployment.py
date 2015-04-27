@@ -19,14 +19,14 @@ class TestHAProxyDeployment(unittest.TestCase):
         haproxy_keystone_config = db.get_resource('haproxy_keystone_config')
 
         self.assertEqual(
-            haproxy_keystone_config.args['servers'],
+            [ip['value'] for ip in haproxy_keystone_config.args['servers'].value],
             [
                 keystone1.args['ip'],
                 keystone2.args['ip'],
             ]
         )
         self.assertEqual(
-            haproxy_keystone_config.args['ports'],
+            [p['value'] for p in haproxy_keystone_config.args['ports'].value],
             [
                 keystone1.args['port'],
                 keystone2.args['port'],
@@ -48,14 +48,14 @@ class TestHAProxyDeployment(unittest.TestCase):
         haproxy_nova_config = db.get_resource('haproxy_nova_config')
 
         self.assertEqual(
-            haproxy_nova_config.args['servers'],
+            [ip['value'] for ip in haproxy_nova_config.args['servers'].value],
             [
                 nova1.args['ip'],
                 nova2.args['ip'],
             ]
         )
         self.assertEqual(
-            haproxy_nova_config.args['ports'],
+            [p['value'] for p in haproxy_nova_config.args['ports'].value],
             [
                 nova1.args['port'],
                 nova2.args['port'],
@@ -73,21 +73,21 @@ class TestHAProxyDeployment(unittest.TestCase):
         self.assertEqual(node5.args['ssh_key'], haproxy.args['ssh_key'])
         self.assertEqual(node5.args['ssh_user'], haproxy.args['ssh_user'])
         self.assertEqual(
-            haproxy_config.args['configs'],
+            [c['value'] for c in haproxy_config.args['configs'].value],
             [
                 haproxy_keystone_config.args['servers'],
                 haproxy_nova_config.args['servers'],
             ]
         )
         self.assertEqual(
-            haproxy_config.args['configs_ports'],
+            [cp['value'] for cp in haproxy_config.args['configs_ports'].value],
             [
                 haproxy_keystone_config.args['ports'],
                 haproxy_nova_config.args['ports'],
             ]
         )
         self.assertEqual(
-            haproxy_config.args['listen_ports'],
+            [lp['value'] for lp in haproxy_config.args['listen_ports'].value],
             [
                 haproxy_keystone_config.args['listen_port'],
                 haproxy_nova_config.args['listen_port'],
@@ -97,7 +97,7 @@ class TestHAProxyDeployment(unittest.TestCase):
             [
                 haproxy_config.args['config_dir'],
             ],
-            haproxy.args['host_binds']
+            [hb['value'] for hb in haproxy.args['host_binds'].value]
         )
         self.assertEqual(
             haproxy.args['ports'],

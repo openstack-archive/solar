@@ -20,7 +20,10 @@ class BaseObserver(object):
         print '{} {}'.format(self, msg)
 
     def __repr__(self):
-        return '[{}:{}]'.format(self.attached_to.name, self.name)
+        return '[{}:{}] {}'.format(self.attached_to.name, self.name, self.value)
+
+    def __unicode__(self):
+        return self.value
 
     def __eq__(self, other):
         if isinstance(other, BaseObserver):
@@ -135,24 +138,32 @@ class Observer(BaseObserver):
 class ListObserver(BaseObserver):
     type_ = 'list'
 
-    def __init__(self, *args, **kwargs):
-        super(ListObserver, self).__init__(*args, **kwargs)
-        self.emitters = []
+    def __unicode__(self):
+        return unicode(self.value)
+
+    @staticmethod
+    def _format_value(emitter):
+        return {
+            'emitter': emitter.name,
+            'emitter_attached_to': emitter.attached_to.name,
+            'value': emitter.value,
+        }
 
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
         # Copy emitter's values to receiver
         #self.value[emitter.attached_to.name] = emitter.value
         idx = self._emitter_idx(emitter)
-        self.value[idx] = emitter.value
+        self.value[idx] = self._format_value(emitter)
         for receiver in self.receivers:
             receiver.notify(self)
         self.attached_to.save()
 
     def subscribed(self, emitter):
         super(ListObserver, self).subscribed(emitter)
-        self.emitters.append((emitter.attached_to.name, emitter.name))
-        self.value.append(emitter.value)
+        idx = self._emitter_idx(emitter)
+        if idx is None:
+            self.value.append(self._format_value(emitter))
 
     def unsubscribed(self, emitter):
         """
@@ -160,13 +171,16 @@ class ListObserver(BaseObserver):
         :return:
         """
         self.log('Unsubscribed emitter {}'.format(emitter))
-        #self.value.pop(emitter.attached_to.name)
         idx = self._emitter_idx(emitter)
-        self.emitters.pop(idx)
         self.value.pop(idx)
 
     def _emitter_idx(self, emitter):
-        return self.emitters.index((emitter.attached_to.name, emitter.name))
+        try:
+            return [i for i, e in enumerate(self.value)
+                    if e['emitter_attached_to'] == emitter.attached_to.name
+                    ][0]
+        except IndexError:
+            return
 
 
 def create(type_, *args, **kwargs):
