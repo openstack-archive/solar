@@ -5,6 +5,7 @@ actions:
     run: run.yml
     remove: remove.yml
 input:
+    db_name:
     login_password:
     login_port:
     login_user:
