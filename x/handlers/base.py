@@ -42,6 +42,7 @@ class BaseHandler(object):
 
     def _make_args(self, resource):
         args = {'name' : resource.name}
+        args['resource_dir'] = resource.base_dir
         args.update(resource.args)
         return args
 
