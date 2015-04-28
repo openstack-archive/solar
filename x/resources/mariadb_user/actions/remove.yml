@@ -3,7 +3,7 @@
   tasks:
     - name: mariadb user
       mysql_user:
-        name: {{name}}
+        name: {{new_user_name}}
         state: absent
         login_user: root
         login_password: {{login_password}}

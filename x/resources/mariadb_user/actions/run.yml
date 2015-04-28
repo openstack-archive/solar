@@ -3,9 +3,9 @@
   tasks:
     - name: mariadb user
       mysql_user:
-        name: {{name}}
-        password: {{password}}
-        priv: {{db}}.*:ALL
+        name: {{new_user_name}}
+        password: {{new_user_password}}
+        priv: {{db_name}}.*:ALL
         host: '%'
         state: present
         login_user: root
