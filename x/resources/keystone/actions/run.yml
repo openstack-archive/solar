@@ -1,6 +1,13 @@
-# TODO
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{ name }} {{ image }}
+    - name: keystone container
+      docker:
+        name: {{ name }}
+        image: {{ image }}
+        state: running
+        ports:
+        - {{ port }}:5000
+        - {{ admin_port }}:35357
+        volumnes:
+        - {{ config_dir }}:/etc/keystone

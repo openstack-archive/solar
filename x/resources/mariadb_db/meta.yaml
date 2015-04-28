@@ -1,12 +1,10 @@
-id: mariadb_user
+id: mariadb_table
 handler: ansible
 version: 1.0.0
 actions:
     run: run.yml
     remove: remove.yml
 input:
-    password:
-    db:
     login_password:
     login_port:
     login_user:

@@ -2,6 +2,10 @@ id: keystone
 handler: ansible
 version: 1.0.0
 input:
+    image: kollaglue/centos-rdo-keystone
+    config_dir:
+    admin_port:
+    port:
     ip:
-    port: 5000
-    image: garland/docker-openstack-keystone
+    ssh_key:
+    ssh_user:
