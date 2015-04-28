@@ -4,8 +4,8 @@ version: 1.0.0
 input:
     image: kollaglue/centos-rdo-keystone
     config_dir:
-    admin_port:
     port:
+    admin_port:
     ip:
     ssh_key:
     ssh_user:

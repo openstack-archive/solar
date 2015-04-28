@@ -1,0 +1,13 @@
+id: keystone_config
+handler: ansible
+version: 1.0.0
+input:
+    config_dir:
+    admin_token:
+    db_user:
+    db_password:
+    db_host:
+    db_name:
+    ip:
+    ssh_key:
+    ssh_user:

@@ -1,0 +1,14 @@
+id: keystone_user
+handler: ansible
+version: 1.0.0
+input:
+    keystone_host:
+    keystone_port:
+    login_user:
+    login_token:
+    user_name:
+    user_password:
+    tenant_name:
+    ip:
+    ssh_key:
+    ssh_user:

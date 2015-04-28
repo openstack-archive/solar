@@ -7,3 +7,6 @@
 .vagrant
 
 tmp/
+
+#vim
+*.swp
