@@ -27,7 +27,7 @@ class Resource(object):
         self.tags = tags or []
 
     def __repr__(self):
-        return ("Resource('name={0}', metadata={1}, args={2}, "
+        return ("Resource(name='{0}', metadata={1}, args={2}, "
                 "base_dir='{3}', tags={4})").format(self.name,
                                                     json.dumps(self.metadata),
                                                     json.dumps(self.args),
@@ -79,7 +79,7 @@ class Resource(object):
 
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:
-            f.write(yaml.dump(self.metadata))
+            f.write(yaml.dump(self.metadata, default_flow_style=False))
 
 
 def create(name, base_path, dest_path, args, connections={}):
