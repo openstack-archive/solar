@@ -57,15 +57,21 @@ resources:
   - name: keystone1
     model: x/resources/keystone/
     args:
-      ip:
+      admin_port: 35357
+      port: 5000
       image: TEST
+      config_dir: /etc/solar/keystone1
+      ip:
       ssh_user:
       ssh_key:
   - name: keystone2
     model: x/resources/keystone/
     args:
-      ip:
+      admin_port: 35357
+      port: 5000
+      config_dir: /etc/solar/keystone2
       image: TEST
+      ip:
       ssh_user:
       ssh_key:
   - name: haproxy_keystone_config
