@@ -13,14 +13,14 @@
     - apt: name=python-pudb state=present
     - apt: name=python-pip state=present
     - apt: name=python-mysqldb state=present
-    - shell: pip install docker-py
+    - shell: pip install docker-py==1.1.0
 
     # requirements
     - shell: pip install -r /vagrant/requirements.txt
 
     # Graph drawing
     #- apt: name=python-matplotlib state=present
-    - apt: name=python-graphviz state=present
+    - apt: name=python-pygraphviz state=present
 
       # Setup development env for solar
     #- shell: python setup.py develop chdir=/vagrant/solar
