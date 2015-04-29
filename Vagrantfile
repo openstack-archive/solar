@@ -13,7 +13,8 @@ SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.box = "rustyrobot/deb-jessie-amd64"
+  config.vm.box = "deb/jessie-amd64"
+  #rustyrobot/deb-jessie-amd64"
 
   config.vm.define "solar-dev", primary: true do |guest1|
     guest1.vm.provision "shell", inline: init_script, privileged: true
@@ -34,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     guest2.vm.host_name = "solar-dev2"
 
     guest2.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--memory", 256]
+      v.customize ["modifyvm", :id, "--memory", 1024]
       v.name = "solar-dev2"
     end
   end
@@ -45,7 +46,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     guest3.vm.host_name = "solar-dev3"
 
     guest3.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--memory", 256]
+      v.customize ["modifyvm", :id, "--memory", 1024]
       v.name = "solar-dev3"
     end
   end
@@ -56,7 +57,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     guest4.vm.host_name = "solar-dev4"
 
     guest4.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--memory", 256]
+      v.customize ["modifyvm", :id, "--memory", 1024]
       v.name = "solar-dev4"
     end
   end
