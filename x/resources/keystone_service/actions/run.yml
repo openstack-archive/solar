@@ -3,6 +3,7 @@
   tasks:
     - name: keystone container
       docker:
+        command: /bin/bash -c "keystone-manage db_sync && /usr/bin/keystone-all"
         name: {{ name }}
         image: {{ image }}
         state: running
@@ -11,3 +12,4 @@
         - {{ admin_port }}:35357
         volumes:
         - {{ config_dir }}:/etc/keystone
+        net: host
