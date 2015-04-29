@@ -1,5 +1,5 @@
 id: haproxy_config
-handler: ansible
+handler: none
 version: 1.0.0
 input:
     name:

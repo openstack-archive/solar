@@ -1,6 +1,0 @@
-# TODO
-- hosts: [{{ ip }}]
-  sudo: yes
-  tasks:
-    - shell: docker run -d --net="host" --privileged \
-        --name {{ name }} {{ image }}
