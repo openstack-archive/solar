@@ -16,9 +16,6 @@
           {% endfor %}
       {% endfor %}
   tasks:
-    - apt: name=python-pip state=present
-    - shell: pip install docker-py
-    - service: name=docker state=started
     - file: path={{ config_dir.value['src'] }}/ state=directory
     - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
     - template: src=/vagrant/haproxy.cfg dest={{ config_dir.value['src'] }}/haproxy.cfg
