@@ -124,7 +124,7 @@ def create(name, base_path, dest_path, args, connections={}):
     if not os.path.isdir(dest_path):
         raise Exception('Dest path is not a directory: {0}'.format(dest_path))
 
-    dest_path = os.path.join(dest_path, name)
+    dest_path = os.path.abspath(os.path.join(dest_path, name))
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
