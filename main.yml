@@ -11,6 +11,8 @@
     - apt: name=virtualenvwrapper state=present
     - apt: name=ipython state=present
     - apt: name=python-pudb state=present
+    - apt: name=python-pip state=present
+    - shell: pip install docker-py
 
     # requirements
     - shell: pip install -r /vagrant/requirements.txt
