@@ -118,7 +118,7 @@ class Resource(object):
 
 def create(name, base_path, dest_path, args, connections={}):
     if not os.path.exists(base_path):
-        raise Exception('Base resource does not exist: {0}'.format(dest_path))
+        raise Exception('Base resource does not exist: {0}'.format(base_path))
     if not os.path.exists(dest_path):
         raise Exception('Dest dir does not exist: {0}'.format(dest_path))
     if not os.path.isdir(dest_path):
