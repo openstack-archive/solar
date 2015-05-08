@@ -12,18 +12,18 @@ if os.path.exists('rs'):
 os.mkdir('rs')
 
 node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
-node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
-node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.5', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
+node2 = resource.create('node2', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
+node3 = resource.create('node3', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.5', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
 
-mariadb_service1 = resource.create('mariadb_service1', 'x/resources/mariadb_service', 'rs/', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : '3306', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+mariadb_service1 = resource.create('mariadb_service1', 'x/resources/mariadb_service', 'rs/', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : '3306', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 keystone_db = resource.create('keystone_db', 'x/resources/mariadb_db/', 'rs/', {'db_name':'keystone_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 keystone_db_user = resource.create('keystone_db_user', 'x/resources/mariadb_user/', 'rs/', {'new_user_name' : 'keystone', 'new_user_password' : 'keystone', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 
 keystone_config1 = resource.create('keystone_config1', 'x/resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
 keystone_service1 = resource.create('keystone_service1', 'x/resources/keystone_service/', 'rs/', {'port':'5000', 'admin_port':'35357', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':'', 'config_dir':''})
 
-keystone_config2 = resource.create('keystone_config1', 'x/resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
-keystone_service2 = resource.create('keystone_service1', 'x/resources/keystone_service/', 'rs/', {'port':'5000', 'admin_port':'35357', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':'', 'config_dir':''})
+keystone_config2 = resource.create('keystone_config2', 'x/resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
+keystone_service2 = resource.create('keystone_service2', 'x/resources/keystone_service/', 'rs/', {'port':'5000', 'admin_port':'35357', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':'', 'config_dir':''})
 
 
 haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'x/resources/haproxy_config/', 'rs/', {'name':'keystone_config', 'listen_port':'5000', 'servers':[], 'ports':[]})
