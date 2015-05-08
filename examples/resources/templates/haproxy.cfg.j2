@@ -1,6 +1,6 @@
 global
     maxconn 4096
-    pidfile /var/run/haproxy.pidfile
+    pidfile /var/run/haproxy.pid
 defaults
     mode tcp
     timeout connect 5s
@@ -17,7 +17,7 @@ listen stats :1936
     stats uri /
     #stats auth Username:Password
 
-{% for service in haproxy.services %}
+{% for service in services %}
 listen {{ service.service_name }}
     bind {{service.bind}}
     {% for backend in service.backends %}

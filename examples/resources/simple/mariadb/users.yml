@@ -1,12 +1,8 @@
 
-- hosts: [mariadb]
+- hosts: [service/mariadb]
   sudo: yes
   tasks:
-    - command: docker exec -t {{mariadb.name}} \
-        mysql -uroot -p{{mariadb.root_password}} \
-        -e "CREATE USER '{{item.name}}'@'%' IDENTIFIED BY '{{item.password}}'"
-      with_items: mariadb.users
-
-    - command: docker exec -t {{mariadb.name}} \
-        mysql -uroot -p{{mariadb.root_password}} -e "GRANT ALL PRIVILEGES ON *.* TO '{{item.name}}'@'%' WITH GRANT OPTION"
-      with_items: mariadb.users
+    # NOTE(eli): it will automatically create user if it does not exist
+    - command: docker exec -t {{name}} \
+        mysql -uroot -p{{root_password}} -e "GRANT ALL PRIVILEGES ON *.* TO '{{item.name}}'@'%' WITH GRANT OPTION"
+      with_items: users

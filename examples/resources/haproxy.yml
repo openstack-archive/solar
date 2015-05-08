@@ -1,4 +1,5 @@
 id: haproxy
+class: haproxy
 type: resource
 handler: ansible
 version: v1
@@ -8,20 +9,24 @@ actions:
   remove: simple/haproxy/remove.yml
 
 input:
-  name: haproxy
-  image: haproxy:1.5
+  name: solar.haproxy-test
+  image: 'haproxy:1.5'
+
   services:
-    # TODO Here we should be able to remove hardcoded data,
-    # we can have sveral keystone backaends, and other different
-    # services. Without hardcoding of specific node we should
-    # get the nodes with specific tag.
-    # * get all nodes which use all tags with 'service/keystone'
-    # * iterate over this list here
-    # * pass correct port and ip address
-    - service_name: keystone
-      bind: "*:8080"
+    - service_name: keystone-admin
+      bind: '*:8080'
       backends:
-        - remote_name: keystone-test
-          remote_addr: 10.0.0.3:35357
+        'with_tags': ['service/keystone']
+        'item':
+          'remote_name': '{{ item.name }}'
+          'remote_addr': '{{ item.node.ip }}:{{ item.admin_port }}'
+
+    - service_name: keystone-pub
+      bind: '*:8081'
+      backends:
+        with_tags: ["service/keystone"]
+        item:
+          remote_name: '{{ item.name }}'
+          remote_addr: '{{ item.node.ip }}:{{ item.public_port }}'
 
 tags: [service/haproxy]

@@ -1,3 +1,4 @@
+import copy
 import io
 import os
 
@@ -38,14 +39,14 @@ class Discovery(base.BaseExtension):
         nodes_resources = []
 
         for node in nodes_list:
-            node_resource = {}
+            node_resource = copy.deepcopy(node.get('attrs', {}))
             node_resource['id'] = node['id']
             node_resource['name'] = node['id']
             node_resource['handler'] = 'data'
             node_resource['type'] = 'resource'
             node_resource['version'] = self.VERSION
             node_resource['tags'] = node['tags']
-            node_resource['output'] = node
+            node_resource['input'] = node
             node_resource['ip'] = node['ip']
             node_resource['ssh_user'] = node['ssh_user']
             node_resource['ssh_private_key_path'] = node['ssh_private_key_path']

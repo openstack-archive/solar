@@ -1,9 +1,11 @@
-- id: 6176aaa2-d97f-11e4-8dbe-080027c2ffdb
+- id: node_1
   ip: 10.0.0.2
   ssh_user: vagrant
   ssh_private_key_path: /vagrant/tmp/keys/ssh_private
 
-- id: cc48cf72-df88-11e4-9f5b-080027c2ffdb
+- id: node_2
   ip: 10.0.0.3
   ssh_user: vagrant
   ssh_private_key_path: /vagrant/tmp/keys/ssh_private
+  attrs:
+    keystone_admin_port: 77777

@@ -1,8 +1,8 @@
 
-- hosts: [mariadb]
+- hosts: [service/mariadb]
   sudo: yes
   tasks:
-    - shell: docker exec -t {{mariadb.name}} mysql -p{{mariadb.root_password}} -uroot -e "select 1"
+    - shell: docker exec -t {{name}} mysql -p{{root_password}} -uroot -e "select 1"
       register: result
       until: result.rc == 0
       retries: 10
