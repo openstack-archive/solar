@@ -1,0 +1,17 @@
+id: haproxy
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+    config_dir: {src: /etc/solar/haproxy, dst: /etc/haproxy}
+    listen_ports:
+    configs:
+    configs_names:
+    configs_ports:
+    ssh_user:
+    ssh_key:
+input-types:
+    listen_ports: list
+    configs: list
+    configs_names: list
+    configs_ports: list

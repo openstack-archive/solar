@@ -1,5 +1,0 @@
-
-- include: user/remove.yml
-- include: rabbitmq/remove.yml
-- include: mariadb/remove.yml
-- include: docker/remove.yml

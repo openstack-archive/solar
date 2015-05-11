@@ -1,6 +1,0 @@
-
-- hosts: [rabbitmq]
-  sudo: yes
-  tasks:
-    - command: docker exec -t {{rabbitmq.name}} /usr/sbin/rabbitmqctl add_user {{user.name}} {{user.password}}
-      run_once: true

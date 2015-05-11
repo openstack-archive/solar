@@ -1,0 +1,15 @@
+id: container
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+    image:
+    ports:
+    host_binds:
+    volume_binds:
+    ssh_user:
+    ssh_key:
+input-types:
+    ports:
+    host_binds: list
+    volume_binds: list
