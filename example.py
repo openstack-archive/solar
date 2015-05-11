@@ -28,7 +28,7 @@ keystone_service2 = resource.create('keystone_service2', 'x/resources/keystone_s
 
 haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'x/resources/haproxy_config/', 'rs/', {'name':'keystone_config', 'listen_port':'5000', 'servers':[], 'ports':[]})
 haproxy_config = resource.create('haproxy_config', 'x/resources/haproxy', 'rs/', {'ip':'', 'ssh_key':'', 'ssh_user':'', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
-haproxy_service = resource.create('haproxy_service', 'x/resources/docker_container//', 'rs/', {'image' : 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
+haproxy_service = resource.create('haproxy_service', 'x/resources/docker_container/', 'rs/', {'image' : 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
 
 
 ####
