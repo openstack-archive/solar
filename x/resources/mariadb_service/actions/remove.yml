@@ -1,0 +1,8 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: mariadb container
+      docker:
+        name: {{ name }}
+        image: {{ image }}
+        state: absent

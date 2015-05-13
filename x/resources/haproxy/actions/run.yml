@@ -1,0 +1,21 @@
+# TODO
+- hosts: [{{ ip }}]
+  sudo: yes
+  vars:
+    config_dir: {src: {{ config_dir.value['src'] }}, dst: {{ config_dir.value['dst'] }}}
+    haproxy_ip: {{ ip }}
+    haproxy_services:
+      {% for service, ports, listen_port in zip(configs.value, configs_ports.value, listen_ports.value) %}
+      - name: {{ service['emitter_attached_to'] }}
+        listen_port: {{ listen_port['value'] }}
+        servers:
+          {% for server_ip, server_port in zip(service['value'], ports['value']) %}
+          - name: {{ server_ip['emitter_attached_to'] }}
+            ip: {{ server_ip['value'] }}
+            port: {{ server_port['value'] }}
+          {% endfor %}
+      {% endfor %}
+  tasks:
+    - file: path={{ config_dir.value['src'] }}/ state=directory
+    - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
+    - template: src=/vagrant/haproxy.cfg dest={{ config_dir.value['src'] }}/haproxy.cfg

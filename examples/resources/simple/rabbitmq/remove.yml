@@ -1,6 +1,0 @@
-
-- hosts: [rabbitmq]
-  sudo: yes
-  tasks:
-    - shell: docker stop {{ rabbitmq.name }}
-    - shell: docker rm {{ rabbitmq.name }}

@@ -1,0 +1,7 @@
+id: nova
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+    port: 8774
+    image: # TODO

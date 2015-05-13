@@ -1,0 +1,216 @@
+# HAProxy deployment with MariaDB, Keystone and Nova
+
+workdir: /vagrant
+resource-save-path: rs/
+test-suite: haproxy_deployment.haproxy_deployment
+
+resources:
+  - name: node1
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.3
+      ssh_key: /vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key
+      ssh_user: vagrant
+  - name: node2
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.4
+      ssh_key: /vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key
+      ssh_user: vagrant
+  - name: node3
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.5
+      ssh_key: /vagrant/.vagrant/machines/solar-dev4/virtualbox/private_key
+      ssh_user: vagrant
+  - name: node4
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.6
+      ssh_key: /vagrant/.vagrant/machines/solar-dev5/virtualbox/private_key
+      ssh_user: vagrant
+  - name: node5
+    model: x/resources/ro_node/
+    args:
+      ip: 10.0.0.7
+      ssh_key: /vagrant/.vagrant/machines/solar-dev6/virtualbox/private_key
+      ssh_user: vagrant
+
+  - name: mariadb_keystone1_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: mariadb_keystone2_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: keystone1
+    model: x/resources/keystone/
+    args:
+      admin_port: 35357
+      port: 5000
+      image: TEST
+      config_dir: /etc/solar/keystone1
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: keystone2
+    model: x/resources/keystone/
+    args:
+      admin_port: 35357
+      port: 5000
+      config_dir: /etc/solar/keystone2
+      image: TEST
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: haproxy_keystone_config
+    model: x/resources/haproxy_config/
+    args:
+      name: keystone
+      servers: []
+      listen_port: 5000
+      ports: []
+      ssh_user:
+      ssh_key:
+
+  - name: mariadb_nova1_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: mariadb_nova2_data
+    model: x/resources/data_container/
+    args:
+      image: mariadb
+      export_volumes:
+        - /var/lib/mysql
+      ip:
+      ssh_user:
+      ssh_key:
+  - name: nova1
+    model: x/resources/nova/
+    args:
+      ip:
+      image: TEST
+      ssh_user:
+      ssh_key:
+  - name: nova2
+    model: x/resources/nova/
+    args:
+      ip:
+      image: TEST
+      ssh_user:
+      ssh_key:
+  - name: haproxy_nova_config
+    model: x/resources/haproxy_config/
+    args:
+      name: nova
+      servers: []
+      listen_port: 8774
+      ports: []
+      ssh_user:
+      ssh_key:
+
+  - name: haproxy-config
+    model: x/resources/haproxy/
+    args:
+      ip:
+      listen_ports: []
+      configs: []
+      configs_names: []
+      configs_ports: []
+      ssh_user:
+      ssh_key:
+  - name: haproxy
+    model: x/resources/docker_container
+    args:
+      ip:
+      image: tutum/haproxy
+      ports: []
+      ssh_user:
+      ssh_key:
+      host_binds: []
+      volume_binds: []
+
+
+connections:
+  - emitter: node1
+    receiver: mariadb_keystone1_data
+  - emitter: node2
+    receiver: mariadb_keystone2_data
+  - emitter: mariadb_keystone1_data
+    receiver: keystone1
+  - emitter: mariadb_keystone2_data
+    receiver: keystone2
+  - emitter: keystone1
+    receiver: haproxy_keystone_config
+    mapping:
+      ip: servers
+      port: ports
+  - emitter: keystone2
+    receiver: haproxy_keystone_config
+    mapping:
+      ip: servers
+      port: ports
+
+  - emitter: node3
+    receiver: mariadb_nova1_data
+  - emitter: node4
+    receiver: mariadb_nova2_data
+  - emitter: mariadb_nova1_data
+    receiver: nova1
+  - emitter: mariadb_nova2_data
+    receiver: nova2
+  - emitter: nova1
+    receiver: haproxy_nova_config
+    mapping:
+      ip: servers
+      port: ports
+  - emitter: nova2
+    receiver: haproxy_nova_config
+    mapping:
+      ip: servers
+      port: ports
+
+  # HAProxy config container
+  - emitter: node5
+    receiver: haproxy-config
+
+  - emitter: haproxy_keystone_config
+    receiver: haproxy-config
+    mapping:
+      listen_port: listen_ports
+      name: configs_names
+      ports: configs_ports
+      servers: configs
+  - emitter: haproxy_nova_config
+    receiver: haproxy-config
+    mapping:
+      listen_port: listen_ports
+      name: configs_names
+      ports: configs_ports
+      servers: configs
+
+  - emitter: haproxy-config
+    receiver: haproxy
+    mapping:
+      ip: ip
+      listen_ports: ports
+      ssh_user: ssh_user
+      ssh_key: ssh_key
+      config_dir: host_binds

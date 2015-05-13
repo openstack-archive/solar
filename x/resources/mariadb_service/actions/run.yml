@@ -1,0 +1,12 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: mariadb container
+      docker:
+        name: {{ name }}
+        image: {{ image }}
+        state: running
+        ports:
+        - {{ port }}:3306
+        env:
+            MYSQL_ROOT_PASSWORD: {{ root_password }}

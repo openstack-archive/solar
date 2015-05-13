@@ -1,0 +1,11 @@
+id: haproxy_config
+handler: none
+version: 1.0.0
+input:
+    name:
+    listen_port:
+    ports:
+    servers:
+input-types:
+    ports: list
+    servers: list
