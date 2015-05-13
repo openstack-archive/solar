@@ -24,7 +24,8 @@ def load_file(fpath):
 
 
 def read_config():
-    return load_file('/vagrant/config.yaml')
+    CONFIG_FILE = os.environ.get('CONFIG_FILE') or '/vagrant/config.yaml'
+    return load_file(CONFIG_FILE)
 
 
 def read_config_file(key):
