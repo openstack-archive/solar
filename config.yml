@@ -9,3 +9,4 @@ file-system-db:
   storage-path: /vagrant/tmp/storage
 
 template-dir: /vagrant/templates
+resources-files-mask: /vagrant/examples/resources/*.yml

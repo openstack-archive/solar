@@ -11,6 +11,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
 """Solar CLI api
 
 On create "golden" resource should be moved to special place
@@ -27,6 +28,7 @@ import yaml
 from solar import extensions
 from solar import utils
 from solar.core import data
+from solar.core.tags_set_parser import Expression
 from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
@@ -79,12 +81,17 @@ class Cmd(object):
         group.add_argument('-t', '--tags', nargs='+', default=['env/test_env'])
         group.add_argument('-i', '--id', default=utils.generate_uuid())
 
+        # Assign
+        parser = self.subparser.add_parser('assign')
+        parser.set_defaults(func=getattr(self, 'assign'))
+        parser.add_argument('-n', '--nodes')
+        parser.add_argument('-r', '--resources')
+
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
             profile_template_path = os.path.join(
-                utils.read_config()['template-dir'], 'profile.yml'
-            )
+                utils.read_config()['template-dir'], 'profile.yml')
             data = yaml.load(utils.render_template(profile_template_path, params))
             self.db.store('profiles', data)
         else:
@@ -99,6 +106,18 @@ class Cmd(object):
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()
+
+    def assign(self, args):
+        nodes = filter(
+            lambda n: Expression(args.nodes, n['tags']).evaluate(),
+            self.db.get_list('nodes'))
+
+        resources = filter(
+            lambda r: Expression(args.resources, r['tags']).evaluate(),
+            self._get_resources_list())
+
+    def _get_resources_list(self):
+        return utils.load_by_mask(utils.read_config()['resources-files-mask'])
 
 
 def main():
