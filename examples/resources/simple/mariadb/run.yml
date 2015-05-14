@@ -1,0 +1,17 @@
+
+- hosts: [service/mariadb]
+  sudo: yes
+  tasks:
+    - shell: echo {{name}} >> /var/lib/solar/containers_list
+    - shell: docker ps | grep -q {{name}}
+      ignore_errors: true
+      register: is_running
+    - shell: docker run \
+        -d \
+        --net="host" \
+        --privileged \
+        --name {{name}} \
+        -e "MARIADB_ROOT_PASSWORD={{root_password}}" \
+        -e "BIND_ADDRESS={{bind_ip}}" \
+        {{image}}
+      when: is_running|failed

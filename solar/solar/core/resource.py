@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import copy
 import json
 import os
@@ -6,11 +6,11 @@ import shutil
 
 import yaml
 
-from x import actions
-from x import db
-from x import observer
-from x import signals
-from x import utils
+from solar.core import actions
+from solar.core import db
+from solar.core import observer
+from solar.core import signals
+from solar.core import utils
 
 
 class Resource(object):

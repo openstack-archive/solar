@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 from collections import defaultdict
 import itertools
 import networkx as nx
@@ -6,7 +6,7 @@ import os
 
 import db
 
-from x import utils
+from solar.core import utils
 
 
 CLIENTS_CONFIG_KEY = 'clients-data-file'
