@@ -1,8 +1,8 @@
 import shutil
 import os
 
-from x import resource
-from x import signals
+from solar.core import resource
+from solar.core import signals
 
 
 signals.Connections.clear()
@@ -71,7 +71,7 @@ signals.connect(haproxy_config, haproxy_service, {'listen_ports':'ports', 'confi
 
 
 #run
-from x  import actions
+from solar.core import actions
 
 actions.resource_action(mariadb_service1, 'run')
 actions.resource_action(keystone_db, 'run')

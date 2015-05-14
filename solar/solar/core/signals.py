@@ -6,7 +6,7 @@ import os
 
 import db
 
-from x import utils
+from solar.core import utils
 
 
 CLIENTS_CONFIG_KEY = 'clients-data-file'

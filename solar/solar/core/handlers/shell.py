@@ -1,7 +1,7 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import subprocess
 
-from x.handlers.base import BaseHandler
+from solar.core.handlers.base import BaseHandler
 
 
 class Shell(BaseHandler):

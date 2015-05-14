@@ -1,7 +1,7 @@
-# -*- coding: UTF-8 -*-
-from x.handlers.ansible import Ansible
-from x.handlers.base import Empty
-from x.handlers.shell import Shell
+# -*- coding: utf-8 -*-
+from solar.core.handlers.ansible import Ansible
+from solar.core.handlers.base import Empty
+from solar.core.handlers.shell import Shell
 
 
 HANDLERS = {'ansible': Ansible,

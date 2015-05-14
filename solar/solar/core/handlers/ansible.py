@@ -1,9 +1,9 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import subprocess
 import yaml
 
-from x.handlers.base import BaseHandler
+from solar.core.handlers.base import BaseHandler
 
 
 class Ansible(BaseHandler):

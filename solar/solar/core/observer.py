@@ -1,4 +1,4 @@
-from x import signals
+from solar.core import signals
 
 
 class BaseObserver(object):
