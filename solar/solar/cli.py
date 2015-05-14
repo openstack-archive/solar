@@ -79,9 +79,6 @@ class Cmd(object):
         group.add_argument('-t', '--tags', nargs='+', default=['env/test_env'])
         group.add_argument('-i', '--id', default=utils.generate_uuid())
 
-        parser = self.subparser.add_parser('data')
-        parser.set_defaults(func=getattr(self, 'data'))
-
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
@@ -102,53 +99,6 @@ class Cmd(object):
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()
-
-    def data(self, args):
-
-        resources = [
-             {'id': 'mariadb',
-              'tags': ['service/mariadb', 'entrypoint/mariadb'],
-              'input': {
-                  'ip_addr': '{{ this.node.ip }}' }},
-
-            {'id': 'keystone',
-             'tags': ['service/keystone'],
-             'input': {
-                 'name': 'keystone-test',
-                 'admin_port': '35357',
-                 'public_port': '5000',
-                 'db_addr': {'first_with_tags': ["entrypoint/mariadb"], 'item': '{{ item.node.ip }}'}}},
-
-             {'id': 'haproxy',
-              'tags': ['service/haproxy'],
-              'input': {
-                  'services': [
-                      {'service_name': 'keystone-admin',
-                       'bind': '*:8080',
-                       'backends': {
-                           'with_tags': ["service/keystone"],
-                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.admin_port }}'}}},
-
-                      {'service_name': 'keystone-pub',
-                       'bind': '*:8081',
-                       'backends': {
-                           'with_tags': ["service/keystone"],
-                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.public_port }}'}}}]}}
-        ]
-
-        nodes = [
-            {'id': 'n-1',
-             'ip': '10.0.0.2',
-             'tags': ['node/1', 'service/keystone']},
-
-            {'id': 'n-2',
-             'ip': '10.0.0.3',
-             'tags': ['node/2', 'service/mariadb', 'service/haproxy', 'service/keystone']}]
-
-        dg = data.DataGraph(resources, nodes)
-
-        pprint.pprint(dg.resolve())
-
 
 
 def main():
