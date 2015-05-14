@@ -3,13 +3,23 @@ handler: ansible
 version: 1.0.0
 input:
     ip:
+      schema: str!
+      value:
     image:
+      schema: str!
+      value:
     ports:
+      schema: [int]
+      value: []
     host_binds:
+      schema: [int]
+      value: []
     volume_binds:
+      schema: [int]
+      value: []
     ssh_user:
+      schema: str!
+      value: []
     ssh_key:
-input-types:
-    ports:
-    host_binds: list
-    volume_binds: list
+      schema: str!
+      value: []

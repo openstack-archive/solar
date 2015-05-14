@@ -2,10 +2,24 @@ id: keystone
 handler: ansible
 version: 1.0.0
 input:
-    image: kollaglue/centos-rdo-keystone
+    image:
+      schema: str!
+      value: kollaglue/centos-rdo-keystone
     config_dir:
+      schema: str!
+      value:
     port:
+      schema: int!
+      value:
     admin_port:
+      schema: int!
+      value:
     ip:
+      schema: str!
+      value:
     ssh_key:
+      schema: str!
+      value:
     ssh_user:
+      schema: str!
+      value:

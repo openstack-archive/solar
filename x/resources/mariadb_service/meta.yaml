@@ -3,8 +3,20 @@ handler: ansible
 version: 1.0.0
 input:
     image: 
-    root_password: 
-    port: 
-    ip: 
-    ssh_key: 
-    ssh_user: 
+      schema: str!
+      value:
+    root_password:
+      schema: str!
+      value:
+    port:
+      schema: str!
+      value:
+    ip:
+      schema: int!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:

@@ -1,5 +1,7 @@
 # TODO
 
+- grammar connections fuzzy matching algorithm (for example: type 'login' joins to type 'login' irrespective of names of both inputs)
+- resource connections JS frontend (?)
 - store all resource configurations somewhere globally (this is required to
   correctly perform an update on one resource and bubble down to all others)
 - config templates
@@ -9,6 +11,7 @@
   when some image is unused to conserve space
 
 # DONE
+- CI
 - Deploy HAProxy, Keystone and MariaDB
 - ansible handler (loles)
 - tags are kept in resource mata file (pkaminski)

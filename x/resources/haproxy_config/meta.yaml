@@ -3,9 +3,14 @@ handler: none
 version: 1.0.0
 input:
     name:
+      schema: str!
+      value:
     listen_port:
+      schema: int!
+      value:
     ports:
+      schema: [int]
+      value:
     servers:
-input-types:
-    ports: list
-    servers: list
+      schema: [str]
+      value:

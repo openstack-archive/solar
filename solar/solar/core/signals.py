@@ -83,8 +83,8 @@ def guess_mapping(emitter, receiver):
     :return:
     """
     guessed = {}
-    for key in emitter.requires:
-        if key in receiver.requires:
+    for key in emitter.args:
+        if key in receiver.args:
             guessed[key] = key
 
     return guessed

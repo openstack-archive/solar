@@ -2,7 +2,7 @@ import unittest
 
 import base
 
-from x import signals as xs
+from solar.core import signals as xs
 
 
 class TestBaseInput(base.BaseResourceTest):
@@ -12,7 +12,9 @@ id: sample
 handler: ansible
 version: 1.0.0
 input:
-  values: {}
+  values:
+    schema: {a: int, b: int}
+    value: {}
         """)
 
         sample1 = self.create_resource(
@@ -63,7 +65,11 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: string
+    value:
   port:
+    schema: int
+    value:
         """)
         sample_ip_meta_dir = self.make_resource_meta("""
 id: sample-ip
@@ -71,6 +77,8 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: string
+    value:
         """)
         sample_port_meta_dir = self.make_resource_meta("""
 id: sample-port
@@ -78,6 +86,8 @@ handler: ansible
 version: 1.0.0
 input:
   port:
+    schema: int
+    value:
         """)
 
         sample = self.create_resource(
@@ -109,6 +119,8 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: string
+    value:
         """)
 
         sample = self.create_resource(
@@ -149,6 +161,8 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: str
+    value:
         """)
 
         sample1 = self.create_resource(
@@ -171,6 +185,8 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: str
+    value:
         """)
         list_input_single_meta_dir = self.make_resource_meta("""
 id: list-input-single
@@ -178,8 +194,8 @@ handler: ansible
 version: 1.0.0
 input:
   ips:
-input-types:
-  ips: list
+    schema: [str]
+    value: []
         """)
 
         sample1 = self.create_resource(
@@ -248,7 +264,11 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
+    schema: str
+    value:
   port:
+    schema: int
+    value:
         """)
         list_input_multi_meta_dir = self.make_resource_meta("""
 id: list-input-multi
@@ -256,10 +276,11 @@ handler: ansible
 version: 1.0.0
 input:
   ips:
+    schema: [str]
+    value:
   ports:
-input-types:
-  ips: list
-  ports: list
+    schema: [int]
+    value:
         """)
 
         sample1 = self.create_resource(
