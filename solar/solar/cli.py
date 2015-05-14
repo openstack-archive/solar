@@ -28,6 +28,7 @@ import yaml
 from solar import extensions
 from solar import utils
 from solar.core import data
+from solar.core.resource import assign_resources_to_nodes
 from solar.core.tags_set_parser import Expression
 from solar.interfaces.db import get_db
 
@@ -109,15 +110,29 @@ class Cmd(object):
 
     def assign(self, args):
         nodes = filter(
-            lambda n: Expression(args.nodes, n['tags']).evaluate(),
+            lambda n: Expression(args.nodes, n.get('tags', [])).evaluate(),
             self.db.get_list('nodes'))
 
         resources = filter(
-            lambda r: Expression(args.resources, r['tags']).evaluate(),
+            lambda r: Expression(args.resources, r.get('tags', [])).evaluate(),
             self._get_resources_list())
 
+        resource_instances_path = utils.read_config()['resource-instances-path']
+        utils.create_dir(resource_instances_path)
+        assign_resources_to_nodes(
+            resources,
+            nodes,
+            resource_instances_path)
+
     def _get_resources_list(self):
-        return utils.load_by_mask(utils.read_config()['resources-files-mask'])
+        result = []
+        for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
+            resource = utils.yaml_load(path)
+            resource['path'] = path
+            resource['dir_path'] = os.path.dirname(path)
+            result.append(resource)
+
+        return result
 
 
 def main():
