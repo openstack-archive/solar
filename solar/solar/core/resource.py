@@ -185,7 +185,8 @@ def assign_resources_to_nodes(resources, nodes, dst_dir):
             # Node specific setting should override resource's
             merged.update(deepcopy(node))
             # Tags for specific resource is set of tags from node and from resource
-            merged['tags'] = list(set(node.get('tags', [])) + set(resource.get('tags', [])))
+            merged['tags'] = list(set(node.get('tags', [])) |
+                                  set(resource.get('tags', [])))
 
             create(
                 format('{0}-{1}'.format(node['id'], resource['id'])),
