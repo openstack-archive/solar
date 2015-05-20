@@ -26,8 +26,8 @@ tokens = (
     "RPAREN")
 
 t_STRING = r'[A-Za-z0-9-_/\\]+'
-t_AND  = '&&'
-t_OR  = r'\|\|'
+t_AND  = '&|,'
+t_OR  = r'\|'
 t_LPAREN  = r'\('
 t_RPAREN  = r'\)'
 t_ignore = ' \t\r\n'
@@ -64,9 +64,9 @@ def p_expression_logical_op(p):
                   | expression OR expression
     """
     result, arg1, op, arg2 = p
-    if op == '&&':
+    if op == '&' or op == ',':
         result = lambda: arg1() and arg2()
-    elif op == '||':
+    elif op == '|':
         result = lambda: arg1() or arg2()
 
     p[0] = SubexpressionWrapper(result)
