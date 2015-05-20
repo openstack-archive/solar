@@ -1,6 +1,6 @@
 import unittest
 
-import base
+from solar.test import base
 
 from solar.core import validation as sv
 
@@ -37,6 +37,7 @@ input:
         )
         errors = sv.validate_resource(r)
         self.assertListEqual(errors.keys(), ['value-required'])
+
 
     def test_input_int_type(self):
         sample_meta_dir = self.make_resource_meta("""
@@ -100,7 +101,6 @@ input:
         )
         errors = sv.validate_resource(r)
         self.assertListEqual(errors.keys(), ['values'])
-
 
 if __name__ == '__main__':
     unittest.main()
