@@ -9,3 +9,6 @@ class CannotFindID(SolarError):
 class CannotFindExtension(SolarError):
     pass
 
+
+class ParseError(SolarError):
+    pass

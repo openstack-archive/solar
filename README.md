@@ -39,11 +39,9 @@ vim tmp/storage/nodes-id.yaml
 ```
 
 * add `env/test_env` in tags list
-* in order to assign resouce to the node use the same the same
-  method, i.e. add in tags list for node your service e.g.
-  `service/docker`, `service/mariadb`
-* perform deployment
+* assign resources to nodes
 
 ```
-solar configure --profile prf1 -pa run
+# TODO Does not work without default values in golden templates
+solar assign -n "env/test_env && node/1" -r resource/mariadb
 ```

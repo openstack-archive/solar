@@ -11,6 +11,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
 """Solar CLI api
 
 On create "golden" resource should be moved to special place
@@ -27,6 +28,8 @@ import yaml
 from solar import extensions
 from solar import utils
 from solar.core import data
+from solar.core.resource import assign_resources_to_nodes
+from solar.core.tags_set_parser import Expression
 from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
@@ -79,15 +82,17 @@ class Cmd(object):
         group.add_argument('-t', '--tags', nargs='+', default=['env/test_env'])
         group.add_argument('-i', '--id', default=utils.generate_uuid())
 
-        parser = self.subparser.add_parser('data')
-        parser.set_defaults(func=getattr(self, 'data'))
+        # Assign
+        parser = self.subparser.add_parser('assign')
+        parser.set_defaults(func=getattr(self, 'assign'))
+        parser.add_argument('-n', '--nodes')
+        parser.add_argument('-r', '--resources')
 
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
             profile_template_path = os.path.join(
-                utils.read_config()['template-dir'], 'profile.yml'
-            )
+                utils.read_config()['template-dir'], 'profile.yml')
             data = yaml.load(utils.render_template(profile_template_path, params))
             self.db.store('profiles', data)
         else:
@@ -103,52 +108,31 @@ class Cmd(object):
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()
 
-    def data(self, args):
+    def assign(self, args):
+        nodes = filter(
+            lambda n: Expression(args.nodes, n.get('tags', [])).evaluate(),
+            self.db.get_list('nodes'))
 
-        resources = [
-             {'id': 'mariadb',
-              'tags': ['service/mariadb', 'entrypoint/mariadb'],
-              'input': {
-                  'ip_addr': '{{ this.node.ip }}' }},
+        resources = filter(
+            lambda r: Expression(args.resources, r.get('tags', [])).evaluate(),
+            self._get_resources_list())
 
-            {'id': 'keystone',
-             'tags': ['service/keystone'],
-             'input': {
-                 'name': 'keystone-test',
-                 'admin_port': '35357',
-                 'public_port': '5000',
-                 'db_addr': {'first_with_tags': ["entrypoint/mariadb"], 'item': '{{ item.node.ip }}'}}},
+        resource_instances_path = utils.read_config()['resource-instances-path']
+        utils.create_dir(resource_instances_path)
+        assign_resources_to_nodes(
+            resources,
+            nodes,
+            resource_instances_path)
 
-             {'id': 'haproxy',
-              'tags': ['service/haproxy'],
-              'input': {
-                  'services': [
-                      {'service_name': 'keystone-admin',
-                       'bind': '*:8080',
-                       'backends': {
-                           'with_tags': ["service/keystone"],
-                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.admin_port }}'}}},
+    def _get_resources_list(self):
+        result = []
+        for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
+            resource = utils.yaml_load(path)
+            resource['path'] = path
+            resource['dir_path'] = os.path.dirname(path)
+            result.append(resource)
 
-                      {'service_name': 'keystone-pub',
-                       'bind': '*:8081',
-                       'backends': {
-                           'with_tags': ["service/keystone"],
-                           'item': {'name': '{{ item.name }}', 'addr': '{{ item.node.ip }}:{{ item.public_port }}'}}}]}}
-        ]
-
-        nodes = [
-            {'id': 'n-1',
-             'ip': '10.0.0.2',
-             'tags': ['node/1', 'service/keystone']},
-
-            {'id': 'n-2',
-             'ip': '10.0.0.3',
-             'tags': ['node/2', 'service/mariadb', 'service/haproxy', 'service/keystone']}]
-
-        dg = data.DataGraph(resources, nodes)
-
-        pprint.pprint(dg.resolve())
-
+        return result
 
 
 def main():

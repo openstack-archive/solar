@@ -4,6 +4,8 @@ import json
 import os
 import shutil
 
+from copy import deepcopy
+
 import yaml
 
 from solar.core import actions
@@ -174,3 +176,20 @@ def load_all(dest_path):
     signals.Connections.reconnect_all()
 
     return ret
+
+
+def assign_resources_to_nodes(resources, nodes, dst_dir):
+    for node in nodes:
+        for resource in resources:
+            merged = deepcopy(resource)
+            # Node specific setting should override resource's
+            merged.update(deepcopy(node))
+            # Tags for specific resource is set of tags from node and from resource
+            merged['tags'] = list(set(node.get('tags', [])) |
+                                  set(resource.get('tags', [])))
+
+            create(
+                format('{0}-{1}'.format(node['id'], resource['id'])),
+                resource['dir_path'],
+                dst_dir,
+                merged)
