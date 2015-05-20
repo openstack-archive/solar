@@ -26,3 +26,5 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resource/mariadb_table, resources/mariadb]

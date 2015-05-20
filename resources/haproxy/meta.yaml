@@ -26,3 +26,5 @@ input:
     ssh_key:
       schema: str!
       value:
+
+tags: [resources/haproxy]
