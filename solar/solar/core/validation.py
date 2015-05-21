@@ -1,4 +1,4 @@
-from jsonschema import validate, ValidationError
+from jsonschema import validate, ValidationError, SchemaError
 
 
 def schema_input_type(schema):
@@ -13,37 +13,63 @@ def schema_input_type(schema):
     return 'simple'
 
 
-def construct_jsonschema(schema):
+def _construct_jsonschema(schema, definition_base=''):
     """Construct jsonschema from our metadata input schema.
 
     :param schema:
     :return:
     """
-
     if schema == 'str':
-        return {'type': 'string'}
+        return {'type': 'string'}, {}
 
     if schema == 'str!':
-        return {'type': 'string', 'minLength': 1}
+        return {'type': 'string', 'minLength': 1}, {}
 
     if schema == 'int' or schema == 'int!':
-        return {'type': 'number'}
+        return {'type': 'number'}, {}
 
     if isinstance(schema, list):
+        items, definitions = _construct_jsonschema(schema[0], definition_base=definition_base)
+
         return {
             'type': 'array',
-            'items': construct_jsonschema(schema[0]),
-        }
+            'items': items,
+        }, definitions
 
     if isinstance(schema, dict):
-        return {
+        properties = {}
+        definitions = {}
+
+        for k, v in schema.items():
+            if isinstance(v, dict) or isinstance(v, list):
+                key = '{}_{}'.format(definition_base, k)
+                properties[k] = {'$ref': '#/definitions/{}'.format(key)}
+                definitions[key], new_definitions = _construct_jsonschema(v, definition_base=key)
+            else:
+                properties[k], new_definitions = _construct_jsonschema(v, definition_base=definition_base)
+
+            definitions.update(new_definitions)
+
+        required = [k for k, v in schema.items() if
+                    isinstance(v, basestring) and v.endswith('!')]
+
+        ret = {
             'type': 'object',
-            'properties': {
-                k: construct_jsonschema(v) for k, v in schema.items()
-            },
-            'required': [k for k, v in schema.items() if
-                         isinstance(v, basestring) and v.endswith('!')],
+            'properties': properties,
         }
+
+        if required:
+            ret['required'] = required
+
+        return ret, definitions
+
+
+def construct_jsonschema(schema):
+    jsonschema, definitions = _construct_jsonschema(schema)
+
+    jsonschema['definitions'] = definitions
+
+    return jsonschema
 
 
 def validate_input(value, jsonschema=None, schema=None):
@@ -54,13 +80,16 @@ def validate_input(value, jsonschema=None, schema=None):
     :param schema: Our custom, simplified schema
     :return: list with errors
     """
+    if jsonschema is None:
+        jsonschema = construct_jsonschema(schema)
     try:
-        if jsonschema:
-            validate(value, jsonschema)
-        else:
-            validate(value, construct_jsonschema(schema))
+        validate(value, jsonschema)
     except ValidationError as e:
         return [e.message]
+    except:
+        print 'jsonschema', jsonschema
+        print 'value', value
+        raise
 
 
 def validate_resource(r):
