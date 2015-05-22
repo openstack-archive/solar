@@ -18,4 +18,4 @@
   tasks:
     - file: path={{ config_dir.value['src'] }}/ state=directory
     - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
-    - template: src=/vagrant/haproxy.cfg dest={{ config_dir.value['src'] }}/haproxy.cfg
+    - template: src={{ resource_dir }}/templates/haproxy.cfg dest={{ config_dir.value['src'] }}/haproxy.cfg
