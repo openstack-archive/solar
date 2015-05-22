@@ -28,7 +28,10 @@ if previous state is some `A` and new state is `None` the action will be `remove
 
 The 'appropriate order' taken by orchestrator can be just like the data flow graph initially. We
 see possibility of optimizing the number of actions taken by orchestrator so that moving Keystone
-service to another node can be simplified from 4 actions taken to 3 actions.
+service to another node can be simplified from 4 actions (update HAProxy without removed Keystone,
+install Keystone on new node, update HAProxy with new Keystone, remove Keystone from old node)
+taken to 3 actions (add Keystone to new node, update HAProxy removing old Keystone and adding
+new one, remove Keystone from old node).
 
 After resource action is finished the new state is saved to the commit log and data is updated in
 the DB.
@@ -42,6 +45,14 @@ So in other words -- we change the data in one resource according to what is in 
 back and then we trigger changes in other connected resources. Then we run orchestrator actions like
 described above.
 
+In case of single commit log for all resources -- is it sufficient to just rollback a commit? Or
+do we need to trigger changes in connected resources too? In global commit log we have ordering
+of commits like they were run by orchestrator.
+
 From analysis of resource removal we think that we need to save connection data in each commit --
 otherwise when we rollback that resource removal we wouldn't know how to restore its connections
 to other resources.
+
+Single commits after every action finished on a resource causes many commits per one user 'apply'
+action. In order to allow user to revert the whole action and not just single commits we have some
+idea of 'tagging' group of commits by some action id.
