@@ -13,6 +13,7 @@ from solar.core import db
 from solar.core import observer
 from solar.core import signals
 from solar.core import utils
+from solar.core import validation
 
 
 class Resource(object):
@@ -21,14 +22,12 @@ class Resource(object):
         self.base_dir = base_dir
         self.metadata = metadata
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
-        self.requires = metadata['input'].keys()
-        self._validate_args(args, metadata['input'])
         self.args = {}
         for arg_name, arg_value in args.items():
-            type_ = metadata.get('input-types', {}).get(arg_name) or 'simple'
+            metadata_arg = self.metadata['input'][arg_name]
+            type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
+
             self.args[arg_name] = observer.create(type_, self, arg_name, arg_value)
-        self.metadata['input'] = args
-        self.input_types = metadata.get('input-types', {})
         self.changed = []
         self.tags = tags or []
 
@@ -95,22 +94,13 @@ class Resource(object):
         else:
             raise Exception('Uuups, action is not available')
 
-    def _validate_args(self, args, inputs):
-        for req in self.requires:
-            if req not in args:
-                # If metadata input is filled with a value, use it as default
-                # and don't report an error
-                if inputs.get(req):
-                    args[req] = inputs[req]
-                else:
-                    raise Exception('Requirement `{0}` is missing in args'.format(req))
-
     # TODO: versioning
     def save(self):
         metadata = copy.deepcopy(self.metadata)
 
         metadata['tags'] = self.tags
-        metadata['input'] = self.args_dict()
+        for k, v in self.args_dict().items():
+            metadata['input'][k]['value'] = v
 
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:

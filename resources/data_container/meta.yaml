@@ -3,5 +3,11 @@ handler: ansible
 version: 1.0.0
 input:
     ip:
+      type: str!
+      value:
     image: 
-    export_volumes:    
+      type: str!
+      value:
+    export_volumes:
+      type: str!
+      value:

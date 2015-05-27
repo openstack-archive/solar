@@ -6,9 +6,23 @@ actions:
     remove: remove.yml
 input:
     db_name:
+      schema: str!
+      value:
     login_password:
+      schema: str!
+      value:
     login_port:
+      schema: int!
+      value:
     login_user:
-    ip: 
-    ssh_key: 
-    ssh_user: 
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
