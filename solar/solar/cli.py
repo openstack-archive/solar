@@ -27,7 +27,6 @@ import yaml
 
 from solar import extensions
 from solar import utils
-from solar.core import data
 from solar.core.resource import assign_resources_to_nodes
 from solar.core.resource import connect_resources
 from solar.core.tags_set_parser import Expression
@@ -60,20 +59,6 @@ class Cmd(object):
         parser = self.subparser.add_parser('discover')
         parser.set_defaults(func=getattr(self, 'discover'))
 
-        # Perform configuration
-        parser = self.subparser.add_parser('configure')
-        parser.set_defaults(func=getattr(self, 'configure'))
-        parser.add_argument(
-            '-p',
-            '--profile')
-        parser.add_argument(
-            '-a',
-            '--actions',
-            nargs='+')
-        parser.add_argument(
-            '-pa',
-            '--profile_action')
-
         # Profile actions
         parser = self.subparser.add_parser('profile')
         parser.set_defaults(func=getattr(self, 'profile'))
@@ -105,13 +90,6 @@ class Cmd(object):
             self.db.store('profiles', data)
         else:
             pprint.pprint(self.db.get_list('profiles'))
-
-    def configure(self, args):
-        profile = self.db.get_record('profiles', args.profile)
-        extensions.find_by_provider_from_profile(
-            profile, 'configure').configure(
-                actions=args.actions,
-                profile_action=args.profile_action)
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()

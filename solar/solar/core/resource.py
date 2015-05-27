@@ -12,7 +12,7 @@ from solar.core import actions
 from solar.core import db
 from solar.core import observer
 from solar.core import signals
-from solar.core import utils
+from solar import utils
 from solar.core import validation
 
 from solar.core.connections import ResourcesConnectionGraph
