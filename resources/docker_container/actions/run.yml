@@ -9,7 +9,9 @@
        net: host
        ports:
          {% for port in ports.value %}
-         - {{ port['value'] }}:{{ port['value'] }}
+         {% for p in port['value'] %}
+         - {{ p['value'] }}:{{ p['value'] }}
+         {% endfor %}
          {% endfor %}
        volumes:
          # TODO: host_binds might need more work

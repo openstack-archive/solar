@@ -38,7 +38,6 @@ input:
         errors = sv.validate_resource(r)
         self.assertListEqual(errors.keys(), ['value-required'])
 
-
     def test_input_int_type(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample

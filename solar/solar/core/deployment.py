@@ -4,9 +4,9 @@ import os
 import shutil
 import yaml
 
-from x import db
-from x import resource as xr
-from x import signals as xs
+from solar.core import db
+from solar.core import resource as xr
+from solar.core import signals as xs
 
 
 def deploy(filename):
