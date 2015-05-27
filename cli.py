@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import click
 import json
 #import matplotlib
@@ -8,7 +9,6 @@ import os
 import subprocess
 
 from solar.core import actions as xa
-from solar.core import deployment as xd
 from solar.core import resource as xr
 from solar.core import signals as xs
 
