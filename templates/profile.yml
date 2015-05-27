@@ -17,8 +17,8 @@ connections:
       root_password: db_password
       port: db_port
 
-  - for_resources: [resources/haproxy]
-    filter_resources: [resource/keystone_service]
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resources/haproxy]
     mapping:
         servers: ip
         ports: admin_port
