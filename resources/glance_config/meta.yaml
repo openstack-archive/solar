@@ -1,0 +1,30 @@
+id: glance_config
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value: []
+    ssh_key:
+      schema: str!
+      value: []
+
+    config_dir:
+      schema: {src: str!, dst: str!}
+      value: {src: /etc/solar/glance, dst: /etc/glance}
+    api_port:
+      schema: int!
+      value: 9292
+    registry_port:
+      schema: int!
+      value: 9191
+    keystone_ip:
+      schema: str!
+      value:
+    keystone_port:
+      schema: int!
+      value: 5000
+

@@ -25,6 +25,7 @@ def deploy():
 
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
     node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key', 'ssh_user': 'vagrant'})
+    node3 = resource.create('node3', 'resources/ro_node/', {'ip':'10.0.0.5', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev4/virtualbox/private_key', 'ssh_user':'vagrant'})
 
     mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     keystone_db = resource.create('keystone_db', 'resources/mariadb_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
@@ -36,10 +37,12 @@ def deploy():
     keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'ip': '', 'ssh_user': '', 'ssh_key': '', 'admin_token': 'admin', 'db_password': '', 'db_name': '', 'db_user': '', 'db_host': '', 'db_port': ''})
     keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35357, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
 
-
     haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port':5000, 'servers':[], 'ports':[]})
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
     haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+
+    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': ''})
+    glance_container = resource.create('glance_container', 'resources/docker_container/', {'image' : 'krystism/openstack-glance', 'ports': [{'value': [{'value': 9191}, {'value': 9292}]}], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
 
 
     ####
@@ -81,6 +84,12 @@ def deploy():
     signals.connect(node2, haproxy_service)
     signals.connect(haproxy_config, haproxy_service, {'listen_ports': 'ports', 'config_dir': 'host_binds'})
 
+    signals.connect(node3, glance_config)
+    signals.connect(haproxy_keystone_config, glance_config, {'listen_port': 'keystone_port'})
+    signals.connect(haproxy_service, glance_config, {'ip': 'keystone_ip'})
+    signals.connect(node3, glance_container)
+    signals.connect(glance_config, glance_container, {'config_dir': 'host_binds'})
+
 
     has_errors = False
     for r in [node1,
@@ -94,7 +103,9 @@ def deploy():
               keystone_service2,
               haproxy_keystone_config,
               haproxy_config,
-              haproxy_service]:
+              haproxy_service,
+              glance_config,
+              glance_container]:
         errors = validation.validate_resource(r)
         if errors:
             has_errors = True
@@ -115,12 +126,17 @@ def deploy():
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
+    actions.resource_action(glance_config, 'run')
+    actions.resource_action(glance_container, 'run')
+    time.sleep(10)
 
 
     # test working configuration
     requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
     requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
     requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
+    requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][0]['value']))
+    requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][1]['value']))
 
 
 
