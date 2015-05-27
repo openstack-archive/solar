@@ -1,0 +1,12 @@
+id: docker
+handler: ansible
+version: 1.0.0
+
+input:
+    ip:
+    ssh_user:
+    ssh_key:
+
+input-types:
+
+tags: [resource/docker]

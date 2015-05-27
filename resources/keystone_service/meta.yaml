@@ -7,7 +7,7 @@ input:
       value: kollaglue/centos-rdo-keystone
     config_dir:
       schema: str!
-      value:
+      value: /etc/solar/keystone
     port:
       schema: int!
       value:
@@ -24,4 +24,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/keystone, resources/keystone]
+tags: [resource/keystone_service, resources/keystone]

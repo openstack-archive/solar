@@ -4,13 +4,13 @@ version: 1.0.0
 input:
     image: 
       schema: str!
-      value:
+      value: kollaglue/fedora-rdo-mariadb-app
     root_password:
       schema: str!
-      value:
+      value: password
     port:
       schema: str!
-      value:
+      value: 3306
     ip:
       schema: int!
       value:
