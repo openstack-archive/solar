@@ -9,10 +9,10 @@ input:
       schema: str!
       value: password
     port:
-      schema: str!
+      schema: int!
       value: 3306
     ip:
-      schema: int!
+      schema: str!
       value:
     ssh_key:
       schema: str!

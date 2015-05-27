@@ -23,7 +23,7 @@ class BaseObserver(object):
         return '[{}:{}] {}'.format(self.attached_to.name, self.name, self.value)
 
     def __unicode__(self):
-        return self.value
+        return unicode(self.value)
 
     def __eq__(self, other):
         if isinstance(other, BaseObserver):

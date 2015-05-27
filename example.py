@@ -1,6 +1,7 @@
 import shutil
 import os
 import requests
+import sys
 import time
 
 from solar.core import resource
@@ -20,15 +21,15 @@ os.mkdir('rs')
 node1 = resource.create('node1', 'resources/ro_node/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user':'vagrant'})
 node2 = resource.create('node2', 'resources/ro_node/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key', 'ssh_user':'vagrant'})
 
-mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : '3306', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 keystone_db = resource.create('keystone_db', 'resources/mariadb_db/', {'db_name':'keystone_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_user/', {'new_user_name' : 'keystone', 'new_user_password' : 'keystone', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 
 keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
-keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port':'5001', 'admin_port':'35357', 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
+keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357, 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
 
 keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
-keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port':'5002', 'admin_port':'35357', 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
+keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35357, 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
 
 
 haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name':'keystone_config', 'listen_port':'5000', 'servers':[], 'ports':[]})
@@ -78,6 +79,7 @@ signals.connect(haproxy_config, haproxy_service, {'listen_ports':'ports', 'confi
 
 from solar.core import validation
 
+has_errors = False
 for r in [node1,
           node2,
           mariadb_service1,
@@ -90,7 +92,13 @@ for r in [node1,
           haproxy_keystone_config,
           haproxy_config,
           haproxy_service]:
-    validation.validate_resource(r)
+    errors = validation.validate_resource(r)
+    if errors:
+        has_errors = True
+        print 'ERROR: %s: %s' % (r.name, errors)
+
+if has_errors:
+    sys.exit(1)
 
 
 #run
