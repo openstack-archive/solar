@@ -193,7 +193,7 @@ def assign_resources_to_nodes(resources, nodes, dst_dir):
 
 def connect_resources(profile):
     connections = profile.get('connections', [])
-    resources = load_all('/vagrant/tmp/resource-instances/')
+    resources = load_all(solar.utils.read_config()['resource-instances-path'])
     graph = ResourcesConnectionGraph(connections, resources.values())
 
     for connection in graph.iter_connections():
