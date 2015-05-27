@@ -9,6 +9,20 @@ extensions:
 
 tags: {{tags}}
 
+connections:
+  - for_resources: [resource/keystone_config]
+    filter_resources: [resource/mariadb]
+    mapping:
+      ip: db_host
+      root_password: db_password
+      port: db_port
+
+  - for_resources: [resources/haproxy]
+    filter_resources: [resource/keystone_service]
+    mapping:
+        servers: ip
+        ports: admin_port
+
 # NOTE(dshulyak) it is mandatory for some profiles to user graph based
 # api to provide order of execution for different events
 run:
