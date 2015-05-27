@@ -15,6 +15,8 @@ from solar.core import signals
 from solar.core import utils
 from solar.core import validation
 
+from solar.core.connections import ResourcesConnectionGraph
+
 
 class Resource(object):
     def __init__(self, name, metadata, args, base_dir, tags=None):
@@ -24,6 +26,9 @@ class Resource(object):
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
         self.args = {}
         for arg_name, arg_value in args.items():
+            if not self.metadata['input'].get(arg_name):
+                continue
+
             metadata_arg = self.metadata['input'][arg_name]
             type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
 
@@ -108,7 +113,6 @@ class Resource(object):
 
         meta_file = os.path.join(self.base_dir, 'meta.yaml')
         with open(meta_file, 'w') as f:
-            f.write(yaml.dump(metadata))
             f.write(yaml.dump(metadata, default_flow_style=False))
 
 
@@ -128,13 +132,12 @@ def create(name, base_path, dest_path, args, connections={}):
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}
-    meta['tags'] = []
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
             meta['actions'][os.path.splitext(f)[0]] = f
 
-    resource = Resource(name, meta, args, dest_path)
+    resource = Resource(name, meta, args, dest_path, tags=args['tags'])
     signals.assign_connections(resource, connections)
 
     # save
@@ -178,7 +181,6 @@ def assign_resources_to_nodes(resources, nodes, dst_dir):
             merged = deepcopy(resource)
             # Node specific setting should override resource's
             merged.update(deepcopy(node))
-            # Tags for specific resource is set of tags from node and from resource
             merged['tags'] = list(set(node.get('tags', [])) |
                                   set(resource.get('tags', [])))
 
@@ -187,3 +189,12 @@ def assign_resources_to_nodes(resources, nodes, dst_dir):
                 resource['dir_path'],
                 dst_dir,
                 merged)
+
+
+def connect_resources(profile):
+    connections = profile.get('connections', [])
+    resources = load_all('/vagrant/tmp/resource-instances/')
+    graph = ResourcesConnectionGraph(connections, resources.values())
+
+    for connection in graph.iter_connections():
+        signals.connect(connection['from'], connection['to'], connection['mapping'])
