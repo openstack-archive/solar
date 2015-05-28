@@ -8,6 +8,8 @@ from copy import deepcopy
 
 import yaml
 
+import solar
+
 from solar.core import actions
 from solar.core import db
 from solar.core import observer
@@ -125,6 +127,11 @@ def create(name, base_path, dest_path, args, connections={}):
         raise Exception('Dest path is not a directory: {0}'.format(dest_path))
 
     dest_path = os.path.abspath(os.path.join(dest_path, name))
+
+    if os.path.exists(dest_path):
+        print 'Skip creation of resource {0} because is already exists'.format(dest_path)
+        return db.get_resource(name) or get_resource_from_db(name)
+
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
@@ -175,20 +182,39 @@ def load_all(dest_path):
     return ret
 
 
+def get_resource_from_db(uid):
+    resource_path = os.path.join(solar.utils.read_config()['resource-instances-path'], uid)
+    return load(resource_path)
+
+
 def assign_resources_to_nodes(resources, nodes, dst_dir):
     for node in nodes:
         for resource in resources:
-            merged = deepcopy(resource)
-            # Node specific setting should override resource's
-            merged.update(deepcopy(node))
-            merged['tags'] = list(set(node.get('tags', [])) |
-                                  set(resource.get('tags', [])))
+            res = deepcopy(resource)
+            res['tags'] = list(set(node.get('tags', [])) |
+                               set(resource.get('tags', [])))
+            resource_uuid = solar.utils.generate_uuid()
+            # We should not generate here any uuid's, because
+            # a single node should be represented with a single
+            # resource
+            node_uuid = node['id']
 
-            create(
-                format('{0}-{1}'.format(node['id'], resource['id'])),
-                resource['dir_path'],
-                dst_dir,
-                merged)
+            node_resource_template = solar.utils.read_config()['node_resource_template']
+            created_resource = create(resource_uuid, resource['dir_path'], dst_dir, res)
+            created_node = create(node_uuid, node_resource_template, dst_dir, make_resource_from_node(node))
+
+            signals.connect(created_node, created_resource)
+
+
+def make_resource_from_node(node):
+    node_resource_template = os.path.join(solar.utils.read_config()['node_resource_template'], 'meta.yaml')
+    template = yaml.load(open(node_resource_template).read())
+    template['input']['ip'] = node['ip']
+    template['input']['ssh_key'] = node['ssh_private_key_path']
+    template['input']['ssh_user'] = node['ssh_user']
+    template['tags'] = node['tags']
+
+    return template
 
 
 def connect_resources(profile):

@@ -128,3 +128,7 @@ class Cmd(object):
 def main():
     api = Cmd()
     api.parse(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    main()
