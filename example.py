@@ -11,6 +11,7 @@ from solar.core import validation
 from solar.interfaces.db import get_db
 
 
+
 @click.group()
 def main():
     pass
@@ -43,6 +44,8 @@ def deploy():
 
     glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name':'glance_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
     glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name' : 'glance', 'new_user_password' : 'glance', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+
+    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins', 'keystone_host': '', 'keystone_port': '', 'login_user': '', 'login_token': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
     glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_tenant': ''})
     glance_container = resource.create('glance_container', 'resources/docker_container/', {'image' : 'krystism/openstack-glance', 'ports': [{'value': [{'value': 9191}, {'value': 9292}]}], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
@@ -87,13 +90,21 @@ def deploy():
     signals.connect(node2, haproxy_service)
     signals.connect(haproxy_config, haproxy_service, {'listen_ports': 'ports', 'config_dir': 'host_binds'})
 
-    # glance
+    # glance db
     signals.connect(node1, glance_db)
-    signals.connect(mariadb_service1, glance_db, {'root_password':'login_password', 'port':'login_port'})
+    signals.connect(mariadb_service1, glance_db, {'root_password': 'login_password', 'port': 'login_port'})
     signals.connect(node1, glance_db_user)
-    signals.connect(mariadb_service1, glance_db_user, {'root_password':'login_password', 'port':'login_port'})
-    signals.connect(glance_db, glance_db_user, {'db_name':'db_name'})
+    signals.connect(mariadb_service1, glance_db_user, {'root_password': 'login_password', 'port': 'login_port'})
+    signals.connect(glance_db, glance_db_user, {'db_name': 'db_name'})
 
+    # glance keystone user
+    signals.connect(haproxy_keystone_config, glance_keystone_user, {'listen_port': 'keystone_port'})
+    signals.connect(haproxy_service, glance_keystone_user)  # standard ip, ssh_key, ssh_user
+    signals.connect(haproxy_service, glance_keystone_user, {'ip': 'keystone_host'})
+    signals.connect(keystone_config1, glance_keystone_user, {'admin_token': 'login_token'})
+    signals.connect(glance_keystone_user, glance_config, {'user_name': 'keystone_admin_user', 'user_password': 'keystone_admin_password', 'tenant_name': 'keystone_admin_tenant'})
+
+    # glance
     signals.connect(node3, glance_config)
     signals.connect(haproxy_keystone_config, glance_config, {'listen_port': 'keystone_port'})
     signals.connect(haproxy_service, glance_config, {'ip': 'keystone_ip'})
@@ -117,9 +128,10 @@ def deploy():
               haproxy_keystone_config,
               haproxy_config,
               haproxy_service,
-              glance_config,
+              glance_keystone_user,
               glance_db,
               glance_db_user,
+              glance_config,
               glance_container]:
         errors = validation.validate_resource(r)
         if errors:
@@ -141,6 +153,7 @@ def deploy():
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
+    actions.resource_action(glance_keystone_user, 'run')
     actions.resource_action(glance_db, 'run')
     actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_config, 'run')
@@ -154,8 +167,6 @@ def deploy():
     requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
     requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][0]['value']))
     requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][1]['value']))
-
-
 
 
 @click.command()

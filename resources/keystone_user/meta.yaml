@@ -9,7 +9,7 @@ input:
       schema: int!
       value:
     login_user:
-      schema: str!
+      schema: str
       value:
     login_token:
       schema: str!
