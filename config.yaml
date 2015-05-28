@@ -13,4 +13,4 @@ file-system-db:
 template-dir: /vagrant/templates
 resources-files-mask: /vagrant/resources/*/*.yaml
 resource-instances-path: /vagrant/tmp/resource-instances
-node_resource_template: /vagrant/resources/ro_node/meta.yaml
+node_resource_template: /vagrant/resources/ro_node/

@@ -200,22 +200,10 @@ def assign_resources_to_nodes(resources, nodes, dst_dir):
             node_uuid = node['id']
 
             node_resource_template = solar.utils.read_config()['node_resource_template']
-            created_resource = create(resource_uuid, resource['dir_path'], dst_dir, res)
-            created_node = create(node_uuid, node_resource_template, dst_dir, make_resource_from_node(node))
+            created_resource = create(resource_uuid, resource['dir_path'], dst_dir, res['input'])
+            created_node = create(node_uuid, node_resource_template, dst_dir, node)
 
             signals.connect(created_node, created_resource)
-
-
-def make_resource_from_node(node):
-    node_resource_template = os.path.join(solar.utils.read_config()['node_resource_template'], 'meta.yaml')
-    template = yaml.load(open(node_resource_template).read())
-    template['input']['ip'] = node['ip']
-    template['input']['ssh_key'] = node['ssh_private_key_path']
-    template['input']['ssh_user'] = node['ssh_user']
-    template['tags'] = node['tags']
-
-    return template
-
 
 def connect_resources(profile):
     connections = profile.get('connections', [])
