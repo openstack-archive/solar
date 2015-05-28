@@ -137,7 +137,7 @@ def create(name, base_path, dest_path, args, connections={}):
         for f in os.listdir(actions_path):
             meta['actions'][os.path.splitext(f)[0]] = f
 
-    resource = Resource(name, meta, args, dest_path, tags=args['tags'])
+    resource = Resource(name, meta, args, dest_path, tags=args.get('tags', []))
     signals.assign_connections(resource, connections)
 
     # save
