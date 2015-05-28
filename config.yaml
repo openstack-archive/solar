@@ -1,4 +1,4 @@
-clients-data-file: /vagrant/clients.json
+clients-data-file: /vagrant/tmp/connections.yaml
 
 tmp: /vagrant/tmp
 
