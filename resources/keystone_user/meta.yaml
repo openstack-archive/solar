@@ -32,3 +32,5 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resource/keystone_user, resources/keystone]

@@ -23,3 +23,5 @@ input:
     ssh_key:
       schema: str!
       value: []
+
+tags: [resource/container]

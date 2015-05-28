@@ -29,6 +29,7 @@ from solar import extensions
 from solar import utils
 from solar.core import data
 from solar.core.resource import assign_resources_to_nodes
+from solar.core.resource import connect_resources
 from solar.core.tags_set_parser import Expression
 from solar.interfaces.db import get_db
 
@@ -88,6 +89,13 @@ class Cmd(object):
         parser.add_argument('-n', '--nodes')
         parser.add_argument('-r', '--resources')
 
+        # Perform resources connection
+        parser = self.subparser.add_parser('connect')
+        parser.set_defaults(func=getattr(self, 'connect'))
+        parser.add_argument(
+            '-p',
+            '--profile')
+
     def profile(self, args):
         if args.create:
             params = {'tags': args.tags, 'id': args.id}
@@ -107,6 +115,10 @@ class Cmd(object):
 
     def discover(self, args):
         Discovery({'id': 'discovery'}).discover()
+
+    def connect(self, args):
+        profile = self.db.get_record('profiles', args.profile)
+        connect_resources(profile)
 
     def assign(self, args):
         nodes = filter(

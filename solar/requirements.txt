@@ -4,3 +4,4 @@ jinja2
 networkx
 mock
 ply
+jsonschema==2.4.0

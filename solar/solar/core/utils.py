@@ -40,4 +40,3 @@ def save_to_config_file(key, data):
     with open(fpath, 'w') as f:
         encoder = ext_encoder(fpath)
         encoder.dump(data, f)
-
