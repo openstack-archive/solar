@@ -1,9 +1,9 @@
 - id: node_1
   ip: 10.0.0.2
   ssh_user: vagrant
-  ssh_private_key_path: /vagrant/tmp/keys/ssh_private
+  ssh_key: /vagrant/tmp/keys/ssh_private
 
 - id: node_2
   ip: 10.0.0.3
   ssh_user: vagrant
-  ssh_private_key_path: /vagrant/tmp/keys/ssh_private
+  ssh_key: /vagrant/tmp/keys/ssh_private
