@@ -5,6 +5,10 @@
     registry_port: {{ registry_port }}
     keystone_ip: {{ keystone_ip }}
     keystone_port: {{ keystone_port }}
+    mysql_ip: {{ mysql_ip }}
+    mysql_db: {{ mysql_db }}
+    mysql_user: {{ mysql_user }}
+    mysql_password: {{ mysql_password }}
     config_dir: {src: {{ config_dir.value['src'] }}, dst: {{ config_dir.value['dst'] }}}
   tasks:
     - file: path={{ config_dir.value['src'] }}/ state=directory

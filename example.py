@@ -41,7 +41,10 @@ def deploy():
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
     haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
-    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': ''})
+    glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name':'glance_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+    glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name' : 'glance', 'new_user_password' : 'glance', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+
+    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': ''})
     glance_container = resource.create('glance_container', 'resources/docker_container/', {'image' : 'krystism/openstack-glance', 'ports': [{'value': [{'value': 9191}, {'value': 9292}]}], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
 
 
@@ -84,9 +87,19 @@ def deploy():
     signals.connect(node2, haproxy_service)
     signals.connect(haproxy_config, haproxy_service, {'listen_ports': 'ports', 'config_dir': 'host_binds'})
 
+    # glance
+    signals.connect(node1, glance_db)
+    signals.connect(mariadb_service1, glance_db, {'root_password':'login_password', 'port':'login_port'})
+    signals.connect(node1, glance_db_user)
+    signals.connect(mariadb_service1, glance_db_user, {'root_password':'login_password', 'port':'login_port'})
+    signals.connect(glance_db, glance_db_user, {'db_name':'db_name'})
+
     signals.connect(node3, glance_config)
     signals.connect(haproxy_keystone_config, glance_config, {'listen_port': 'keystone_port'})
     signals.connect(haproxy_service, glance_config, {'ip': 'keystone_ip'})
+    signals.connect(mariadb_service1, glance_config, {'ip': 'mysql_ip'})
+    signals.connect(glance_db, glance_config, {'db_name': 'mysql_db'})
+    signals.connect(glance_db_user, glance_config, {'new_user_name': 'mysql_user', 'new_user_password': 'mysql_password'})
     signals.connect(node3, glance_container)
     signals.connect(glance_config, glance_container, {'config_dir': 'host_binds'})
 
@@ -105,6 +118,8 @@ def deploy():
               haproxy_config,
               haproxy_service,
               glance_config,
+              glance_db,
+              glance_db_user,
               glance_container]:
         errors = validation.validate_resource(r)
         if errors:
@@ -126,6 +141,8 @@ def deploy():
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
+    actions.resource_action(glance_db, 'run')
+    actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_config, 'run')
     actions.resource_action(glance_container, 'run')
     time.sleep(10)
@@ -148,6 +165,10 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list('resource'))
     resources = {r.name: r for r in resources}
 
+    actions.resource_action(resources['glance_container'], 'run')
+    actions.resource_action(resources['glance_config'], 'run')
+    actions.resource_action(resources['glance_db_user'], 'run')
+    actions.resource_action(resources['glance_db'], 'run')
     actions.resource_action(resources['haproxy_service'], 'remove')
     actions.resource_action(resources['haproxy_config'], 'remove')
     actions.resource_action(resources['keystone_service2'], 'remove')

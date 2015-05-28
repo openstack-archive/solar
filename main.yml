@@ -13,7 +13,10 @@
     - apt: name=python-pudb state=present
     - apt: name=python-pip state=present
     - apt: name=python-mysqldb state=present
+    - apt: name=jq state=present
     - shell: pip install docker-py==1.1.0
+
+    - shell: pip install httpie
 
     # requirements
     - shell: pip install -r /vagrant/requirements.txt

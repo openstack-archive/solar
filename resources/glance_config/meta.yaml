@@ -27,4 +27,15 @@ input:
     keystone_port:
       schema: int!
       value: 5000
-
+    mysql_ip:
+      schema: str!
+      value:
+    mysql_db:
+      schema: str!
+      value:
+    mysql_user:
+      schema: str!
+      value:
+    mysql_password:
+      schema: str!
+      value:
