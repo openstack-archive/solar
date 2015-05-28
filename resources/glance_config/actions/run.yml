@@ -5,6 +5,9 @@
     registry_port: {{ registry_port }}
     keystone_ip: {{ keystone_ip }}
     keystone_port: {{ keystone_port }}
+    keystone_admin_user: {{ keystone_admin_user }}
+    keystone_admin_password: {{ keystone_admin_password }}
+    keystone_admin_tenant: {{ keystone_admin_tenant }}
     mysql_ip: {{ mysql_ip }}
     mysql_db: {{ mysql_db }}
     mysql_user: {{ mysql_user }}

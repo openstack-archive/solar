@@ -44,7 +44,7 @@ def deploy():
     glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name':'glance_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
     glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name' : 'glance', 'new_user_password' : 'glance', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 
-    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': ''})
+    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_tenant': ''})
     glance_container = resource.create('glance_container', 'resources/docker_container/', {'image' : 'krystism/openstack-glance', 'ports': [{'value': [{'value': 9191}, {'value': 9292}]}], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
 
 

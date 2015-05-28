@@ -27,6 +27,15 @@ input:
     keystone_port:
       schema: int!
       value: 5000
+    keystone_admin_user:
+      schema: str!
+      value: glance_admin
+    keystone_admin_password:
+      schema: str!
+      value: password1234
+    keystone_admin_tenant:
+      schema: str!
+      value: service_admins
     mysql_ip:
       schema: str!
       value:
