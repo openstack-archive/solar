@@ -1,5 +1,6 @@
 import shutil
 import os
+import requests
 import time
 
 from solar.core import resource
@@ -12,23 +13,23 @@ if os.path.exists('rs'):
     shutil.rmtree('rs')
 os.mkdir('rs')
 
-node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
-node2 = resource.create('node2', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
+node1 = resource.create('node1', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user':'vagrant'})
+node2 = resource.create('node2', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key', 'ssh_user':'vagrant'})
 
-mariadb_service1 = resource.create('mariadb_service1', 'x/resources/mariadb_service', 'rs/', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : '3306', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-keystone_db = resource.create('keystone_db', 'x/resources/mariadb_db/', 'rs/', {'db_name':'keystone_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
-keystone_db_user = resource.create('keystone_db_user', 'x/resources/mariadb_user/', 'rs/', {'new_user_name' : 'keystone', 'new_user_password' : 'keystone', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', 'rs/', {'image':'mariadb', 'root_password' : 'mariadb', 'port' : '3306', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+keystone_db = resource.create('keystone_db', 'resources/mariadb_db/', 'rs/', {'db_name':'keystone_db', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
+keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_user/', 'rs/', {'new_user_name' : 'keystone', 'new_user_password' : 'keystone', 'db_name':'', 'login_password':'', 'login_user':'root', 'login_port': '', 'ip':'', 'ssh_user':'', 'ssh_key':''})
 
-keystone_config1 = resource.create('keystone_config1', 'x/resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
-keystone_service1 = resource.create('keystone_service1', 'x/resources/keystone_service/', 'rs/', {'port':'5001', 'admin_port':'35357', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':'', 'config_dir':''})
+keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
+keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', 'rs/', {'port':'5001', 'admin_port':'35357', 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
 
-keystone_config2 = resource.create('keystone_config2', 'x/resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
-keystone_service2 = resource.create('keystone_service2', 'x/resources/keystone_service/', 'rs/', {'port':'5002', 'admin_port':'35357', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':'', 'config_dir':''})
+keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', 'rs/', {'config_dir' : '/etc/solar/keystone', 'ip':'', 'ssh_user':'', 'ssh_key':'', 'admin_token':'admin', 'db_password':'', 'db_name':'', 'db_user':'', 'db_host':''})
+keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', 'rs/', {'port':'5002', 'admin_port':'35357', 'image': '', 'ip':'', 'ssh_key':'', 'ssh_user':'', 'config_dir':''})
 
 
-haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'x/resources/haproxy_config/', 'rs/', {'name':'keystone_config', 'listen_port':'5000', 'servers':[], 'ports':[]})
-haproxy_config = resource.create('haproxy_config', 'x/resources/haproxy', 'rs/', {'ip':'', 'ssh_key':'', 'ssh_user':'', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
-haproxy_service = resource.create('haproxy_service', 'x/resources/docker_container/', 'rs/', {'image' : 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
+haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_config/', 'rs/', {'name':'keystone_config', 'listen_port':'5000', 'servers':[], 'ports':[]})
+haproxy_config = resource.create('haproxy_config', 'resources/haproxy', 'rs/', {'ip':'', 'ssh_key':'', 'ssh_user':'', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
+haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', 'rs/', {'image' : 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip':'', 'ssh_key':'', 'ssh_user':''})
 
 
 ####
@@ -71,6 +72,23 @@ signals.connect(node2, haproxy_service)
 signals.connect(haproxy_config, haproxy_service, {'listen_ports':'ports', 'config_dir':'host_binds'})
 
 
+from solar.core import validation
+
+for r in [node1,
+          node2,
+          mariadb_service1,
+          keystone_db,
+          keystone_db_user,
+          keystone_config1,
+          keystone_service1,
+          keystone_config2,
+          keystone_service2,
+          haproxy_keystone_config,
+          haproxy_config,
+          haproxy_service]:
+    validation.validate_resource(r)
+
+
 #run
 from solar.core import actions
 
@@ -80,6 +98,7 @@ actions.resource_action(keystone_db, 'run')
 actions.resource_action(keystone_db_user, 'run')
 actions.resource_action(keystone_config1, 'run')
 actions.resource_action(keystone_service1, 'run')
+actions.resource_action(keystone_config2, 'run')
 actions.resource_action(keystone_service2, 'run')
 actions.resource_action(haproxy_config, 'run')
 actions.resource_action(haproxy_service, 'run')
@@ -93,3 +112,9 @@ actions.resource_action(haproxy_service, 'run')
 #actions.resource_action(keystone_db_user, 'remove')
 #actions.resource_action(keystone_db, 'remove')
 #actions.resource_action(mariadb_service1, 'remove')
+
+
+# test working configuration
+requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
+requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
+requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))

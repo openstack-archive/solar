@@ -27,7 +27,11 @@ class Resource(object):
             metadata_arg = self.metadata['input'][arg_name]
             type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
 
-            self.args[arg_name] = observer.create(type_, self, arg_name, arg_value)
+            value = arg_value
+            if not value and metadata_arg['value']:
+                value = metadata_arg['value']
+
+            self.args[arg_name] = observer.create(type_, self, arg_name, value)
         self.changed = []
         self.tags = tags or []
 

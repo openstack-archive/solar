@@ -7,10 +7,10 @@ import networkx as nx
 import os
 import subprocess
 
-from x import actions as xa
-from x import deployment as xd
-from x import resource as xr
-from x import signals as xs
+from solar.core import actions as xa
+from solar.core import deployment as xd
+from solar.core import resource as xr
+from solar.core import signals as xs
 
 
 @click.group()

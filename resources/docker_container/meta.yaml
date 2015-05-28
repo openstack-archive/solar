@@ -12,10 +12,10 @@ input:
       schema: [int]
       value: []
     host_binds:
-      schema: [int]
+      schema: [[int]]
       value: []
     volume_binds:
-      schema: [int]
+      schema: [{src: str, dst: str}]
       value: []
     ssh_user:
       schema: str!
