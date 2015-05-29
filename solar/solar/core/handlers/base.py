@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import shutil
 import tempfile
@@ -25,7 +25,7 @@ class BaseHandler(object):
 
     def _compile_action_file(self, resource, action):
         action_file = resource.metadata['actions'][action]
-        action_file = os.path.join(resource.base_dir, 'actions', action_file)
+        action_file = os.path.join(resource.metadata['actions_path'], action_file)
         dir_path = self.dirs[resource.name]
         dest_file = tempfile.mkstemp(text=True, prefix=action, dir=dir_path)[1]
         args = self._make_args(resource)
@@ -43,7 +43,7 @@ class BaseHandler(object):
 
     def _make_args(self, resource):
         args = {'name': resource.name}
-        args['resource_dir'] = resource.base_dir
+        args['resource_dir'] = resource.metadata['actions_path']
         args.update(resource.args)
         return args
 
