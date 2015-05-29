@@ -4,9 +4,11 @@ import tempfile
 import unittest
 import yaml
 
-from solar.core import db
 from solar.core import resource as xr
 from solar.core import signals as xs
+from solar.interfaces.db import get_db
+
+db = get_db()
 
 
 class BaseResourceTest(unittest.TestCase):
@@ -29,8 +31,4 @@ class BaseResourceTest(unittest.TestCase):
         return path
 
     def create_resource(self, name, src, args):
-        dst = os.path.join(self.storage_dir, 'rs', name)
-        os.makedirs(dst)
-
-        return xr.create(name, src, dst, args)
-
+        return xr.create(name, src, args)

@@ -28,6 +28,7 @@ class Resource(object):
         self.metadata = metadata
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
         self.args = {}
+
         for arg_name, arg_value in args.items():
             if not self.metadata['input'].get(arg_name):
                 continue
@@ -177,6 +178,7 @@ def assign_resources_to_nodes(resources, nodes):
             created_node = create(node_uuid, node_resource_template, node, tags=node.get('tags', []))
 
             signals.connect(created_node, created_resource)
+
 
 def connect_resources(profile):
     connections = profile.get('connections', [])
