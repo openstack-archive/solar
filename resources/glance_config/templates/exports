@@ -1,0 +1,4 @@
+export OS_TENANT_NAME={{ keystone_admin_tenant }}
+export OS_USERNAME={{ keystone_admin_user }}
+export OS_PASSWORD={{ keystone_admin_password }}
+export OS_AUTH_URL=http://{{ keystone_ip }}:35357/v2.0
