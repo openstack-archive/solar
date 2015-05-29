@@ -11,39 +11,26 @@ from solar import utils
 from solar import errors
 
 
-def get_files(path, pattern):
-    for root, dirs, files in os.walk(path):
-        for file_name in files:
-            if fnmatch(file_name, pattern):
-                yield os.path.join(root, file_name)
-
-
 class FileSystemDB(DirDBM):
-    RESOURCES_PATH = utils.read_config()['file-system-db']['resources-path']
     STORAGE_PATH = utils.read_config()['file-system-db']['storage-path']
+    RESOURCE_COLLECTION_NAME = 'resource'
 
     def __init__(self):
         utils.create_dir(self.STORAGE_PATH)
         super(FileSystemDB, self).__init__(self.STORAGE_PATH)
         self.entities = {}
 
-    def create_resource(self, resource, tags):
-        self.from_files(self.RESOURCES_PATH)
+    def get_resource(self, uid):
+        return self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
 
-        resource_uid = '{0}_{1}'.format(resource, '_'.join(tags))
-        data = deepcopy(self.get(resource))
-        data['tags'] = tags
-        self[resource_uid] = data
+    def get_obj_resource(self, uid):
+        from solar.core.resource import wrap_resource
+        raw_resource = self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
 
-    def get_copy(self, key):
-        return deepcopy(self[key])
+        return wrap_resource(raw_resource)
 
-    def add(self, obj):
-        if 'id' in obj:
-            self.entities[obj['id']] = obj
-
-    def store_from_file(self, file_path):
-        self.store(file_path)
+    def add_resource(self, uid, resource):
+        self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)] = resource
 
     def store(self, collection, obj):
         if 'id' in obj:
@@ -71,20 +58,6 @@ class FileSystemDB(DirDBM):
 
     def _make_key(self, collection, _id):
         return '{0}-{1}'.format(collection, _id)
-
-    def add_resource(self, resource):
-        if 'id' in resource:
-            self.entities[resource['id']] = resource
-
-    def get(self, resource_id):
-        return self.entities[resource_id]
-
-    def from_files(self, path):
-        for file_path in get_files(path, '*.yml'):
-            with open(file_path) as f:
-                entity = f
-
-            self.add_resource(entity)
 
     def _readFile(self, path):
         return yaml.load(super(FileSystemDB, self)._readFile(path))

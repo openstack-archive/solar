@@ -4,6 +4,7 @@ set -e
 
 
 VENV=x-venv
+WORKSPACE=${WORKSPACE:-"/vagrant"}
 CONFIG_FILE=$WORKSPACE/jenkins-config.yaml
 
 # Setup a proper path, I call my virtualenv dir "$VENV" and

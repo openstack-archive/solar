@@ -8,23 +8,27 @@ from copy import deepcopy
 
 import yaml
 
+import solar
+
 from solar.core import actions
-from solar.core import db
 from solar.core import observer
 from solar.core import signals
 from solar import utils
 from solar.core import validation
 
 from solar.core.connections import ResourcesConnectionGraph
+from solar.interfaces.db import get_db
+
+db = get_db()
 
 
 class Resource(object):
-    def __init__(self, name, metadata, args, base_dir, tags=None):
+    def __init__(self, name, metadata, args, tags=None):
         self.name = name
-        self.base_dir = base_dir
         self.metadata = metadata
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
         self.args = {}
+
         for arg_name, arg_value in args.items():
             if not self.metadata['input'].get(arg_name):
                 continue
@@ -42,11 +46,10 @@ class Resource(object):
 
     def __repr__(self):
         return ("Resource(name='{0}', metadata={1}, args={2}, "
-                "base_dir='{3}', tags={4})").format(self.name,
-                                                    json.dumps(self.metadata),
-                                                    json.dumps(self.args_show()),
-                                                    self.base_dir,
-                                                    self.tags)
+                "tags={3})").format(self.name,
+                                    json.dumps(self.metadata),
+                                    json.dumps(self.args_show()),
+                                    self.tags)
 
     def args_show(self):
         def formatter(v):
@@ -111,20 +114,13 @@ class Resource(object):
         for k, v in self.args_dict().items():
             metadata['input'][k]['value'] = v
 
-        meta_file = os.path.join(self.base_dir, 'meta.yaml')
-        with open(meta_file, 'w') as f:
-            f.write(yaml.dump(metadata, default_flow_style=False))
+        db.add_resource(self.name, metadata)
 
 
-def create(name, base_path, dest_path, args, connections={}):
+def create(name, base_path, args, tags=[], connections={}):
     if not os.path.exists(base_path):
         raise Exception('Base resource does not exist: {0}'.format(base_path))
-    if not os.path.exists(dest_path):
-        raise Exception('Dest dir does not exist: {0}'.format(dest_path))
-    if not os.path.isdir(dest_path):
-        raise Exception('Dest path is not a directory: {0}'.format(dest_path))
 
-    dest_path = os.path.abspath(os.path.join(dest_path, name))
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
@@ -132,42 +128,32 @@ def create(name, base_path, dest_path, args, connections={}):
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}
+    meta['actions_path'] = actions_path
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
             meta['actions'][os.path.splitext(f)[0]] = f
 
-    resource = Resource(name, meta, args, dest_path, tags=args.get('tags', []))
+    resource = Resource(name, meta, args, tags=tags)
     signals.assign_connections(resource, connections)
-
-    # save
-    shutil.copytree(base_path, dest_path)
     resource.save()
-    db.resource_add(name, resource)
 
     return resource
 
 
-def load(dest_path):
-    meta_file = os.path.join(dest_path, 'meta.yaml')
-    meta = utils.load_file(meta_file)
-    name = meta['id']
-    args = meta['input']
-    tags = meta.get('tags', [])
+def wrap_resource(raw_resource):
+    name = raw_resource['id']
+    args = raw_resource['input']
+    tags = raw_resource.get('tags', [])
 
-    resource = Resource(name, meta, args, dest_path, tags=tags)
-
-    db.resource_add(name, resource)
-
-    return resource
+    return Resource(name, raw_resource, args, tags=tags)
 
 
-def load_all(dest_path):
+def load_all():
     ret = {}
 
-    for name in os.listdir(dest_path):
-        resource_path = os.path.join(dest_path, name)
-        resource = load(resource_path)
+    for raw_resource in db.get_list('resource'):
+        resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
 
     signals.Connections.reconnect_all()
@@ -175,26 +161,28 @@ def load_all(dest_path):
     return ret
 
 
-def assign_resources_to_nodes(resources, nodes, dst_dir):
+def assign_resources_to_nodes(resources, nodes):
     for node in nodes:
         for resource in resources:
-            merged = deepcopy(resource)
-            # Node specific setting should override resource's
-            merged.update(deepcopy(node))
-            merged['tags'] = list(set(node.get('tags', [])) |
-                                  set(resource.get('tags', [])))
+            res = deepcopy(resource)
+            res['tags'] = list(set(node.get('tags', [])) |
+                               set(resource.get('tags', [])))
+            resource_uuid = solar.utils.generate_uuid()
+            # We should not generate here any uuid's, because
+            # a single node should be represented with a single
+            # resource
+            node_uuid = node['id']
 
-            create(
-                format('{0}-{1}'.format(node['id'], resource['id'])),
-                resource['dir_path'],
-                dst_dir,
-                merged)
+            node_resource_template = solar.utils.read_config()['node_resource_template']
+            created_resource = create(resource_uuid, resource['dir_path'], res['input'], tags=res['tags'])
+            created_node = create(node_uuid, node_resource_template, node, tags=node.get('tags', []))
+
+            signals.connect(created_node, created_resource)
 
 
 def connect_resources(profile):
     connections = profile.get('connections', [])
-    resources = load_all('/vagrant/tmp/resource-instances/')
-    graph = ResourcesConnectionGraph(connections, resources.values())
+    graph = ResourcesConnectionGraph(connections, load_all().values())
 
     for connection in graph.iter_connections():
         signals.connect(connection['from'], connection['to'], connection['mapping'])

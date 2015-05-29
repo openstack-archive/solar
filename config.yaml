@@ -1,4 +1,4 @@
-clients-data-file: /vagrant/clients.json
+clients-data-file: /vagrant/tmp/connections.yaml
 
 tmp: /vagrant/tmp
 
@@ -7,9 +7,8 @@ examples-dir: /vagrant/examples
 extensions-dir: /vagrant/solar/solar/extensions
 
 file-system-db:
-  resources-path: ./schema/resources
   storage-path: /vagrant/tmp/storage
 
 template-dir: /vagrant/templates
-resources-files-mask: /vagrant/x/resources/*/*.yaml
-resource-instances-path: /vagrant/tmp/resource-instances
+resources-files-mask: /vagrant/resources/*/*.yaml
+node_resource_template: /vagrant/resources/ro_node/

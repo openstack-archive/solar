@@ -107,12 +107,7 @@ class Cmd(object):
             lambda r: Expression(args.resources, r.get('tags', [])).evaluate(),
             self._get_resources_list())
 
-        resource_instances_path = utils.read_config()['resource-instances-path']
-        utils.create_dir(resource_instances_path)
-        assign_resources_to_nodes(
-            resources,
-            nodes,
-            resource_instances_path)
+        assign_resources_to_nodes(resources, nodes)
 
     def _get_resources_list(self):
         result = []
@@ -128,3 +123,7 @@ class Cmd(object):
 def main():
     api = Cmd()
     api.parse(sys.argv[1:])
+
+
+if __name__ == '__main__':
+    main()
