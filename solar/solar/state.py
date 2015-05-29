@@ -12,24 +12,50 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import collections
 from collections import deque
+from functools import partial
+
+from solar import utils
+
+from enum import Enum
+
+
+states = Enum('States', 'pending inprogress error success')
+
+
+def state_file(filename):
+    filepath = os.path.join(utils.read_config()['state'], filename)
+    if 'log' in filename:
+        return Log(filepath)
+    elif 'data' in filename:
+        return Data(filepath)
+
+
+CD = partial(state_file, 'commited_data')
+SD = partial(state_file, 'staged_data')
+SL = partial(state_file, 'stage_log')
+IL = partial(state_file, 'inprogress_log')
+CL = partial(state_file, 'commit_log')
 
 
 class LogItem(object):
 
-    def __init__(self, uid, res_uid, diff):
+    def __init__(self, uid, res_uid, diff, state=None):
         self.uid = uid
         self.res = res_uid
         self.diff = diff
+        self.state = state or states.pending
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
 
     def to_dict(self):
         return {'uid': self.uid,
-                'res': self.res_uid,
-                'diff': self.diff}
+                'res': self.res,
+                'diff': self.diff,
+                'state': self.state.name}
 
     def __str__(self):
         return self.to_yaml()
@@ -42,17 +68,26 @@ class Log(object):
 
     def __init__(self, path):
         self.path = path
-        self.items = deque([LogItem(**l) for
-                            l in utils.yaml_load(path)])
+        items = utils.yaml_load(path) or []
+        self.items = deque([LogItem(
+            l['uid'], l['res'],
+            l['diff'], getattr(states, l['state'])) for l in items])
+
+    def sync(self):
+        utils.yaml_dump_to([i.to_dict() for i in self.items], self.path)
 
     def add(self, logitem):
         self.items.append(logitem)
-        utils.yaml_dump_to(self.items, path)
+        self.sync()
 
     def popleft(self):
         item = self.items.popleft()
-        utils.yaml_dump_to(self.items, path)
+        self.sync()
         return item
+
+    def show(self, verbose=False):
+        return ['L(uuid={0}, res={1})'.format(l.uid, l.res)
+                for l in self.items]
 
     def __repr__(self):
         return 'Log({0})'.format(self.path)
@@ -62,15 +97,22 @@ class Data(collections.MutableMapping):
 
     def __init__(self, path):
         self.path = path
-        self.store = utils.yaml_load(path)
+        self.store = utils.yaml_load(path) or {}
 
     def __getitem__(self, key):
         return self.store[key]
 
     def __setitem__(self, key, value):
         self.store[key] = value
-        utils.yaml_dump_to(self.store, path)
+        utils.yaml_dump_to(self.store, self.path)
 
     def __delitem__(self, key):
         self.store.pop(key)
-        utils.yaml_dump_to(self.store, path)
+        utils.yaml_dump_to(self.store, self.path)
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+

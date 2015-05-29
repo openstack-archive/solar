@@ -4,6 +4,7 @@ import os
 
 from copy import deepcopy
 
+<<<<<<< HEAD
 import yaml
 
 import solar
@@ -118,6 +119,8 @@ class Resource(object):
             metadata['input'][k]['value'] = v
 
         db.add_resource(self.name, metadata)
+        meta_file = os.path.join(self.base_dir, 'meta.yaml')
+        utils.yaml_dump_to(metadata, meta_file)
 
 
 def create(name, base_path, args, tags=[], connections={}):
@@ -127,7 +130,7 @@ def create(name, base_path, args, tags=[], connections={}):
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
-    meta = yaml.load(open(base_meta_file).read())
+    meta = utils.yaml_load(base_meta_file)
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}

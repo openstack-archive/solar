@@ -3,33 +3,38 @@
 from solar import state
 from solar.core import signals
 from solar.core import resource
+from solar import utils
 
-from dictdiffer import diff
+from dictdiffer import diff, patch
 import networkx as nx
 
 
 def connections(res, graph):
-
+    result = []
     for pred in graph.predecessors(res.name):
-        edge = graph.get_edge_edge(pred, res.name)
-        if ':' in edge['label']:
-            parent, child = edge['label'].split(':')
-            yield pred, res.name, {parent: child}
+        edge = graph.get_edge_data(pred, res.name)
+        if 'label' in edge:
+            if ':' in edge['label']:
+                parent, child = edge['label'].split(':')
+                mapping = {parent: child}
+            else:
+                mapping = {edge['label']: edge['label']}
         else:
-            yield pred, res.name, {edge['label']: edge['label']}
+            mapping = None
+        result.append((pred, res.name, mapping))
+    return result
 
 
 def to_dict(resource, graph):
     return {'uid': resource.name,
-            'path': resource.dest_path,
-            'meta': resource.metadata,
+            'path': resource.base_dir,
             'tags': resource.tags,
             'args': resource.args_dict(),
             'connections': connections(resource, graph)}
 
 
-def stage_changes():
-    resources = resource.load_all()
+def stage_changes(path):
+    resources = resource.load_all(path)
     conn_graph = signals.detailed_connection_graph()
 
     commited = state.CD()
@@ -38,7 +43,7 @@ def stage_changes():
     for res_uid in nx.topological_sort(conn_graph):
         commited_data = commited.get(res_uid, {})
         staged_data = to_dict(resources[res_uid], conn_graph)
-        df = diff(commited_data, staged_data)
+        df = list(diff(commited_data, staged_data))
 
         if df:
             log_item = state.LogItem(
@@ -48,3 +53,15 @@ def stage_changes():
             log.add(log_item)
     return log
 
+
+def commit_changes():
+    # just shortcut to test stuff
+    commited = state.CD()
+    history = state.CL()
+    staged = state.SL()
+
+    while staged.items:
+        l = staged.popleft()
+        commited[l.res] = patch(commited.get(l.res, {}), l.diff)
+        l.state = state.states.success
+        history.add(l)

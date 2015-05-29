@@ -5,3 +5,5 @@ PyYAML==3.11
 jsonschema==2.4.0
 requests==2.7.0
 mock
+dictdiffer==0.4.0
+enum34==1.0.4

@@ -11,6 +11,7 @@ import subprocess
 from solar.core import actions as xa
 from solar.core import resource as xr
 from solar.core import signals as xs
+from solar import operations
 
 
 @click.group()
@@ -137,6 +138,28 @@ def init_cli_connect():
     cli.add_command(disconnect)
 
 
+def init_changes():
+    @click.group()
+    def changes():
+        pass
+
+    cli.add_command(changes)
+
+    @click.command()
+    @click.argument('path')
+    def stage(path):
+        log = operations.stage_changes(path)
+        print log.show()
+
+    changes.add_command(stage)
+
+    @click.command()
+    def commit():
+        operations.commit_changes()
+
+    changes.add_command(commit)
+
+
 def init_cli_connections():
     @click.group()
     def connections():
@@ -185,5 +208,6 @@ if __name__ == '__main__':
     init_cli_connect()
     init_cli_connections()
     init_cli_deployment_config()
+    init_changes()
 
     cli()
