@@ -13,6 +13,7 @@
     - apt: name=python-pudb state=present
     - apt: name=python-pip state=present
     - apt: name=python-mysqldb state=present
+    - shell: pip install -U pip
     - shell: pip install docker-py==1.1.0
 
     # requirements
