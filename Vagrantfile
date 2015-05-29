@@ -33,6 +33,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     index = i + 1
     ip_index = i + 2
     config.vm.define "solar-dev#{index}" do |config|
+      config.vm.provision "shell", inline: init_script, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 
