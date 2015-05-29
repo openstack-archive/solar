@@ -116,7 +116,7 @@ class Resource(object):
         db.add_resource(self.name, metadata)
 
 
-def create(name, base_path, args, connections={}):
+def create(name, base_path, args, tags=[], connections={}):
     if not os.path.exists(base_path):
         raise Exception('Base resource does not exist: {0}'.format(base_path))
 
@@ -133,7 +133,7 @@ def create(name, base_path, args, connections={}):
         for f in os.listdir(actions_path):
             meta['actions'][os.path.splitext(f)[0]] = f
 
-    resource = Resource(name, meta, args, tags=args.get('tags', []))
+    resource = Resource(name, meta, args, tags=tags)
     signals.assign_connections(resource, connections)
     resource.save()
 
@@ -173,15 +173,14 @@ def assign_resources_to_nodes(resources, nodes):
             node_uuid = node['id']
 
             node_resource_template = solar.utils.read_config()['node_resource_template']
-            created_resource = create(resource_uuid, resource['dir_path'], res['input'])
-            created_node = create(node_uuid, node_resource_template, node)
+            created_resource = create(resource_uuid, resource['dir_path'], res['input'], tags=res['tags'])
+            created_node = create(node_uuid, node_resource_template, node, tags=node.get('tags', []))
 
             signals.connect(created_node, created_resource)
 
 def connect_resources(profile):
     connections = profile.get('connections', [])
-    resources = load_all()
-    graph = ResourcesConnectionGraph(connections, resources.values())
+    graph = ResourcesConnectionGraph(connections, load_all().values())
 
     for connection in graph.iter_connections():
         signals.connect(connection['from'], connection['to'], connection['mapping'])
