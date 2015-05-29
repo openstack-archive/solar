@@ -66,7 +66,15 @@ def init_cli_resource():
     @click.argument('path')
     @click.option('--all/--one', default=False)
     @click.option('--tag', default=None)
-    def show(tag, all, path):
+    @click.option('--use-json/--no-use-json', default=False)
+    def show(use_json, tag, all, path):
+        import json
+        import six
+
+        printer = lambda r: six.print_(r)
+        if use_json:
+            printer = lambda r: six.print_(json.dumps(r.to_dict()))
+
         if all or tag:
             for name, resource in xr.load_all(path).items():
                 show = True
@@ -75,10 +83,9 @@ def init_cli_resource():
                         show = False
 
                 if show:
-                    print resource
-                    print
+                    printer(resource)
         else:
-            print xr.load(path)
+            printer(xr.load(path))
 
     resource.add_command(show)
 

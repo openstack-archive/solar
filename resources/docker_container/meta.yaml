@@ -9,10 +9,10 @@ input:
       schema: str!
       value:
     ports:
-      schema: [int]
+      schema: [{value: [{value: int}]}]
       value: []
     host_binds:
-      schema: [[int]]
+      schema: [{value: {src: str, dst: str}}]
       value: []
     volume_binds:
       schema: [{src: str, dst: str}]

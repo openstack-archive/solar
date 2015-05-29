@@ -3,22 +3,22 @@ handler: ansible
 version: 1.0.0
 input:
     ip:
-      schema: int!
+      schema: str!
       value:
     config_dir:
       schema: {src: str!, dst: str!}
       value: {src: /etc/solar/haproxy, dst: /etc/haproxy}
     listen_ports:
-      schema: [int]
+      schema: [{value: int}]
       value: []
     configs:
-      schema: [[str]]
+      schema: [{value: [{value: str}]}]
       value: []
     configs_names:
-      schema: [str]
+      schema: [{value: str}]
       value: []
     configs_ports:
-      schema: [[int]]
+      schema: [{value: [{value: int}]}]
       value: []
     ssh_user:
       schema: str!

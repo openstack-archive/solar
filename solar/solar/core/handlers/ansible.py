@@ -22,6 +22,13 @@ class Ansible(BaseHandler):
     #            'host': ''}
 
     def _create_inventory(self, r):
+        directory = self.dirs[r.name]
+        inventory_path = os.path.join(directory, 'inventory')
+        with open(inventory_path, 'w') as inv:
+            inv.write(self._render_inventory(r))
+        return inventory_path
+
+    def _render_inventory(self, r):
         inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh ansible_ssh_user={2} ansible_ssh_private_key_file={3}'
         host, user, ssh_key = r.args['ip'].value, r.args['ssh_user'].value, r.args['ssh_key'].value
         print host
@@ -29,11 +36,7 @@ class Ansible(BaseHandler):
         print ssh_key
         inventory = inventory.format(host, host, user, ssh_key)
         print inventory
-        directory = self.dirs[r.name]
-        inventory_path = os.path.join(directory, 'inventory')
-        with open(inventory_path, 'w') as inv:
-            inv.write(inventory)
-        return inventory_path
+        return inventory
 
     def _create_playbook(self, resource, action):
         return self._compile_action_file(resource, action)

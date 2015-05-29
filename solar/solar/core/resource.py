@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
-import json
 import os
-import shutil
 
 from copy import deepcopy
 
@@ -45,11 +43,16 @@ class Resource(object):
         self.tags = tags or []
 
     def __repr__(self):
-        return ("Resource(name='{0}', metadata={1}, args={2}, "
-                "tags={3})").format(self.name,
-                                    json.dumps(self.metadata),
-                                    json.dumps(self.args_show()),
-                                    self.tags)
+        return ("Resource(name='{name}', metadata={metadata}, args={args}, "
+                "tags={tags})").format(**self.to_dict)
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'metadata': self.metadata,
+            'args': self.args_show(),
+            'tags': self.tags,
+        }
 
     def args_show(self):
         def formatter(v):
@@ -144,7 +147,7 @@ def create(name, base_path, args, tags=[], connections={}):
 
 def wrap_resource(raw_resource):
     name = raw_resource['id']
-    args = raw_resource['input']
+    args = {k: v['value'] for k, v in raw_resource['input'].items()}
     tags = raw_resource.get('tags', [])
 
     return Resource(name, raw_resource, args, tags=tags)

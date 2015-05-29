@@ -1,16 +1,4 @@
 
-import copy
-import json
-
-from itertools import imap, ifilter
-
-import networkx as nx
-import jinja2
-import mock
-
-from jinja2 import Template
-
-
 def depends_on(init_value, value=None, tags=None):
     if tags is None:
         tags = []

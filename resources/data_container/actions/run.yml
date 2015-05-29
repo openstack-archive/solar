@@ -6,10 +6,13 @@
        image: {{ image }}
        state: running
        net: host
+       {% if ports.value %}
        ports:
          {% for port in ports.value %}
          - {{ port['value'] }}:{{ port['value'] }}
          {% endfor %}
+       {% endif %}
+       {% if host_binds.value %}
        volumes:
          # TODO: host_binds might need more work
          # Currently it's not that trivial to pass custom src: dst here
@@ -18,3 +21,4 @@
          {% for bind in host_binds.value %}
          - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
          {% endfor %}
+       {% endif %}
