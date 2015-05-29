@@ -12,6 +12,7 @@ from solar.core import actions as xa
 from solar.core import resource as xr
 from solar.core import signals as xs
 from solar import operations
+from solar import state
 
 
 @click.group()
@@ -146,9 +147,8 @@ def init_changes():
     cli.add_command(changes)
 
     @click.command()
-    @click.argument('path')
-    def stage(path):
-        log = operations.stage_changes(path)
+    def stage():
+        log = operations.stage_changes()
         print log.show()
 
     changes.add_command(stage)
@@ -158,6 +158,24 @@ def init_changes():
         operations.commit_changes()
 
     changes.add_command(commit)
+
+    @click.command()
+    @click.option('--limit', default=5)
+    def history(limit):
+        print state.CL().show()
+
+    changes.add_command(history)
+
+    @click.command()
+    @click.option('--last', is_flag=True, default=False)
+    @click.option('--uid', default=None)
+    def rollback(last, uid):
+        if last:
+            print operations.rollback_last()
+        elif uid:
+            print operations.rollback_uid(uid)
+
+    changes.add_command(rollback)
 
 
 def init_cli_connections():

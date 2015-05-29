@@ -118,8 +118,6 @@ class Resource(object):
             metadata['input'][k]['value'] = v
 
         db.add_resource(self.name, metadata)
-        meta_file = os.path.join(self.base_dir, 'meta.yaml')
-        utils.yaml_dump_to(metadata, meta_file)
 
 
 def create(name, base_path, args, tags=[], connections={}):
