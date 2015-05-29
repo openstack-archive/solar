@@ -19,7 +19,7 @@ input:
       schema: str!
       value:
     db_port:
-      schema: str!
+      schema: int!
       value:
     db_name:
       schema: str!
