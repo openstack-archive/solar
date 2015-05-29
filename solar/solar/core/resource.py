@@ -147,7 +147,7 @@ def create(name, base_path, args, tags=[], connections={}):
 
 def wrap_resource(raw_resource):
     name = raw_resource['id']
-    args = raw_resource['input']
+    args = {k: v['value'] for k, v in raw_resource['input'].items()}
     tags = raw_resource.get('tags', [])
 
     return Resource(name, raw_resource, args, tags=tags)
