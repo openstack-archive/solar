@@ -15,21 +15,6 @@
 import collections
 from collections import deque
 
-from solar import utils
-
-import dictdiffer as dd
-
-
-def create(resource, staged_data, commited_data):
-    """
-    :param resource: Resource obj
-    :param staged_data: dict
-    :param commited_data: dict
-    """
-    diff = dd.diff(
-        staged_data[resource.uid], commited_data[resource.uid])
-    return LogItem(utils.generate_uuid(), resource.uid, diff)
-
 
 class LogItem(object):
 
