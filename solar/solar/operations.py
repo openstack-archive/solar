@@ -60,8 +60,9 @@ def commit_changes():
     history = state.CL()
     staged = state.SL()
 
-    while staged.items:
+    while staged:
         l = staged.popleft()
+
         commited[l.res] = patch(commited.get(l.res, {}), l.diff)
-        l.state = state.states.success
+        l.state = state.STATES.success
         history.add(l)

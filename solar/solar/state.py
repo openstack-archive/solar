@@ -22,7 +22,7 @@ from solar import utils
 from enum import Enum
 
 
-states = Enum('States', 'pending inprogress error success')
+STATES = Enum('States', 'pending inprogress error success')
 
 
 def state_file(filename):
@@ -46,7 +46,7 @@ class LogItem(object):
         self.uid = uid
         self.res = res_uid
         self.diff = diff
-        self.state = state or states.pending
+        self.state = state or STATES.pending
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
@@ -71,7 +71,7 @@ class Log(object):
         items = utils.yaml_load(path) or []
         self.items = deque([LogItem(
             l['uid'], l['res'],
-            l['diff'], getattr(states, l['state'])) for l in items])
+            l['diff'], getattr(STATES, l['state'])) for l in items])
 
     def sync(self):
         utils.yaml_dump_to([i.to_dict() for i in self.items], self.path)
@@ -91,6 +91,12 @@ class Log(object):
 
     def __repr__(self):
         return 'Log({0})'.format(self.path)
+
+    def __iter__(self):
+        return iter(self.items)
+
+    def __nonzero__(self):
+        return bool(self.items)
 
 
 class Data(collections.MutableMapping):

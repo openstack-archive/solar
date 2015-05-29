@@ -4,7 +4,6 @@ import os
 
 from copy import deepcopy
 
-<<<<<<< HEAD
 import yaml
 
 import solar
