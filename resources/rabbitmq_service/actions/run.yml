@@ -1,0 +1,17 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: rabbitmq container
+      docker:
+        command: /bin/bash -c rabbitmq-server
+        name: {{ container_name }}
+        image: {{ image }}
+        state: running
+        expose:
+        - 5672
+        - 15672
+        ports:
+        - {{ port }}:5672
+        - {{ management_port }}:15672
+        env:
+            RABBITMQ_NODENAME: {{container_name}}

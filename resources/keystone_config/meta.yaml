@@ -5,10 +5,10 @@ version: 1.0.0
 input:
     config_dir:
       schema: str!
-      value:
+      value: /etc/solar/keystone
     admin_token:
       schema: str!
-      value: /etc/solar/keystone
+      value: 
     db_password:
       schema: str!
       value: password

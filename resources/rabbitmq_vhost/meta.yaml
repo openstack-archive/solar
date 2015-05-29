@@ -1,0 +1,21 @@
+id: rabbitmq_vhost
+handler: ansible
+version: 1.0.0
+input:
+    container_name:
+      schema: str!
+      value:
+    vhost_name:
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/rabbitmq]
