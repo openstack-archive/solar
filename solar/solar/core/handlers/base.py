@@ -43,7 +43,7 @@ class BaseHandler(object):
 
     def _make_args(self, resource):
         args = {'name': resource.name}
-        args['resource_dir'] = resource.metadata['actions_path']
+        args['resource_dir'] = resource.metadata['base_path']
         args.update(resource.args)
         return args
 

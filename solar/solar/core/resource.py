@@ -129,6 +129,7 @@ def create(name, base_path, args, tags=[], connections={}):
     meta['version'] = '1.0.0'
     meta['actions'] = {}
     meta['actions_path'] = actions_path
+    meta['base_path'] = os.path.abspath(base_path)
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
