@@ -4,9 +4,11 @@ import itertools
 import networkx as nx
 import os
 
-import db
-
 from solar import utils
+from solar.interfaces.db import get_db
+
+db = get_db()
+
 
 
 CLIENTS_CONFIG_KEY = 'clients-data-file'
@@ -46,10 +48,10 @@ class Connections(object):
         :return:
         """
         for emitter_name, dest_dict in CLIENTS.items():
-            emitter = db.get_resource(emitter_name)
+            emitter = db.get_obj_resource(emitter_name)
             for emitter_input, destinations in dest_dict.items():
                 for receiver_name, receiver_input in destinations:
-                    receiver = db.get_resource(receiver_name)
+                    receiver = db.get_obj_resource(receiver_name)
                     emitter.args[emitter_input].subscribe(
                         receiver.args[receiver_input])
 
@@ -107,7 +109,7 @@ def connect(emitter, receiver, mapping=None):
 
 def disconnect(emitter, receiver):
     for src, destinations in CLIENTS[emitter.name].items():
-        disconnect_by_src(emitter, src, receiver)
+        disconnect_by_src(emitter.name, src, receiver)
 
         for destination in destinations:
             receiver_input = destination[1]
@@ -125,13 +127,13 @@ def disconnect_receiver_by_input(receiver, input):
     """
     for emitter_name, inputs in CLIENTS.items():
         emitter = db.get_resource(emitter_name)
-        disconnect_by_src(emitter, input, receiver)
+        disconnect_by_src(emitter['id'], input, receiver)
 
 
-def disconnect_by_src(emitter, src, receiver):
-    if src in CLIENTS[emitter.name]:
-        CLIENTS[emitter.name][src] = [
-            destination for destination in CLIENTS[emitter.name][src]
+def disconnect_by_src(emitter_name, src, receiver):
+    if src in CLIENTS[emitter_name]:
+        CLIENTS[emitter_name][src] = [
+            destination for destination in CLIENTS[emitter_name][src]
             if destination[0] != receiver.name
         ]
 
@@ -143,7 +145,7 @@ def notify(source, key, value):
     print 'Notify', source.name, key, value, CLIENTS[source.name]
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
-            resource = db.get_resource(client)
+            resource = db.get_obj_resource(client)
             print 'Resource found', client
             if resource:
                 resource.update({r_key: value}, emitter=source)

@@ -13,11 +13,24 @@ from solar import errors
 
 class FileSystemDB(DirDBM):
     STORAGE_PATH = utils.read_config()['file-system-db']['storage-path']
+    RESOURCE_COLLECTION_NAME = 'resource'
 
     def __init__(self):
         utils.create_dir(self.STORAGE_PATH)
         super(FileSystemDB, self).__init__(self.STORAGE_PATH)
         self.entities = {}
+
+    def get_resource(self, uid):
+        return self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
+
+    def get_obj_resource(self, uid):
+        from solar.core.resource import wrap_resource
+        raw_resource = self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
+
+        return wrap_resource(raw_resource)
+
+    def add_resource(self, uid, resource):
+        self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)] = resource
 
     def store(self, collection, obj):
         if 'id' in obj:

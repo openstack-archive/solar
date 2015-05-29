@@ -7,10 +7,8 @@ examples-dir: /vagrant/examples
 extensions-dir: /vagrant/solar/solar/extensions
 
 file-system-db:
-  resources-path: ./schema/resources
   storage-path: /vagrant/tmp/storage
 
 template-dir: /vagrant/templates
 resources-files-mask: /vagrant/resources/*/*.yaml
-resource-instances-path: /vagrant/tmp/resource-instances
 node_resource_template: /vagrant/resources/ro_node/
