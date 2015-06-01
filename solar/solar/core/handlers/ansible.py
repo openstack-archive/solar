@@ -3,6 +3,7 @@ import os
 import subprocess
 
 from solar.core.handlers.base import BaseHandler
+from solar.state import STATES
 
 
 class Ansible(BaseHandler):
@@ -13,6 +14,7 @@ class Ansible(BaseHandler):
         print 'playbook_file', playbook_file
         call_args = ['ansible-playbook', '--module-path', '/vagrant/library', '-i', inventory_file, playbook_file]
         print 'EXECUTING: ', ' '.join(call_args)
+
         try:
             subprocess.check_output(call_args)
         except subprocess.CalledProcessError as e:

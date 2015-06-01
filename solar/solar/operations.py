@@ -11,6 +11,7 @@ db = get_db()
 
 from dictdiffer import diff, patch, revert
 import networkx as nx
+import subprocess
 
 
 def guess_action(from_, to):
@@ -78,6 +79,13 @@ def stage_changes():
     return log
 
 
+def execute(res, action):
+    try:
+        actions.resource_action(res, action)
+        return state.STATES.success
+    except subprocess.CalledProcessError:
+        return state.STATES.error
+
 def commit_changes():
     # just shortcut to test stuff
     commited = state.CD()
@@ -86,25 +94,33 @@ def commit_changes():
     resources = resource.load_all()
 
     while staged:
-        l = staged.popleft()
-        wrapper = resources[l.res]
+        li = staged.popleft()
+        wrapper = resources[li.res]
 
-        staged_data = patch(l.diff, commited.get(l.res, {}))
+        staged_data = patch(li.diff, commited.get(li.res, {}))
 
         # TODO(dshulyak) think about this hack for update
-        if l.action == 'update':
-            commited_args = commited[l.res]['args']
+        if li.action == 'update':
+            commited_args = commited[li.res]['args']
             wrapper.update(commited_args)
-            actions.resource_action(wrapper, 'remove')
+            result_state = execute(wrapper, 'remove')
 
-            wrapper.update(staged_data.get('args', {}))
-            actions.resource_action(wrapper, 'run')
+            if result_state is state.STATES.success:
+                wrapper.update(staged_data.get('args', {}))
+                result_state = execute(wrapper, 'run')
         else:
-            actions.resource_action(wrapper, l.action)
+            result_state = execute(wrapper, li.action)
 
-        commited[l.res] = staged_data
-        l.state = state.STATES.success
-        history.add(l)
+        # resource_action return None in case there is no actions
+        result_state = result_state or state.STATES.success
+
+        commited[li.res] = staged_data
+        li.state = result_state
+
+        history.add(li)
+
+        if result_state is state.STATES.error:
+            return
 
 
 def rollback(log_item):
