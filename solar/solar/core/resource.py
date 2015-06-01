@@ -44,7 +44,7 @@ class Resource(object):
 
     def __repr__(self):
         return ("Resource(name='{name}', metadata={metadata}, args={args}, "
-                "tags={tags})").format(**self.to_dict()
+                "tags={tags})").format(**self.to_dict())
 
     def to_dict(self):
         return {
