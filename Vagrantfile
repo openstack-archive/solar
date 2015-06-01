@@ -31,14 +31,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   SLAVES_COUNT.times do |i|
     index = i + 1
-    ip_index = i + 2
+    ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
       config.vm.provision "shell", inline: init_script, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 
       config.vm.provider :virtualbox do |v|
-        v.customize ["modifyvm", :id, "--memory", 256]
+        v.customize ["modifyvm", :id, "--memory", 512]
         v.name = "solar-dev#{index}"
       end
     end
