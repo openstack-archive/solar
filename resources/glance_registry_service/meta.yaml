@@ -1,0 +1,52 @@
+id: container
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+      schema: str!
+      value:
+    image:
+      schema: str!
+      value:
+    ports:
+      schema: [{value: [{value: int}]}]
+      value: []
+    host_binds:
+      schema: [{value: {src: str, dst: str, mode: str}}]
+      value: []
+    volume_binds:
+      schema: [{src: str, dst: str, mode: str}]
+      value: []
+    ssh_user:
+      schema: str!
+      value: []
+    ssh_key:
+      schema: str!
+      value: []
+
+    db_host:
+      schema: str!
+      value:
+    db_root_password:
+      schema: str!
+      value:
+    db_name:
+      schema: str!
+      value:
+    db_password:
+      schema: str!
+      value:
+    db_user:
+      schema: str!
+      value:
+    keystone_admin_token:
+      schema: str!
+      value:
+    keystone_password:
+      schema: str!
+      value:
+    keystone_host:
+      schema: str!
+      value:
+
+tags: [resource/container]

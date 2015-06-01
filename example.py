@@ -37,7 +37,7 @@ def deploy():
     keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'ip': '', 'ssh_user': '', 'ssh_key': '', 'admin_token': 'admin', 'db_password': '', 'db_name': '', 'db_user': '', 'db_host': '', 'db_port': ''})
     keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35357, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
 
-    haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers': [], 'ports':[]})
+    haproxy_keystone_config = resource.create('haproxy_keystone_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers': [], 'ports':[]})
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names': [], 'configs_ports': [], 'listen_ports': [], 'configs':[], 'config_dir': ''})
     haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds': [], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
@@ -47,7 +47,8 @@ def deploy():
     glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins', 'role_name': 'glance_admin', 'keystone_host': '', 'keystone_admin_port': '', 'login_user': '', 'login_token': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
     glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_tenant': ''})
-    glance_container = resource.create('glance_container', 'resources/glance_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9191}, {'value': 9292}]}], 'host_binds': [], 'volume_binds': [], 'db_password': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9292}]}], 'host_binds': [], 'volume_binds': [], 'db_password': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': [], 'db_host': '', 'db_root_password': '', 'db_password': '', 'db_name': '', 'db_user': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
 
     ####
@@ -110,13 +111,23 @@ def deploy():
     signals.connect(mariadb_service1, glance_config, {'ip': 'mysql_ip'})
     signals.connect(glance_db, glance_config, {'db_name': 'mysql_db'})
     signals.connect(glance_db_user, glance_config, {'new_user_name': 'mysql_user', 'new_user_password': 'mysql_password'})
-    signals.connect(node2, glance_container)
-    signals.connect(glance_config, glance_container, {'config_dir': 'host_binds'})
+    signals.connect(node2, glance_api_container)
+    signals.connect(glance_config, glance_api_container, {'config_dir': 'host_binds'})
 
-    signals.connect(glance_db_user, glance_container, {'new_user_password': 'db_password'})
-    signals.connect(glance_keystone_user, glance_container, {'user_password': 'keystone_password'})
-    signals.connect(glance_keystone_user, glance_container, {'login_token': 'keystone_admin_token'})
-    signals.connect(haproxy_config, glance_container, {'ip': 'keystone_host'})
+    signals.connect(glance_db_user, glance_api_container, {'new_user_password': 'db_password'})
+    signals.connect(glance_keystone_user, glance_api_container, {'user_password': 'keystone_password'})
+    signals.connect(glance_keystone_user, glance_api_container, {'login_token': 'keystone_admin_token'})
+    signals.connect(haproxy_config, glance_api_container, {'ip': 'keystone_host'})
+
+    signals.connect(node2, glance_registry_container)
+    signals.connect(glance_config, glance_registry_container, {'config_dir': 'host_binds'})
+
+    signals.connect(mariadb_service1, glance_registry_container, {'ip': 'db_host'})
+    signals.connect(glance_db, glance_registry_container, {'db_name': 'db_name', 'login_password': 'db_root_password'})
+    signals.connect(glance_db_user, glance_registry_container, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
+    signals.connect(glance_keystone_user, glance_registry_container, {'user_password': 'keystone_password'})
+    signals.connect(glance_keystone_user, glance_registry_container, {'login_token': 'keystone_admin_token'})
+    signals.connect(haproxy_config, glance_registry_container, {'ip': 'keystone_host'})
 
 
     has_errors = False
@@ -136,7 +147,8 @@ def deploy():
               glance_db,
               glance_db_user,
               glance_config,
-              glance_container]:
+              glance_api_container,
+              glance_registry_container]:
         errors = validation.validate_resource(r)
         if errors:
             has_errors = True
@@ -160,7 +172,8 @@ def deploy():
     actions.resource_action(glance_db, 'run')
     actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_config, 'run')
-    actions.resource_action(glance_container, 'run')
+    actions.resource_action(glance_api_container, 'run')
+    actions.resource_action(glance_registry_container, 'run')
     time.sleep(10)
 
 
@@ -182,8 +195,8 @@ def deploy():
         }
     )
 
-    requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][0]['value']))
-    requests.get('http://%s:%s' % (glance_container.args['ip'].value, glance_container.args['ports'].value[0]['value'][1]['value']))
+    requests.get('http://%s:%s' % (glance_api_container.args['ip'].value, glance_api_container.args['ports'].value[0]['value'][0]['value']))
+    requests.get('http://%s:%s' % (glance_registry_container.args['ip'].value, glance_registry_container.args['ports'].value[0]['value'][0]['value']))
 
 
 @click.command()
@@ -193,7 +206,8 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list('resource'))
     resources = {r.name: r for r in resources}
 
-    actions.resource_action(resources['glance_container'], 'run')
+    actions.resource_action(resources['glance_registry_container'], 'run')
+    actions.resource_action(resources['glance_api_container'], 'run')
     actions.resource_action(resources['glance_config'], 'run')
     actions.resource_action(resources['glance_db_user'], 'run')
     actions.resource_action(resources['glance_db'], 'run')
