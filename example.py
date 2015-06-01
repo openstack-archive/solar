@@ -24,9 +24,9 @@ def deploy():
 
     signals.Connections.clear()
 
-    node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
-    node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key', 'ssh_user': 'vagrant'})
-    node3 = resource.create('node3', 'resources/ro_node/', {'ip':'10.0.0.5', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev4/virtualbox/private_key', 'ssh_user':'vagrant'})
+    node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
+    node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
+    node3 = resource.create('node3', 'resources/ro_node/', {'ip': '10.0.0.5', 'ssh_key' : '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
     mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     keystone_db = resource.create('keystone_db', 'resources/mariadb_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
