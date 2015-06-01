@@ -1,0 +1,25 @@
+id: keystone_user
+handler: ansible
+version: 1.0.0
+input:
+    container_name:
+      schema: str!
+      value:
+    user_name:
+      schema: str!
+      value:
+    password:
+      schema: str!
+      value:
+    vhost_name:
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:

@@ -1,0 +1,25 @@
+id: rabbitmq_service
+handler: ansible
+version: 1.0.0
+input:
+    image: 
+      schema: str!
+      value: rabbitmq:3-management
+    container_name:
+      schema: str!
+      value:
+    management_port:
+      schema: str!
+      value:
+    port:
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:

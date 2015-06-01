@@ -26,6 +26,10 @@ def deploy():
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
     node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
+    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'ssh_user':'', 'ip':'','management_port':'15672', 'port':'5672', 'ssh_key':'', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
+    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'ssh_user':'', 'ip':'', 'ssh_key':'', 'vhost_name' : 'openstack', 'container_name':''})
+    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'ssh_user':'', 'ip':'', 'ssh_key':'', 'vhost_name' : '', 'user_name':'openstack', 'password':'openstack_password', 'container_name':''})
+
     mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     keystone_db = resource.create('keystone_db', 'resources/mariadb_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'db_name': '', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
@@ -34,8 +38,7 @@ def deploy():
     keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
 
     keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'ip': '', 'ssh_user': '', 'ssh_key': '', 'admin_token': 'admin', 'db_password': '', 'db_name': '', 'db_user': '', 'db_host': '', 'db_port': ''})
-    keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35357, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
-
+    keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35358, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
 
     haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port':5000, 'servers':[], 'ports':[]})
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
@@ -53,6 +56,12 @@ def deploy():
 
     # mariadb
     signals.connect(node1, mariadb_service1)
+
+    #rabbitmq
+    signals.connect(node1, rabbitmq_service1)
+    signals.connect(rabbitmq_service1, openstack_vhost)
+    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
+    signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
 
     # keystone db
     signals.connect(node1, keystone_db)
@@ -101,6 +110,9 @@ def deploy():
               node2,
               mariadb_service1,
               keystone_db,
+              rabbitmq_service1,
+              openstack_vhost,
+              openstack_rabbitmq_user,
               keystone_db_user,
               keystone_config1,
               keystone_service1,
@@ -124,11 +136,14 @@ def deploy():
 
     # run
     actions.resource_action(mariadb_service1, 'run')
-    time.sleep(10)
+    actions.resource_action(rabbitmq_service1, 'run')
+    actions.resource_action(openstack_vhost, 'run')
+    actions.resource_action(openstack_rabbitmq_user, 'run')
     actions.resource_action(keystone_db, 'run')
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_config1, 'run')
     actions.resource_action(keystone_service1, 'run')
+    time.sleep(10) #TODO fix keystone services to check if tables are created
     actions.resource_action(keystone_config2, 'run')
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
@@ -144,8 +159,7 @@ def deploy():
     requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
     requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
     requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
-
-
+    requests.get('http://%s:%s' % (rabbitmq_service1.args['ip'].value, rabbitmq_service1.args['management_port'].value))
 
 
 @click.command()
@@ -168,6 +182,9 @@ def undeploy():
     actions.resource_action(resources['keystone_db_user'], 'remove')
     actions.resource_action(resources['keystone_db'], 'remove')
     actions.resource_action(resources['mariadb_service1'], 'remove')
+    actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
+    actions.resource_action(resources['openstack_vhost'], 'remove')
+    actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
     db.clear()
 
