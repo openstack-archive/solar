@@ -178,7 +178,8 @@ def assign_resources_to_nodes(resources, nodes):
             node_uuid = node['id']
 
             node_resource_template = solar.utils.read_config()['node_resource_template']
-            created_resource = create(resource_uuid, resource['dir_path'], res['input'], tags=res['tags'])
+            args = {k: v['value'] for k, v in res['input'].items()}
+            created_resource = create(resource_uuid, resource['dir_path'], args, tags=res['tags'])
             created_node = create(node_uuid, node_resource_template, node, tags=node.get('tags', []))
 
             signals.connect(created_node, created_resource)
