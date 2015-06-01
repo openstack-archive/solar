@@ -10,5 +10,9 @@ file-system-db:
   storage-path: /vagrant/tmp/storage
 
 template-dir: /vagrant/templates
+
 resources-files-mask: /vagrant/resources/*/*.yaml
 node_resource_template: /vagrant/resources/ro_node/
+
+state: /vagrant/state/
+

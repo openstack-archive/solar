@@ -10,3 +10,7 @@ tmp/
 
 #vim
 *.swp
+
+state/
+clients.json
+rs/
