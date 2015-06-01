@@ -3,9 +3,4 @@
   tasks:
     - name: install python-keystoneclient
       shell: pip install python-keystoneclient
-    - name: keystone tenant
-      keystone_user: endpoint=http://localhost:35357/v2.0/ tenant={{ tenant_name }} token={{ login_token }} state=present
-    - name: keystone user
-      keystone_user: endpoint=http://localhost:35357/v2.0/ user={{ user_name }} password={{ user_password }} tenant={{ tenant_name }} token={{ login_token }} state=present
-    - name: keystone role
-      keystone_user: endpoint=http://localhost:35357/v2.0/ role={{ role_name }} user={{ user_name }} tenant={{ tenant_name }} token={{ login_token }} state=present
+      keystone_user: endpoint=http://{{ keystone_host }}:{{ keystone_port }}/v2.0/ token={{ admin_token }} user={{ user_name }} password={{ user_password }} tenant={{ tenant_name }} state=present

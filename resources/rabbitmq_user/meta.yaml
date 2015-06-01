@@ -2,25 +2,16 @@ id: keystone_user
 handler: ansible
 version: 1.0.0
 input:
-    keystone_host:
-      schema: str!
-      value:
-    keystone_admin_port:
-      schema: int!
-      value:
-    admin_token:
-      schema: str!
-      value:
-    role_name:
+    container_name:
       schema: str!
       value:
     user_name:
       schema: str!
       value:
-    user_password:
+    password:
       schema: str!
       value:
-    tenant_name:
+    vhost_name:
       schema: str!
       value:
     ip:
@@ -32,5 +23,3 @@ input:
     ssh_user:
       schema: str!
       value:
-
-tags: [resource/keystone_user, resources/keystone]

@@ -1,16 +1,19 @@
-id: mariadb
+id: rabbitmq_service
 handler: ansible
 version: 1.0.0
 input:
     image: 
       schema: str!
-      value: mariadb
-    root_password:
+      value: rabbitmq:3-management
+    container_name:
       schema: str!
-      value: password
+      value:
+    management_port:
+      schema: str!
+      value:
     port:
-      schema: int!
-      value: 3306
+      schema: str!
+      value:
     ip:
       schema: str!
       value:
@@ -20,5 +23,3 @@ input:
     ssh_user:
       schema: str!
       value:
-
-tags: [resource/mariadb, resources/mariadb]

@@ -1,0 +1,12 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - new_rabbitmq_user: user={{user_name}}
+                         password={{password}}
+                         vhost={{vhost_name}}
+                         configure_priv=.*
+                         read_priv=.*
+                         write_priv=.*
+                         state=present
+                         node={{container_name}}
+                         rabbitmqctl="docker exec -it {{container_name}} rabbitmqctl"

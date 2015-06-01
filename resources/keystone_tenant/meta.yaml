@@ -5,19 +5,10 @@ input:
     keystone_host:
       schema: str!
       value:
-    keystone_admin_port:
+    keystone_port:
       schema: int!
       value:
     admin_token:
-      schema: str!
-      value:
-    role_name:
-      schema: str!
-      value:
-    user_name:
-      schema: str!
-      value:
-    user_password:
       schema: str!
       value:
     tenant_name:
@@ -33,4 +24,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/keystone_user, resources/keystone]
+tags: [resource/keystone_tenant, resources/keystone]
