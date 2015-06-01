@@ -3,7 +3,7 @@
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
-SLAVES_COUNT = 3
+SLAVES_COUNT = 2
 
 init_script = <<SCRIPT
 apt-get update
