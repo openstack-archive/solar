@@ -13,8 +13,8 @@ input:
       value: []
 
     config_dir:
-      schema: {src: str!, dst: str!}
-      value: {src: /etc/solar/glance, dst: /etc/glance}
+      schema: {src: str!, dst: str!, mode: str}
+      value: {src: /etc/solar/glance, dst: /etc/glance, mode: rw}
     api_port:
       schema: int!
       value: 9292

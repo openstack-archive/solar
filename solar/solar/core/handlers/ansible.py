@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-import yaml
 
 from solar.core.handlers.base import BaseHandler
 
@@ -14,7 +13,11 @@ class Ansible(BaseHandler):
         print 'playbook_file', playbook_file
         call_args = ['ansible-playbook', '-i', inventory_file, playbook_file]
         print 'EXECUTING: ', ' '.join(call_args)
-        subprocess.call(call_args)
+        try:
+            subprocess.check_output(call_args)
+        except subprocess.CalledProcessError as e:
+            print e.output
+            raise
 
     #def _get_connection(self, resource):
     #    return {'ssh_user': '',
