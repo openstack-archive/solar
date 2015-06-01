@@ -41,6 +41,11 @@ def deploy():
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
     haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
+    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port':'', 'login_user': 'admin', 'admin_token':'', 'tenant_name' : 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    admin_user = resource.create('admin_user', 'resources/keystone_user', {'keystone_host': '', 'keystone_port':'', 'login_user': 'admin', 'admin_token':'', 'tenant_name' : '', 'user_name': 'admin', 'user_password':'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    admin_role = resource.create('admin_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port':'', 'login_user': 'admin', 'admin_token':'', 'tenant_name' : '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'ip':'', 'ssh_key' : '', 'ssh_user':'', 'admin_port':'', 'admin_token':'', 'adminurl':'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl':'http://{{ip}}:{{port}}/v2.0', 'publicurl':'http://{{ip}}:{{port}}/v2.0', 'description':'OpenStack Identity Service', 'keystone_host':'', 'keystone_port':'', 'name':'keystone', 'port':'', 'type':'identity'})
+
 
     ####
     # connections
@@ -81,6 +86,15 @@ def deploy():
     signals.connect(node2, haproxy_service)
     signals.connect(haproxy_config, haproxy_service, {'listen_ports': 'ports', 'config_dir': 'host_binds'})
 
+    #keystone configuration
+    signals.connect(keystone_config1, admin_tenant)
+    signals.connect(keystone_service1, admin_tenant, {'admin_port': 'keystone_port', 'ip': 'keystone_host'})
+    signals.connect(admin_tenant, admin_user)
+    signals.connect(admin_user, admin_role)
+    signals.connect(keystone_config1, keystone_service_endpoint)
+    signals.connect(keystone_service1, keystone_service_endpoint, {'ip': 'keystone_host','admin_port':'admin_port', 'port':'port'})
+    signals.connect(keystone_service1, keystone_service_endpoint, {'admin_port': 'keystone_port'})
+
 
     has_errors = False
     for r in [node1,
@@ -94,7 +108,11 @@ def deploy():
               keystone_service2,
               haproxy_keystone_config,
               haproxy_config,
-              haproxy_service]:
+              haproxy_service,
+              admin_tenant,
+              admin_user,
+              admin_role,
+              keystone_service_endpoint]:
         errors = validation.validate_resource(r)
         if errors:
             has_errors = True
@@ -115,7 +133,12 @@ def deploy():
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
+    time.sleep(10) #TODO fix haproxy to wait until it's ready
 
+    actions.resource_action(admin_tenant, 'run')
+    actions.resource_action(admin_user, 'run')
+    actions.resource_action(admin_role, 'run')
+    actions.resource_action(keystone_service_endpoint, 'run')
 
     # test working configuration
     requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
@@ -132,6 +155,10 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list('resource'))
     resources = {r.name: r for r in resources}
 
+    actions.resource_action(resources['keystone_service_endpoint'], 'remove')
+    actions.resource_action(resources['admin_role'], 'remove')
+    actions.resource_action(resources['admin_user'], 'remove')
+    actions.resource_action(resources['admin_tenant'], 'remove')
     actions.resource_action(resources['haproxy_service'], 'remove')
     actions.resource_action(resources['haproxy_config'], 'remove')
     actions.resource_action(resources['keystone_service2'], 'remove')

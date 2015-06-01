@@ -14,10 +14,10 @@ input:
     user_name:
       schema: str!
       value:
-    user_password:
+    tenant_name:
       schema: str!
       value:
-    tenant_name:
+    role_name:
       schema: str!
       value:
     ip:
