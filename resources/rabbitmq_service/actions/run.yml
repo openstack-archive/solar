@@ -15,3 +15,8 @@
         - {{ management_port }}:15672
         env:
             RABBITMQ_NODENAME: {{container_name}}
+    - shell: docker exec -t {{ name }} rabbitmqctl list_users
+      register: result
+      until: result.rc == 0
+      retries: 20
+      delay: 0.5
