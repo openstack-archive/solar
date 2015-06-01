@@ -5,6 +5,7 @@ from solar.core import signals
 from solar.core import resource
 from solar import utils
 from solar.interfaces.db import get_db
+from solar.core import actions
 
 db = get_db()
 
@@ -19,7 +20,8 @@ def guess_action(from_, to):
     elif not to:
         return 'remove'
     else:
-        return 'update'
+        # it should be update
+        return 'run'
 
 
 def connections(res, graph):
@@ -80,9 +82,14 @@ def commit_changes():
     commited = state.CD()
     history = state.CL()
     staged = state.SL()
+    resources = resource.load_all()
 
     while staged:
         l = staged.popleft()
+        wrapper = resources[l.res]
+
+        actions.resource_action(wrapper, l.action)
+
         commited[l.res] = patch(l.diff, commited.get(l.res, {}))
         l.state = state.STATES.success
         history.add(l)
