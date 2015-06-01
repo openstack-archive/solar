@@ -12,6 +12,15 @@ from dictdiffer import diff, patch, revert
 import networkx as nx
 
 
+def guess_action(from_, to):
+    # TODO(dshulyak) it should be more flexible
+    if not from_:
+        return 'run'
+    elif not to:
+        return 'remove'
+    else:
+        return 'update'
+
 
 def connections(res, graph):
     result = []
@@ -42,6 +51,7 @@ def stage_changes():
 
     commited = state.CD()
     log = state.SL()
+    action = None
 
     for res_uid in nx.topological_sort(conn_graph):
         commited_data = commited.get(res_uid, {})
@@ -59,7 +69,8 @@ def stage_changes():
             log_item = state.LogItem(
                 utils.generate_uuid(),
                 res_uid,
-                df)
+                df,
+                guess_action(commited_data, staged_data))
             log.add(log_item)
     return log
 
@@ -88,16 +99,18 @@ def rollback(log_item):
     for e, r, mapping in commited['connections']:
         signals.disconnect(resources[e], resources[r])
 
-    for e, r, mapping in staged['connections']:
+    for e, r, mapping in staged.get('connections', ()):
         signals.connect(resources[e], resources[r], dict([mapping]))
 
     df = list(diff(commited, staged))
 
-    log_item = state.LogItem(utils.generate_uuid(), log_item.res, df)
+    log_item = state.LogItem(
+        utils.generate_uuid(),
+        log_item.res, df, guess_action(commited, staged))
     log.add(log_item)
 
     res = resource.wrap_resource(db.get_resource(log_item.res))
-    res.update(staged['args'])
+    res.update(staged.get('args', {}))
     res.save()
 
     return log

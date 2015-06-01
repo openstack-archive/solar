@@ -42,11 +42,12 @@ CL = partial(state_file, 'commit_log')
 
 class LogItem(object):
 
-    def __init__(self, uid, res_uid, diff, state=None):
+    def __init__(self, uid, res_uid, diff, action, state=None):
         self.uid = uid
         self.res = res_uid
         self.diff = diff
         self.state = state or STATES.pending
+        self.action = action
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
@@ -55,7 +56,8 @@ class LogItem(object):
         return {'uid': self.uid,
                 'res': self.res,
                 'diff': self.diff,
-                'state': self.state.name}
+                'state': self.state.name,
+                'action': self.action}
 
     def __str__(self):
         return self.to_yaml()
@@ -71,7 +73,8 @@ class Log(object):
         items = utils.yaml_load(path) or []
         self.items = deque([LogItem(
             l['uid'], l['res'],
-            l['diff'], getattr(STATES, l['state'])) for l in items])
+            l['diff'], l['action'],
+            getattr(STATES, l['state'])) for l in items])
 
     def sync(self):
         utils.yaml_dump_to([i.to_dict() for i in self.items], self.path)
@@ -86,8 +89,8 @@ class Log(object):
         return item
 
     def show(self, verbose=False):
-        return ['L(uuid={0}, res={1})'.format(l.uid, l.res)
-                for l in self.items]
+        return ['L(uuid={0}, res={1}, aciton={2})'.format(
+            l.uid, l.res, l.action) for l in self.items]
 
     def __repr__(self):
         return 'Log({0})'.format(self.path)
