@@ -1,1 +1,5 @@
 #todo
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - shell: echo 1

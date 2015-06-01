@@ -7,6 +7,7 @@
     keystone_port: {{ keystone_port }}
     keystone_admin_user: {{ keystone_admin_user }}
     keystone_admin_password: {{ keystone_admin_password }}
+    keystone_admin_port: {{ keystone_admin_port }}
     keystone_admin_tenant: {{ keystone_admin_tenant }}
     mysql_ip: {{ mysql_ip }}
     mysql_db: {{ mysql_db }}

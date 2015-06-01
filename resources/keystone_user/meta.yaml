@@ -5,13 +5,10 @@ input:
     keystone_host:
       schema: str!
       value:
-    keystone_admin_port:
+    keystone_port:
       schema: int!
       value:
     admin_token:
-      schema: str!
-      value:
-    role_name:
       schema: str!
       value:
     user_name:

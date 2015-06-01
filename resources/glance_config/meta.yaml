@@ -33,6 +33,9 @@ input:
     keystone_admin_password:
       schema: str!
       value: password1234
+    keystone_admin_port:
+      schema: int!
+      value:
     keystone_admin_tenant:
       schema: str!
       value: service_admins
