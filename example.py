@@ -105,7 +105,7 @@ def deploy():
     signals.connect(node2, haproxy_service)
     signals.connect(haproxy_config, haproxy_service, {'listen_ports': 'ports', 'config_dir': 'host_binds'})
 
-    #keystone configuration
+    # keystone configuration
     signals.connect(keystone_config1, admin_tenant)
     signals.connect(keystone_service1, admin_tenant, {'admin_port': 'keystone_port', 'ip': 'keystone_host'})
     signals.connect(admin_tenant, admin_user)
@@ -155,31 +155,7 @@ def deploy():
 
 
     has_errors = False
-    for r in [node1,
-              node2,
-              mariadb_service1,
-              keystone_db,
-              rabbitmq_service1,
-              openstack_vhost,
-              openstack_rabbitmq_user,
-              keystone_db_user,
-              keystone_config1,
-              keystone_service1,
-              keystone_config2,
-              keystone_service2,
-              haproxy_keystone_config,
-              haproxy_config,
-              haproxy_service,
-              admin_tenant,
-              admin_user,
-              admin_role,
-              keystone_service_endpoint,
-              glance_keystone_user,
-              glance_db,
-              glance_db_user,
-              glance_config,
-              glance_api_container,
-              glance_registry_container]:
+    for r in resource.Resource.__subclasses__():
         errors = validation.validate_resource(r)
         if errors:
             has_errors = True
