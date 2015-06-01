@@ -21,7 +21,7 @@ def guess_action(from_, to):
         return 'remove'
     else:
         # it should be update
-        return 'run'
+        return 'update'
 
 
 def connections(res, graph):
@@ -68,6 +68,7 @@ def stage_changes():
 
         df = list(diff(commited_data, staged_data))
         if df:
+
             log_item = state.LogItem(
                 utils.generate_uuid(),
                 res_uid,
@@ -88,9 +89,20 @@ def commit_changes():
         l = staged.popleft()
         wrapper = resources[l.res]
 
-        actions.resource_action(wrapper, l.action)
+        staged_data = patch(l.diff, commited.get(l.res, {}))
 
-        commited[l.res] = patch(l.diff, commited.get(l.res, {}))
+        # TODO(dshulyak) think about this hack for update
+        if l.action == 'update':
+            commited_args = commited[l.res]['args']
+            wrapper.update(commited_args)
+            actions.resource_action(wrapper, 'remove')
+
+            wrapper.update(staged_data.get('args', {}))
+            actions.resource_action(wrapper, 'run')
+        else:
+            actions.resource_action(wrapper, l.action)
+
+        commited[l.res] = staged_data
         l.state = state.STATES.success
         history.add(l)
 
@@ -103,7 +115,7 @@ def rollback(log_item):
 
     staged = revert(log_item.diff, commited)
 
-    for e, r, mapping in commited['connections']:
+    for e, r, mapping in commited.get('connections', ()):
         signals.disconnect(resources[e], resources[r])
 
     for e, r, mapping in staged.get('connections', ()):
@@ -131,5 +143,12 @@ def rollback_uid(uid):
 def rollback_last():
     l = state.CL().items[-1]
     return rollback(l)
+
+
+def rollback_all():
+    cl = state.CL()
+
+    while cl:
+        rollback(cl.pop())
 
 

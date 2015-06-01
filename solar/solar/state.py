@@ -88,6 +88,11 @@ class Log(object):
         self.sync()
         return item
 
+    def pop(self):
+        item = self.items.pop()
+        self.sync()
+        return item
+
     def show(self, verbose=False):
         return ['L(uuid={0}, res={1}, aciton={2})'.format(
             l.uid, l.res, l.action) for l in self.items]

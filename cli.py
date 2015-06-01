@@ -168,10 +168,13 @@ def init_changes():
 
     @click.command()
     @click.option('--last', is_flag=True, default=False)
+    @click.option('--all', is_flag=True, default=False)
     @click.option('--uid', default=None)
-    def rollback(last, uid):
+    def rollback(last, all, uid):
         if last:
             print operations.rollback_last()
+        elif all:
+            print operations.rollback_all()
         elif uid:
             print operations.rollback_uid(uid)
 
