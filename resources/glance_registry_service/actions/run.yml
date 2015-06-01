@@ -3,6 +3,7 @@
   sudo: yes
   tasks:
     - docker:
+       command: /bin/bash -c "glance-manage db_sync && /usr/bin/keystone-registry"
        name: {{ name }}
        image: {{ image }}
        state: running
@@ -25,13 +26,3 @@
          - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
          {% endfor %}
        {% endif %}
-       env:
-         DB_ROOT_PASSWORD: {{ db_root_password }}
-         GLANCE_DB_PASSWORD: {{ db_password }}
-         GLANCE_DB_NAME: {{ db_name }}
-         GLANCE_DB_USER: {{ db_user }}
-         GLANCE_KEYSTONE_PASSWORD: {{ keystone_password }}
-         KEYSTONE_ADMIN_SERVICE_HOST: {{ keystone_host }}
-         KEYSTONE_ADMIN_TOKEN: {{ keystone_admin_token }}
-         KEYSTONE_PUBLIC_SERVICE_HOST: {{ keystone_host }}
-         MARIADB_SERVICE_HOST: {{ db_host }}

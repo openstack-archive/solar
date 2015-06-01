@@ -1,0 +1,5 @@
+
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - shell: echo 'removed'

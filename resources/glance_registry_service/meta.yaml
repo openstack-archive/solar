@@ -42,6 +42,12 @@ input:
     keystone_admin_token:
       schema: str!
       value:
+    keystone_admin_tenant:
+      schema: str!
+      value:
+    keystone_user:
+      schema: str!
+      value:
     keystone_password:
       schema: str!
       value:
