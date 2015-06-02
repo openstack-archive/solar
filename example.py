@@ -162,7 +162,10 @@ def deploy():
 
 
     has_errors = False
-    for r in resource.Resource.__subclasses__():
+    for r in locals().values():
+        if not isinstance(r, resource.Resource):
+            continue
+
         print 'Validating {}'.format(r.name)
         errors = validation.validate_resource(r)
         if errors:
