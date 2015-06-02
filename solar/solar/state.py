@@ -129,4 +129,3 @@ class Data(collections.MutableMapping):
 
     def __len__(self):
         return len(self.store)
-

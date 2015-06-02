@@ -171,7 +171,7 @@ def assign_resources_to_nodes(resources, nodes):
             res = deepcopy(resource)
             res['tags'] = list(set(node.get('tags', [])) |
                                set(resource.get('tags', [])))
-            resource_uuid = solar.utils.generate_uuid()
+            resource_uuid = '{0}-{1}'.format(res['id'], solar.utils.generate_uuid())
             # We should not generate here any uuid's, because
             # a single node should be represented with a single
             # resource
