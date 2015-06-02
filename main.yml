@@ -15,6 +15,7 @@
     - apt: name=python-mysqldb state=present
     - shell: pip install -U pip
     - shell: pip install docker-py==1.1.0
+    - shell: pip install python-keystoneclient==1.5.0
 
     # requirements
     - shell: pip install -r /vagrant/requirements.txt
