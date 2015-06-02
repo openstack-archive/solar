@@ -19,6 +19,7 @@ solar assign -n 'node/node_2 | node/node_1' -r 'resources/docker'
 solar assign -n 'node/node_1' -r 'resources/mariadb'
 solar assign -n 'node/node_1' -r 'resources/keystone'
 solar assign -n 'node/node_1' -r 'resources/haproxy'
+solar assign -n 'node/node_1' -r 'resources/rabbitmq'
 
 solar connect --profile prf1
 

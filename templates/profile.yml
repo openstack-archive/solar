@@ -96,3 +96,17 @@ connections:
     filter_resources: [resource/keystone_service_endpoint]
     mapping:
       admin_port: keystone_port
+
+  # rabbitmq
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/keystone_vhost]
+    mapping: {}
+
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/keystone_user]
+    mapping: {}
+
+  - for_resources: [resource/keystone_vhost]
+    filter_resources: [resource/keystone_user]
+    mapping:
+      vhost_name: vhost_name

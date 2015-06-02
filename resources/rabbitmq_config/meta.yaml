@@ -20,3 +20,5 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resources/rabbitmq, resource/rabbitmq_config]
