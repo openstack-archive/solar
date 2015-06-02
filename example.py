@@ -214,10 +214,10 @@ def deploy():
         'http://%s:%s/v2.0/tokens' % (haproxy_service.args['ip'].value, haproxy_keystone_config.args['listen_port'].value),
         json.dumps({
             'auth': {
-                'tenantName': glance_keystone_user.args['tenant_name'],
+                'tenantName': glance_keystone_user.args['tenant_name'].value,
                 'passwordCredentials': {
-                    'username': glance_keystone_user.args['user_name'],
-                    'password': glance_keystone_user.args['user_password'],
+                    'username': glance_keystone_user.args['user_name'].value,
+                    'password': glance_keystone_user.args['user_password'].value,
                 }
             }
         }),
