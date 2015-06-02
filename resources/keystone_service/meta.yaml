@@ -1,4 +1,4 @@
-id: keystone
+id: keystone_service
 handler: ansible
 version: 1.0.0
 input:

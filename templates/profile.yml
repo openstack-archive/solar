@@ -10,6 +10,7 @@ extensions:
 tags: {{tags}}
 
 connections:
+  # keystone
   - for_resources: [resource/mariadb_service]
     filter_resources: [resource/mariadb_keystone_db, resource/mariadb_keystone_user]
     mapping:
@@ -39,6 +40,7 @@ connections:
     mapping:
       config_dir: config_dir
 
+  # haproxy
   - for_resources: [resource/keystone_service]
     filter_resources: [resource/haproxy_keystone_config]
     mapping:
@@ -58,3 +60,39 @@ connections:
     mapping:
       listen_ports: ports
       config_dir: host_binds
+
+  # keystone data
+  - for_resources: [resource/keystone_config]
+    filter_resources: [resource/keystone_tenant]
+    mapping: {}
+
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/keystone_tenant]
+    mapping:
+      admin_port: keystone_port
+      ip: keystone_host
+
+  - for_resources: [resource/keystone_tenant]
+    filter_resources: [resource/keystone_user]
+    mapping: {}
+
+  - for_resources: [resource/keystone_user]
+    filter_resources: [resource/keystone_role]
+    mapping: {}
+
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/keystone_service_endpoint]
+    mapping:
+      admin_port: admin_port
+      ip: keystone_host
+      port: port
+
+  - for_resources: [resource/keystone_config]
+    filter_resources: [resource/keystone_service_endpoint]
+    mapping:
+      admin_token: admin_token
+
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/keystone_service_endpoint]
+    mapping:
+      admin_port: keystone_port

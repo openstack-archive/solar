@@ -1,4 +1,4 @@
-id: keystone_user
+id: keystone_tenant
 handler: ansible
 version: 1.0.0
 input:
@@ -13,7 +13,7 @@ input:
       value:
     tenant_name:
       schema: str!
-      value:
+      value: admin
     ip:
       schema: str!
       value:

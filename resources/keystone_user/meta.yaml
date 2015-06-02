@@ -13,10 +13,10 @@ input:
       value:
     user_name:
       schema: str!
-      value:
+      value: admin
     user_password:
       schema: str!
-      value:
+      value: admin
     tenant_name:
       schema: str!
       value:

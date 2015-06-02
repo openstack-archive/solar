@@ -1,4 +1,4 @@
-id: keystone_user
+id: keystone_service_endpoint
 handler: ansible
 version: 1.0.0
 input:
@@ -19,19 +19,22 @@ input:
       value:
     name:
       schema: str!
-      value:
+      value: keystone
     type:
       schema: str!
-      value:
+      value: identity
     description:
       schema: str!
-      value:
+      value: OpenStack Identity Service
     publicurl:
       schema: str!
-      value:
+      value: http://{{ip}}:{{port}}/v2.0
     internalurl:
       schema: str!
-      value:
+      value: http://{{ip}}:{{port}}/v2.0
+    adminurl:
+      schema: str!
+      value: http://{{ip}}:{{admin_port}}/v2.0
     adminurl:
       schema: str!
       value:
@@ -45,5 +48,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/keystone_tenant, resources/keystone]
-
+tags: [resource/keystone_service_endpoint, resources/keystone]

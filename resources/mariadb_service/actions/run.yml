@@ -14,5 +14,5 @@
     - shell: docker exec -t {{ name }} mysql -p{{ root_password }} -uroot -e "SELECT 1"
       register: result
       until: result.rc == 0
-      retries: 20
+      retries: 30
       delay: 0.5
