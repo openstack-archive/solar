@@ -1,13 +1,13 @@
-clients-data-file: /vagrant/tmp/connections.yaml
+clients-data-file: /tmp/connections.yaml
 
-tmp: /vagrant/tmp
+tmp: /tmp
 
 examples-dir: /vagrant/examples
 
 extensions-dir: /vagrant/solar/solar/extensions
 
 file-system-db:
-  storage-path: /vagrant/tmp/storage
+  storage-path: /tmp/storage
 
 template-dir: /vagrant/templates
 

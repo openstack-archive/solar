@@ -12,7 +12,6 @@ from solar.core import validation
 from solar.interfaces.db import get_db
 
 
-
 @click.group()
 def main():
     pass
@@ -159,6 +158,11 @@ def deploy():
     signals.connect(glance_keystone_user, glance_registry_container, {'tenant_name': 'keystone_admin_tenant', 'user_name': 'keystone_user', 'user_password': 'keystone_password'})
     signals.connect(glance_keystone_user, glance_registry_container, {'admin_token': 'keystone_admin_token'})
     signals.connect(haproxy_config, glance_registry_container, {'ip': 'keystone_host'})
+
+    if hasattr(db, 'flush'):
+        db.flush()
+
+    signals.Connections.flush()
 
 
     has_errors = False
