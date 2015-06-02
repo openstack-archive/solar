@@ -21,16 +21,21 @@ from solar import utils
 
 from enum import Enum
 
+from solar.interfaces.db import get_db
+
+import yaml
+
+db = get_db()
+
 
 STATES = Enum('States', 'pending inprogress error success')
 
 
-def state_file(filename):
-    filepath = os.path.join(utils.read_config()['state'], filename)
-    if 'log' in filename:
-        return Log(filepath)
-    elif 'data' in filename:
-        return Data(filepath)
+def state_file(name):
+    if 'log' in name:
+        return Log(name)
+    elif 'data' in name:
+        return Data(name)
 
 
 CD = partial(state_file, 'commited_data')
@@ -70,14 +75,18 @@ class Log(object):
 
     def __init__(self, path):
         self.path = path
-        items = utils.yaml_load(path) or []
+        if path in db:
+            items = db[path]
+        else:
+            items = []
         self.items = deque([LogItem(
             l['uid'], l['res'],
             l['diff'], l['action'],
             getattr(STATES, l['state'])) for l in items])
 
     def sync(self):
-        utils.yaml_dump_to([i.to_dict() for i in self.items], self.path)
+        db[self.path] = [i.to_dict() for i in self.items]
+
 
     def add(self, logitem):
         self.items.append(logitem)
@@ -111,18 +120,21 @@ class Data(collections.MutableMapping):
 
     def __init__(self, path):
         self.path = path
-        self.store = utils.yaml_load(path) or {}
+        if path in db:
+            self.store = db[path]
+        else:
+            self.store = {}
 
     def __getitem__(self, key):
         return self.store[key]
 
     def __setitem__(self, key, value):
         self.store[key] = value
-        utils.yaml_dump_to(self.store, self.path)
+        db[self.path] = self.store
 
     def __delitem__(self, key):
         self.store.pop(key)
-        utils.yaml_dump_to(self.store, self.path)
+        db[self.path] = self.store
 
     def __iter__(self):
         return iter(self.store)
