@@ -10,33 +10,51 @@ extensions:
 tags: {{tags}}
 
 connections:
-  - for_resources: [resource/keystone_config]
-    filter_resources: [resource/mariadb]
+  - for_resources: [resource/mariadb_service]
+    filter_resources: [resource/mariadb_keystone_db, resource/mariadb_keystone_user]
+    mapping:
+      root_password: login_password
+      port: login_port
+
+  - for_resources: [resource/mariadb_keystone_db]
+    filter_resources: [resource/mariadb_keystone_user]
+    mapping:
+      db_name: db_name
+
+  - for_resources: [resource/mariadb_service]
+    filter_resources: [resource/keystone_config]
     mapping:
       ip: db_host
-      root_password: db_password
       port: db_port
 
-  - for_resources: [resource/keystone_service]
-    filter_resources: [resources/haproxy]
+  - for_resources: [resource/mariadb_keystone_user]
+    filter_resources: [resource/keystone_config]
     mapping:
-        servers: ip
-        ports: admin_port
+      db_name: db_name
+      new_user_name: db_user
+      new_user_password: db_password
 
-# NOTE(dshulyak) it is mandatory for some profiles to user graph based
-# api to provide order of execution for different events
-run:
-  - containers.actions.clean_list
-  - docker.actions.run
-  - mariadb.actions.run
-  - mariadb.actions.wait
-  - mariadb.actions.users
-  - keystone.actions.run
-  - haproxy.actions.run
-  - containers.actions.ensure
+  - for_resources: [resource/keystone_config]
+    filter_resources: [resource/keystone_service]
+    mapping:
+      config_dir: config_dir
 
-remove:
-  - haproxy.actions.remove
-  - keystone.actions.remove
-  - mariadb.actions.remove
-  - docker.actions.remove
+  - for_resources: [resource/keystone_service]
+    filter_resources: [resource/haproxy_keystone_config]
+    mapping:
+      ip: servers
+      port: ports
+
+  - for_resources: [resource/haproxy_keystone_config]
+    filter_resources: [resource/haproxy_config]
+    mapping:
+      listen_port: listen_ports
+      name: configs_names
+      ports: configs_ports
+      servers: configs
+
+  - for_resources: [resource/haproxy_config]
+    filter_resources: [resource/haproxy_service]
+    mapping:
+      listen_ports: ports
+      config_dir: host_binds

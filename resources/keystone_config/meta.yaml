@@ -8,7 +8,7 @@ input:
       value: /etc/solar/keystone
     admin_token:
       schema: str!
-      value: 
+      value: admin
     db_password:
       schema: str!
       value: password

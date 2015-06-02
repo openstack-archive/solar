@@ -10,10 +10,10 @@ input:
       value: /etc/solar/keystone
     port:
       schema: int!
-      value:
+      value: 5000
     admin_port:
       schema: int!
-      value:
+      value: 35357
     ip:
       schema: str!
       value:

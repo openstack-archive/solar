@@ -1,4 +1,4 @@
-id: mariadb_table
+id: mariadb_keystone_db
 handler: ansible
 version: 1.0.0
 actions:
@@ -7,15 +7,15 @@ actions:
 input:
     db_name:
       schema: str!
-      value:
+      value: keystone_db
+    login_user:
+      schema: str!
+      value: root
     login_password:
       schema: str!
       value:
     login_port:
       schema: int!
-      value:
-    login_user:
-      schema: str!
       value:
     ip:
       schema: str!
@@ -27,4 +27,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/mariadb_table, resources/mariadb]
+tags: [resource/mariadb_keystone_db, resources/mariadb]
