@@ -57,6 +57,10 @@ def deploy():
     glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_port': '', 'keystone_admin_tenant': ''})
     glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9292}]}], 'host_binds': [], 'volume_binds': [], 'db_password': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
     glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': [], 'db_host': '', 'db_root_password': '', 'db_password': '', 'db_name': '', 'db_user': '', 'keystone_admin_tenant': '', 'keystone_password': '', 'keystone_user': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    # TODO: admin_port should be refactored, we need to rethink docker
+    # container resource and make it common for all
+    # resources used in this demo
+    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': 9292, 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'keystone_host': '', 'keystone_port': '', 'name': 'glance', 'port': 9292, 'type': 'image'})
 
     admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     admin_user = resource.create('admin_user', 'resources/keystone_user', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': '', 'user_name': 'admin', 'user_password': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
@@ -160,6 +164,11 @@ def deploy():
     signals.connect(glance_keystone_user, glance_registry_container, {'admin_token': 'keystone_admin_token'})
     signals.connect(haproxy_config, glance_registry_container, {'ip': 'keystone_host'})
 
+    # glance keystone endpoint
+    signals.connect(glance_api_container, glance_api_endpoint, {'ip': 'ip', 'ssh_user': 'ssh_user', 'ssh_key': 'ssh_key'})
+    signals.connect(keystone_config1, glance_api_endpoint, {'admin_token': 'admin_token'})
+    signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
+
 
     has_errors = False
     for r in locals().values():
@@ -207,6 +216,7 @@ def deploy():
     time.sleep(10) #TODO fix
     actions.resource_action(glance_registry_container, 'run')
     time.sleep(10)
+    actions.resource_action(glance_api_endpoint, 'run')
 
     # test working configuration
     requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
@@ -246,6 +256,7 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list('resource'))
     resources = {r.name: r for r in resources}
 
+    actions.resource_action(resources['glance_api_endpoint'], 'remove')
     actions.resource_action(resources['glance_api_container'], 'remove')
     actions.resource_action(resources['glance_registry_container'], 'remove')
     actions.resource_action(resources['glance_config'], 'remove')
