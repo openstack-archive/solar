@@ -202,11 +202,15 @@ def ensure_endpoint_present(keystone, name, public_url, internal_url,
 def ensure_service_absent(keystone, name, check_mode):
     """ Ensure the service is absent"""
 
-    raise NotImplementedError()
+    service = get_service(keystone, name)
+    keystone.services.delete(service.id)
+    return True
 
 def ensure_endpoint_absent(keystone, name, check_mode):
     """ Ensure the service endpoint """
-    raise NotImplementedError()
+    endpoint = get_endpoint(keystone, name)
+    keystone.endpoints.delete(endpoint.id)
+    return True
 
 
 def dispatch(keystone, name, service_type, description, public_url,
