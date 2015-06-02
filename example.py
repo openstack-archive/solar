@@ -262,9 +262,9 @@ def undeploy():
     actions.resource_action(resources['glance_config'], 'remove')
     actions.resource_action(resources['glance_db_user'], 'remove')
     actions.resource_action(resources['glance_db'], 'remove')
-    actions.resource_action(resources['glance_keystone_role'], 'run')
-    actions.resource_action(resources['glance_keystone_user'], 'run')
-    actions.resource_action(resources['glance_keystone_tenant'], 'run')
+    actions.resource_action(resources['glance_keystone_role'], 'remove')
+    actions.resource_action(resources['glance_keystone_user'], 'remove')
+    actions.resource_action(resources['glance_keystone_tenant'], 'remove')
 
     actions.resource_action(resources['keystone_service_endpoint'], 'remove')
     actions.resource_action(resources['admin_role'], 'remove')
