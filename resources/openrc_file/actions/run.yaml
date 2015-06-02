@@ -1,0 +1,10 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  vars:
+    tenant: {{tenant}}
+    user_name: {{user_name}}
+    password: {{password}}
+    keystone_host: {{keystone_host}}
+    keystone_port: {{keystone_port}}
+  tasks:
+    - template: src={{resource_dir}}/templates/openrc.template dest=/root/openrc
