@@ -93,8 +93,7 @@ def guess_mapping(emitter, receiver):
 
 
 def connect(emitter, receiver, mapping=None):
-    guessed = guess_mapping(emitter, receiver)
-    mapping = mapping or guessed
+    mapping = mapping or guess_mapping(emitter, receiver)
 
     for src, dst in mapping.items():
         # Disconnect all receiver inputs

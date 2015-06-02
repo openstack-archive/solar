@@ -127,7 +127,7 @@ def create(name, base_path, args, tags=[], connections={}):
     base_meta_file = os.path.join(base_path, 'meta.yaml')
     actions_path = os.path.join(base_path, 'actions')
 
-    meta = yaml.load(open(base_meta_file).read())
+    meta = utils.yaml_load(base_meta_file)
     meta['id'] = name
     meta['version'] = '1.0.0'
     meta['actions'] = {}

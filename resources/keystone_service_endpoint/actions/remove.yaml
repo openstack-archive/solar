@@ -1,5 +1,6 @@
-#todo
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: echo 1
+    - name: keystone service and endpoint
+    #TODO: not implemented in module
+      pause: seconds=1
