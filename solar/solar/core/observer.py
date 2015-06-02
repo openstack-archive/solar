@@ -17,7 +17,8 @@ class BaseObserver(object):
         self.receivers = []
 
     def log(self, msg):
-        print '{} {}'.format(self, msg)
+        pass
+        #print '{} {}'.format(self, msg)
 
     def __repr__(self):
         return '[{}:{}] {}'.format(self.attached_to.name, self.name, self.value)

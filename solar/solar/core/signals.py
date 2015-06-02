@@ -121,9 +121,10 @@ def disconnect(emitter, receiver):
 
         for destination in destinations:
             receiver_input = destination[1]
-            if receiver.args[receiver_input].type_ != 'list':
-                print 'Removing input {} from {}'.format(receiver_input, receiver.name)
-            emitter.args[src].unsubscribe(receiver.args[receiver_input])
+            if receiver_input in receiver.args:
+                if receiver.args[receiver_input].type_ != 'list':
+                    print 'Removing input {} from {}'.format(receiver_input, receiver.name)
+                emitter.args[src].unsubscribe(receiver.args[receiver_input])
 
 
 def disconnect_receiver_by_input(receiver, input):

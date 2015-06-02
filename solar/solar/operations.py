@@ -86,6 +86,46 @@ def execute(res, action):
     except subprocess.CalledProcessError:
         return state.STATES.error
 
+
+def commit(li, resources):
+    commited = state.CD()
+    history = state.CL()
+    staged = state.SL()
+
+    wrapper = resources[li.res]
+
+    staged_data = patch(li.diff, commited.get(li.res, {}))
+
+    # TODO(dshulyak) think about this hack for update
+    if li.action == 'update':
+        commited_args = commited[li.res]['args']
+        wrapper.update(commited_args)
+        result_state = actions.resource_action(wrapper, 'remove')
+
+        if result_state is state.STATES.success:
+            wrapper.update(staged_data.get('args', {}))
+            result_state = actions.resource_action(wrapper, 'run')
+    else:
+        result_state = actions.resource_action(wrapper, li.action)
+
+    # resource_action return None in case there is no actions
+    result_state = result_state or state.STATES.success
+
+    commited[li.res] = staged_data
+    li.state = result_state
+
+    history.add(li)
+
+    if result_state is state.STATES.error:
+        raise Exception('Failed')
+
+
+def commit_one():
+    staged = state.SL()
+    resources = resource.load_all()
+    commit(staged.popleft(), resources)
+
+
 def commit_changes():
     # just shortcut to test stuff
     commited = state.CD()
@@ -94,33 +134,7 @@ def commit_changes():
     resources = resource.load_all()
 
     while staged:
-        li = staged.popleft()
-        wrapper = resources[li.res]
-
-        staged_data = patch(li.diff, commited.get(li.res, {}))
-
-        # TODO(dshulyak) think about this hack for update
-        if li.action == 'update':
-            commited_args = commited[li.res]['args']
-            wrapper.update(commited_args)
-            result_state = execute(wrapper, 'remove')
-
-            if result_state is state.STATES.success:
-                wrapper.update(staged_data.get('args', {}))
-                result_state = execute(wrapper, 'run')
-        else:
-            result_state = execute(wrapper, li.action)
-
-        # resource_action return None in case there is no actions
-        result_state = result_state or state.STATES.success
-
-        commited[li.res] = staged_data
-        li.state = result_state
-
-        history.add(li)
-
-        if result_state is state.STATES.error:
-            return
+        commit(staged.popleft(), resources)
 
 
 def rollback(log_item):
@@ -152,7 +166,7 @@ def rollback(log_item):
 
 
 def rollback_uid(uid):
-    item = next(l for l in state.CL() if l.uuid == uid)
+    item = next(l for l in state.CL() if l.uid == uid)
     return rollback(item)
 
 
