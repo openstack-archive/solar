@@ -14,7 +14,8 @@ SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  config.vm.box = "deb/jessie-amd64"
+  #config.vm.box = "deb/jessie-amd64"
+  config.vm.box = "rustyrobot/deb-jessie-amd64"
 
   config.vm.define "solar-dev", primary: true do |config|
     config.vm.provision "shell", inline: init_script, privileged: true
