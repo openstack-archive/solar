@@ -74,12 +74,30 @@ class Cmd(object):
         parser.add_argument('-n', '--nodes')
         parser.add_argument('-r', '--resources')
 
+        # Run action on tags
+        parser = self.subparser.add_parser('run')
+        parser.set_defaults(func=getattr(self, 'run'))
+        parser.add_argument('-t', '--tags')
+        parser.add_argument('-a', '--action')
+
         # Perform resources connection
         parser = self.subparser.add_parser('connect')
         parser.set_defaults(func=getattr(self, 'connect'))
         parser.add_argument(
             '-p',
             '--profile')
+
+    def run(self, args):
+        from solar.core import actions
+        from solar.core import signals
+
+        resources = filter(
+            lambda r: Expression(args.tags, r.get('tags', [])).evaluate(),
+            self.db.get_list('resource'))
+
+        for resource in resources:
+            resource_obj = self.db.get_obj_resource(resource['id'])
+            actions.resource_action(resource_obj, args.action)
 
     def profile(self, args):
         if args.create:
@@ -107,6 +125,7 @@ class Cmd(object):
             lambda r: Expression(args.resources, r.get('tags', [])).evaluate(),
             self._get_resources_list())
 
+        print("For {0} nodes assign {1} resources".format(len(nodes), len(resources)))
         assign_resources_to_nodes(resources, nodes)
 
     def _get_resources_list(self):

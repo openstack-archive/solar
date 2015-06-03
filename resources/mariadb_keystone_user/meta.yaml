@@ -1,14 +1,17 @@
-id: mariadb_db
+id: mariadb_keystone_user
 handler: ansible
 version: 1.0.0
 actions:
     run: run.yml
     remove: remove.yml
 input:
-    db_name:
+    new_user_password:
       schema: str!
-      value:
-    login_user:
+      value: keystone
+    new_user_name:
+      schema: str!
+      value: keystone
+    db_name:
       schema: str!
       value:
     login_password:
@@ -16,6 +19,9 @@ input:
       value:
     login_port:
       schema: int!
+      value:
+    login_user:
+      schema: str!
       value:
     ip:
       schema: str!
@@ -26,3 +32,6 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resource/mariadb_keystone_user, resources/mariadb]
+

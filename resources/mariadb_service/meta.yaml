@@ -1,4 +1,4 @@
-id: mariadb
+id: mariadb_service
 handler: ansible
 version: 1.0.0
 input:
@@ -21,4 +21,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/mariadb, resources/mariadb]
+tags: [resource/mariadb_service, resources/mariadb]

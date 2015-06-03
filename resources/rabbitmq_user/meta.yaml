@@ -1,4 +1,4 @@
-id: keystone_user
+id: rabbitmq_user
 handler: ansible
 version: 1.0.0
 input:
@@ -7,10 +7,10 @@ input:
       value:
     user_name:
       schema: str!
-      value:
+      value: openstack
     password:
       schema: str!
-      value:
+      value: openstack_password
     vhost_name:
       schema: str!
       value:
@@ -23,3 +23,5 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resources/rabbitmq, resource/rabbitmq_user]
