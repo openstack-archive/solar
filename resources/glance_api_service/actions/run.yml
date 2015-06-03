@@ -9,9 +9,9 @@
        image: {{ image }}
        state: running
        expose:
-         - 9292
+         - 9393
        ports:
-         - {{ ports.value[0]['value'][0]['value'] }}:9292
+         - {{ ports.value[0]['value'][0]['value'] }}:9393
        {% if host_binds.value %}
        volumes:
          # TODO: host_binds might need more work
