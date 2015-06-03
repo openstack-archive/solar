@@ -19,10 +19,11 @@ class FileSystemDB(DirDBM):
         return self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
 
     def get_obj_resource(self, uid):
-        from solar.core.resource import wrap_resource
-        raw_resource = self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
-
-        return wrap_resource(raw_resource)
+        if not uid in self.entities:
+            from solar.core.resource import wrap_resource
+            raw_resource = self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)]
+            self.entities[uid] = wrap_resource(raw_resource)
+        return self.entities[uid]
 
     def add_resource(self, uid, resource):
         self[self._make_key(self.RESOURCE_COLLECTION_NAME, uid)] = resource

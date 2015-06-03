@@ -16,6 +16,7 @@
     - apt: name=jq state=present
     - shell: pip install -U pip
     - shell: pip install docker-py==1.1.0
+    - shell: pip install python-keystoneclient==1.5.0
 
     - shell: pip install httpie
 
