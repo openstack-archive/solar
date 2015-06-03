@@ -178,10 +178,6 @@ def init_changes():
 
     changes.add_command(rollback)
 
-    @click.command()
-    def replay():
-        operations.replay_errors()
-    changes.add_command(replay)
 
 def init_cli_connections():
     @click.group()

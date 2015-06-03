@@ -17,4 +17,3 @@
         - {{ config_dir }}:/etc/keystone
     - name: wait for keystone
       wait_for: host={{ip}} port={{port}} timeout=20
-

@@ -92,21 +92,23 @@ def commit(li, resources):
     history = state.CL()
     staged = state.SL()
 
-    wrapper = resources[li.res]
+    staged_res = resources[li.res]
 
     staged_data = patch(li.diff, commited.get(li.res, {}))
 
     # TODO(dshulyak) think about this hack for update
     if li.action == 'update':
-        commited_args = commited[li.res]['args']
-        wrapper.update(commited_args)
-        result_state = actions.resource_action(wrapper, 'remove')
+        commited_res = resource.Resource(
+            staged_res.name,
+            staged_res.metadata,
+            commited[li.res]['args'],
+            commited[li.res]['tags'])
+        result_state = execute(commited_res, 'remove')
 
         if result_state is state.STATES.success:
-            wrapper.update(staged_data.get('args', {}))
-            result_state = actions.resource_action(wrapper, 'run')
+            result_state = execute(staged_res, 'run')
     else:
-        result_state = actions.resource_action(wrapper, li.action)
+        result_state = execute(staged_res, li.action)
 
     # resource_action return None in case there is no actions
     result_state = result_state or state.STATES.success
@@ -158,7 +160,7 @@ def rollback(log_item):
         log_item.res, df, guess_action(commited, staged))
     log.add(log_item)
 
-    res = resource.wrap_resource(db.get_resource(log_item.res))
+    res = db.get_obj_resource(log_item.res)
     res.update(staged.get('args', {}))
     res.save()
 
