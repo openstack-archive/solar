@@ -7,7 +7,7 @@ input:
       value: mariadb
     root_password:
       schema: str!
-      value: password
+      value: mariadb
     port:
       schema: int!
       value: 3306

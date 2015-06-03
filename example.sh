@@ -2,11 +2,14 @@
 set -eux
 
 rm -rf /tmp/tmp*
-rm /vagrant/tmp/storage/* || true
-rm /vagrant/tmp/connections.yaml || true
-echo > /vagrant/state/commit_log || true
-echo > /vagrant/state/commited_data || true
-echo > /vagrant/state/stage_log || true
+rm /tmp/storage/* || true
+rm /tmp/connections.yaml || true
+
+mkdir -p /tmp/state
+
+echo > /tmp/state/commit_log || true
+echo > /tmp/state/commited_data || true
+echo > /tmp/state/stage_log || true
 find /vagrant/solar/solar -name '*.pyc' -delete || true
 
 sudo docker stop $(sudo docker ps -q) || true

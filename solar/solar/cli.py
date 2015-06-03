@@ -25,7 +25,6 @@ import pprint
 import textwrap
 import yaml
 
-from solar import extensions
 from solar import utils
 from solar.core.resource import assign_resources_to_nodes
 from solar.core.resource import connect_resources
