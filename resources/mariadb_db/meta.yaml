@@ -1,0 +1,28 @@
+id: mariadb_db
+handler: ansible
+version: 1.0.0
+actions:
+    run: run.yml
+    remove: remove.yml
+input:
+    db_name:
+      schema: str!
+      value:
+    login_user:
+      schema: str!
+      value:
+    login_password:
+      schema: str!
+      value:
+    login_port:
+      schema: int!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
