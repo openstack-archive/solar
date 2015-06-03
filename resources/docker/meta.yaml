@@ -4,9 +4,13 @@ version: 1.0.0
 
 input:
     ip:
+      schema: str!
+      value:
     ssh_user:
+      schema: str!
+      value:
     ssh_key:
+      schema: str!
+      value:
 
-input-types:
-
-tags: [resource/docker]
+tags: [resources/docker]

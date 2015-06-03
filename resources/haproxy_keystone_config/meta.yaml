@@ -10,9 +10,9 @@ input:
       value: 9999
     ports:
       schema: [{value: int}]
-      value:
+      value: []
     servers:
       schema: [{value: str}]
-      value:
+      value: []
 
 tags: [resources/haproxy, resource/haproxy_keystone_config]

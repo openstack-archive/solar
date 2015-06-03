@@ -19,11 +19,6 @@ class Ansible(BaseHandler):
             print e.output
             raise
 
-    #def _get_connection(self, resource):
-    #    return {'ssh_user': '',
-    #            'ssh_key': '',
-    #            'host': ''}
-
     def _create_inventory(self, r):
         directory = self.dirs[r.name]
         inventory_path = os.path.join(directory, 'inventory')

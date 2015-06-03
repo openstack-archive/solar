@@ -1,4 +1,4 @@
-id: keystone_user
+id: keystone_role
 handler: ansible
 version: 1.0.0
 input:
@@ -13,13 +13,13 @@ input:
       value:
     user_name:
       schema: str!
-      value:
+      value: admin
     tenant_name:
       schema: str!
       value:
     role_name:
       schema: str!
-      value:
+      value: admin
     ip:
       schema: str!
       value:
@@ -30,4 +30,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/keystone_user, resources/keystone]
+tags: [resource/keystone_role, resources/keystone]

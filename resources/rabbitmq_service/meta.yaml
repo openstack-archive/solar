@@ -7,13 +7,13 @@ input:
       value: rabbitmq:3-management
     container_name:
       schema: str!
-      value:
+      value: rabbitmq_service
     management_port:
       schema: str!
-      value:
+      value: 15672
     port:
       schema: str!
-      value:
+      value: 5672
     ip:
       schema: str!
       value:
@@ -23,3 +23,5 @@ input:
     ssh_user:
       schema: str!
       value:
+
+tags: [resources/rabbitmq, resource/rabbitmq_service]

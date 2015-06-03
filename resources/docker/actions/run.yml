@@ -1,5 +1,5 @@
 
-- hosts: [resource/docker]
+- hosts: [{{ ip }}]
   sudo: yes
   tasks:
     - shell: docker --version

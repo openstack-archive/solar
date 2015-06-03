@@ -36,8 +36,8 @@ class ResourcesConnectionGraph(object):
 
     def iter_connections(self):
         for connection in self.connections:
-            connections_from = self.resources_with_tags(depends_on(connection))
-            connections_to = self.resources_with_tags(connection['for_resources'])
+            connections_to = self.resources_with_tags(depends_on(connection))
+            connections_from = self.resources_with_tags(connection['for_resources'])
             mapping = self.make_mapping(connection)
 
             for connection_from in connections_from:

@@ -1,4 +1,4 @@
-id: haproxy
+id: haproxy_config
 handler: ansible
 version: 1.0.0
 input:
@@ -27,4 +27,4 @@ input:
       schema: str!
       value:
 
-tags: [resources/haproxy]
+tags: [resources/haproxy, resource/haproxy_config]
