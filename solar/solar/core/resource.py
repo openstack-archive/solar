@@ -99,7 +99,6 @@ class Resource(object):
         # Update will be blocked if this resource is listening
         # on some input that is to be updated -- we should only listen
         # to the emitter and not be able to change the input's value
-
         for key, value in args.iteritems():
             self.args[key].update(value)
 
@@ -157,7 +156,7 @@ def load_all():
     ret = {}
 
     for raw_resource in db.get_list('resource'):
-        resource = wrap_resource(raw_resource)
+        resource = db.get_obj_resource(raw_resource['id'])
         ret[resource.name] = resource
 
     signals.Connections.reconnect_all()
