@@ -75,10 +75,10 @@ class Log(object):
 
     def __init__(self, path):
         self.path = path
+        items = []
         if path in db:
-            items = db[path]
-        else:
-            items = []
+            items = db[path] or items
+
         self.items = deque([LogItem(
             l['uid'], l['res'],
             l['diff'], l['action'],
@@ -120,10 +120,9 @@ class Data(collections.MutableMapping):
 
     def __init__(self, path):
         self.path = path
+        self.store = {}
         if path in db:
-            self.store = db[path]
-        else:
-            self.store = {}
+            self.store = db[path] or self.store
 
     def __getitem__(self, key):
         return self.store[key]

@@ -92,19 +92,13 @@ def init_cli_resource():
     resource.add_command(show)
 
     @click.command()
-    @click.argument('path')
+    @click.argument('name')
     @click.argument('args')
-    def update(args, path):
-        print 'Update', path, args
+    def update(name, args):
         args = json.loads(args)
-        # Need to load all resources for bubbling effect to take place
-        # TODO: resources can be scattered around, this is a simple
-        #   situation when we assume resources are all in one directory
-        base_path, name = os.path.split(path)
-        all = xr.load_all(base_path)
+        all = xr.load_all()
         r = all[name]
         r.update(args)
-
     resource.add_command(update)
 
 
@@ -154,8 +148,12 @@ def init_changes():
     changes.add_command(stage)
 
     @click.command()
-    def commit():
-        operations.commit_changes()
+    @click.option('--one', is_flag=True, default=False)
+    def commit(one):
+        if one:
+            operations.commit_one()
+        else:
+            operations.commit_changes()
 
     changes.add_command(commit)
 
