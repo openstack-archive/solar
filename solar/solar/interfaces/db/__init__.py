@@ -12,6 +12,5 @@ def get_db():
     # Should be retrieved from config
     global DB
     if DB is None:
-        #DB = mapping['file_system']()
-        return mapping['cached_file_system']()
+        DB = mapping['cached_file_system']()
     return DB
