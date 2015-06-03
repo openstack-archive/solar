@@ -98,15 +98,15 @@ connections:
       admin_port: keystone_port
 
   # rabbitmq
-  - for_resources: [resource/keystone_service]
-    filter_resources: [resource/keystone_vhost]
+  - for_resources: [resource/rabbitmq_service]
+    filter_resources: [resource/rabbitmq_vhost]
     mapping: {}
 
-  - for_resources: [resource/keystone_service]
-    filter_resources: [resource/keystone_user]
+  - for_resources: [resource/rabbitmq_service]
+    filter_resources: [resource/rabbitmq_user]
     mapping: {}
 
-  - for_resources: [resource/keystone_vhost]
-    filter_resources: [resource/keystone_user]
+  - for_resources: [resource/rabbitmq_vhost]
+    filter_resources: [resource/rabbitmq_user]
     mapping:
       vhost_name: vhost_name
