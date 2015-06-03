@@ -225,8 +225,8 @@ def deploy():
     actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_config, 'run')
     actions.resource_action(glance_api_container, 'run')
-    actions.resource_action(glance_api_endpoint, 'run')
     time.sleep(10) #TODO fix
+    actions.resource_action(glance_api_endpoint, 'run')
     actions.resource_action(glance_registry_container, 'run')
     time.sleep(10)
 

@@ -37,10 +37,6 @@ class CachedFileSystemDB(DirDBM):
         # we create a new file with extension .new, write the data to it, and
         # if the write succeeds delete the old file and rename the new one.
         old = os.path.join(self.dname, k)
-        if os.path.exists(old):
-            new = old + ".rpl" # replacement entry
-        else:
-            new = old + ".new" # new entry
         try:
             self._writeFile(old, v)
         except:
