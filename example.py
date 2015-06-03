@@ -264,10 +264,11 @@ def deploy():
         headers={'X-Auth-Token': token}
     )
     assert images.json() == {'images': []}
-    requests.get(
+    images = requests.get(
         'http://%s:%s' % (glance_registry_container.args['ip'].value, glance_registry_container.args['ports'].value[0]['value'][0]['value']),
         headers={'X-Auth-Token': token}
     )
+    assert images.json() == {'images': []}
 
 
 @click.command()
