@@ -17,9 +17,6 @@ input:
     admin_port:
       schema: int!
       value:
-    name:
-      schema: str!
-      value: keystone
     type:
       schema: str!
       value: identity

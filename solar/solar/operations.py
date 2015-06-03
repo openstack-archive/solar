@@ -11,6 +11,7 @@ db = get_db()
 
 from dictdiffer import diff, patch, revert
 import networkx as nx
+import subprocess
 
 
 def guess_action(from_, to):
@@ -78,6 +79,55 @@ def stage_changes():
     return log
 
 
+def execute(res, action):
+    try:
+        actions.resource_action(res, action)
+        return state.STATES.success
+    except subprocess.CalledProcessError:
+        return state.STATES.error
+
+
+def commit(li, resources):
+    commited = state.CD()
+    history = state.CL()
+    staged = state.SL()
+
+    staged_res = resources[li.res]
+
+    staged_data = patch(li.diff, commited.get(li.res, {}))
+
+    # TODO(dshulyak) think about this hack for update
+    if li.action == 'update':
+        commited_res = resource.Resource(
+            staged_res.name,
+            staged_res.metadata,
+            commited[li.res]['args'],
+            commited[li.res]['tags'])
+        result_state = execute(commited_res, 'remove')
+
+        if result_state is state.STATES.success:
+            result_state = execute(staged_res, 'run')
+    else:
+        result_state = execute(staged_res, li.action)
+
+    # resource_action return None in case there is no actions
+    result_state = result_state or state.STATES.success
+
+    commited[li.res] = staged_data
+    li.state = result_state
+
+    history.add(li)
+
+    if result_state is state.STATES.error:
+        raise Exception('Failed')
+
+
+def commit_one():
+    staged = state.SL()
+    resources = resource.load_all()
+    commit(staged.popleft(), resources)
+
+
 def commit_changes():
     # just shortcut to test stuff
     commited = state.CD()
@@ -86,25 +136,7 @@ def commit_changes():
     resources = resource.load_all()
 
     while staged:
-        l = staged.popleft()
-        wrapper = resources[l.res]
-
-        staged_data = patch(l.diff, commited.get(l.res, {}))
-
-        # TODO(dshulyak) think about this hack for update
-        if l.action == 'update':
-            commited_args = commited[l.res]['args']
-            wrapper.update(commited_args)
-            actions.resource_action(wrapper, 'remove')
-
-            wrapper.update(staged_data.get('args', {}))
-            actions.resource_action(wrapper, 'run')
-        else:
-            actions.resource_action(wrapper, l.action)
-
-        commited[l.res] = staged_data
-        l.state = state.STATES.success
-        history.add(l)
+        commit(staged.popleft(), resources)
 
 
 def rollback(log_item):
@@ -128,7 +160,7 @@ def rollback(log_item):
         log_item.res, df, guess_action(commited, staged))
     log.add(log_item)
 
-    res = resource.wrap_resource(db.get_resource(log_item.res))
+    res = db.get_obj_resource(log_item.res)
     res.update(staged.get('args', {}))
     res.save()
 
@@ -136,7 +168,7 @@ def rollback(log_item):
 
 
 def rollback_uid(uid):
-    item = next(l for l in state.CL() if l.uuid == uid)
+    item = next(l for l in state.CL() if l.uid == uid)
     return rollback(item)
 
 
