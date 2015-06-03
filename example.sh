@@ -36,7 +36,8 @@ function start {
 
 
 function scaleup {
-    solar assign -n 'node/node_2' -r 'resources/keystone'
+    solar assign -n 'node/node_2' -r 'resource/keystone_config'
+    solar assign -n 'node/node_2' -r 'resource/keystone_service'
 
     solar connect --profile prf1
 
