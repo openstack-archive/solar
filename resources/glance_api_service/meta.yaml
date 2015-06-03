@@ -24,4 +24,17 @@ input:
       schema: str!
       value: []
 
+    db_password:
+      schema: str!
+      value:
+    keystone_admin_token:
+      schema: str!
+      value:
+    keystone_password:
+      schema: str!
+      value:
+    keystone_host:
+      schema: str!
+      value:
+
 tags: [resource/container]
