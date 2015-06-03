@@ -1,10 +1,5 @@
 from solar.third_party.dir_dbm import DirDBM
 
-
-import os
-from fnmatch import fnmatch
-from copy import deepcopy
-
 import yaml
 
 from solar import utils

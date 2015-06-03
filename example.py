@@ -12,7 +12,6 @@ from solar.core import validation
 from solar.interfaces.db import get_db
 
 
-
 @click.group()
 def main():
     pass
@@ -169,6 +168,8 @@ def deploy():
     signals.connect(keystone_config1, glance_api_endpoint, {'admin_token': 'admin_token'})
     signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
 
+    signals.Connections.flush()
+
 
     has_errors = False
     for r in locals().values():
@@ -194,12 +195,10 @@ def deploy():
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_config1, 'run')
     actions.resource_action(keystone_service1, 'run')
-    time.sleep(10) #TODO fix keystone services to check if tables are created
     actions.resource_action(keystone_config2, 'run')
     actions.resource_action(keystone_service2, 'run')
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
-    time.sleep(10) #TODO fix haproxy to wait until it's ready
 
     actions.resource_action(admin_tenant, 'run')
     actions.resource_action(admin_user, 'run')

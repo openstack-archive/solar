@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import atexit
 from collections import defaultdict
 import itertools
 import networkx as nx
@@ -30,7 +31,7 @@ class Connections(object):
         if [receiver.name, dst] not in CLIENTS[emitter.name][src]:
             CLIENTS[emitter.name][src].append([receiver.name, dst])
 
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
     @staticmethod
     def remove(emitter, src, receiver, dst):
@@ -39,7 +40,7 @@ class Connections(object):
             if destination != [receiver.name, dst]
         ]
 
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
     @staticmethod
     def reconnect_all():
@@ -64,6 +65,14 @@ class Connections(object):
         path = utils.read_config()[CLIENTS_CONFIG_KEY]
         if os.path.exists(path):
             os.remove(path)
+
+    @staticmethod
+    def flush():
+        print 'FLUSHING Connections'
+        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
+atexit.register(Connections.flush)
 
 
 def guess_mapping(emitter, receiver):
@@ -136,7 +145,7 @@ def disconnect_by_src(emitter_name, src, receiver):
             if destination[0] != receiver.name
         ]
 
-    utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+    #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
 def notify(source, key, value):
