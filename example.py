@@ -168,9 +168,6 @@ def deploy():
     signals.connect(keystone_config1, glance_api_endpoint, {'admin_token': 'admin_token'})
     signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
 
-    if hasattr(db, 'flush'):
-        db.flush()
-
     signals.Connections.flush()
 
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import atexit
 from collections import defaultdict
 import itertools
 import networkx as nx
@@ -67,7 +68,11 @@ class Connections(object):
 
     @staticmethod
     def flush():
+        print 'FLUSHING Connections'
         utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+
+
+atexit.register(Connections.flush)
 
 
 def guess_mapping(emitter, receiver):

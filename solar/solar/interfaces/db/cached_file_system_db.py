@@ -1,5 +1,6 @@
 from solar.third_party.dir_dbm import DirDBM
 
+import atexit
 import os
 import types
 import yaml
@@ -18,6 +19,8 @@ class CachedFileSystemDB(DirDBM):
         utils.create_dir(self.STORAGE_PATH)
         super(CachedFileSystemDB, self).__init__(self.STORAGE_PATH)
         self.entities = {}
+
+        atexit.register(self.flush)
 
     def __setitem__(self, k, v):
         """
@@ -102,5 +105,6 @@ class CachedFileSystemDB(DirDBM):
         return key
 
     def flush(self):
+        print 'FLUSHING DB'
         for path, data in self._CACHE.items():
             super(CachedFileSystemDB, self)._writeFile(path, yaml.dump(data))
