@@ -47,15 +47,15 @@ function scaleup {
 
 
 function clean {
-    solar run -a remove -t 'resources/mariadb' || true
-    solar run -a remove -t 'resources/keystone' || true
-    solar run -a remove -t 'resources/haproxy' || true
-    solar run -a remove -t 'resources/rabbitmq' || true
+    solar run -a remove -t 'resource/mariadb_service' || true
+    solar run -a remove -t 'resource/keystone_service' || true
+    solar run -a remove -t 'resource/haproxy_service' || true
+    solar run -a remove -t 'resource/rabbitmq_service' || true
 }
 
 function clean_all {
-    clean_local
     clean
+    clean_local
 }
 
 $1
