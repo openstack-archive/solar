@@ -113,8 +113,8 @@ def init_cli_connect():
     @click.option('--mapping', default=None)
     def connect(mapping, receiver, emitter):
         print 'Connect', emitter, receiver
-        emitter = db.get_obj_resource(emitter)
-        receiver = db.get_obj_resource(receiver)
+        emitter = xr.load(emitter)
+        receiver = xr.load(receiver)
         print emitter
         print receiver
         if mapping is not None:
@@ -128,8 +128,8 @@ def init_cli_connect():
     @click.argument('receiver')
     def disconnect(receiver, emitter):
         print 'Disconnect', emitter, receiver
-        emitter = db.get_obj_resource(emitter)
-        receiver = db.get_obj_resource(receiver)
+        emitter = xr.load(emitter)
+        receiver = xr.load(receiver)
         print emitter
         print receiver
         xs.disconnect(emitter, receiver)

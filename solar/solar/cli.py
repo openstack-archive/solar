@@ -88,14 +88,14 @@ class Cmd(object):
 
     def run(self, args):
         from solar.core import actions
-        from solar.core import signals
+        from solar.core import resource
 
         resources = filter(
             lambda r: Expression(args.tags, r.get('tags', [])).evaluate(),
             self.db.get_list('resource'))
 
         for resource in resources:
-            resource_obj = self.db.get_obj_resource(resource['id'])
+            resource_obj = resource.load(resource['id'])
             actions.resource_action(resource_obj, args.action)
 
     def profile(self, args):

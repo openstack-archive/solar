@@ -23,12 +23,10 @@ from enum import Enum
 
 from solar.interfaces.db import get_db
 
-import yaml
-
 db = get_db()
 
 
-STATES = Enum('States', 'pending inprogress error success')
+STATES = Enum('States', 'error inprogress pending success')
 
 
 def state_file(name):
@@ -107,7 +105,7 @@ class Log(object):
         return item
 
     def show(self, verbose=False):
-        return ['L(uuid={0}, res={1}, aciton={2})'.format(
+        return ['L(uuid={0}, res={1}, action={2})'.format(
             l.uid, l.res, l.action) for l in self.items]
 
     def __repr__(self):

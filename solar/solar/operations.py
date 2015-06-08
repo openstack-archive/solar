@@ -167,7 +167,7 @@ def rollback(log_item):
         log_item.res, df, guess_action(commited, staged))
     log.add(log_item)
 
-    res = db.get_obj_resource(log_item.res)
+    res = resource.load(log_item.res)
     res.update(staged.get('args', {}))
     res.save()
 
