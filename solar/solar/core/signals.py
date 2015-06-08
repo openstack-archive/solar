@@ -101,6 +101,10 @@ class Connections(object):
                         receiver.args[receiver_input])
 
     @staticmethod
+    def receivers(emitter_name, emitter_input_name):
+        return CLIENTS.get(emitter_name, {}).get(emitter_input_name, [])
+
+    @staticmethod
     def clear():
         global CLIENTS
 
