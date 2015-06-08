@@ -155,6 +155,11 @@ def wrap_resource(raw_resource):
 def load(resource_name):
     raw_resource = db.read(resource_name, collection=db.COLLECTIONS.resource)
 
+    if raw_resource is None:
+        raise NotImplementedError(
+            'Resource {} does not exist'.format(resource_name)
+        )
+
     return wrap_resource(raw_resource)
 
 
