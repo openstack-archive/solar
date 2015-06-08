@@ -20,19 +20,19 @@ class RedisDB(object):
         self._r = redis.StrictRedis(**self.DB)
         self.entities = {}
 
-    def read(self, uid, collection_name=COLLECTIONS.resource):
+    def read(self, uid, collection=COLLECTIONS.resource):
         return json.loads(
-            self._r.get(self._make_key(collection_name, uid))
+            self._r.get(self._make_key(collection, uid))
         )
 
-    def save(self, uid, data, collection_name=COLLECTIONS.resource):
+    def save(self, uid, data, collection=COLLECTIONS.resource):
         return self._r.set(
-            self._make_key(collection_name, uid),
+            self._make_key(collection, uid),
             json.dumps(data)
         )
 
-    def get_list(self, collection_name=COLLECTIONS.resource):
-        key_glob = self._make_key(collection_name, '*')
+    def get_list(self, collection=COLLECTIONS.resource):
+        key_glob = self._make_key(collection, '*')
 
         for key in self._r.keys(key_glob):
             yield json.loads(self._r.get(key))
@@ -41,4 +41,4 @@ class RedisDB(object):
         self._r.flushdb()
 
     def _make_key(self, collection, _id):
-        return '{0}-{1}'.format(collection, _id)
+        return '{0}:{1}'.format(collection, _id)

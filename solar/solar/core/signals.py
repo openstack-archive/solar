@@ -11,12 +11,48 @@ from solar.interfaces.db import get_db
 db = get_db()
 
 
-
 CLIENTS_CONFIG_KEY = 'clients-data-file'
-CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
+#CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
+CLIENTS = {}
 
 
 class Connections(object):
+    """
+    CLIENTS structure is:
+
+    emitter_name:
+      emitter_input_name:
+        - - dst_name
+          - dst_input_name
+
+    while DB structure is:
+
+    emitter_name_key:
+      emitter: emitter_name
+      sources:
+        emitter_input_name:
+          - - dst_name
+            - dst_input_name
+    """
+
+    @staticmethod
+    def read_clients():
+        ret = {}
+
+        for data in db.get_list(collection=db.COLLECTIONS.connection):
+            ret[data['emitter']] = data['sources']
+
+        return ret
+
+    @staticmethod
+    def save_clients():
+        for emitter_name, sources in CLIENTS.items():
+            data = {
+                'emitter': emitter_name,
+                'sources': sources,
+            }
+            db.save(emitter_name, data, collection=db.COLLECTIONS.connection)
+
     @staticmethod
     def add(emitter, src, receiver, dst):
         if src not in emitter.args:
@@ -31,7 +67,8 @@ class Connections(object):
         if [receiver.name, dst] not in CLIENTS[emitter.name][src]:
             CLIENTS[emitter.name][src].append([receiver.name, dst])
 
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
     @staticmethod
     def remove(emitter, src, receiver, dst):
@@ -40,7 +77,8 @@ class Connections(object):
             if destination != [receiver.name, dst]
         ]
 
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
     @staticmethod
     def reconnect_all():
@@ -52,12 +90,12 @@ class Connections(object):
 
         for emitter_name, dest_dict in CLIENTS.items():
             emitter = wrap_resource(
-                db.read(emitter_name, collection_name=db.COLLECTIONS.resource)
+                db.read(emitter_name, collection=db.COLLECTIONS.resource)
             )
             for emitter_input, destinations in dest_dict.items():
                 for receiver_name, receiver_input in destinations:
                     receiver = wrap_resource(
-                        db.read(receiver_name, collection_name=db.COLLECTIONS.resource)
+                        db.read(receiver_name, collection=db.COLLECTIONS.resource)
                     )
                     emitter.args[emitter_input].subscribe(
                         receiver.args[receiver_input])
@@ -75,9 +113,11 @@ class Connections(object):
     @staticmethod
     def flush():
         print 'FLUSHING Connections'
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
 
+CLIENTS = Connections.read_clients()
 #atexit.register(Connections.flush)
 
 
@@ -141,7 +181,7 @@ def disconnect_receiver_by_input(receiver, input):
     :return:
     """
     for emitter_name, inputs in CLIENTS.items():
-        emitter = db.read(emitter_name, collection_name=db.COLLECTIONS.resource)
+        emitter = db.read(emitter_name, collection=db.COLLECTIONS.resource)
         disconnect_by_src(emitter['id'], input, receiver)
 
 
@@ -163,7 +203,7 @@ def notify(source, key, value):
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
             resource = wrap_resource(
-                db.read(client, collection_name=db.COLLECTIONS.resource)
+                db.read(client, collection=db.COLLECTIONS.resource)
             )
             print 'Resource found', client
             if resource:

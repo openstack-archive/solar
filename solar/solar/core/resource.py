@@ -116,7 +116,7 @@ class Resource(object):
         for k, v in self.args_dict().items():
             metadata['input'][k]['value'] = v
 
-        db.save(self.name, metadata, collection_name=db.COLLECTIONS.resource)
+        db.save(self.name, metadata, collection=db.COLLECTIONS.resource)
 
 
 def create(name, base_path, args, tags=[], connections={}):
@@ -155,7 +155,7 @@ def wrap_resource(raw_resource):
 def load_all():
     ret = {}
 
-    for raw_resource in db.get_list(collection_name=db.COLLECTIONS.resource):
+    for raw_resource in db.get_list(collection=db.COLLECTIONS.resource):
         resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
 
