@@ -9,7 +9,7 @@ from solar import errors
 class RedisDB(object):
     COLLECTIONS = Enum(
         'Collections',
-        'connection resource'
+        'connection resource state_data state_log'
     )
     DB = {
         'host': 'localhost',
@@ -21,9 +21,12 @@ class RedisDB(object):
         self.entities = {}
 
     def read(self, uid, collection=COLLECTIONS.resource):
-        return json.loads(
-            self._r.get(self._make_key(collection, uid))
-        )
+        try:
+            return json.loads(
+                self._r.get(self._make_key(collection, uid))
+            )
+        except TypeError:
+            return None
 
     def save(self, uid, data, collection=COLLECTIONS.resource):
         return self._r.set(

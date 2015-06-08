@@ -76,8 +76,9 @@ class Log(object):
     def __init__(self, path):
         self.path = path
         items = []
-        if path in db:
-            items = db[path] or items
+        r = db.read(path, collection=db.COLLECTIONS.state_log)
+        if r:
+            items = r or items
 
         self.items = deque([LogItem(
             l['uid'], l['res'],
@@ -85,7 +86,12 @@ class Log(object):
             getattr(STATES, l['state'])) for l in items])
 
     def sync(self):
-        db[self.path] = [i.to_dict() for i in self.items]
+        #db[self.path] = [i.to_dict() for i in self.items]
+        db.save(
+            self.path,
+            [i.to_dict() for i in self.items],
+            collection=db.COLLECTIONS.state_log
+        )
 
 
     def add(self, logitem):
@@ -121,19 +127,22 @@ class Data(collections.MutableMapping):
     def __init__(self, path):
         self.path = path
         self.store = {}
-        if path in db:
-            self.store = db[path] or self.store
+        r = db.read(path, collection=db.COLLECTIONS.state_data)
+        if r:
+            self.store = r or self.store
 
     def __getitem__(self, key):
         return self.store[key]
 
     def __setitem__(self, key, value):
         self.store[key] = value
-        db[self.path] = self.store
+        db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
+        #db[self.path] = self.store
 
     def __delitem__(self, key):
         self.store.pop(key)
-        db[self.path] = self.store
+        db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
+        #db[self.path] = self.store
 
     def __iter__(self):
         return iter(self.store)
