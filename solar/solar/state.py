@@ -86,13 +86,11 @@ class Log(object):
             getattr(STATES, l['state'])) for l in items])
 
     def sync(self):
-        #db[self.path] = [i.to_dict() for i in self.items]
         db.save(
             self.path,
             [i.to_dict() for i in self.items],
             collection=db.COLLECTIONS.state_log
         )
-
 
     def add(self, logitem):
         self.items.append(logitem)
@@ -137,12 +135,10 @@ class Data(collections.MutableMapping):
     def __setitem__(self, key, value):
         self.store[key] = value
         db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
-        #db[self.path] = self.store
 
     def __delitem__(self, key):
         self.store.pop(key)
         db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
-        #db[self.path] = self.store
 
     def __iter__(self):
         return iter(self.store)
