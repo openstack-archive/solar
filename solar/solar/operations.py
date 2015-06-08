@@ -56,7 +56,14 @@ def stage_changes():
     log = state.SL()
     action = None
 
-    for res_uid in nx.topological_sort(conn_graph):
+    try:
+        srt = nx.topological_sort(conn_graph)
+    except:
+        for cycle in nx.simple_cycles(conn_graph):
+            print 'CYCLE: %s' % cycle
+        raise
+
+    for res_uid in srt:
         commited_data = commited.get(res_uid, {})
         staged_data = to_dict(resources[res_uid], conn_graph)
 

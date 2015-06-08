@@ -31,7 +31,7 @@ class Connections(object):
         if [receiver.name, dst] not in CLIENTS[emitter.name][src]:
             CLIENTS[emitter.name][src].append([receiver.name, dst])
 
-        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
     @staticmethod
     def remove(emitter, src, receiver, dst):
@@ -40,7 +40,7 @@ class Connections(object):
             if destination != [receiver.name, dst]
         ]
 
-        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
     @staticmethod
     def reconnect_all():
@@ -48,11 +48,17 @@ class Connections(object):
 
         :return:
         """
+        from solar.core.resource import wrap_resource
+
         for emitter_name, dest_dict in CLIENTS.items():
-            emitter = db.get_obj_resource(emitter_name)
+            emitter = wrap_resource(
+                db.read(emitter_name, collection_name=db.COLLECTIONS.resource)
+            )
             for emitter_input, destinations in dest_dict.items():
                 for receiver_name, receiver_input in destinations:
-                    receiver = db.get_obj_resource(receiver_name)
+                    receiver = wrap_resource(
+                        db.read(receiver_name, collection_name=db.COLLECTIONS.resource)
+                    )
                     emitter.args[emitter_input].subscribe(
                         receiver.args[receiver_input])
 
@@ -72,7 +78,7 @@ class Connections(object):
         utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
 
 
-atexit.register(Connections.flush)
+#atexit.register(Connections.flush)
 
 
 def guess_mapping(emitter, receiver):
@@ -135,7 +141,7 @@ def disconnect_receiver_by_input(receiver, input):
     :return:
     """
     for emitter_name, inputs in CLIENTS.items():
-        emitter = db.get_resource(emitter_name)
+        emitter = db.read(emitter_name, collection_name=db.COLLECTIONS.resource)
         disconnect_by_src(emitter['id'], input, receiver)
 
 
@@ -150,11 +156,15 @@ def disconnect_by_src(emitter_name, src, receiver):
 
 
 def notify(source, key, value):
+    from solar.core.resource import wrap_resource
+
     CLIENTS.setdefault(source.name, {})
     print 'Notify', source.name, key, value, CLIENTS[source.name]
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
-            resource = db.get_obj_resource(client)
+            resource = wrap_resource(
+                db.read(client, collection_name=db.COLLECTIONS.resource)
+            )
             print 'Resource found', client
             if resource:
                 resource.update({r_key: value}, emitter=source)
