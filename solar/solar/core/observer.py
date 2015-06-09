@@ -17,18 +17,18 @@ class BaseObserver(object):
         self.attached_to = attached_to
         self.name = name
         self.value = value
-        #self.receivers = []
+        self.receivers = []
 
-    @property
-    def receivers(self):
-        from solar.core import resource
-
-        signals.CLIENTS = signals.Connections.read_clients()
-        for receiver_name, receiver_input in signals.Connections.receivers(
-                    self.attached_to.name,
-                    self.name
-                ):
-            yield resource.load(receiver_name).args[receiver_input]
+    # @property
+    # def receivers(self):
+    #     from solar.core import resource
+    #
+    #     signals.CLIENTS = signals.Connections.read_clients()
+    #     for receiver_name, receiver_input in signals.Connections.receivers(
+    #                 self.attached_to.name,
+    #                 self.name
+    #             ):
+    #         yield resource.load(receiver_name).args[receiver_input]
 
     def log(self, msg):
         print '{} {}'.format(self, msg)
@@ -76,7 +76,7 @@ class BaseObserver(object):
         if self.find_receiver(receiver):
             self.log('No multiple subscriptions from {}'.format(receiver))
             return
-        #self.receivers.append(receiver)
+        self.receivers.append(receiver)
         receiver.subscribed(self)
 
         signals.Connections.add(
@@ -98,7 +98,7 @@ class BaseObserver(object):
         """
         self.log('Unsubscribe {}'.format(receiver))
         if self.find_receiver(receiver):
-            #self.receivers.remove(receiver)
+            self.receivers.remove(receiver)
             receiver.unsubscribed(self)
 
         signals.Connections.remove(
