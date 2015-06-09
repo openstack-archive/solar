@@ -24,7 +24,7 @@ class Resource(object):
     def __init__(self, name, metadata, args, tags=None):
         self.name = name
         self.metadata = metadata
-        self.actions = metadata['actions'].keys() if metadata['actions'] else None
+        self.actions = metadata.get('actions', {}).keys() or None
         self.args = {}
 
         for arg_name, arg_value in args.items():

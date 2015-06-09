@@ -1,19 +1,20 @@
 
 from pytest import fixture
 import mock
-
+from dictdiffer import revert, patch, diff
 import networkx as nx
 
 from solar import operations
-from dictdiffer import revert, patch, diff
+from solar.core.resource import wrap_resource
 
 
 @fixture
 def staged():
-    return {'uid': 'res.1',
+    return {'id': 'res.1',
             'tags': ['res', 'node.1'],
-            'args': {'ip': '10.0.0.2',
-                     'list_val': [1, 2]},
+            'input': {'ip': {'value': '10.0.0.2'},
+                     'list_val': {'value': [1, 2]}},
+            'metadata': {},
             'connections': [
                 ['node.1', 'res.1', ['ip', 'ip']],
                 ['node.1', 'res.1', ['key', 'key']]]
@@ -21,10 +22,11 @@ def staged():
 
 @fixture
 def commited():
-    return {'uid': 'res.1',
+    return {'id': 'res.1',
             'tags': ['res', 'node.1'],
-            'args': {'ip': '10.0.0.2',
+            'input': {'ip': '10.0.0.2',
                      'list_val': [1]},
+            'metadata': {},
             'connections': [
                 ['node.1', 'res.1', ['ip', 'ip']]]
             }
@@ -41,20 +43,16 @@ def diff_for_update(staged, commited):
 
 def test_create_diff_with_empty_commited(full_diff):
     # add will be executed
-    expected = [
-        ('add', '', [
-            ('connections', [['node.1', 'res.1', ['ip', 'ip']],
-                             ['node.1', 'res.1', ['key', 'key']]]),
-            ('args', {'ip': '10.0.0.2', 'list_val': [1, 2]}),
-            ('uid', 'res.1'),
-            ('tags', ['res', 'node.1'])])]
+    expected = [('add', '', [('connections', [['node.1', 'res.1', ['ip', 'ip']], ['node.1', 'res.1', ['key', 'key']]]), ('input', {'ip': {'value': '10.0.0.2'}, 'list_val': {'value': [1, 2]}}), ('metadata', {}), ('id', 'res.1'), ('tags', ['res', 'node.1'])])]
     assert full_diff == expected
 
 
 def test_create_diff_modified(diff_for_update):
     assert diff_for_update == [
-        ('add', 'connections', [(1, ['node.1', 'res.1', ['key', 'key']])]),
-        ('add', 'args.list_val', [(1, 2)])]
+        ('add', 'connections',
+            [(1, ['node.1', 'res.1', ['key', 'key']])]),
+         ('change', 'input.ip', ('10.0.0.2', {'value': '10.0.0.2'})),
+         ('change', 'input.list_val', ([1], {'value': [1, 2]}))]
 
 
 def test_verify_patch_creates_expected(staged, diff_for_update, commited):
@@ -105,3 +103,7 @@ def test_stage_changes(resources, conn_graph):
 
     assert len(log) == 3
     assert [l.res for l in log] == ['n.1', 'r.1', 'h.1']
+
+
+def test_resource_fixture(staged):
+    res = wrap_resource(staged)

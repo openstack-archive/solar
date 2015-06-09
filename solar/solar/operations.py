@@ -42,10 +42,9 @@ def connections(res, graph):
 
 
 def to_dict(resource, graph):
-    return {'uid': resource.name,
-            'tags': resource.tags,
-            'args': resource.args_dict(),
-            'connections': connections(resource, graph)}
+    res = resource.to_dict()
+    res['connections'] = connections(resource, graph)
+    return res
 
 
 def create_diff(staged, commited):
@@ -109,16 +108,11 @@ def execute(res, action):
 def commit(li, resources, commited, history):
 
     staged_res = resources[li.res]
-
     staged_data = patch(li.diff, commited.get(li.res, {}))
 
     # TODO(dshulyak) think about this hack for update
     if li.action == 'update':
-        commited_res = resource.Resource(
-            staged_res.name,
-            staged_res.metadata,
-            commited[li.res]['args'],
-            commited[li.res]['tags'])
+        commited_res = resource.wrap_resource(commited.get(li.res, {}))
         result_state = execute(commited_res, 'remove')
 
         if result_state is state.STATES.success:
