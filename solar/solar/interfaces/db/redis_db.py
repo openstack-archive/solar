@@ -29,10 +29,14 @@ class RedisDB(object):
             return None
 
     def save(self, uid, data, collection=COLLECTIONS.resource):
-        return self._r.set(
+        ret =  self._r.set(
             self._make_key(collection, uid),
             json.dumps(data)
         )
+
+        self._r.save()
+
+        return ret
 
     def get_list(self, collection=COLLECTIONS.resource):
         key_glob = self._make_key(collection, '*')

@@ -169,7 +169,7 @@ def rollback(log_item):
 
     res = resource.load(log_item.res)
     res.update(staged.get('args', {}))
-    res.save()
+    #res.save()
 
     return log
 

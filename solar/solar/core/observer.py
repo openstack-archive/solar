@@ -14,27 +14,34 @@ class BaseObserver(object):
         :param value:
         :return:
         """
-        self.attached_to = attached_to
+        #self.attached_to = attached_to
+        self._attached_to_name = attached_to.name
         self.name = name
         self.value = value
-        self.receivers = []
+        #self.receivers = []
 
-    # @property
-    # def receivers(self):
-    #     from solar.core import resource
-    #
-    #     signals.CLIENTS = signals.Connections.read_clients()
-    #     for receiver_name, receiver_input in signals.Connections.receivers(
-    #                 self.attached_to.name,
-    #                 self.name
-    #             ):
-    #         yield resource.load(receiver_name).args[receiver_input]
+    @property
+    def attached_to(self):
+        from solar.core import resource
+
+        return resource.load(self._attached_to_name)
+
+    @property
+    def receivers(self):
+        from solar.core import resource
+
+        signals.CLIENTS = signals.Connections.read_clients()
+        for receiver_name, receiver_input in signals.Connections.receivers(
+                    self._attached_to_name,
+                    self.name
+                ):
+            yield resource.load(receiver_name).args[receiver_input]
 
     def log(self, msg):
         print '{} {}'.format(self, msg)
 
     def __repr__(self):
-        return '[{}:{}] {}'.format(self.attached_to.name, self.name, self.value)
+        return '[{}:{}] {}'.format(self._attached_to_name, self.name, self.value)
 
     def __unicode__(self):
         return unicode(self.value)
@@ -61,7 +68,7 @@ class BaseObserver(object):
 
     def find_receiver(self, receiver):
         fltr = [r for r in self.receivers
-                if r.attached_to == receiver.attached_to
+                if r._attached_to_name == receiver._attached_to_name
                 and r.name == receiver.name]
         if fltr:
             return fltr[0]
@@ -76,7 +83,7 @@ class BaseObserver(object):
         if self.find_receiver(receiver):
             self.log('No multiple subscriptions from {}'.format(receiver))
             return
-        self.receivers.append(receiver)
+        #self.receivers.append(receiver)
         receiver.subscribed(self)
 
         signals.Connections.add(
@@ -98,7 +105,7 @@ class BaseObserver(object):
         """
         self.log('Unsubscribe {}'.format(receiver))
         if self.find_receiver(receiver):
-            self.receivers.remove(receiver)
+            #self.receivers.remove(receiver)
             receiver.unsubscribed(self)
 
         signals.Connections.remove(
@@ -118,9 +125,19 @@ class BaseObserver(object):
 class Observer(BaseObserver):
     type_ = 'simple'
 
-    def __init__(self, *args, **kwargs):
-        super(Observer, self).__init__(*args, **kwargs)
-        self.emitter = None
+    # def __init__(self, *args, **kwargs):
+    #     super(Observer, self).__init__(*args, **kwargs)
+    #     self.emitter = None
+
+    @property
+    def emitter(self):
+        from solar.core import resource
+
+        emitter = signals.Connections.emitter(self._attached_to_name, self.name)
+
+        if emitter is not None:
+            emitter_name, emitter_input_name = emitter
+            return resource.load(emitter_name).args[emitter_input_name]
 
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
@@ -128,25 +145,27 @@ class Observer(BaseObserver):
         self.value = emitter.value
         for receiver in self.receivers:
             receiver.notify(self)
-        self.attached_to.save()
+        #self.attached_to.save()
+        self.attached_to.set_args_from_dict({self.name: self.value})
 
     def update(self, value):
         self.log('Updating to value {}'.format(value))
         self.value = value
         for receiver in self.receivers:
             receiver.notify(self)
-        self.attached_to.save()
+        #self.attached_to.save()
+        self.attached_to.set_args_from_dict({self.name: self.value})
 
     def subscribed(self, emitter):
         super(Observer, self).subscribed(emitter)
         # Simple observer can be attached to at most one emitter
         if self.emitter is not None:
             self.emitter.unsubscribe(self)
-        self.emitter = emitter
+        # self.emitter = emitter
 
-    def unsubscribed(self, emitter):
-        super(Observer, self).unsubscribed(emitter)
-        self.emitter = None
+    # def unsubscribed(self, emitter):
+    #     super(Observer, self).unsubscribed(emitter)
+    #     self.emitter = None
 
 
 class ListObserver(BaseObserver):
@@ -159,7 +178,7 @@ class ListObserver(BaseObserver):
     def _format_value(emitter):
         return {
             'emitter': emitter.name,
-            'emitter_attached_to': emitter.attached_to.name,
+            'emitter_attached_to': emitter._attached_to_name,
             'value': emitter.value,
         }
 
@@ -171,13 +190,15 @@ class ListObserver(BaseObserver):
         self.value[idx] = self._format_value(emitter)
         for receiver in self.receivers:
             receiver.notify(self)
-        self.attached_to.save()
+        #self.attached_to.save()
+        self.attached_to.set_args_from_dict({self.name: self.value})
 
     def subscribed(self, emitter):
         super(ListObserver, self).subscribed(emitter)
         idx = self._emitter_idx(emitter)
         if idx is None:
             self.value.append(self._format_value(emitter))
+        self.attached_to.set_args_from_dict({self.name: self.value})
 
     def unsubscribed(self, emitter):
         """
@@ -187,11 +208,12 @@ class ListObserver(BaseObserver):
         self.log('Unsubscribed emitter {}'.format(emitter))
         idx = self._emitter_idx(emitter)
         self.value.pop(idx)
+        self.attached_to.set_args_from_dict({self.name: self.value})
 
     def _emitter_idx(self, emitter):
         try:
             return [i for i, e in enumerate(self.value)
-                    if e['emitter_attached_to'] == emitter.attached_to.name
+                    if e['emitter_attached_to'] == emitter._attached_to_name
                     ][0]
         except IndexError:
             return

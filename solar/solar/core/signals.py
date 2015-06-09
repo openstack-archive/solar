@@ -105,6 +105,13 @@ class Connections(object):
         return CLIENTS.get(emitter_name, {}).get(emitter_input_name, [])
 
     @staticmethod
+    def emitter(receiver_name, receiver_input_name):
+        for emitter_name, dest_dict in CLIENTS.items():
+            for emitter_input_name, destinations in dest_dict.items():
+                if [receiver_name, receiver_input_name] in destinations:
+                    return [emitter_name, emitter_input_name]
+
+    @staticmethod
     def clear():
         global CLIENTS
 
@@ -162,7 +169,7 @@ def connect(emitter, receiver, mapping=None):
 
         emitter.args[src].subscribe(receiver.args[dst])
 
-    receiver.save()
+    #receiver.save()
 
 
 def disconnect(emitter, receiver):

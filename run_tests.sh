@@ -17,9 +17,11 @@ fi
 . $VENV/bin/activate
 
 pip install -r requirements.txt --download-cache=/tmp/$JOB_NAME
+pip install ipython pudb
 
 pushd solar/solar
 
+PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_resource.py
 PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_signals.py
 PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_validation.py
 

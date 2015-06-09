@@ -26,7 +26,7 @@ input:
         xs.connect(sample1, sample2)
         self.assertEqual(
             sample1.args['values'],
-            sample2.args['values'],
+            sample2.args['values']
         )
         self.assertEqual(
             sample2.args['values'].emitter,
@@ -135,7 +135,7 @@ input:
 
         xs.connect(sample1, sample)
         self.assertEqual(sample1.args['ip'], sample.args['ip'])
-        self.assertEqual(len(sample1.args['ip'].receivers), 1)
+        self.assertEqual(len(list(sample1.args['ip'].receivers)), 1)
         self.assertEqual(
             sample.args['ip'].emitter,
             sample1.args['ip']
@@ -144,7 +144,7 @@ input:
         xs.connect(sample2, sample)
         self.assertEqual(sample2.args['ip'], sample.args['ip'])
         # sample should be unsubscribed from sample1 and subscribed to sample2
-        self.assertEqual(len(sample1.args['ip'].receivers), 0)
+        self.assertEqual(len(list(sample1.args['ip'].receivers)), 0)
         self.assertEqual(
             sample.args['ip'].emitter,
             sample2.args['ip']
