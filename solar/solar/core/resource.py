@@ -23,6 +23,8 @@ class Resource(object):
         self.name = name
         self.metadata = metadata
         self.actions = metadata['actions'].keys() if metadata['actions'] else None
+
+        # TODO: read tags from DB on demand
         self.tags = tags or []
         self.set_args_from_dict(args)
 
@@ -30,42 +32,42 @@ class Resource(object):
     def args(self):
         ret = {}
 
-        raw_resource = db.read(self.name, collection=db.COLLECTIONS.resource)
-        if raw_resource is None:
-            return {}
-
-        args = raw_resource['input']
+        args = self.args_dict()
 
         for arg_name, metadata_arg in self.metadata['input'].items():
             type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
 
-            value = args.get(arg_name, {}).get('value')
-            if value is None and metadata_arg['value'] is not None:
-                value = metadata_arg['value']
-
-            ret[arg_name] = observer.create(type_, self, arg_name, value)
+            ret[arg_name] = observer.create(
+                type_, self, arg_name, args.get(arg_name)
+            )
 
         return ret
 
-    def set_args_from_dict(self, new_args):
-        args = {}
-
-        metadata = copy.deepcopy(self.metadata)
-
+    def args_dict(self):
         raw_resource = db.read(self.name, collection=db.COLLECTIONS.resource)
-        if raw_resource:
-            args = {k: v['value'] for k, v in raw_resource['input'].items()}
+        if raw_resource is None:
+            return {}
 
+        self.metadata = raw_resource
+
+        args = self.metadata['input']
+
+        return {k: v['value'] for k, v in args.items()}
+
+    def set_args_from_dict(self, new_args):
+        args = self.args_dict()
         args.update(new_args)
 
-        metadata['tags'] = self.tags
+        self.metadata['tags'] = self.tags
         for k, v in args.items():
-            if k not in metadata['input']:
-                raise NotImplementedError('Argument {} not implemented for resource {}'.format(k, self))
+            if k not in self.metadata['input']:
+                raise NotImplementedError(
+                    'Argument {} not implemented for resource {}'.format(k, self)
+                )
 
-            metadata['input'][k]['value'] = v
+            self.metadata['input'][k]['value'] = v
 
-        db.save(self.name, metadata, collection=db.COLLECTIONS.resource)
+        db.save(self.name, self.metadata, collection=db.COLLECTIONS.resource)
 
     def set_args(self, args):
         self.set_args_from_dict({k: v.value for k, v in args.items()})
@@ -95,9 +97,6 @@ class Resource(object):
             return v
 
         return {k: formatter(v) for k, v in self.args.items()}
-
-    def args_dict(self):
-        return {k: v.value for k, v in self.args.items()}
 
     def add_tag(self, tag):
         if tag not in self.tags:
