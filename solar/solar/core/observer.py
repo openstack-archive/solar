@@ -192,6 +192,8 @@ class ListObserver(BaseObserver):
         idx = self._emitter_idx(emitter)
         self.value.pop(idx)
         self.attached_to.set_args_from_dict({self.name: self.value})
+        for receiver in self.receivers:
+            receiver.notify(self)
 
     def _emitter_idx(self, emitter):
         try:
