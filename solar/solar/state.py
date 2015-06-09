@@ -83,6 +83,10 @@ class Log(object):
             l['diff'], l['action'],
             getattr(STATES, l['state'])) for l in items])
 
+    def delete(self):
+        self.items = deque()
+        db.delete(self.path, db.COLLECTIONS.state_log)
+
     def sync(self):
         db.save(
             self.path,
@@ -90,7 +94,7 @@ class Log(object):
             collection=db.COLLECTIONS.state_log
         )
 
-    def add(self, logitem):
+    def append(self, logitem):
         self.items.append(logitem)
         self.sync()
 
