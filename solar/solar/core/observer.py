@@ -14,11 +14,9 @@ class BaseObserver(object):
         :param value:
         :return:
         """
-        #self.attached_to = attached_to
         self._attached_to_name = attached_to.name
         self.name = name
         self.value = value
-        #self.receivers = []
 
     @property
     def attached_to(self):
@@ -83,7 +81,6 @@ class BaseObserver(object):
         if self.find_receiver(receiver):
             self.log('No multiple subscriptions from {}'.format(receiver))
             return
-        #self.receivers.append(receiver)
         receiver.subscribed(self)
 
         signals.Connections.add(
@@ -105,7 +102,6 @@ class BaseObserver(object):
         """
         self.log('Unsubscribe {}'.format(receiver))
         if self.find_receiver(receiver):
-            #self.receivers.remove(receiver)
             receiver.unsubscribed(self)
 
         signals.Connections.remove(
@@ -125,10 +121,6 @@ class BaseObserver(object):
 class Observer(BaseObserver):
     type_ = 'simple'
 
-    # def __init__(self, *args, **kwargs):
-    #     super(Observer, self).__init__(*args, **kwargs)
-    #     self.emitter = None
-
     @property
     def emitter(self):
         from solar.core import resource
@@ -145,7 +137,6 @@ class Observer(BaseObserver):
         self.value = emitter.value
         for receiver in self.receivers:
             receiver.notify(self)
-        #self.attached_to.save()
         self.attached_to.set_args_from_dict({self.name: self.value})
 
     def update(self, value):
@@ -153,7 +144,6 @@ class Observer(BaseObserver):
         self.value = value
         for receiver in self.receivers:
             receiver.notify(self)
-        #self.attached_to.save()
         self.attached_to.set_args_from_dict({self.name: self.value})
 
     def subscribed(self, emitter):
@@ -161,11 +151,6 @@ class Observer(BaseObserver):
         # Simple observer can be attached to at most one emitter
         if self.emitter is not None:
             self.emitter.unsubscribe(self)
-        # self.emitter = emitter
-
-    # def unsubscribed(self, emitter):
-    #     super(Observer, self).unsubscribed(emitter)
-    #     self.emitter = None
 
 
 class ListObserver(BaseObserver):
@@ -185,12 +170,10 @@ class ListObserver(BaseObserver):
     def notify(self, emitter):
         self.log('Notify from {} value {}'.format(emitter, emitter.value))
         # Copy emitter's values to receiver
-        #self.value[emitter.attached_to.name] = emitter.value
         idx = self._emitter_idx(emitter)
         self.value[idx] = self._format_value(emitter)
         for receiver in self.receivers:
             receiver.notify(self)
-        #self.attached_to.save()
         self.attached_to.set_args_from_dict({self.name: self.value})
 
     def subscribed(self, emitter):

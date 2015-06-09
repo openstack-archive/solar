@@ -22,11 +22,14 @@ class Resource(object):
     def __init__(self, name, metadata, args, tags=None):
         self.name = name
         self.metadata = metadata
-        self.actions = metadata['actions'].keys() if metadata['actions'] else None
 
         # TODO: read tags from DB on demand
         self.tags = tags or []
         self.set_args_from_dict(args)
+
+    @property
+    def actions(self):
+        return self.metadata.get('actions') or []
 
     @property
     def args(self):
@@ -162,7 +165,6 @@ def create(name, base_path, args, tags=[], connections={}):
 
     resource = Resource(name, meta, args, tags=tags)
     signals.assign_connections(resource, connections)
-    #resource.save()
 
     return resource
 
@@ -192,8 +194,6 @@ def load_all():
     for raw_resource in db.get_list(collection=db.COLLECTIONS.resource):
         resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
-
-    #signals.Connections.reconnect_all()
 
     return ret
 
