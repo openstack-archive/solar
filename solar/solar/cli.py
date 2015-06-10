@@ -29,7 +29,7 @@ from solar import utils
 from solar import operations
 from solar import state
 from solar.core import actions
-from solar.core import resource
+from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
 from solar.core.resource import connect_resources
 from solar.core import signals
@@ -116,7 +116,7 @@ def run(action, tags):
         db.get_list('resource'))
 
     for resource in resources:
-        resource_obj = resource.load(resource['id'])
+        resource_obj = sresource.load(resource['id'])
         actions.resource_action(resource_obj, action)
 
 
@@ -130,18 +130,46 @@ def init_cli_resource():
     @click.argument('action_name')
     def action(action_name, resource_path):
         print 'action', resource_path, action_name
-        r = resource.load(resource_path)
+        r = sresource.load(resource_path)
         actions.resource_action(r, action_name)
 
     @resource.command()
     @click.argument('name')
     @click.argument('base_path')
-    @click.argument('dest_path')
     @click.argument('args')
-    def create(args, dest_path, base_path, name):
-        print 'create', name, base_path, dest_path, args
+    def create(args, base_path, name):
+        print 'create', name, base_path, args
         args = json.loads(args)
-        resource.create(name, base_path, dest_path, args)
+        sresource.create(name, base_path, args)
+
+    @resource.command()
+    @click.option('--tag', default=None)
+    @click.option('--use-json/--no-use-json', default=False)
+    @click.option('--color/--no-color', default=True)
+    def show(color, use_json, tag):
+        resources = []
+
+        for name, res in sresource.load_all().items():
+            show = True
+            if tag:
+                if tag not in res.tags:
+                    show = False
+
+            if show:
+                resources.append(res)
+
+        if use_json:
+            output = json.dumps([r.to_dict() for r in resources], indent=2)
+        else:
+            if color:
+                formatter = lambda r: r.color_repr()
+            else:
+                formatter = lambda r: unicode(r)
+            output = '\n'.join(formatter(r) for r in resources)
+
+        if output:
+            click.echo_via_pager(output)
+
 
     @resource.command()
     @click.argument('resource_path')
@@ -149,7 +177,7 @@ def init_cli_resource():
     @click.option('--add/--delete', default=True)
     def tag(add, tag_name, resource_path):
         print 'Tag', resource_path, tag_name, add
-        r = resource.load(resource_path)
+        r = sresource.load(resource_path)
         if add:
             r.add_tag(tag_name)
         else:
@@ -157,36 +185,11 @@ def init_cli_resource():
         r.save()
 
     @resource.command()
-    @click.argument('path')
-    @click.option('--all/--one', default=False)
-    @click.option('--tag', default=None)
-    @click.option('--use-json/--no-use-json', default=False)
-    def show(use_json, tag, all, path):
-        import json
-        import six
-
-        printer = lambda r: six.print_(r)
-        if use_json:
-            printer = lambda r: six.print_(json.dumps(r.to_dict()))
-
-        if all or tag:
-            for name, res in resource.load_all(path).items():
-                show = True
-                if tag:
-                    if tag not in res.tags:
-                        show = False
-
-                if show:
-                    printer(res)
-        else:
-            printer(resource.load(path))
-
-    @resource.command()
     @click.argument('name')
     @click.argument('args')
     def update(name, args):
         args = json.loads(args)
-        all = resource.load_all()
+        all = sresource.load_all()
         r = all[name]
         r.update(args)
 
@@ -198,8 +201,8 @@ def init_cli_connect():
     @click.option('--mapping', default=None)
     def connect(mapping, receiver, emitter):
         print 'Connect', emitter, receiver
-        emitter = resource.load(emitter)
-        receiver = resource.load(receiver)
+        emitter = sresource.load(emitter)
+        receiver = sresource.load(receiver)
         print emitter
         print receiver
         if mapping is not None:
@@ -211,8 +214,8 @@ def init_cli_connect():
     @click.argument('receiver')
     def disconnect(receiver, emitter):
         print 'Disconnect', emitter, receiver
-        emitter = resource.load(emitter)
-        receiver = resource.load(receiver)
+        emitter = sresource.load(emitter)
+        receiver = sresource.load(receiver)
         print emitter
         print receiver
         signals.disconnect(emitter, receiver)
