@@ -145,12 +145,9 @@ input:
         self.assertEqual(sample2.args['ip'], sample.args['ip'])
         # sample should be unsubscribed from sample1 and subscribed to sample2
         self.assertEqual(len(sample1.args['ip'].receivers), 0)
-        self.assertEqual(
-            sample.args['ip'].emitter,
-            sample2.args['ip']
-        )
+        self.assertEqual(sample.args['ip'].emitter, sample2.args['ip'])
 
-        sample1.update({'ip': '10.0.0.3'})
+        sample2.update({'ip': '10.0.0.3'})
         self.assertEqual(sample2.args['ip'], sample.args['ip'])
 
     def test_circular_connection_prevention(self):
@@ -341,6 +338,11 @@ input:
         )
 
     def test_nested_list_input(self):
+        """
+        Make sure that single input change is propagated along the chain of
+        lists.
+        """
+
         sample_meta_dir = self.make_resource_meta("""
 id: sample
 handler: ansible
