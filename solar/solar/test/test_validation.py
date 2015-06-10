@@ -1,7 +1,5 @@
 import unittest
 
-from pytest import mark
-
 from solar.test import base
 
 from solar.core import validation as sv

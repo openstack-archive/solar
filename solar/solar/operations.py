@@ -98,6 +98,7 @@ def stage_changes():
 
 
 def execute(res, action):
+    return state.STATES.success
     try:
         actions.resource_action(res, action)
         return state.STATES.success
@@ -112,7 +113,8 @@ def commit(li, resources, commited, history):
 
     # TODO(dshulyak) think about this hack for update
     if li.action == 'update':
-        commited_res = resource.wrap_resource(commited.get(li.res, {}))
+        commited_res = resource.wrap_resource(
+            commited[li.res]['metadata'])
         result_state = execute(commited_res, 'remove')
 
         if result_state is state.STATES.success:
@@ -174,7 +176,7 @@ def rollback(log_item):
     log.append(log_item)
 
     res = resource.load(log_item.res)
-    res.update(staged.get('input', {}))
+    res.set_args(staged['input'])
     res.save()
 
     return log_item

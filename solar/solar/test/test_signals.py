@@ -4,8 +4,6 @@ import base
 
 from solar.core import signals as xs
 
-from pytest import mark
-
 
 class TestBaseInput(base.BaseResourceTest):
     def test_input_dict_type(self):
