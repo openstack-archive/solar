@@ -79,6 +79,21 @@ class Resource(object):
         return ("Resource(name='{name}', metadata={metadata}, args={args}, "
                 "tags={tags})").format(**self.to_dict())
 
+    def color_repr(self):
+        import click
+
+        arg_color = 'yellow'
+
+        return ("{resource_s}({name_s}='{name}', {metadata_s}={metadata}, "
+                "{args_s}={args}, {tags_s}={tags})").format(
+            resource_s=click.style('Resource', fg='white', bold=True),
+            name_s=click.style('name', fg=arg_color, bold=True),
+            metadata_s=click.style('metadata', fg=arg_color, bold=True),
+            args_s=click.style('args', fg=arg_color, bold=True),
+            tags_s=click.style('tags', fg=arg_color, bold=True),
+            **self.to_dict()
+        )
+
     def to_dict(self):
         return {
             'name': self.name,
