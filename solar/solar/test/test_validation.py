@@ -1,10 +1,12 @@
 import unittest
 
+from pytest import mark
+
 from solar.test import base
 
 from solar.core import validation as sv
 
-
+@mark.xfail
 class TestInputValidation(base.BaseResourceTest):
     def test_input_str_type(self):
         sample_meta_dir = self.make_resource_meta("""

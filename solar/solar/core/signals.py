@@ -110,10 +110,6 @@ class Connections(object):
 
         CLIENTS = {}
 
-        path = utils.read_config()[CLIENTS_CONFIG_KEY]
-        if os.path.exists(path):
-            os.remove(path)
-
     @staticmethod
     def flush():
         print 'FLUSHING Connections'

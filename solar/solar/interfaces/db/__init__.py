@@ -1,8 +1,10 @@
 
 from solar.interfaces.db.redis_db import RedisDB
+from solar.interfaces.db.redis_db import FakeRedisDB
 
 mapping = {
     'redis_db': RedisDB,
+    'fakeredis_db': FakeRedisDB
 }
 
 DB = None
