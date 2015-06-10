@@ -3,6 +3,9 @@
 - hosts: all
   sudo: yes
   tasks:
+    - apt: name=redis-server state=present
+    - apt: name=python-redis state=present
+
       # Setup additional development tools
     - apt: name=vim state=present
     - apt: name=tmux state=present

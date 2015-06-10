@@ -27,3 +27,6 @@
          - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
          {% endfor %}
        {% endif %}
+
+    - name: wait for glance registry
+      wait_for: host={{ ip }} port=9191 timeout=20
