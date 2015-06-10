@@ -2,5 +2,8 @@
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker stop {{ name }}
-    - shell: docker rm {{ name }}
+    - name: keystone container
+      docker:
+        image: {{ image }}
+        name: {{ name }}
+        state: absent
