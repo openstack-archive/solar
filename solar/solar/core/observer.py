@@ -28,7 +28,7 @@ class BaseObserver(object):
     def receivers(self):
         from solar.core import resource
 
-        signals.CLIENTS = signals.Connections.read_clients()
+        #signals.CLIENTS = signals.Connections.read_clients()
         for receiver_name, receiver_input in signals.Connections.receivers(
                     self._attached_to_name,
                     self.name

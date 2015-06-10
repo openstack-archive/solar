@@ -47,5 +47,13 @@ class RedisDB(object):
     def clear(self):
         self._r.flushdb()
 
+    def clear_collection(self, collection=COLLECTIONS.resource):
+        key_glob = self._make_key(collection, '*')
+
+        self._r.delete(self._r.keys(key_glob))
+
+    def delete(self, uid, collection=COLLECTIONS.resource):
+        self._r.delete(self._make_key(collection, uid))
+
     def _make_key(self, collection, _id):
         return '{0}:{1}'.format(collection, _id)

@@ -191,7 +191,7 @@ def init_cli_connections():
 
     @connections.command()
     def show():
-        print json.dumps(signals.CLIENTS, indent=2)
+        print json.dumps(signals.Connections.read_clients(), indent=2)
 
     # TODO: this requires graphing libraries
     @connections.command()

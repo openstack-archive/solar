@@ -196,7 +196,7 @@ def load(resource_name):
     raw_resource = db.read(resource_name, collection=db.COLLECTIONS.resource)
 
     if raw_resource is None:
-        raise NotImplementedError(
+        raise KeyError(
             'Resource {} does not exist'.format(resource_name)
         )
 
