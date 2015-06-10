@@ -166,7 +166,7 @@ def rollback(log_item):
     for e, r, mapping in staged.get('connections', ()):
         signals.connect(resources[e], resources[r], dict([mapping]))
 
-    df = create_diff(commited, staged)
+    df = create_diff(staged, commited)
 
     log_item = state.LogItem(
         utils.generate_uuid(),
@@ -174,10 +174,10 @@ def rollback(log_item):
     log.append(log_item)
 
     res = resource.load(log_item.res)
-    res.update(staged.get('args', {}))
+    res.update(staged.get('input', {}))
     res.save()
 
-    return log
+    return log_item
 
 
 def rollback_uid(uid):

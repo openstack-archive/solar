@@ -63,9 +63,9 @@ class Resource(object):
 
     def to_dict(self):
         return {
-            'name': self.name,
+            'id': self.name,
             'metadata': self.metadata,
-            'args': self.args_show(),
+            'input': self.args_show(),
             'tags': self.tags,
         }
 

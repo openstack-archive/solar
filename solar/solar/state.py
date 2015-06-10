@@ -112,6 +112,9 @@ class Log(object):
         return ['L(uuid={0}, res={1}, action={2})'.format(
             l.uid, l.res, l.action) for l in self.items]
 
+    def __len__(self):
+        return len(self.items)
+
     def __repr__(self):
         return 'Log({0})'.format(self.path)
 
