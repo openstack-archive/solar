@@ -9,14 +9,24 @@ from solar import state
 @pytest.fixture
 def resources():
 
-    node1 = resource.create('node1', '/vagrant/resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/', 'ssh_user': 'vagrant'})
-
-    mariadb_service1 = resource.create('mariadb', '/vagrant/resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    keystone_db = resource.create('keystone_db', '/vagrant/resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-
+    node1 = resource.wrap_resource(
+        {'id': 'node1',
+         'input': {'ip': {'value':'10.0.0.3'}}})
+    node1.save()
+    mariadb_service1 = resource.wrap_resource(
+        {'id':'mariadb', 'input': {
+            'port' : {'value': 3306},
+            'ip': {'value': ''}}})
+    mariadb_service1.save()
+    keystone_db = resource.wrap_resource(
+        {'id':'keystone_db',
+         'input': {
+            'login_port' : {'value': ''},
+            'ip': {'value': ''}}})
+    keystone_db.save()
     signals.connect(node1, mariadb_service1)
     signals.connect(node1, keystone_db)
-    signals.connect(mariadb_service1, keystone_db, {'root_password': 'login_password', 'port': 'login_port'})
+    signals.connect(mariadb_service1, keystone_db, {'port': 'login_port'})
     return resource.load_all()
 
 

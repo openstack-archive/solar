@@ -170,7 +170,6 @@ def deploy():
 
     signals.Connections.flush()
 
-
     has_errors = False
     for r in locals().values():
         if not isinstance(r, resource.Resource):

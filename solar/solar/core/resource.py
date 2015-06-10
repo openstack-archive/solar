@@ -26,7 +26,11 @@ class Resource(object):
         self.metadata = metadata
         self.actions = metadata.get('actions', {}).keys() or None
         self.args = {}
+        self.set_args(args)
+        self.changed = []
+        self.tags = tags or []
 
+    def set_args(self, args):
         for arg_name, arg_value in args.items():
             if not self.metadata['input'].get(arg_name):
                 continue
@@ -39,11 +43,9 @@ class Resource(object):
                 value = metadata_arg['value']
 
             self.args[arg_name] = observer.create(type_, self, arg_name, value)
-        self.changed = []
-        self.tags = tags or []
 
     def __repr__(self):
-        return ("Resource(name='{name}', metadata={metadata}, args={args}, "
+        return ("Resource(name='{id}', metadata={metadata}, args={input}, "
                 "tags={tags})").format(**self.to_dict())
 
     def color_repr(self):
@@ -51,8 +53,8 @@ class Resource(object):
 
         arg_color = 'yellow'
 
-        return ("{resource_s}({name_s}='{name}', {metadata_s}={metadata}, "
-                "{args_s}={args}, {tags_s}={tags})").format(
+        return ("{resource_s}({name_s}='{id}', {metadata_s}={metadata}, "
+                "{args_s}={input}, {tags_s}={tags})").format(
             resource_s=click.style('Resource', fg='white', bold=True),
             name_s=click.style('name', fg=arg_color, bold=True),
             metadata_s=click.style('metadata', fg=arg_color, bold=True),
