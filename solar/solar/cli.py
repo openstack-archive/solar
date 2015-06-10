@@ -104,20 +104,21 @@ def profile(id, tags, create):
         pprint.pprint(db.get_list('profiles'))
 
 
-@main.command()
-@click.option('-t', '--tags')
-@click.option('-a', '--action')
-def run(action, tags):
-    from solar.core import actions
-    from solar.core import resource
+def init_actions():
+    @main.command()
+    @click.option('-t', '--tags')
+    @click.option('-a', '--action')
+    def run(action, tags):
+        from solar.core import actions
+        from solar.core import resource
 
-    resources = filter(
-        lambda r: Expression(tags, r.get('tags', [])).evaluate(),
-        db.get_list('resource'))
+        resources = filter(
+            lambda r: Expression(tags, r.get('tags', [])).evaluate(),
+            db.get_list('resource'))
 
-    for resource in resources:
-        resource_obj = sresource.load(resource['id'])
-        actions.resource_action(resource_obj, action)
+        for resource in resources:
+            resource_obj = sresource.load(resource['id'])
+            actions.resource_action(resource_obj, action)
 
 
 def init_changes():
@@ -293,6 +294,7 @@ def init_cli_resource():
 
 
 def run():
+    init_actions()
     init_changes()
     init_cli_connect()
     init_cli_connections()
