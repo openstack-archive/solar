@@ -185,7 +185,7 @@ def load_all():
         resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
 
-    #signals.Connections.reconnect_all()
+    signals.Connections.reconnect_all()
 
     return ret
 
