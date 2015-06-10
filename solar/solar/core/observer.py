@@ -187,6 +187,8 @@ class ListObserver(BaseObserver):
         self.log('Unsubscribed emitter {}'.format(emitter))
         idx = self._emitter_idx(emitter)
         self.value.pop(idx)
+        for receiver in self.receivers:
+            receiver.notify(self)
 
     def _emitter_idx(self, emitter):
         try:

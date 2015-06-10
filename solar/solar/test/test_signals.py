@@ -329,6 +329,91 @@ input:
              (sample2.args['port'].attached_to.name, 'port')]
         )
 
+        # Test disconnect
+        xs.disconnect(sample2, list_input_multi)
+        self.assertEqual(
+            [ip['value'] for ip in list_input_multi.args['ips'].value],
+            [sample1.args['ip']]
+        )
+        self.assertEqual(
+            [p['value'] for p in list_input_multi.args['ports'].value],
+            [sample1.args['port']]
+        )
+
+    def test_nested_list_input(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+    schema: str
+    value:
+  port:
+    schema: int
+    value:
+        """)
+        list_input_meta_dir = self.make_resource_meta("""
+id: list-input
+handler: ansible
+version: 1.0.0
+input:
+  ips:
+    schema: [str]
+    value: []
+  ports:
+    schema: [int]
+    value: []
+        """)
+        list_input_nested_meta_dir = self.make_resource_meta("""
+id: list-input-nested
+handler: ansible
+version: 1.0.0
+input:
+  ipss:
+    schema: [[str]]
+    value: []
+  portss:
+    schema: [[int]]
+    value: []
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': '1000'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': '1001'}
+        )
+        list_input = self.create_resource(
+            'list-input', list_input_meta_dir, {'ips': [], 'ports': []}
+        )
+        list_input_nested = self.create_resource(
+            'list-input-nested', list_input_nested_meta_dir, {'ipss': [], 'portss': []}
+        )
+
+        xs.connect(sample1, list_input, mapping={'ip': 'ips', 'port': 'ports'})
+        xs.connect(sample2, list_input, mapping={'ip': 'ips', 'port': 'ports'})
+        xs.connect(list_input, list_input_nested, mapping={'ips': 'ipss', 'ports': 'portss'})
+        self.assertListEqual(
+            [ips['value'] for ips in list_input_nested.args['ipss'].value],
+            [list_input.args['ips'].value]
+        )
+        self.assertListEqual(
+            [ps['value'] for ps in list_input_nested.args['portss'].value],
+            [list_input.args['ports'].value]
+        )
+
+        # Test disconnect
+        xs.disconnect(sample1, list_input)
+        self.assertListEqual(
+            [[ip['value'] for ip in ips['value']] for ips in list_input_nested.args['ipss'].value],
+            [[sample2.args['ip'].value]]
+        )
+        self.assertListEqual(
+            [[p['value'] for p in ps['value']] for ps in list_input_nested.args['portss'].value],
+            [[sample2.args['port'].value]]
+        )
+
 
 '''
 class TestMultiInput(base.BaseResourceTest):
