@@ -1,4 +1,7 @@
 from solar.core import signals
+from solar.interfaces.db import get_db
+
+db = get_db()
 
 
 class BaseObserver(object):
@@ -15,6 +18,17 @@ class BaseObserver(object):
         self.name = name
         self.value = value
         self.receivers = []
+
+    # @property
+    # def receivers(self):
+    #     from solar.core import resource
+    #
+    #     signals.CLIENTS = signals.Connections.read_clients()
+    #     for receiver_name, receiver_input in signals.Connections.receivers(
+    #                 self.attached_to.name,
+    #                 self.name
+    #             ):
+    #         yield resource.load(receiver_name).args[receiver_input]
 
     def log(self, msg):
         print '{} {}'.format(self, msg)
@@ -173,6 +187,8 @@ class ListObserver(BaseObserver):
         self.log('Unsubscribed emitter {}'.format(emitter))
         idx = self._emitter_idx(emitter)
         self.value.pop(idx)
+        for receiver in self.receivers:
+            receiver.notify(self)
 
     def _emitter_idx(self, emitter):
         try:

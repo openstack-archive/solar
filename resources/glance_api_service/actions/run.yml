@@ -22,3 +22,6 @@
          - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
          {% endfor %}
        {% endif %}
+
+    - name: wait for glance api
+      wait_for: host={{ ip }} port=9393 timeout=20

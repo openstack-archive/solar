@@ -11,12 +11,48 @@ from solar.interfaces.db import get_db
 db = get_db()
 
 
-
 CLIENTS_CONFIG_KEY = 'clients-data-file'
-CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
+#CLIENTS = utils.read_config_file(CLIENTS_CONFIG_KEY)
+CLIENTS = {}
 
 
 class Connections(object):
+    """
+    CLIENTS structure is:
+
+    emitter_name:
+      emitter_input_name:
+        - - dst_name
+          - dst_input_name
+
+    while DB structure is:
+
+    emitter_name_key:
+      emitter: emitter_name
+      sources:
+        emitter_input_name:
+          - - dst_name
+            - dst_input_name
+    """
+
+    @staticmethod
+    def read_clients():
+        ret = {}
+
+        for data in db.get_list(collection=db.COLLECTIONS.connection):
+            ret[data['emitter']] = data['sources']
+
+        return ret
+
+    @staticmethod
+    def save_clients():
+        for emitter_name, sources in CLIENTS.items():
+            data = {
+                'emitter': emitter_name,
+                'sources': sources,
+            }
+            db.save(emitter_name, data, collection=db.COLLECTIONS.connection)
+
     @staticmethod
     def add(emitter, src, receiver, dst):
         if src not in emitter.args:
@@ -32,6 +68,7 @@ class Connections(object):
             CLIENTS[emitter.name][src].append([receiver.name, dst])
 
         #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
     @staticmethod
     def remove(emitter, src, receiver, dst):
@@ -41,6 +78,7 @@ class Connections(object):
         ]
 
         #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
     @staticmethod
     def reconnect_all():
@@ -48,13 +86,23 @@ class Connections(object):
 
         :return:
         """
+        from solar.core.resource import wrap_resource
+
         for emitter_name, dest_dict in CLIENTS.items():
-            emitter = db.get_obj_resource(emitter_name)
+            emitter = wrap_resource(
+                db.read(emitter_name, collection=db.COLLECTIONS.resource)
+            )
             for emitter_input, destinations in dest_dict.items():
                 for receiver_name, receiver_input in destinations:
-                    receiver = db.get_obj_resource(receiver_name)
+                    receiver = wrap_resource(
+                        db.read(receiver_name, collection=db.COLLECTIONS.resource)
+                    )
                     emitter.args[emitter_input].subscribe(
                         receiver.args[receiver_input])
+
+    @staticmethod
+    def receivers(emitter_name, emitter_input_name):
+        return CLIENTS.get(emitter_name, {}).get(emitter_input_name, [])
 
     @staticmethod
     def clear():
@@ -69,10 +117,12 @@ class Connections(object):
     @staticmethod
     def flush():
         print 'FLUSHING Connections'
-        utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        #utils.save_to_config_file(CLIENTS_CONFIG_KEY, CLIENTS)
+        Connections.save_clients()
 
 
-atexit.register(Connections.flush)
+CLIENTS = Connections.read_clients()
+#atexit.register(Connections.flush)
 
 
 def guess_mapping(emitter, receiver):
@@ -135,7 +185,7 @@ def disconnect_receiver_by_input(receiver, input):
     :return:
     """
     for emitter_name, inputs in CLIENTS.items():
-        emitter = db.get_resource(emitter_name)
+        emitter = db.read(emitter_name, collection=db.COLLECTIONS.resource)
         disconnect_by_src(emitter['id'], input, receiver)
 
 
@@ -150,11 +200,15 @@ def disconnect_by_src(emitter_name, src, receiver):
 
 
 def notify(source, key, value):
+    from solar.core.resource import wrap_resource
+
     CLIENTS.setdefault(source.name, {})
     print 'Notify', source.name, key, value, CLIENTS[source.name]
     if key in CLIENTS[source.name]:
         for client, r_key in CLIENTS[source.name][key]:
-            resource = db.get_obj_resource(client)
+            resource = wrap_resource(
+                db.read(client, collection=db.COLLECTIONS.resource)
+            )
             print 'Resource found', client
             if resource:
                 resource.update({r_key: value}, emitter=source)

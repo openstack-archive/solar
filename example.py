@@ -275,7 +275,7 @@ def deploy():
 def undeploy():
     db = get_db()
 
-    resources = map(resource.wrap_resource, db.get_list('resource'))
+    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
 
     actions.resource_action(resources['glance_api_endpoint'], 'remove')

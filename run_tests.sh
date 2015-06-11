@@ -16,7 +16,7 @@ fi
 
 . $VENV/bin/activate
 
-pip install -r requirements.txt --download-cache=/tmp/$JOB_NAME
+pip install -r solar/requirements.txt --download-cache=/tmp/$JOB_NAME
 
 pushd solar/solar
 

@@ -46,6 +46,21 @@ class Resource(object):
         return ("Resource(name='{name}', metadata={metadata}, args={args}, "
                 "tags={tags})").format(**self.to_dict())
 
+    def color_repr(self):
+        import click
+
+        arg_color = 'yellow'
+
+        return ("{resource_s}({name_s}='{name}', {metadata_s}={metadata}, "
+                "{args_s}={args}, {tags_s}={tags})").format(
+            resource_s=click.style('Resource', fg='white', bold=True),
+            name_s=click.style('name', fg=arg_color, bold=True),
+            metadata_s=click.style('metadata', fg=arg_color, bold=True),
+            args_s=click.style('args', fg=arg_color, bold=True),
+            tags_s=click.style('tags', fg=arg_color, bold=True),
+            **self.to_dict()
+        )
+
     def to_dict(self):
         return {
             'name': self.name,
@@ -116,7 +131,7 @@ class Resource(object):
         for k, v in self.args_dict().items():
             metadata['input'][k]['value'] = v
 
-        db.add_resource(self.name, metadata)
+        db.save(self.name, metadata, collection=db.COLLECTIONS.resource)
 
 
 def create(name, base_path, args, tags=[], connections={}):
@@ -152,11 +167,22 @@ def wrap_resource(raw_resource):
     return Resource(name, raw_resource, args, tags=tags)
 
 
+def load(resource_name):
+    raw_resource = db.read(resource_name, collection=db.COLLECTIONS.resource)
+
+    if raw_resource is None:
+        raise NotImplementedError(
+            'Resource {} does not exist'.format(resource_name)
+        )
+
+    return wrap_resource(raw_resource)
+
+
 def load_all():
     ret = {}
 
-    for raw_resource in db.get_list('resource'):
-        resource = db.get_obj_resource(raw_resource['id'])
+    for raw_resource in db.get_list(collection=db.COLLECTIONS.resource):
+        resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
 
     signals.Connections.reconnect_all()
