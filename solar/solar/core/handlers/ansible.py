@@ -31,9 +31,6 @@ class Ansible(BaseHandler):
     def _render_inventory(self, r):
         inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh ansible_ssh_user={2} ansible_ssh_private_key_file={3}'
         host, user, ssh_key = r.args['ip'].value, r.args['ssh_user'].value, r.args['ssh_key'].value
-        print host
-        print user
-        print ssh_key
         inventory = inventory.format(host, host, user, ssh_key)
         print inventory
         return inventory

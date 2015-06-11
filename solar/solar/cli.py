@@ -189,10 +189,6 @@ def init_cli_connections():
     def connections():
         pass
 
-    @connections.command()
-    def show():
-        print json.dumps(signals.Connections.read_clients(), indent=2)
-
     # TODO: this requires graphing libraries
     @connections.command()
     def graph():
@@ -209,6 +205,10 @@ def init_cli_connections():
         #nx.draw_networkx_labels(g, pos)
         #plt.axis('off')
         #plt.savefig('graph.png')
+
+    @connections.command()
+    def show():
+        print json.dumps(signals.Connections.read_clients(), indent=2)
 
 
 def init_cli_deployment_config():

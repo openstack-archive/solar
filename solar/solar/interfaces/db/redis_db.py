@@ -56,4 +56,7 @@ class RedisDB(object):
         self._r.delete(self._make_key(collection, uid))
 
     def _make_key(self, collection, _id):
+        if isinstance(collection, self.COLLECTIONS):
+            collection = collection.name
+
         return '{0}:{1}'.format(collection, _id)

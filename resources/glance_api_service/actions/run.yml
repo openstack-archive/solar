@@ -28,4 +28,4 @@
        {% endif %}
 
     - name: wait for glance api
-      wait_for: host={{ ip }} port=9393 timeout=20
+      wait_for: host={{ ip }} port={{ ports.value[0]['value']['value'] }} timeout=20

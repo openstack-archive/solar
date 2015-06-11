@@ -37,6 +37,7 @@ class BaseHandler(object):
 
         action_file = resource.metadata['actions'][action]
         action_file = os.path.join(resource.metadata['actions_path'], action_file)
+        print 'action file: ', action_file
         args = self._make_args(resource)
 
         with open(action_file) as f:

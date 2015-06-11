@@ -4,7 +4,7 @@ version: 1.0.0
 input:
     image:
       schema: str!
-      value: kollaglue/centos-rdo-k-keystone
+      value: kollaglue/centos-rdo-j-keystone
     config_dir:
       schema: str!
       value: /etc/solar/keystone
