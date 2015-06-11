@@ -10,3 +10,5 @@ mock
 dictdiffer==0.4.0
 enum34==1.0.4
 redis==2.10.3
+pytest
+fakeredis

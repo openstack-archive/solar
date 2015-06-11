@@ -1,6 +1,7 @@
 from enum import Enum
 import json
 import redis
+import fakeredis
 
 from solar import utils
 from solar import errors
@@ -15,9 +16,11 @@ class RedisDB(object):
         'host': 'localhost',
         'port': 6379,
     }
+    REDIS_CLIENT = redis.StrictRedis
+
 
     def __init__(self):
-        self._r = redis.StrictRedis(**self.DB)
+        self._r = self.REDIS_CLIENT(**self.DB)
         self.entities = {}
 
     def read(self, uid, collection=COLLECTIONS.resource):
@@ -34,6 +37,9 @@ class RedisDB(object):
             json.dumps(data)
         )
 
+    def delete(self, uid, collection):
+        return self._r.delete(self._make_key(collection, uid))
+
     def get_list(self, collection=COLLECTIONS.resource):
         key_glob = self._make_key(collection, '*')
 
@@ -44,4 +50,9 @@ class RedisDB(object):
         self._r.flushdb()
 
     def _make_key(self, collection, _id):
-        return '{0}:{1}'.format(collection, _id)
+        return '{0}:{1}'.format(collection.name, _id)
+
+
+class FakeRedisDB(RedisDB):
+
+    REDIS_CLIENT = fakeredis.FakeStrictRedis
