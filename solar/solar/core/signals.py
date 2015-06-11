@@ -3,6 +3,7 @@ from collections import defaultdict
 import itertools
 import networkx as nx
 
+from solar.core.log import log
 from solar.interfaces.db import get_db
 
 db = get_db()
@@ -140,7 +141,9 @@ def disconnect(emitter, receiver):
             receiver_input = destination[1]
             if receiver_input in receiver.args:
                 if receiver.args[receiver_input].type_ != 'list':
-                    print 'Removing input {} from {}'.format(receiver_input, receiver.name)
+                    log.debug(
+                        'Removing input %s from %s', receiver_input, receiver.name
+                    )
                 emitter.args[src].unsubscribe(receiver.args[receiver_input])
 
         disconnect_by_src(emitter.name, src, receiver)
@@ -179,15 +182,15 @@ def notify(source, key, value):
     clients.setdefault(source.name, {})
     Connections.save_clients(clients)
 
-    print 'Notify', source.name, key, value, clients[source.name]
+    log.debug('Notify %s %s %s %s', source.name, key, value, clients[source.name])
     if key in clients[source.name]:
         for client, r_key in clients[source.name][key]:
             resource = load(client)
-            print 'Resource found', client
+            log.debug('Resource found: %s', client)
             if resource:
                 resource.update({r_key: value}, emitter=source)
             else:
-                print 'Resource {} deleted?'.format(client)
+                log.debug('Resource %s deleted?', client)
                 pass
 
 

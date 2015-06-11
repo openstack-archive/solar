@@ -1,3 +1,4 @@
+from solar.core.log import log
 from solar.core import signals
 from solar.interfaces.db import get_db
 
@@ -28,15 +29,11 @@ class BaseObserver(object):
     def receivers(self):
         from solar.core import resource
 
-        #signals.CLIENTS = signals.Connections.read_clients()
         for receiver_name, receiver_input in signals.Connections.receivers(
                     self._attached_to_name,
                     self.name
                 ):
             yield resource.load(receiver_name).args[receiver_input]
-
-    def log(self, msg):
-        print '{} {}'.format(self, msg)
 
     def __repr__(self):
         return '[{}:{}] {}'.format(self._attached_to_name, self.name, self.value)
@@ -76,10 +73,10 @@ class BaseObserver(object):
         :param receiver: Observer
         :return:
         """
-        self.log('Subscribe {}'.format(receiver))
+        log.debug('Subscribe %s', receiver)
         # No multiple subscriptions
         if self.find_receiver(receiver):
-            self.log('No multiple subscriptions from {}'.format(receiver))
+            log.error('No multiple subscriptions from %s', receiver)
             return
         receiver.subscribed(self)
 
@@ -93,14 +90,14 @@ class BaseObserver(object):
         receiver.notify(self)
 
     def subscribed(self, emitter):
-        self.log('Subscribed {}'.format(emitter))
+        log.debug('Subscribed %s', emitter)
 
     def unsubscribe(self, receiver):
         """
         :param receiver: Observer
         :return:
         """
-        self.log('Unsubscribe {}'.format(receiver))
+        log.debug('Unsubscribe %s', receiver)
         if self.find_receiver(receiver):
             receiver.unsubscribed(self)
 
@@ -115,7 +112,7 @@ class BaseObserver(object):
         #receiver.notify(self)
 
     def unsubscribed(self, emitter):
-        self.log('Unsubscribed {}'.format(emitter))
+        log.debug('Unsubscribed %s', emitter)
 
 
 class Observer(BaseObserver):
@@ -132,7 +129,7 @@ class Observer(BaseObserver):
             return resource.load(emitter_name).args[emitter_input_name]
 
     def notify(self, emitter):
-        self.log('Notify from {} value {}'.format(emitter, emitter.value))
+        log.debug('Notify from %s value %s', emitter, emitter.value)
         # Copy emitter's values to receiver
         self.value = emitter.value
         for receiver in self.receivers:
@@ -140,7 +137,7 @@ class Observer(BaseObserver):
         self.attached_to.set_args_from_dict({self.name: self.value})
 
     def update(self, value):
-        self.log('Updating to value {}'.format(value))
+        log.debug('Updating to value %s', value)
         self.value = value
         for receiver in self.receivers:
             receiver.notify(self)
@@ -168,7 +165,7 @@ class ListObserver(BaseObserver):
         }
 
     def notify(self, emitter):
-        self.log('Notify from {} value {}'.format(emitter, emitter.value))
+        log.debug('Notify from %s value %s', emitter, emitter.value)
         # Copy emitter's values to receiver
         idx = self._emitter_idx(emitter)
         self.value[idx] = self._format_value(emitter)
@@ -188,7 +185,7 @@ class ListObserver(BaseObserver):
         :param receiver: Observer
         :return:
         """
-        self.log('Unsubscribed emitter {}'.format(emitter))
+        log.debug('Unsubscribed emitter %s', emitter)
         idx = self._emitter_idx(emitter)
         self.value.pop(idx)
         self.attached_to.set_args_from_dict({self.name: self.value})

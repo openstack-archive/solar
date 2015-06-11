@@ -5,6 +5,8 @@ import tempfile
 
 from jinja2 import Template
 
+from solar.core.log import log
+
 
 class BaseHandler(object):
     def __init__(self, resources):
@@ -19,7 +21,7 @@ class BaseHandler(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        print self.dst
+        log.debug(self.dst)
         return
         shutil.rmtree(self.dst)
 
@@ -33,11 +35,11 @@ class BaseHandler(object):
         return dest_file
 
     def _render_action(self, resource, action):
-        print 'Rendering %s %s' % (resource.name, action)
+        log.debug('Rendering %s %s', resource.name, action)
 
         action_file = resource.metadata['actions'][action]
         action_file = os.path.join(resource.metadata['actions_path'], action_file)
-        print 'action file: ', action_file
+        log.debug('action file: %s', action_file)
         args = self._make_args(resource)
 
         with open(action_file) as f:

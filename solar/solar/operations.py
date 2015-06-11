@@ -1,6 +1,7 @@
 
 
 from solar import state
+from solar.core.log import log
 from solar.core import signals
 from solar.core import resource
 from solar import utils
@@ -60,7 +61,7 @@ def stage_changes():
         srt = nx.topological_sort(conn_graph)
     except:
         for cycle in nx.simple_cycles(conn_graph):
-            print 'CYCLE: %s' % cycle
+            log.debug('CYCLE: %s', cycle)
         raise
 
     for res_uid in srt:

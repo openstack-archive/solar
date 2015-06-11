@@ -14,3 +14,5 @@ tmp/
 state/
 clients.json
 rs/
+
+solar.log
