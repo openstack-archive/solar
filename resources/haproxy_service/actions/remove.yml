@@ -1,6 +1,8 @@
-
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker stop {{ name }}
-    - shell: docker rm {{ name }}
+    - name: haproxy container
+      docker:
+        name: {{ name }}
+        image: {{ image }}
+        state: absent
