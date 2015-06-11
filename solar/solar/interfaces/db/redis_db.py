@@ -38,6 +38,16 @@ class RedisDB(object):
 
         return ret
 
+    def save_list(self, lst, collection=COLLECTIONS.resource):
+        with self._r.pipeline() as pipe:
+            pipe.multi()
+
+            for uid, data in lst:
+                key = self._make_key(collection, uid)
+                pipe.set(key, json.dumps(data))
+
+            pipe.execute()
+
     def get_list(self, collection=COLLECTIONS.resource):
         key_glob = self._make_key(collection, '*')
 

@@ -39,12 +39,17 @@ class Connections(object):
 
     @staticmethod
     def save_clients(clients):
+        data = []
+
         for emitter_name, sources in clients.items():
-            data = {
-                'emitter': emitter_name,
-                'sources': sources,
-            }
-            db.save(emitter_name, data, collection=db.COLLECTIONS.connection)
+            data.append((
+                emitter_name,
+                {
+                    'emitter': emitter_name,
+                    'sources': sources,
+                }))
+
+        db.save_list(data, collection=db.COLLECTIONS.connection)
 
     @staticmethod
     def add(emitter, src, receiver, dst):
@@ -171,7 +176,7 @@ def disconnect_by_src(emitter_name, src, receiver):
             if destination[0] != receiver.name
         ]
 
-    Connections.save_clients(clients)
+        Connections.save_clients(clients)
 
 
 def notify(source, key, value):
@@ -179,8 +184,9 @@ def notify(source, key, value):
 
     clients = Connections.read_clients()
 
-    clients.setdefault(source.name, {})
-    Connections.save_clients(clients)
+    if source.name not in clients:
+        clients[source.name] = {}
+        Connections.save_clients(clients)
 
     log.debug('Notify %s %s %s %s', source.name, key, value, clients[source.name])
     if key in clients[source.name]:
