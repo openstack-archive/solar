@@ -195,9 +195,10 @@ def init_cli_connections():
 
     # TODO: this requires graphing libraries
     @connections.command()
-    def graph():
+    @click.option('--start-with', default=None)
+    def graph(start_with):
         #g = xs.connection_graph()
-        g = signals.detailed_connection_graph()
+        g = signals.detailed_connection_graph(start_with=start_with)
 
         nx.write_dot(g, 'graph.dot')
         subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
