@@ -252,7 +252,7 @@ def connection_graph():
     return g
 
 
-def detailed_connection_graph(start_with=None):
+def detailed_connection_graph(start_with=None, end_with=None):
     g = nx.MultiDiGraph()
 
     for emitter_name, destination_values in CLIENTS.items():
@@ -261,14 +261,15 @@ def detailed_connection_graph(start_with=None):
                 label = '{}:{}'.format(emitter_input, receiver_input)
                 g.add_edge(emitter_name, receiver_name, label=label)
 
+    ret = g
+
     if start_with is not None:
-        nodes = set()
-        new_nodes = set([start_with])
-        while nodes != new_nodes:
-            nodes = new_nodes.copy()
-            for nn in g.edges(nodes):
-                new_nodes.update(nn)
+        ret = g.subgraph(
+            nx.dfs_postorder_nodes(ret, start_with)
+        )
+    if end_with is not None:
+        ret = g.subgraph(
+            nx.dfs_postorder_nodes(ret.reverse(), end_with)
+        )
 
-        return g.subgraph(nodes)
-
-    return g
+    return ret
