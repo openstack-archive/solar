@@ -262,15 +262,13 @@ def detailed_connection_graph(start_with=None):
                 g.add_edge(emitter_name, receiver_name, label=label)
 
     if start_with is not None:
-        edges = []
         nodes = set()
         new_nodes = set([start_with])
         while nodes != new_nodes:
             nodes = new_nodes.copy()
-            edges = g.edges(nodes)
-            for nn in edges:
+            for nn in g.edges(nodes):
                 new_nodes.update(nn)
 
-        return nx.MultiDiGraph(edges)
+        return g.subgraph(nodes)
 
     return g
