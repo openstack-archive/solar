@@ -1,4 +1,3 @@
-# TODO
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
