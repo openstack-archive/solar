@@ -191,13 +191,42 @@ def init_cli_connections():
 
     @connections.command()
     def show():
-        print json.dumps(signals.CLIENTS, indent=2)
+        def format_resource_input(resource_name, resource_input_name):
+            return '{}::{}'.format(
+                #click.style(resource_name, fg='white', bold=True),
+                resource_name,
+                click.style(resource_input_name, fg='yellow')
+            )
+
+        def show_emitter_connections(emitter_name, destinations):
+            inputs = sorted(destinations)
+
+            for emitter_input in inputs:
+                click.echo(
+                    '{} -> {}'.format(
+                        format_resource_input(emitter_name, emitter_input),
+                        '[{}]'.format(
+                            ', '.join(
+                                format_resource_input(*r)
+                                for r in destinations[emitter_input]
+                            )
+                        )
+                    )
+                )
+
+        keys = sorted(signals.CLIENTS)
+        for emitter_name in keys:
+            show_emitter_connections(emitter_name,
+                                     signals.CLIENTS[emitter_name])
 
     # TODO: this requires graphing libraries
     @connections.command()
-    def graph():
+    @click.option('--start-with', default=None)
+    @click.option('--end-with', default=None)
+    def graph(end_with, start_with):
         #g = xs.connection_graph()
-        g = signals.detailed_connection_graph()
+        g = signals.detailed_connection_graph(start_with=start_with,
+                                              end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
         subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
