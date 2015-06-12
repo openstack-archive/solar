@@ -51,8 +51,17 @@ class RedisDB(object):
     def get_list(self, collection=COLLECTIONS.resource):
         key_glob = self._make_key(collection, '*')
 
-        for key in self._r.keys(key_glob):
-            yield json.loads(self._r.get(key))
+        keys = self._r.keys(key_glob)
+
+        with self._r.pipeline() as pipe:
+            pipe.multi()
+
+            values = [self._r.get(key) for key in keys]
+
+            pipe.execute()
+
+        for value in values:
+            yield json.loads(value)
 
     def clear(self):
         self._r.flushdb()
