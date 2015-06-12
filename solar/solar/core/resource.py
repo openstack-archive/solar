@@ -23,7 +23,6 @@ class Resource(object):
         self.name = name
         self.metadata = metadata
 
-        # TODO: read tags from DB on demand
         self.tags = tags or []
         self.set_args_from_dict(args)
 
@@ -76,7 +75,7 @@ class Resource(object):
         self.set_args_from_dict({k: v.value for k, v in args.items()})
 
     def __repr__(self):
-        return ("Resource(name='{name}', metadata={metadata}, args={args}, "
+        return ("Resource(name='{id}', metadata={metadata}, args={input}, "
                 "tags={tags})").format(**self.to_dict())
 
     def color_repr(self):
@@ -84,8 +83,8 @@ class Resource(object):
 
         arg_color = 'yellow'
 
-        return ("{resource_s}({name_s}='{name}', {metadata_s}={metadata}, "
-                "{args_s}={args}, {tags_s}={tags})").format(
+        return ("{resource_s}({name_s}='{id}', {metadata_s}={metadata}, "
+                "{args_s}={input}, {tags_s}={tags})").format(
             resource_s=click.style('Resource', fg='white', bold=True),
             name_s=click.style('name', fg=arg_color, bold=True),
             metadata_s=click.style('metadata', fg=arg_color, bold=True),
@@ -96,9 +95,9 @@ class Resource(object):
 
     def to_dict(self):
         return {
-            'name': self.name,
+            'id': self.name,
             'metadata': self.metadata,
-            'args': self.args_show(),
+            'input': self.args_show(),
             'tags': self.tags,
         }
 

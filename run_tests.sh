@@ -20,8 +20,6 @@ pip install -r solar/requirements.txt --download-cache=/tmp/$JOB_NAME
 
 pushd solar/solar
 
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_resource.py
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_signals.py
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE python test/test_validation.py
+PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test test/
 
 popd

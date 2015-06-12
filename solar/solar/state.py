@@ -83,6 +83,10 @@ class Log(object):
             l['diff'], l['action'],
             getattr(STATES, l['state'])) for l in items])
 
+    def delete(self):
+        self.items = deque()
+        db.delete(self.path, db.COLLECTIONS.state_log)
+
     def sync(self):
         db.save(
             self.path,
@@ -90,7 +94,7 @@ class Log(object):
             collection=db.COLLECTIONS.state_log
         )
 
-    def add(self, logitem):
+    def append(self, logitem):
         self.items.append(logitem)
         self.sync()
 
@@ -107,6 +111,9 @@ class Log(object):
     def show(self, verbose=False):
         return ['L(uuid={0}, res={1}, action={2})'.format(
             l.uid, l.res, l.action) for l in self.items]
+
+    def __len__(self):
+        return len(self.items)
 
     def __repr__(self):
         return 'Log({0})'.format(self.path)
