@@ -229,23 +229,23 @@ def assign_connections(receiver, connections):
 def connection_graph():
     resource_dependencies = {}
 
-    for source, destination_values in CLIENTS.items():
-        resource_dependencies.setdefault(source, set())
-        for src, destinations in destination_values.items():
-            resource_dependencies[source].update([
-                destination[0] for destination in destinations
-            ])
+    for emitter_name, destination_values in CLIENTS.items():
+        resource_dependencies.setdefault(emitter_name, set())
+        for emitter_input, receivers in destination_values.items():
+            resource_dependencies[emitter_name].update(
+                receiver[0] for receiver in receivers
+            )
 
     g = nx.DiGraph()
 
     # TODO: tags as graph node attributes
-    for source, destinations in resource_dependencies.items():
-        g.add_node(source)
-        g.add_nodes_from(destinations)
+    for emitter_name, receivers in resource_dependencies.items():
+        g.add_node(emitter_name)
+        g.add_nodes_from(receivers)
         g.add_edges_from(
             itertools.izip(
-                itertools.repeat(source),
-                destinations
+                itertools.repeat(emitter_name),
+                receivers
             )
         )
 
