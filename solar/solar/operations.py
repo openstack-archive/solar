@@ -89,7 +89,6 @@ def _stage_changes(staged_resources, conn_graph,
 
 
 def stage_changes():
-    resources = resource.load_all()
     conn_graph = signals.detailed_connection_graph()
     staged = {r.name: to_dict(r, conn_graph) for r in resource.load_all().values()}
     commited = state.CD()

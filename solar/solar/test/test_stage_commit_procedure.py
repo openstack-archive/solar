@@ -1,6 +1,5 @@
 
 import pytest
-from mock import patch
 
 from solar.core import resource
 from solar import operations
@@ -23,9 +22,8 @@ def default_resources():
     return resource.load_all()
 
 
-@patch('solar.core.actions.resource_action')
 @pytest.mark.usefixtures("default_resources")
-def test_changes_on_update_image(maction):
+def test_changes_on_update_image():
     log = operations.stage_changes()
 
     assert len(log) == 2

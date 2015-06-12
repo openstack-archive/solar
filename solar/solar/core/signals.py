@@ -243,7 +243,7 @@ def detailed_connection_graph():
     clients = Connections.read_clients()
 
     for emitter_name, destination_values in clients.items():
-        for emitter_input, receivers in clients[emitter_name].items():
+        for emitter_input, receivers in destination_values.items():
             for receiver_name, receiver_input in receivers:
                 label = emitter_input
                 if emitter_input != receiver_input:

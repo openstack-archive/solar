@@ -72,6 +72,7 @@ def test_update_list_resource(list_input):
 
     res3 = resource.wrap_resource(
         {'id': 'res3', 'input': {'ip': {'value': '10.10.0.4'}}})
+    signals.connect(res3, list_input['consumer'], {'ip': 'ips'})
 
     log = operations.stage_changes()
 

@@ -1,7 +1,6 @@
 
 from pytest import fixture
-import mock
-from dictdiffer import revert, patch, diff
+from dictdiffer import revert, patch
 import networkx as nx
 
 from solar import operations
