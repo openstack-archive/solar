@@ -214,30 +214,30 @@ def connection_graph():
 
     clients = Connections.read_clients()
 
-    for source, destination_values in clients.items():
-        resource_dependencies.setdefault(source, set())
-        for src, destinations in destination_values.items():
-            resource_dependencies[source].update([
-                destination[0] for destination in destinations
-            ])
+    for emitter_name, destination_values in clients.items():
+        resource_dependencies.setdefault(emitter_name, set())
+        for emitter_input, receivers in destination_values.items():
+            resource_dependencies[emitter_name].update(
+                receiver[0] for receiver in receivers
+            )
 
     g = nx.DiGraph()
 
     # TODO: tags as graph node attributes
-    for source, destinations in resource_dependencies.items():
-        g.add_node(source)
-        g.add_nodes_from(destinations)
+    for emitter_name, receivers in resource_dependencies.items():
+        g.add_node(emitter_name)
+        g.add_nodes_from(receivers)
         g.add_edges_from(
             itertools.izip(
-                itertools.repeat(source),
-                destinations
+                itertools.repeat(emitter_name),
+                receivers
             )
         )
 
     return g
 
 
-def detailed_connection_graph():
+def detailed_connection_graph(start_with=None, end_with=None):
     g = nx.MultiDiGraph()
 
     clients = Connections.read_clients()
@@ -245,9 +245,18 @@ def detailed_connection_graph():
     for emitter_name, destination_values in clients.items():
         for emitter_input, receivers in destination_values.items():
             for receiver_name, receiver_input in receivers:
-                label = emitter_input
-                if emitter_input != receiver_input:
-                    label = '{}:{}'.format(emitter_input, receiver_input)
+                label = '{}:{}'.format(emitter_input, receiver_input)
                 g.add_edge(emitter_name, receiver_name, label=label)
 
-    return g
+    ret = g
+
+    if start_with is not None:
+        ret = g.subgraph(
+            nx.dfs_postorder_nodes(ret, start_with)
+        )
+    if end_with is not None:
+        ret = g.subgraph(
+            nx.dfs_postorder_nodes(ret.reverse(), end_with)
+        )
+
+    return ret
