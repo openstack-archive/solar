@@ -66,6 +66,7 @@ def list_input():
     return resource.load_all()
 
 
+@pytest.mark.xfail
 def test_update_list_resource(list_input):
     operations.stage_changes()
     operations.commit_changes()
