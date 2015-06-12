@@ -1,6 +1,7 @@
 - hosts: [{{ ip }}]
   sudo: yes
   vars:
+    ip: {{ ip }}
     api_port: {{ api_port }}
     registry_port: {{ registry_port }}
     keystone_ip: {{ keystone_ip }}

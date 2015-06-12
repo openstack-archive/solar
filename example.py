@@ -27,13 +27,13 @@ def deploy():
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
     node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
-    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'ssh_user': '', 'ip': '','management_port': '15672', 'port': '5672', 'ssh_key': '', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
-    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'ssh_user': '', 'ip': '', 'ssh_key': '', 'vhost_name': 'openstack', 'container_name': ''})
-    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'ssh_user': '', 'ip': '', 'ssh_key': '', 'vhost_name': '', 'user_name': 'openstack', 'password': 'openstack_password', 'container_name': ''})
+    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': '15672', 'port': '5672', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
+    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})
+    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})
 
-    mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306, 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'db_name': '', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306})
+    keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
+    keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
     keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
     keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357})
@@ -41,30 +41,34 @@ def deploy():
     keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
     keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35358})
 
-    haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port':5000, 'servers':[], 'ports':[]})
-    haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
-    haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_service_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers':[], 'ports':[]})
+    haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
+    haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[]})
 
-    glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name': 'glance', 'new_user_password': 'glance', 'db_name': '', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_user': 'root'})
+    glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name': 'glance', 'new_user_password': 'glance', 'login_user': 'root'})
 
-    services_tenant = resource.create('glance_keystone_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': 'services', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    services_tenant = resource.create('glance_keystone_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})
 
-    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins', 'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
-    glance_keystone_role = resource.create('glance_keystone_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins'})
+    glance_keystone_role = resource.create('glance_keystone_role', 'resources/keystone_role', {'role_name': 'admin'})
 
-    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_port': '', 'keystone_admin_tenant': ''})
-    glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9292}]}], 'host_binds': [], 'volume_binds': [], 'db_password': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
-    glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': [], 'db_host': '', 'db_root_password': '', 'db_password': '', 'db_name': '', 'db_user': '', 'keystone_admin_tenant': '', 'keystone_password': '', 'keystone_user': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    # TODO: add api_host and registry_host -- they can be different! Currently 'ip' is used.
+    glance_config = resource.create('glance_config', 'resources/glance_config/', {'api_port': 9393})
+    glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9393}]}], 'host_binds': [], 'volume_binds': []})
+    glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': []})
     # TODO: admin_port should be refactored, we need to rethink docker
     # container resource and make it common for all
     # resources used in this demo
-    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': 9292, 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'keystone_host': '', 'keystone_port': '', 'port': 9292, 'type': 'image'})
+    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'type': 'image'})
+    # TODO: ports value 9393 is a HACK -- fix glance_api_container's port and move to some config
+    # TODO: glance registry container's API port needs to point to haproxy_config
+    haproxy_glance_api_config = resource.create('haproxy_glance_api_config', 'resources/haproxy_service_config/', {'name': 'glance_api_config', 'listen_port': 9292, 'servers': [], 'ports':[{'value': 9393}]})
 
-    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    admin_user = resource.create('admin_user', 'resources/keystone_user', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': 'admin', 'user_password': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    admin_role = resource.create('admin_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': '', 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'keystone_host': '', 'keystone_port': '', 'port': '', 'type': 'identity'})
+    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'tenant_name': 'admin'})
+    admin_user = resource.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})
+    admin_role = resource.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})
+    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})
 
 
     ####
@@ -74,7 +78,7 @@ def deploy():
     # mariadb
     signals.connect(node1, mariadb_service1)
 
-    #rabbitmq
+    # rabbitmq
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
     signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
@@ -163,10 +167,18 @@ def deploy():
     signals.connect(glance_keystone_user, glance_registry_container, {'admin_token': 'keystone_admin_token'})
     signals.connect(haproxy_config, glance_registry_container, {'ip': 'keystone_host'})
 
+    # glance haproxy
+    signals.connect(glance_api_container, haproxy_glance_api_config, {'ip': 'servers'})
+    #signals.connect(glance_config, haproxy_glance_api_config, {'api_port': 'ports'})
+    signals.connect(haproxy_glance_api_config, haproxy_config, {'listen_port': 'listen_ports', 'name': 'configs_names', 'ports': 'configs_ports', 'servers': 'configs'})
+
     # glance keystone endpoint
-    signals.connect(glance_api_container, glance_api_endpoint, {'ip': 'ip', 'ssh_user': 'ssh_user', 'ssh_key': 'ssh_key'})
+    #signals.connect(glance_api_container, glance_api_endpoint, {'ip': 'ip', 'ssh_user': 'ssh_user', 'ssh_key': 'ssh_key'})
+    signals.connect(haproxy_service, glance_api_endpoint, {'ip': 'ip', 'ssh_user': 'ssh_user', 'ssh_key': 'ssh_key'})
     signals.connect(keystone_config1, glance_api_endpoint, {'admin_token': 'admin_token'})
     signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
+    signals.connect(haproxy_glance_api_config, glance_api_endpoint, {'listen_port': 'admin_port'})
+    signals.connect(haproxy_glance_api_config, glance_api_endpoint, {'listen_port': 'port'})
 
 
     has_errors = False
@@ -195,6 +207,7 @@ def deploy():
     actions.resource_action(keystone_service1, 'run')
     actions.resource_action(keystone_config2, 'run')
     actions.resource_action(keystone_service2, 'run')
+
     actions.resource_action(haproxy_config, 'run')
     actions.resource_action(haproxy_service, 'run')
 
@@ -211,9 +224,14 @@ def deploy():
     actions.resource_action(glance_config, 'run')
     actions.resource_action(glance_api_container, 'run')
     time.sleep(10) #TODO fix
+    actions.resource_action(glance_api_endpoint, 'run')
     actions.resource_action(glance_registry_container, 'run')
     time.sleep(10)
-    actions.resource_action(glance_api_endpoint, 'run')
+
+    # HAProxy needs to be restarted after Glance API is up
+    actions.resource_action(haproxy_service, 'remove')
+    actions.resource_action(haproxy_service, 'run')
+    time.sleep(10)
 
     # test working configuration
     requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
@@ -239,11 +257,16 @@ def deploy():
 
     requests.get('http://%s:%s' % (rabbitmq_service1.args['ip'].value, rabbitmq_service1.args['management_port'].value))
 
-    requests.get('http://%s:%s' % (glance_api_container.args['ip'].value, glance_api_container.args['ports'].value[0]['value'][0]['value']))
-    requests.get(
+    images = requests.get(
+        'http://%s:%s/v1/images' % (glance_api_container.args['ip'].value, haproxy_glance_api_config.args['listen_port'].value),
+        headers={'X-Auth-Token': token}
+    )
+    assert images.json() == {'images': []}
+    images = requests.get(
         'http://%s:%s' % (glance_registry_container.args['ip'].value, glance_registry_container.args['ports'].value[0]['value'][0]['value']),
         headers={'X-Auth-Token': token}
     )
+    assert images.json() == {'images': []}
 
 
 @click.command()
