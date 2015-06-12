@@ -1,6 +1,7 @@
 
 
 from solar import state
+from solar.core.log import log
 from solar.core import signals
 from solar.core import resource
 from solar import utils
@@ -42,39 +43,40 @@ def connections(res, graph):
 
 
 def to_dict(resource, graph):
-    return {'uid': resource.name,
-            'tags': resource.tags,
-            'args': resource.args_dict(),
-            'connections': connections(resource, graph)}
+    res = resource.to_dict()
+    res['connections'] = connections(resource, graph)
+    return res
 
 
-def stage_changes():
-    resources = resource.load_all()
-    conn_graph = signals.detailed_connection_graph()
+def create_diff(staged, commited):
+    if 'connections' in commited:
+        commited['connections'].sort()
+        staged['connections'].sort()
+    if 'tags' in commited:
+        commited['tags'].sort()
+        staged['tags'].sort()
 
-    commited = state.CD()
-    log = state.SL()
+    return list(diff(commited, staged))
+
+
+def _stage_changes(staged_resources, conn_graph,
+                   commited_resources, staged_log):
+
     action = None
 
     try:
         srt = nx.topological_sort(conn_graph)
     except:
         for cycle in nx.simple_cycles(conn_graph):
-            print 'CYCLE: %s' % cycle
+            log.debug('CYCLE: %s', cycle)
         raise
 
     for res_uid in srt:
-        commited_data = commited.get(res_uid, {})
-        staged_data = to_dict(resources[res_uid], conn_graph)
+        commited_data = commited_resources.get(res_uid, {})
+        staged_data = staged_resources.get(res_uid, {})
 
-        if 'connections' in commited_data:
-            commited_data['connections'].sort()
-            staged_data['connections'].sort()
-        if 'tags' in commited_data:
-            commited_data['tags'].sort()
-            staged_data['tags'].sort()
+        df = create_diff(staged_data, commited_data)
 
-        df = list(diff(commited_data, staged_data))
         if df:
 
             log_item = state.LogItem(
@@ -82,11 +84,21 @@ def stage_changes():
                 res_uid,
                 df,
                 guess_action(commited_data, staged_data))
-            log.add(log_item)
-    return log
+            staged_log.append(log_item)
+    return staged_log
+
+
+def stage_changes():
+    conn_graph = signals.detailed_connection_graph()
+    staged = {r.name: to_dict(r, conn_graph) for r in resource.load_all().values()}
+    commited = state.CD()
+    log = state.SL()
+    log.delete()
+    return _stage_changes(staged, conn_graph, commited, log)
 
 
 def execute(res, action):
+    return state.STATES.success
     try:
         actions.resource_action(res, action)
         return state.STATES.success
@@ -94,22 +106,15 @@ def execute(res, action):
         return state.STATES.error
 
 
-def commit(li, resources):
-    commited = state.CD()
-    history = state.CL()
-    staged = state.SL()
+def commit(li, resources, commited, history):
 
     staged_res = resources[li.res]
-
     staged_data = patch(li.diff, commited.get(li.res, {}))
 
     # TODO(dshulyak) think about this hack for update
     if li.action == 'update':
-        commited_res = resource.Resource(
-            staged_res.name,
-            staged_res.metadata,
-            commited[li.res]['args'],
-            commited[li.res]['tags'])
+        commited_res = resource.wrap_resource(
+            commited[li.res]['metadata'])
         result_state = execute(commited_res, 'remove')
 
         if result_state is state.STATES.success:
@@ -123,16 +128,19 @@ def commit(li, resources):
     commited[li.res] = staged_data
     li.state = result_state
 
-    history.add(li)
+    history.append(li)
 
     if result_state is state.STATES.error:
         raise Exception('Failed')
 
 
 def commit_one():
+    commited = state.CD()
+    history = state.CL()
     staged = state.SL()
+
     resources = resource.load_all()
-    commit(staged.popleft(), resources)
+    commit(staged.popleft(), resources, commited, history)
 
 
 def commit_changes():
@@ -143,7 +151,7 @@ def commit_changes():
     resources = resource.load_all()
 
     while staged:
-        commit(staged.popleft(), resources)
+        commit(staged.popleft(), resources, commited, history)
 
 
 def rollback(log_item):
@@ -160,18 +168,17 @@ def rollback(log_item):
     for e, r, mapping in staged.get('connections', ()):
         signals.connect(resources[e], resources[r], dict([mapping]))
 
-    df = list(diff(commited, staged))
+    df = create_diff(staged, commited)
 
     log_item = state.LogItem(
         utils.generate_uuid(),
         log_item.res, df, guess_action(commited, staged))
-    log.add(log_item)
+    log.append(log_item)
 
     res = resource.load(log_item.res)
-    res.update(staged.get('args', {}))
-    res.save()
+    res.set_args_from_dict(staged['input'])
 
-    return log
+    return log_item
 
 
 def rollback_uid(uid):
