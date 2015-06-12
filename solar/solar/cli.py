@@ -31,7 +31,6 @@ from solar import state
 from solar.core import actions
 from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
-from solar.core.resource import connect_resources
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
 from solar.interfaces.db import get_db
@@ -71,7 +70,9 @@ def assign(resources, nodes):
         lambda r: Expression(resources, r.get('tags', [])).evaluate(),
         _get_resources_list())
 
-    print("For {0} nodes assign {1} resources".format(len(nodes), len(resources)))
+    click.echo(
+        "For {0} nodes assign {1} resources".format(len(nodes), len(resources))
+    )
     assign_resources_to_nodes(resources, nodes)
 
 
@@ -129,7 +130,7 @@ def init_changes():
     @changes.command()
     def stage():
         log = operations.stage_changes()
-        print log.show()
+        click.echo(log.show())
 
     @changes.command()
     @click.option('--one', is_flag=True, default=False)
@@ -142,7 +143,7 @@ def init_changes():
     @changes.command()
     @click.option('--limit', default=5)
     def history(limit):
-        print state.CL().show()
+        click.echo(state.CL().show())
 
     @changes.command()
     @click.option('--last', is_flag=True, default=False)
@@ -150,11 +151,11 @@ def init_changes():
     @click.option('--uid', default=None)
     def rollback(last, all, uid):
         if last:
-            print operations.rollback_last()
+            click.echo(operations.rollback_last())
         elif all:
-            print operations.rollback_all()
+            click.echo(operations.rollback_all())
         elif uid:
-            print operations.rollback_uid(uid)
+            click.echo(operations.rollback_uid(uid))
 
 
 def init_cli_connect():
@@ -163,11 +164,11 @@ def init_cli_connect():
     @click.argument('receiver')
     @click.option('--mapping', default=None)
     def connect(mapping, receiver, emitter):
-        print 'Connect', emitter, receiver
+        click.echo('Connect {} to {}'.format(emitter, receiver))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        print emitter
-        print receiver
+        click.echo(emitter)
+        click.echo(receiver)
         if mapping is not None:
             mapping = json.loads(mapping)
         signals.connect(emitter, receiver, mapping=mapping)
@@ -176,11 +177,11 @@ def init_cli_connect():
     @click.argument('emitter')
     @click.argument('receiver')
     def disconnect(receiver, emitter):
-        print 'Disconnect', emitter, receiver
+        click.echo('Disconnect {} from {}'.format(emitter, receiver))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        print emitter
-        print receiver
+        click.echo(emitter)
+        click.echo(receiver)
         signals.disconnect(emitter, receiver)
 
 
@@ -214,10 +215,10 @@ def init_cli_connections():
                     )
                 )
 
-        keys = sorted(signals.CLIENTS)
+        clients = signals.Connections.read_clients()
+        keys = sorted(clients)
         for emitter_name in keys:
-            show_emitter_connections(emitter_name,
-                                     signals.CLIENTS[emitter_name])
+            show_emitter_connections(emitter_name, clients[emitter_name])
 
     # TODO: this requires graphing libraries
     @connections.command()
@@ -244,7 +245,7 @@ def init_cli_deployment_config():
     @main.command()
     @click.argument('filepath')
     def deploy(filepath):
-        print 'Deploying from file {}'.format(filepath)
+        click.echo('Deploying from file {}'.format(filepath))
         xd.deploy(filepath)
 
 
@@ -257,7 +258,9 @@ def init_cli_resource():
     @click.argument('resource_path')
     @click.argument('action_name')
     def action(action_name, resource_path):
-        print 'action', resource_path, action_name
+        click.echo(
+            'action {} for resource {}'.format(action_name, resource_path)
+        )
         r = sresource.load(resource_path)
         actions.resource_action(r, action_name)
 
@@ -266,7 +269,7 @@ def init_cli_resource():
     @click.argument('base_path')
     @click.argument('args')
     def create(args, base_path, name):
-        print 'create', name, base_path, args
+        click.echo('create {} {} {}'.format(name, base_path, args))
         args = json.loads(args)
         sresource.create(name, base_path, args)
 
@@ -304,7 +307,7 @@ def init_cli_resource():
     @click.argument('tag_name')
     @click.option('--add/--delete', default=True)
     def tag(add, tag_name, resource_path):
-        print 'Tag', resource_path, tag_name, add
+        click.echo('Tag {} with {} {}'.format(resource_path, tag_name, add))
         r = sresource.load(resource_path)
         if add:
             r.add_tag(tag_name)

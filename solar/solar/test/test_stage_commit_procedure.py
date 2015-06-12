@@ -1,6 +1,5 @@
 
 import pytest
-from mock import patch
 
 from solar.core import resource
 from solar import operations
@@ -15,19 +14,16 @@ def default_resources():
     node1 = resource.wrap_resource(
         {'id': 'node1',
          'input': {'ip': {'value':'10.0.0.3'}}})
-    node1.save()
     rabbitmq_service1 = resource.wrap_resource(
         {'id':'rabbitmq', 'input': {
             'ip' : {'value': ''},
             'image': {'value': 'rabbitmq:3-management'}}})
-    rabbitmq_service1.save()
     signals.connect(node1, rabbitmq_service1)
     return resource.load_all()
 
 
-@patch('solar.core.actions.resource_action')
 @pytest.mark.usefixtures("default_resources")
-def test_changes_on_update_image(maction):
+def test_changes_on_update_image():
     log = operations.stage_changes()
 
     assert len(log) == 2

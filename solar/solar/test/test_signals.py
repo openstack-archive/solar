@@ -26,7 +26,7 @@ input:
         xs.connect(sample1, sample2)
         self.assertEqual(
             sample1.args['values'],
-            sample2.args['values'],
+            sample2.args['values']
         )
         self.assertEqual(
             sample2.args['values'].emitter,
@@ -135,7 +135,7 @@ input:
 
         xs.connect(sample1, sample)
         self.assertEqual(sample1.args['ip'], sample.args['ip'])
-        self.assertEqual(len(sample1.args['ip'].receivers), 1)
+        self.assertEqual(len(list(sample1.args['ip'].receivers)), 1)
         self.assertEqual(
             sample.args['ip'].emitter,
             sample1.args['ip']
@@ -144,7 +144,7 @@ input:
         xs.connect(sample2, sample)
         self.assertEqual(sample2.args['ip'], sample.args['ip'])
         # sample should be unsubscribed from sample1 and subscribed to sample2
-        self.assertEqual(len(sample1.args['ip'].receivers), 0)
+        self.assertEqual(len(list(sample1.args['ip'].receivers)), 0)
         self.assertEqual(sample.args['ip'].emitter, sample2.args['ip'])
 
         sample2.update({'ip': '10.0.0.3'})
@@ -387,10 +387,10 @@ input:
             'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': '1001'}
         )
         list_input = self.create_resource(
-            'list-input', list_input_meta_dir, {'ips': [], 'ports': []}
+            'list-input', list_input_meta_dir, {}
         )
         list_input_nested = self.create_resource(
-            'list-input-nested', list_input_nested_meta_dir, {'ipss': [], 'portss': []}
+            'list-input-nested', list_input_nested_meta_dir, {}
         )
 
         xs.connect(sample1, list_input, mapping={'ip': 'ips', 'port': 'ports'})

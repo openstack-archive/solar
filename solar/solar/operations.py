@@ -1,6 +1,7 @@
 
 
 from solar import state
+from solar.core.log import log
 from solar.core import signals
 from solar.core import resource
 from solar import utils
@@ -67,7 +68,7 @@ def _stage_changes(staged_resources, conn_graph,
         srt = nx.topological_sort(conn_graph)
     except:
         for cycle in nx.simple_cycles(conn_graph):
-            print 'CYCLE: %s' % cycle
+            log.debug('CYCLE: %s', cycle)
         raise
 
     for res_uid in srt:
@@ -88,7 +89,6 @@ def _stage_changes(staged_resources, conn_graph,
 
 
 def stage_changes():
-    resources = resource.load_all()
     conn_graph = signals.detailed_connection_graph()
     staged = {r.name: to_dict(r, conn_graph) for r in resource.load_all().values()}
     commited = state.CD()
@@ -176,8 +176,7 @@ def rollback(log_item):
     log.append(log_item)
 
     res = resource.load(log_item.res)
-    res.set_args(staged['input'])
-    res.save()
+    res.set_args_from_dict(staged['input'])
 
     return log_item
 

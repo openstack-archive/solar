@@ -35,36 +35,36 @@ def deploy():
     keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'db_name': '', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 
-    keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'ip': '', 'ssh_user': '', 'ssh_key': '', 'admin_token': 'admin', 'db_password': '', 'db_name': '', 'db_user': '', 'db_host': '', 'db_port': ''})
-    keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
+    keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
+    keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357})
 
-    keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'ip': '', 'ssh_user': '', 'ssh_key': '', 'admin_token': 'admin', 'db_password': '', 'db_name': '', 'db_user': '', 'db_host': '', 'db_port': ''})
-    keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35358, 'image': '', 'ip': '', 'ssh_key': '', 'ssh_user': '', 'config_dir': ''})
+    keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
+    keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35358})
 
     haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_keystone_config/', {'name': 'keystone_config', 'listen_port':5000, 'servers':[], 'ports':[]})
-    haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[], 'config_dir': ''})
+    haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
     haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[], 'ip': '', 'ssh_key': '', 'ssh_user': ''})
 
     glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
     glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name': 'glance', 'new_user_password': 'glance', 'db_name': '', 'login_password': '', 'login_user': 'root', 'login_port': '', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 
-    services_tenant = resource.create('glance_keystone_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': 'services', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    services_tenant = resource.create('glance_keystone_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': 'services', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 
-    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins', 'role_name': 'glance_admin', 'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
-    glance_keystone_role = resource.create('glance_keystone_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins', 'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
+    glance_keystone_role = resource.create('glance_keystone_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
 
-    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'config_dir': {}, 'api_port': '', 'registry_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_port': '', 'keystone_admin_tenant': ''})
+    glance_config = resource.create('glance_config', 'resources/glance_config/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'keystone_ip': '', 'keystone_port': '', 'mysql_ip': '', 'mysql_db': '', 'mysql_user': '', 'mysql_password': '', 'keystone_admin_user': '', 'keystone_admin_password': '', 'keystone_admin_port': '', 'keystone_admin_tenant': ''})
     glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9292}]}], 'host_binds': [], 'volume_binds': [], 'db_password': '', 'keystone_password': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
     glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': [], 'db_host': '', 'db_root_password': '', 'db_password': '', 'db_name': '', 'db_user': '', 'keystone_admin_tenant': '', 'keystone_password': '', 'keystone_user': '', 'keystone_admin_token': '', 'keystone_host': '', 'ip': '', 'ssh_key': '', 'ssh_user': ''})
     # TODO: admin_port should be refactored, we need to rethink docker
     # container resource and make it common for all
     # resources used in this demo
-    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': 9292, 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'keystone_host': '', 'keystone_port': '', 'name': 'glance', 'port': 9292, 'type': 'image'})
+    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': 9292, 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'keystone_host': '', 'keystone_port': '', 'port': 9292, 'type': 'image'})
 
-    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    admin_user = resource.create('admin_user', 'resources/keystone_user', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': '', 'user_name': 'admin', 'user_password': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    admin_role = resource.create('admin_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'login_user': 'admin', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
-    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': '', 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'keystone_host': '', 'keystone_port': '', 'name': 'keystone', 'port': '', 'type': 'identity'})
+    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    admin_user = resource.create('admin_user', 'resources/keystone_user', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': 'admin', 'user_password': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    admin_role = resource.create('admin_role', 'resources/keystone_role', {'keystone_host': '', 'keystone_port': '', 'admin_token': '', 'tenant_name': '', 'user_name': '', 'role_name': 'admin', 'ip': '', 'ssh_user': '', 'ssh_key': ''})
+    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'ip': '', 'ssh_key': '', 'ssh_user': '', 'admin_port': '', 'admin_token': '', 'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'keystone_host': '', 'keystone_port': '', 'port': '', 'type': 'identity'})
 
 
     ####
@@ -168,7 +168,6 @@ def deploy():
     signals.connect(keystone_config1, glance_api_endpoint, {'admin_token': 'admin_token'})
     signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
 
-    signals.Connections.flush()
 
     has_errors = False
     for r in locals().values():

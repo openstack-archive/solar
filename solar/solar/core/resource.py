@@ -4,8 +4,6 @@ import os
 
 from copy import deepcopy
 
-import yaml
-
 import solar
 
 from solar.core import actions
@@ -24,25 +22,57 @@ class Resource(object):
     def __init__(self, name, metadata, args, tags=None):
         self.name = name
         self.metadata = metadata
-        self.actions = metadata.get('actions', {}).keys() or None
-        self.args = {}
-        self.set_args(args)
-        self.changed = []
+
         self.tags = tags or []
+        self.set_args_from_dict(args)
 
-    def set_args(self, args):
-        for arg_name, arg_value in args.items():
-            if not self.metadata['input'].get(arg_name):
-                continue
+    @property
+    def actions(self):
+        return self.metadata.get('actions') or []
 
-            metadata_arg = self.metadata['input'][arg_name]
+    @property
+    def args(self):
+        ret = {}
+
+        args = self.args_dict()
+
+        for arg_name, metadata_arg in self.metadata['input'].items():
             type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
 
-            value = arg_value
-            if not value and metadata_arg['value']:
-                value = metadata_arg['value']
+            ret[arg_name] = observer.create(
+                type_, self, arg_name, args.get(arg_name)
+            )
 
-            self.args[arg_name] = observer.create(type_, self, arg_name, value)
+        return ret
+
+    def args_dict(self):
+        raw_resource = db.read(self.name, collection=db.COLLECTIONS.resource)
+        if raw_resource is None:
+            return {}
+
+        self.metadata = raw_resource
+
+        args = self.metadata['input']
+
+        return {k: v['value'] for k, v in args.items()}
+
+    def set_args_from_dict(self, new_args):
+        args = self.args_dict()
+        args.update(new_args)
+
+        self.metadata['tags'] = self.tags
+        for k, v in args.items():
+            if k not in self.metadata['input']:
+                raise NotImplementedError(
+                    'Argument {} not implemented for resource {}'.format(k, self)
+                )
+
+            self.metadata['input'][k]['value'] = v
+
+        db.save(self.name, self.metadata, collection=db.COLLECTIONS.resource)
+
+    def set_args(self, args):
+        self.set_args_from_dict({k: v.value for k, v in args.items()})
 
     def __repr__(self):
         return ("Resource(name='{id}', metadata={metadata}, args={input}, "
@@ -85,9 +115,6 @@ class Resource(object):
 
         return {k: formatter(v) for k, v in self.args.items()}
 
-    def args_dict(self):
-        return {k: v.value for k, v in self.args.items()}
-
     def add_tag(self, tag):
         if tag not in self.tags:
             self.tags.append(tag)
@@ -104,8 +131,10 @@ class Resource(object):
         :param emitter: Resource
         :return:
         """
+        r_args = self.args
+
         for key, value in emitter.args.iteritems():
-            self.args[key].notify(value)
+            r_args[key].notify(value)
 
     def update(self, args):
         """This method updates resource's args with a simple dict.
@@ -116,24 +145,18 @@ class Resource(object):
         # Update will be blocked if this resource is listening
         # on some input that is to be updated -- we should only listen
         # to the emitter and not be able to change the input's value
+        r_args = self.args
+
         for key, value in args.iteritems():
-            self.args[key].update(value)
+            r_args[key].update(value)
+
+        self.set_args(r_args)
 
     def action(self, action):
         if action in self.actions:
             actions.resource_action(self, action)
         else:
             raise Exception('Uuups, action is not available')
-
-    # TODO: versioning
-    def save(self):
-        metadata = copy.deepcopy(self.metadata)
-
-        metadata['tags'] = self.tags
-        for k, v in self.args_dict().items():
-            metadata['input'][k]['value'] = v
-
-        db.save(self.name, metadata, collection=db.COLLECTIONS.resource)
 
 
 def create(name, base_path, args, tags=[], connections={}):
@@ -156,7 +179,6 @@ def create(name, base_path, args, tags=[], connections={}):
 
     resource = Resource(name, meta, args, tags=tags)
     signals.assign_connections(resource, connections)
-    resource.save()
 
     return resource
 
@@ -173,7 +195,7 @@ def load(resource_name):
     raw_resource = db.read(resource_name, collection=db.COLLECTIONS.resource)
 
     if raw_resource is None:
-        raise NotImplementedError(
+        raise KeyError(
             'Resource {} does not exist'.format(resource_name)
         )
 
@@ -186,8 +208,6 @@ def load_all():
     for raw_resource in db.get_list(collection=db.COLLECTIONS.resource):
         resource = wrap_resource(raw_resource)
         ret[resource.name] = resource
-
-    signals.Connections.reconnect_all()
 
     return ret
 

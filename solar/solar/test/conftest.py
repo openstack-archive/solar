@@ -1,10 +1,7 @@
 
-import os
-
 from pytest import fixture
 
 from solar.interfaces import db
-from solar import utils
 
 
 def pytest_configure():

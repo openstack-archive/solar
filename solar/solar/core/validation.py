@@ -1,4 +1,6 @@
-from jsonschema import validate, ValidationError, SchemaError
+from jsonschema import validate, ValidationError
+
+from solar.core.log import log
 
 
 def schema_input_type(schema):
@@ -86,9 +88,10 @@ def validate_input(value, jsonschema=None, schema=None):
         validate(value, jsonschema)
     except ValidationError as e:
         return [e.message]
-    except:
-        print 'jsonschema', jsonschema
-        print 'value', value
+    except Exception as e:
+        log.error('jsonschema: %s', jsonschema)
+        log.error('value: %s', value)
+        log.exception(e)
         raise
 
 
