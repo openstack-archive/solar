@@ -265,6 +265,22 @@ def init_cli_resource():
         actions.resource_action(r, action_name)
 
     @resource.command()
+    def compile_all():
+        from solar.core.resource import compiler
+
+        destination_path = utils.read_config()['resources-compiled-file']
+
+        if os.path.exists(destination_path):
+            os.remove(destination_path)
+
+        for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
+            meta = utils.yaml_load(path)
+            meta['base_path'] = os.path.dirname(path)
+
+            compiler.compile(meta)
+
+
+    @resource.command()
     @click.argument('name')
     @click.argument('base_path')
     @click.argument('args')

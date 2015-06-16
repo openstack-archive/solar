@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import copy
 import os
 
 from copy import deepcopy
@@ -19,9 +18,16 @@ db = get_db()
 
 
 class Resource(object):
+    _metadata = {}
+
     def __init__(self, name, metadata, args, tags=None):
         self.name = name
-        self.metadata = metadata
+        if metadata:
+            self.metadata = metadata
+        else:
+            self.metadata = deepcopy(self._metadata)
+
+        self.metadata['id'] = name
 
         self.tags = tags or []
         self.set_args_from_dict(args)
@@ -159,23 +165,28 @@ class Resource(object):
             raise Exception('Uuups, action is not available')
 
 
+def prepare_meta(meta):
+    actions_path = os.path.join(meta['base_path'], 'actions')
+    meta['actions_path'] = actions_path
+    meta['base_name'] = os.path.split(meta['base_path'])[-1]
+
+    meta['actions'] = {}
+    if os.path.exists(meta['actions_path']):
+        for f in os.listdir(meta['actions_path']):
+            meta['actions'][os.path.splitext(f)[0]] = f
+
+
 def create(name, base_path, args, tags=[], connections={}):
     if not os.path.exists(base_path):
         raise Exception('Base resource does not exist: {0}'.format(base_path))
 
     base_meta_file = os.path.join(base_path, 'meta.yaml')
-    actions_path = os.path.join(base_path, 'actions')
 
     meta = utils.yaml_load(base_meta_file)
-    meta['id'] = name
-    meta['version'] = '1.0.0'
-    meta['actions'] = {}
-    meta['actions_path'] = actions_path
     meta['base_path'] = os.path.abspath(base_path)
+    meta['version'] = '1.0.0'
 
-    if os.path.exists(actions_path):
-        for f in os.listdir(actions_path):
-            meta['actions'][os.path.splitext(f)[0]] = f
+    prepare_meta(meta)
 
     resource = Resource(name, meta, args, tags=tags)
     signals.assign_connections(resource, connections)

@@ -12,6 +12,7 @@ file-system-db:
 template-dir: /vagrant/templates
 
 resources-files-mask: /vagrant/resources/*/*.yaml
+resources-compiled-file: /vagrant/resources_compiled.py
 node_resource_template: /vagrant/resources/ro_node/
 
 state: /tmp/state/
