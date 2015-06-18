@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
+import yaml
 
 from solar.core.log import log
 from solar.core.handlers.base import BaseHandler
@@ -8,34 +9,58 @@ from solar.core.handlers.base import BaseHandler
 
 class Puppet(BaseHandler):
     def action(self, resource, action_name):
-        # inventory_file = self._create_inventory(resource)
-        # playbook_file = self._create_playbook(resource, action_name)
-        # log.debug('inventory_file: %s', inventory_file)
-        # log.debug('playbook_file: %s', playbook_file)
-        # call_args = ['ansible-playbook', '--module-path', '/vagrant/library', '-i', inventory_file, playbook_file]
-        # log.debug('EXECUTING: %s', ' '.join(call_args))
-        #
-        # try:
-        #     subprocess.check_output(call_args)
-        # except subprocess.CalledProcessError as e:
-        #     log.error(e.output)
-        #     log.exception(e)
-        #     raise
-
         print 'Executing Puppet manifest ', action_name, resource
 
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)
 
+        hieradata_directory = '/etc/puppet/hieradata'
+        self._ssh_command(
+            resource, 'sudo', 'mkdir', '-p', hieradata_directory
+        )
+        hiera_file = '/tmp/hiera.yaml'
+        # TODO: fix hierarchy
+        with open(hiera_file, 'w') as f:
+            f.write("""
+:backends:
+  - yaml
+  - json
+:yaml:
+  :datadir: /etc/puppet/hieradata
+:json:
+  :datadir: /etc/puppet/hieradata
+:hierarchy:
+  - {}
+            """.format(resource.name))
+        self._scp_command(
+            resource,
+            hiera_file,
+            '{}:/tmp/'.format(self._ssh_command_host(resource))
+        )
+        self._ssh_command(
+            resource, 'sudo', 'mv', hiera_file, '/etc/puppet'
+        )
+
+        hiera_config_file = '/tmp/{}.yaml'.format(resource.name)
+        with open(hiera_config_file, 'w') as f:
+            f.write(yaml.dump(self._args_dict_for_hiera(resource),
+                              default_flow_style=False))
+        self._scp_command(
+            resource,
+            hiera_config_file,
+            '{}:/tmp/'.format(self._ssh_command_host(resource))
+        )
+        self._ssh_command(
+            resource, 'sudo', 'mv', hiera_config_file, hieradata_directory
+        )
+
         module_directory = '/etc/puppet/modules/{}'.format(
             resource.metadata['puppet_module']
         )
-
         self._ssh_command(
             resource,
             'sudo', 'rm', '-Rf', module_directory
         )
-
         self._ssh_command(
             resource, 'sudo', 'mkdir', '-p', module_directory
         )
@@ -45,7 +70,6 @@ class Puppet(BaseHandler):
             os.path.join(resource.metadata['base_path'], 'puppet'),
             '{}:/tmp/'.format(self._ssh_command_host(resource))
         )
-
         self._ssh_command(
             resource, 'sudo', 'mv', '/tmp/puppet/*', module_directory
         )
@@ -59,6 +83,13 @@ class Puppet(BaseHandler):
         self._ssh_command(
             resource, 'sudo', 'puppet', 'apply', '/tmp/action.pp'
         )
+
+    def _args_dict_for_hiera(self, resource):
+        ret = {}
+        for k, v in resource.args_dict().items():
+            ret['{}::{}'.format(resource.name, k)] = v
+
+        return ret
 
     def _ssh_command(self, resource, *args):
         print 'SSH ', args
