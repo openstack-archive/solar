@@ -1,0 +1,16 @@
+id: puppet_stdlib
+handler: puppet
+puppet_module: stdlib
+version: 1.0.0
+input:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/keystone_service, resources/keystone]

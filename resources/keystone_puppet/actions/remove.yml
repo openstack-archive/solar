@@ -1,0 +1,9 @@
+# TODO
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: keystone container
+      docker:
+        image: {{ image }}
+        name: {{ name }}
+        state: absent
