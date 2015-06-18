@@ -16,6 +16,10 @@ input:
       schema: str!
       value: keystone
 
+    port:
+      schema: int!
+      value: 5000
+
     ip:
       schema: str!
       value:

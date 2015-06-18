@@ -81,7 +81,7 @@ def deploy():
     #requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
     #requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
     #requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
-    requests.get('http://%s:%s' % (keystone_puppet.args['ip'].value, 5000))
+    requests.get('http://%s:%s' % (keystone_puppet.args['ip'].value, keystone_puppet.args['port'].value))
 
     # token_data = requests.post(
     #     'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),

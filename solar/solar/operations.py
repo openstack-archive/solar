@@ -98,7 +98,7 @@ def stage_changes():
 
 
 def execute(res, action):
-    return state.STATES.success
+    #return state.STATES.success
     try:
         actions.resource_action(res, action)
         return state.STATES.success
