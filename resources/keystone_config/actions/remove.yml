@@ -1,4 +1,0 @@
-- hosts: [{{ ip }}]
-  sudo: yes
-  tasks:
-    - file: path={{config_dir}} state=absent
