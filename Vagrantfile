@@ -12,6 +12,13 @@ pip install ansible
 ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml
 SCRIPT
 
+slave_script = <<SCRIPT
+apt-get update
+apt-get -y install python-pip python-dev
+pip install ansible
+ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml /vagrant/slave.yml
+SCRIPT
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.box = "deb/jessie-amd64"
@@ -35,6 +42,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
       config.vm.provision "shell", inline: init_script, privileged: true
+      config.vm.provision "shell", inline: slave_script, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 

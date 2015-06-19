@@ -1,0 +1,15 @@
+:backends:
+  - redis
+  - yaml
+  - json
+:yaml:
+  :datadir: /etc/puppet/hieradata
+:json:
+  :datadir: /etc/puppet/hieradata
+:redis:
+  :port: 6379
+  :db: 0
+  :host: localhost
+  :deserialize: :json
+:hierarchy:
+  - resource
