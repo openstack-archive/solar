@@ -10,10 +10,11 @@ from solar.core import signals
 from solar.core import validation
 
 from solar.interfaces.db import get_db
-from solar.core.resource_provider import  GitProvider
+from solar.core.resource_provider import  GitProvider, RemoteZipProvider
 
 
 GIT_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource'
+ZIP_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource/archive/master.zip'
 
 
 @click.group()
@@ -40,7 +41,7 @@ def deploy():
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
     keystone_config1 = resource.create('keystone_config1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, path='keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
-    keystone_service1 = resource.create('keystone_service1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})
+    keystone_service1 = resource.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})
 
     keystone_config2 = resource.create('keystone_config2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
     keystone_service2 = resource.create('keystone_service2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5002, 'admin_port': 35358})
