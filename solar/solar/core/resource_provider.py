@@ -22,12 +22,26 @@ class GitProvider(BaseProvider):
         self.repository = repository
         self.path = path
 
+        resources_directory = self._resources_directory()
+
+        if not os.path.exists(resources_directory):
+            self._clone_repo()
+
+        if path != '.':
+            self.directory = os.path.join(resources_directory, path)
+        else:
+            self.directory = resources_directory
+
+    def _resources_directory(self):
         repo_name = os.path.split(self.repository)[1]
 
-        resources_directory = os.path.join(
+        return os.path.join(
             utils.read_config()['resources-directory'],
             repo_name
         )
+
+    def _clone_repo(self):
+        resources_directory = self._resources_directory()
 
         with open('/tmp/git-provider.yaml', 'w') as f:
             f.write("""
@@ -39,7 +53,7 @@ class GitProvider(BaseProvider):
             """.format(
                 repository=self.repository,
                 destination=resources_directory,
-                clone='no' if os.path.exists(resources_directory) else 'yes'
+                clone='yes'
             ))
 
         subprocess.check_call([
@@ -48,11 +62,6 @@ class GitProvider(BaseProvider):
             '-c', 'local',
             '/tmp/git-provider.yaml'
         ])
-
-        if path != '.':
-            self.directory = os.path.join(resources_directory, path)
-        else:
-            self.directory = resources_directory
 
 
 class RemoteZipProvider(BaseProvider):
