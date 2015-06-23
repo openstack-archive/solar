@@ -1,0 +1,20 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  vars:
+    ip: {{ip}}
+    port: {{port}}
+    admin_port: {{admin_port}}
+  tasks:
+    - name: remove keystone service and endpoint
+      keystone_service:
+        token: {{admin_token}}
+        name: {{name}}
+        type: {{type}}
+        description: {{description}}
+        publicurl: {{publicurl}}
+        internalurl: {{internalurl}}
+        adminurl: {{adminurl}}
+        region: "RegionOne"
+        state: present
+        endpoint: http://{{keystone_host}}:{{keystone_port}}/v2.0/
+

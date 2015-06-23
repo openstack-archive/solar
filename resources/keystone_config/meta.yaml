@@ -1,0 +1,37 @@
+id: keystone_config
+handler: ansible
+version: 1.0.0
+
+input:
+    config_dir:
+      schema: str!
+      value: /etc/solar/keystone
+    admin_token:
+      schema: str!
+      value: admin
+    db_password:
+      schema: str!
+      value: password
+    db_user:
+      schema: str!
+      value: keystone
+    db_host:
+      schema: str!
+      value:
+    db_port:
+      schema: int!
+      value:
+    db_name:
+      schema: str!
+      value: keystone
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/keystone_config, resources/keystone]

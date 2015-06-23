@@ -1,0 +1,48 @@
+id: keystone_service_endpoint
+handler: ansible
+version: 1.0.0
+input:
+    keystone_host:
+      schema: str!
+      value:
+    keystone_port:
+      schema: int!
+      value:
+    admin_token:
+      schema: str!
+      value:
+    port:
+      schema: int!
+      value:
+    admin_port:
+      schema: int!
+      value:
+    type:
+      schema: str!
+      value: identity
+    description:
+      schema: str!
+      value: OpenStack Identity Service
+    publicurl:
+      schema: str!
+      value: http://{{ip}}:{{port}}/v2.0
+    internalurl:
+      schema: str!
+      value: http://{{ip}}:{{port}}/v2.0
+    adminurl:
+      schema: str!
+      value: http://{{ip}}:{{admin_port}}/v2.0
+    adminurl:
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/keystone_service_endpoint, resources/keystone]

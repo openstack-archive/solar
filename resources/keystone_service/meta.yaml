@@ -1,0 +1,27 @@
+id: keystone_service
+handler: ansible
+version: 1.0.0
+input:
+    image:
+      schema: str!
+      value: kollaglue/centos-rdo-j-keystone
+    config_dir:
+      schema: str!
+      value: /etc/solar/keystone
+    port:
+      schema: int!
+      value: 5000
+    admin_port:
+      schema: int!
+      value: 35357
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/keystone_service, resources/keystone]

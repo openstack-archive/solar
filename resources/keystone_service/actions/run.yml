@@ -1,0 +1,19 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: keystone container
+      docker:
+        command: /bin/bash -c "keystone-manage db_sync && /usr/bin/keystone-all"
+        name: {{ name }}
+        image: {{ image }}
+        state: running
+        expose:
+        - 5000
+        - 35357
+        ports:
+        - {{ port }}:5000
+        - {{ admin_port }}:35357
+        volumes:
+        - {{ config_dir }}:/etc/keystone
+    - name: wait for keystone
+      wait_for: host={{ip}} port={{port}} timeout=20

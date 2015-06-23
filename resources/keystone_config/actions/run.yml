@@ -1,0 +1,17 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  vars:
+    admin_token: {{admin_token}}
+    keystone_host: {{ ip }}
+    keystone_port: {{ port }}
+    db_user: {{db_user}}
+    db_password: {{db_password}}
+    db_host: {{db_host}}
+    db_name: {{db_name}}
+  tasks:
+    - file: path={{config_dir}} state=directory
+    - template: src={{resource_dir}}/templates/keystone.conf dest={{config_dir}}/keystone.conf
+    - template: src={{resource_dir}}/templates/default_catalog.templates dest={{config_dir}}/default_catalog.templates
+    - template: src={{resource_dir}}/templates/logging.conf dest={{config_dir}}/logging.conf
+    - template: src={{resource_dir}}/templates/policy.json dest={{config_dir}}/policy.json
+    - template: src={{resource_dir}}/templates/exports dest={{ config_dir }}/keystone-exports

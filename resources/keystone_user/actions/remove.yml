@@ -1,0 +1,6 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: keystone user
+    #TODO: not implemented in module
+      pause: seconds=1
