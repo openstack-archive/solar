@@ -55,7 +55,7 @@ def fault_tolerance(ctxt, percent):
     lth = len(predecessors)
 
     for s in predecessors:
-        if dg.node[s]['status'] == ['SUCCESS']:
+        if dg.node[s]['status'] == 'SUCCESS':
             success += 1
 
     succes_percent = (success/lth) * 100
@@ -71,6 +71,7 @@ def echo(message):
 
 @solar_task(bind=True)
 def anchor(ctxt, *args):
+    # it should be configurable to wait for atleast 1 / 3 resources
     dg = graph.get_graph('current')
     for s in dg.predecessors(ctxt.request.id):
         if dg.node[s]['status'] != 'SUCCESS':
@@ -126,4 +127,13 @@ def get_next(dg):
             task_name = 'orch.tasks.{0}'.format(data['type'])
             task = app.tasks[task_name]
             dg.node[node]['status'] = 'INPROGRESS'
-            yield task.subtask(data['args'], task_id=node)
+            subtask = task.subtask(
+                data['args'], task_id=node,
+                time_limit=data.get('time_limit', None),
+                soft_time_limit=data.get('soft_time_limit', None))
+
+            if data.get('target', None):
+                subtask.set(queue=data['target'])
+
+            yield subtask
+

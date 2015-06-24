@@ -9,6 +9,7 @@ r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
 
 def save_graph(name, graph):
+    # maybe it is possible to store part of information in AsyncResult backend
     r.set('{}:nodes'.format(name), json.dumps(graph.node.items()))
     r.set('{}:edges'.format(name), json.dumps(graph.edges(data=True)))
 

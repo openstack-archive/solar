@@ -42,9 +42,9 @@ def ex1():
     return dg
 
 
-def ex1_exec():
+def test_ex1_exec():
     save_graph('current', ex1())
-    schedule_next.apply()
+    schedule_start.apply_async(queue='master')
 
 
 def ex2():
@@ -60,6 +60,40 @@ def ex2():
 
     return dg
 
-def ex2_exec():
+def test_ex2_exec():
     save_graph('current', ex2())
-    schedule_start.apply_async()
+    schedule_start.apply_async(queue='master')
+
+
+def test_timelimit_exec():
+
+    dg = nx.DiGraph()
+
+    dg.add_node(
+        'timelimit_test', type='sleep',
+        args=[100], status='PENDING',
+        time_limit=10)
+
+    dg.add_node(
+        'soft_timelimit_test', type='sleep',
+        args=[100], status='PENDING',
+        soft_time_limit=10)
+
+    save_graph('current', dg)
+    schedule_start.apply_async(queue='master')
+
+
+def test_timeout_exec():
+    # TODO(dshulyak) how to handle connectivity issues?
+    # or hardware failure ?
+    return
+
+
+def test_target_exec():
+    dg = nx.DiGraph()
+
+    dg.add_node(
+        'vagrant_reload', type='cmd',
+        args=['vagrant reload solar-dev1'], status='PENDING', target='ipmi')
+    save_graph('current', dg)
+    schedule_start.apply_async(queue='master')
