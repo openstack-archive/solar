@@ -1,15 +1,19 @@
 import click
-import json
 import requests
 import sys
 import time
 
 from solar.core import actions
 from solar.core import resource
+from solar.core.resource_provider import  GitProvider
 from solar.core import signals
 from solar.core import validation
 
 from solar.interfaces.db import get_db
+
+
+GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
+GIT_KEYSTONE_PUPPET_RESOURCE_URL = 'https://github.com/CGenie/keystone-puppet-resource'
 
 
 @click.group()
@@ -26,15 +30,15 @@ def deploy():
 
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
-    puppet_inifile = resource.create('puppet_inifile', 'resources/puppet_inifile/', {})
-    puppet_mysql = resource.create('puppet_mysql', 'resources/puppet_mysql/', {})
-    puppet_stdlib = resource.create('puppet_stdlib', 'resources/puppet_stdlib/', {})
+    puppet_inifile = resource.create('puppet_inifile', GitProvider(GIT_PUPPET_LIBS_URL, path='puppet_inifile'), {})
+    puppet_mysql = resource.create('puppet_mysql', GitProvider(GIT_PUPPET_LIBS_URL, path='puppet_mysql'), {})
+    puppet_stdlib = resource.create('puppet_stdlib', GitProvider(GIT_PUPPET_LIBS_URL, path='puppet_stdlib'), {})
 
     mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306})
     keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
-    keystone_puppet = resource.create('keystone_puppet', 'resources/keystone_puppet/', {})
+    keystone_puppet = resource.create('keystone_config1', GitProvider(GIT_KEYSTONE_PUPPET_RESOURCE_URL, path='keystone_puppet'), {})
 
     signals.connect(node1, puppet_inifile)
     signals.connect(node1, puppet_mysql)
