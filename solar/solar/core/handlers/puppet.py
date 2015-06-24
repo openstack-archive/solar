@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
+from fabric import api as fabric_api
 import os
-import subprocess
-import yaml
 
 from solar.core.log import log
 from solar.core.handlers.base import BaseHandler
@@ -33,17 +32,13 @@ class Puppet(BaseHandler):
         self._scp_command(
             resource,
             os.path.join(resource.metadata['base_path'], 'puppet'),
-            '{}:/tmp/'.format(self._ssh_command_host(resource))
+            '/tmp'
         )
         self._ssh_command(
             resource, 'sudo', 'mv', '/tmp/puppet/*', module_directory
         )
 
-        self._scp_command(
-            resource,
-            action_file,
-            '{}:/tmp/action.pp'.format(self._ssh_command_host(resource))
-        )
+        self._scp_command(resource, action_file, '/tmp/action.pp')
 
         self._ssh_command(
             resource, 'sudo', 'puppet', 'apply', '/tmp/action.pp'
@@ -52,22 +47,21 @@ class Puppet(BaseHandler):
     def _ssh_command(self, resource, *args):
         print 'SSH ', args
 
-        return subprocess.check_output([
-            'ssh',
-            self._ssh_command_host(resource),
-            '-i', resource.args['ssh_key'].value,
-            ] + list(args)
-        )
+        with fabric_api.settings(**self._fabric_settings(resource)):
+            return fabric_api.run(' '.join(args))
 
     def _scp_command(self, resource, _from, _to):
         print 'SCP: ', _from, _to
 
-        try:
-            return subprocess.check_output([
-                'scp', '-r', '-i', resource.args['ssh_key'].value, _from, _to
-            ])
-        except Exception as e:
-            import pudb; pudb.set_trace()
+        with fabric_api.settings(**self._fabric_settings(resource)):
+            return fabric_api.put(_from, _to)
+
+
+    def _fabric_settings(self, resource):
+        return {
+            'host_string': self._ssh_command_host(resource),
+            'key_filename': resource.args['ssh_key'].value,
+        }
 
     def _ssh_command_host(self, resource):
         return '{}@{}'.format(resource.args['ssh_user'].value,
