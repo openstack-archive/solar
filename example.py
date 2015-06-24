@@ -10,6 +10,11 @@ from solar.core import signals
 from solar.core import validation
 
 from solar.interfaces.db import get_db
+from solar.core.resource_provider import  GitProvider, RemoteZipProvider
+
+
+GIT_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource'
+ZIP_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource/archive/master.zip'
 
 
 @click.group()
@@ -35,11 +40,11 @@ def deploy():
     keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
-    keystone_config1 = resource.create('keystone_config1', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
-    keystone_service1 = resource.create('keystone_service1', 'resources/keystone_service/', {'port': 5001, 'admin_port': 35357})
+    keystone_config1 = resource.create('keystone_config1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, path='keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
+    keystone_service1 = resource.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})
 
-    keystone_config2 = resource.create('keystone_config2', 'resources/keystone_config/', {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
-    keystone_service2 = resource.create('keystone_service2', 'resources/keystone_service/', {'port': 5002, 'admin_port': 35358})
+    keystone_config2 = resource.create('keystone_config2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
+    keystone_service2 = resource.create('keystone_service2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5002, 'admin_port': 35358})
 
     haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_service_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers':[], 'ports':[]})
     haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
@@ -48,10 +53,10 @@ def deploy():
     glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_user': 'root'})
     glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name': 'glance', 'new_user_password': 'glance', 'login_user': 'root'})
 
-    services_tenant = resource.create('glance_keystone_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})
+    services_tenant = resource.create('glance_keystone_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'services'})
 
-    glance_keystone_user = resource.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins'})
-    glance_keystone_role = resource.create('glance_keystone_role', 'resources/keystone_role', {'role_name': 'admin'})
+    glance_keystone_user = resource.create('glance_keystone_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins'})
+    glance_keystone_role = resource.create('glance_keystone_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})
 
     # TODO: add api_host and registry_host -- they can be different! Currently 'ip' is used.
     glance_config = resource.create('glance_config', 'resources/glance_config/', {'api_port': 9393})
@@ -60,15 +65,15 @@ def deploy():
     # TODO: admin_port should be refactored, we need to rethink docker
     # container resource and make it common for all
     # resources used in this demo
-    glance_api_endpoint = resource.create('glance_api_endpoint', 'resources/keystone_service_endpoint/', {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'type': 'image'})
+    glance_api_endpoint = resource.create('glance_api_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'type': 'image'})
     # TODO: ports value 9393 is a HACK -- fix glance_api_container's port and move to some config
     # TODO: glance registry container's API port needs to point to haproxy_config
     haproxy_glance_api_config = resource.create('haproxy_glance_api_config', 'resources/haproxy_service_config/', {'name': 'glance_api_config', 'listen_port': 9292, 'servers': [], 'ports':[{'value': 9393}]})
 
-    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'tenant_name': 'admin'})
-    admin_user = resource.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})
-    admin_role = resource.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})
-    keystone_service_endpoint = resource.create('keystone_service_endpoint', 'resources/keystone_service_endpoint/', {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})
+    admin_tenant = resource.create('admin_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'admin'})
+    admin_user = resource.create('admin_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'admin', 'user_password': 'admin'})
+    admin_role = resource.create('admin_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})
+    keystone_service_endpoint = resource.create('keystone_service_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})
 
 
     ####
