@@ -1,7 +1,7 @@
+from fabric import api as fabric_api
 import os
 import requests
 import StringIO
-import subprocess
 import zipfile
 
 from solar import utils
@@ -46,7 +46,6 @@ class GitProvider(BaseProvider):
         with open('/tmp/git-provider.yaml', 'w') as f:
             f.write("""
 ---
-
 - hosts: all
   tasks:
     - git: repo={repository} dest={destination} clone={clone} update=yes
@@ -56,12 +55,9 @@ class GitProvider(BaseProvider):
                 clone='yes'
             ))
 
-        subprocess.check_call([
-            'ansible-playbook',
-            '-i', '"localhost,"',
-            '-c', 'local',
-            '/tmp/git-provider.yaml'
-        ])
+        fabric_api.local(
+            'ansible-playbook -i "localhost," -c local /tmp/git-provider.yaml'
+        )
 
 
 class RemoteZipProvider(BaseProvider):

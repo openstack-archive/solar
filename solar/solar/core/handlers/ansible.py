@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+from fabric import api as fabric_api
 import os
-import subprocess
 
 from solar.core.log import log
 from solar.core.handlers.base import BaseHandler
@@ -16,8 +16,8 @@ class Ansible(BaseHandler):
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         try:
-            subprocess.check_output(call_args)
-        except subprocess.CalledProcessError as e:
+            fabric_api.local(' '.join(call_args))
+        except Exception as e:
             log.error(e.output)
             log.exception(e)
             raise

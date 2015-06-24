@@ -18,11 +18,11 @@ On create "golden" resource should be moved to special place
 """
 
 import click
+from fabric import api as fabric_api
 import json
 import networkx as nx
 import os
 import pprint
-import subprocess
 import yaml
 
 from solar import utils
@@ -231,7 +231,7 @@ def init_cli_connections():
                                               end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
-        subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+        fabric_api.local('dot', '-Tpng', 'graph.dot', '-o', 'graph.png')
 
         # Matplotlib
         #pos = nx.spring_layout(g)
