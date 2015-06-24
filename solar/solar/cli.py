@@ -33,6 +33,7 @@ from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
+from solar.core import virtual_resource as vr
 from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
@@ -270,8 +271,8 @@ def init_cli_resource():
     @click.argument('args')
     def create(args, base_path, name):
         click.echo('create {} {} {}'.format(name, base_path, args))
-        args = json.loads(args)
-        sresource.create(name, base_path, args)
+        args = json.loads(args) if args else {}
+        vr.create(name, base_path, args)
 
     @resource.command()
     @click.option('--tag', default=None)
@@ -323,6 +324,13 @@ def init_cli_resource():
         all = sresource.load_all()
         r = all[name]
         r.update(args)
+
+    @resource.command()
+    @click.argument('path')
+    def get_inputs(path):
+        with open(path) as f:
+            content = f.read()
+        print vr.get_inputs(content)
 
 
 def run():
