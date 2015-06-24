@@ -38,7 +38,7 @@ def deploy():
     keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
-    keystone_puppet = resource.create('keystone_config1', GitProvider(GIT_KEYSTONE_PUPPET_RESOURCE_URL, path='keystone_puppet'), {})
+    keystone_puppet = resource.create('keystone_puppet', GitProvider(GIT_KEYSTONE_PUPPET_RESOURCE_URL, path='keystone_puppet'), {})
 
     signals.connect(node1, puppet_inifile)
     signals.connect(node1, puppet_mysql)
