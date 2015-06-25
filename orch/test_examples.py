@@ -5,6 +5,15 @@ import networkx as nx
 from orch.tasks import *
 from orch.graph import *
 
+from pytest import fixture
+
+import time
+
+
+@fixture(autouse=True)
+def clean_ignored():
+    r.delete('tasks.ignore')
+
 
 def ex1():
     dg = nx.DiGraph()
@@ -83,10 +92,30 @@ def test_timelimit_exec():
     schedule_start.apply_async(queue='master')
 
 
-def test_timeout_exec():
+def test_timeout():
     # TODO(dshulyak) how to handle connectivity issues?
     # or hardware failure ?
-    return
+    dg = nx.DiGraph()
+
+    dg.add_node(
+        'test_timeout', type='echo', target='unreachable',
+        args=['yoyoyo'], status='PENDING',
+        timeout=1)
+
+    save_graph('current', dg)
+    # two tasks will be fired - test_timeout and fire_timeout(test_timeout)
+    # with countdown set to 10 sec
+    schedule_start.apply_async(queue='master')
+    # after 10 seconds fire_timeout will set test_timeout to ERROR
+    time.sleep(1)
+
+    # master host will start listening from unreachable queue, but task will be ignored
+    # e.g it will be acked, and fetched from broker, but not processed
+    assert app.control.add_consumer(
+                'unreachable', reply=True, destination=['celery@master'])
+    dg = get_graph('current')
+    assert dg.node['test_timeout']['status'] == 'ERROR'
+
 
 
 def test_target_exec():
@@ -97,3 +126,33 @@ def test_target_exec():
         args=['vagrant reload solar-dev1'], status='PENDING', target='ipmi')
     save_graph('current', dg)
     schedule_start.apply_async(queue='master')
+
+
+def test_limit_concurrency():
+    # - no more than 2 tasks in general
+    dg = nx.DiGraph()
+    dg.graph['concurrency'] = 2
+
+    for i in range(4):
+        dg.add_node(
+            str(i), type='echo',
+            args=[i], status='PENDING')
+
+    save_graph('current', dg)
+    schedule_start.apply_async(queue='master')
+
+
+def test_ignored():
+
+    dg = nx.DiGraph()
+
+    dg.add_node(
+        'test_ignored', type='echo', args=['hello'], status='PENDING')
+    r.sadd('tasks.ignore', 'test_ignored')
+    save_graph('current', dg)
+
+    schedule_start.apply_async(queue='master')
+    ignored = app.AsyncResult('test_ignored')
+    ignored.get()
+    dg = get_graph('current')
+    assert dg.node['test_ignored']['status'] == {}
