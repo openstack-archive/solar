@@ -6,10 +6,3 @@ resources:
       ip: '10.0.0.3'
       ssh_user: '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
       ssh_key: 'vagrant'
-
-  - id: node2
-    from: resources/ro_node
-    values:
-      ip: '10.0.0.4'
-      ssh_user: '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key'
-      ssh_key: 'vagrant'
