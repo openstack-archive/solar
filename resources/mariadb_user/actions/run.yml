@@ -3,8 +3,8 @@
   tasks:
     - name: mariadb user
       mysql_user:
-        name: {{ new_user_name }}
-        password: {{ new_user_password }}
+        name: {{ user_name }}
+        password: {{ user_password }}
         priv: {{ db_name }}.*:ALL
         host: '%'
         state: present

@@ -5,10 +5,10 @@ actions:
     run: run.yml
     remove: remove.yml
 input:
-    new_user_password:
+    user_password:
       schema: str!
       value:
-    new_user_name:
+    user_name:
       schema: str!
       value:
     db_name:
