@@ -272,7 +272,9 @@ def init_cli_resource():
     def create(args, base_path, name):
         click.echo('create {} {} {}'.format(name, base_path, args))
         args = json.loads(args) if args else {}
-        vr.create(name, base_path, args)
+        resources = vr.create(name, base_path, args)
+        for res in resources:
+            print res.name
 
     @resource.command()
     @click.option('--tag', default=None)
