@@ -39,20 +39,19 @@ def create_resource(name, base_path, args, virtual_resource=None):
 def create_virtual_resource(vr_name, template):
     resources = template['resources']
     connections = []
-    created_resources = {}
+    created_resources = []
     for resource in resources:
         name = resource['id']
         base_path = resource['from']
         args = resource['values']
-        new_resource = create(name, base_path, args, vr_name)
-        created_resources[name] = new_resource
+        new_resources = create(name, base_path, args, vr_name)
+        created_resources += new_resources
 
-        # XXX: what if it's another virtual resource?
-        # we shouldn't connect VR
-        for key, arg in args.items():
-            if '::' in arg:
-                emitter, src = arg.split('::')
-                connections.append((emitter, name, {src: key}))
+        if not is_virtual(base_path):
+            for key, arg in args.items():
+                if isinstance(arg, basestring) and '::' in arg:
+                    emitter, src = arg.split('::')
+                    connections.append((emitter, name, {src: key}))
 
     db = resource_module.load_all()
     for emitter, reciver, mapping in connections:
@@ -66,8 +65,8 @@ def create(name, path, kwargs, virtual_resource=None):
     if not os.path.exists(path):
         raise Exception('Base resource does not exist: {0}'.format(path))
 
-    if os.path.isfile(path):
-        template = _compile_file(path, kwargs)
+    if is_virtual(path):
+        template = _compile_file(name, path, kwargs)
         yaml_template = yaml.load(StringIO(template))
         resources = create_virtual_resource(name, yaml_template)
     else:
@@ -76,12 +75,12 @@ def create(name, path, kwargs, virtual_resource=None):
 
     return resources
 
-def _compile_file(path, kwargs):
+def _compile_file(name, path, kwargs):
     with open(path) as f:
         content = f.read()
 
     inputs = get_inputs(content)
-    template = _get_template(content, kwargs, inputs)
+    template = _get_template(name, content, kwargs, inputs)
     return template
 
 def get_inputs(content):
@@ -89,13 +88,16 @@ def get_inputs(content):
     ast = env.parse(content)
     return meta.find_undeclared_variables(ast)
 
-def _get_template(content, kwargs, inputs):
+def _get_template(name, content, kwargs, inputs):
     missing = []
     for input in inputs:
         if input not in kwargs:
             missing.append(input)
     if missing:
-        raise Exception('Validation error. Missing data in input: {0}'.format(missing))
+        raise Exception('[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
     template = Template(content)
     template = template.render(str=str, zip=zip, **kwargs)
     return template
+
+def is_virtual(path):
+    return os.path.isfile(path)
