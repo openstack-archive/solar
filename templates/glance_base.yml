@@ -1,0 +1,26 @@
+id: glance_base
+
+resources:
+  - id: glance_db
+    from: resources/mariadb_db
+    values:
+      db_name: {{db_name}}
+      login_user: '{{login_user}}'
+      login_password: '{{login_password}}'
+      login_port: '{{login_port}}'
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  - id:  glance_db_user
+    from: resources/mariadb_user
+    values:
+      user_password: '{{user_password}}'
+      user_name: '{{user_name}}'
+      db_name: 'keystone_db::db_name'
+      login_user: 'keystone_db::login_user'
+      login_password: 'keystone_db::login_password'
+      login_port: 'keystone_db::login_port'
+      ip: 'keystone_db::ip'
+      ssh_user: 'keystone_db::ssh_user'
+      ssh_key: 'keystone_db::ssh_key'
