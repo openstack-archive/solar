@@ -7,6 +7,7 @@ import yaml
 from jinja2 import Template, Environment, meta
 
 from solar import utils
+from solar.core import validation
 from solar.core import resource as resource_module
 from solar.core import signals
 
@@ -58,8 +59,17 @@ def create_virtual_resource(vr_name, template):
         emitter = db[emitter]
         reciver = db[reciver]
         signals.connect(emitter, reciver, mapping)
-    return created_resources
 
+    for r in db.values():
+        if not isinstance(r, resource_module.Resource):
+            continue
+
+        print 'Validating {}'.format(r.name)
+        errors = validation.validate_resource(r)
+        if errors:
+            print 'ERROR: %s: %s' % (r.name, errors)
+            #import sys;sys.exit()
+    return created_resources
 
 def create(name, path, kwargs, virtual_resource=None):
     if not os.path.exists(path):
