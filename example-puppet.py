@@ -1,4 +1,5 @@
 import click
+import json
 import requests
 import sys
 import time
@@ -13,7 +14,6 @@ from solar.interfaces.db import get_db
 
 
 GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
-GIT_KEYSTONE_PUPPET_RESOURCE_URL = 'https://github.com/CGenie/keystone-puppet-resource'
 
 
 @click.group()
@@ -42,10 +42,20 @@ def deploy():
     keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
-    keystone_puppet = resource.create('keystone_puppet', GitProvider(GIT_KEYSTONE_PUPPET_RESOURCE_URL, path='keystone'), {})
+    keystone_puppet = resource.create('keystone_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='keystone'), {})
+    #keystone_puppet = resource.create('keystone_puppet', 'resources/keystone_puppet', {})
 
     # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
-    neutron_puppet = resource.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+    neutron_puppet = resource.create('neutron_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='neutron'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+    #neutron_puppet = resource.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+
+    admin_tenant = resource.create('admin_tenant', 'resources/keystone_tenant', {'tenant_name': 'admin'})
+    admin_user = resource.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})
+    admin_role = resource.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})
+
+    services_tenant = resource.create('neutron_keystone_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})
+    neutron_keystone_user = resource.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})
+    neutron_keystone_role = resource.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})
 
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
@@ -64,11 +74,22 @@ def deploy():
     signals.connect(mariadb_service1, keystone_db_user, {'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(keystone_db, keystone_db_user, {'db_name': 'db_name'})
 
+    signals.connect(keystone_puppet, admin_tenant)
+    signals.connect(keystone_puppet, admin_tenant, {'admin_port': 'keystone_port', 'ip': 'keystone_host'})
+    signals.connect(admin_tenant, admin_user)
+    signals.connect(admin_user, admin_role)
+
+    signals.connect(keystone_puppet, services_tenant)
+    signals.connect(keystone_puppet, services_tenant, {'admin_port': 'keystone_port', 'ip': 'keystone_host'})
+    signals.connect(services_tenant, neutron_keystone_user)
+    signals.connect(neutron_keystone_user, neutron_keystone_role)
+
     signals.connect(node1, keystone_puppet)
     signals.connect(keystone_db, keystone_puppet, {'db_name': 'db_name'})
     signals.connect(keystone_db_user, keystone_puppet, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
 
     signals.connect(node1, neutron_puppet)
+    signals.connect(admin_user, neutron_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
 
 
     has_errors = False
@@ -90,14 +111,27 @@ def deploy():
     actions.resource_action(rabbitmq_service1, 'run')
     actions.resource_action(openstack_vhost, 'run')
     actions.resource_action(openstack_rabbitmq_user, 'run')
+
     actions.resource_action(puppet_inifile, 'run')
     actions.resource_action(puppet_mysql, 'run')
     actions.resource_action(puppet_stdlib, 'run')
+
     actions.resource_action(mariadb_service1, 'run')
+
     actions.resource_action(keystone_db, 'run')
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_puppet, 'run')
+
+    actions.resource_action(admin_tenant, 'run')
+    actions.resource_action(admin_user, 'run')
+    actions.resource_action(admin_role, 'run')
+
+    actions.resource_action(services_tenant, 'run')
+    actions.resource_action(neutron_keystone_user, 'run')
+    actions.resource_action(neutron_keystone_role, 'run')
+
     actions.resource_action(neutron_puppet, 'run')
+
     time.sleep(10)
 
     # test working configuration
@@ -106,22 +140,39 @@ def deploy():
     #requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
     requests.get('http://%s:%s' % (keystone_puppet.args['ip'].value, keystone_puppet.args['port'].value))
 
-    # token_data = requests.post(
-    #     'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
-    #     json.dumps({
-    #         'auth': {
-    #             'tenantName': glance_keystone_user.args['tenant_name'].value,
-    #             'passwordCredentials': {
-    #                 'username': glance_keystone_user.args['user_name'].value,
-    #                 'password': glance_keystone_user.args['user_password'].value,
-    #             }
-    #         }
-    #     }),
-    #     headers={'Content-Type': 'application/json'}
-    # )
+    token_data = requests.post(
+        'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
+        json.dumps({
+            'auth': {
+                'tenantName': admin_tenant.args['tenant_name'].value,
+                'passwordCredentials': {
+                    'username': admin_user.args['user_name'].value,
+                    'password': admin_user.args['user_password'].value,
+                },
+            },
+        }),
+        headers={'Content-Type': 'application/json'}
+    )
 
-    # token = token_data.json()['access']['token']['id']
-    # print 'TOKEN: {}'.format(token)
+    token = token_data.json()['access']['token']['id']
+    print 'ADMIN TOKEN: {}'.format(token)
+
+    neutron_token_data = requests.post(
+        'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
+        json.dumps({
+            'auth': {
+                'tenantName': services_tenant.args['tenant_name'].value,
+                'passwordCredentials': {
+                    'username': neutron_keystone_user.args['user_name'].value,
+                    'password': neutron_keystone_user.args['user_password'].value,
+                },
+            },
+        }),
+        headers={'Content-Type': 'application/json'}
+    )
+
+    neutron_token = neutron_token_data.json()['access']['token']['id']
+    print 'NEUTRON TOKEN: {}'.format(neutron_token)
 
 
 @click.command()
@@ -132,13 +183,25 @@ def undeploy():
     resources = {r.name: r for r in resources}
 
     actions.resource_action(resources['neutron_puppet'], 'remove')
+
+    actions.resource_action(resources['neutron_keystone_role'], 'remove')
+    actions.resource_action(resources['neutron_keystone_user'], 'remove')
+    actions.resource_action(resources['services_tenant'], 'remove')
+
+    actions.resource_action(resources['admin_role'], 'remove')
+    actions.resource_action(resources['admin_user'], 'remove')
+    actions.resource_action(resources['admin_tenant'], 'remove')
+
     actions.resource_action(resources['keystone_puppet'], 'remove')
     actions.resource_action(resources['keystone_db_user'], 'remove')
     actions.resource_action(resources['keystone_db'], 'remove')
+
     actions.resource_action(resources['mariadb_service1'], 'remove')
+
     actions.resource_action(resources['puppet_stdlib'], 'remove')
     actions.resource_action(resources['puppet_mysql'], 'remove')
     actions.resource_action(resources['puppet_inifile'], 'remove')
+
     actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
     actions.resource_action(resources['openstack_vhost'], 'remove')
     actions.resource_action(resources['rabbitmq_service1'], 'remove')
