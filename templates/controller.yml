@@ -1,0 +1,75 @@
+id: primary_controller
+
+resources:
+  - id: mariadb_service
+    from: resources/mariadb_service
+    values:
+      port: 5000
+      root_password: mariadb
+      image: mariadb 
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  - id: rabbitmq_service
+    from: resources/rabbitmq_service
+    values:
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  - id: keystone_base
+    from: templates/keystone_base.yml
+    values:
+      login_user: root
+      login_password: 'mariadb_service::root_password'
+      login_port: 'mariadb_service::port'
+      db_name: 'keystone'
+      user_password: 'keystone'
+      user_name: 'keystone'
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  - id:  keystone_api_1
+    from: templates/keystone_api.yml
+    values:
+      idx: 1
+      image: 'kollaglue/centos-rdo-k-keystone'
+      config_dir: '/etc/solar/keystone_config_1'
+      db_password: 'keystone_db_user::user_password'
+      db_user: 'keystone_db_user::user_name'
+      db_port: 'keystone_db_user::login_port'
+      db_name: 'keystone_db_user::db_name'
+      db_host: 'mariadb_service::ip'
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  # TODO: HAproxy
+
+  - id: openstack_base
+    from: templates/openstack_base.yml
+    values:
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+      keystone_ip: 'keystone_service_1::ip'
+      keystone_admin_port: 'keystone_service_1::admin_port'
+      keystone_port: 'keystone_service_1::port'
+
+  - id: glance_base
+    from: templates/glance_base.yml
+    values:
+      login_user: root
+      login_password: 'mariadb_service::root_password'
+      login_port: 'mariadb_service::port'
+      db_name: 'glance'
+      user_password: 'glance'
+      user_name: 'glance'
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+tags: ['resources/controller', 'resource/primary_controller']
+
