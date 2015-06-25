@@ -30,6 +30,10 @@ def deploy():
 
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
+    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': '15672', 'port': '5672', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
+    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})
+    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})
+
     puppet_inifile = resource.create('puppet_inifile', GitProvider(GIT_PUPPET_LIBS_URL, path='inifile'), {})
     puppet_mysql = resource.create('puppet_mysql', GitProvider(GIT_PUPPET_LIBS_URL, path='mysql'), {})
     puppet_stdlib = resource.create('puppet_stdlib', GitProvider(GIT_PUPPET_LIBS_URL, path='stdlib'), {})
@@ -39,6 +43,15 @@ def deploy():
     keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
 
     keystone_puppet = resource.create('keystone_puppet', GitProvider(GIT_KEYSTONE_PUPPET_RESOURCE_URL, path='keystone'), {})
+
+    # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
+    neutron_puppet = resource.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+
+    signals.connect(node1, rabbitmq_service1)
+    signals.connect(rabbitmq_service1, openstack_vhost)
+    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
+    signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
+    signals.connect(rabbitmq_service1, neutron_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
     signals.connect(node1, puppet_inifile)
     signals.connect(node1, puppet_mysql)
@@ -54,6 +67,8 @@ def deploy():
     signals.connect(node1, keystone_puppet)
     signals.connect(keystone_db, keystone_puppet, {'db_name': 'db_name'})
     signals.connect(keystone_db_user, keystone_puppet, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
+
+    signals.connect(node1, neutron_puppet)
 
 
     has_errors = False
@@ -72,6 +87,9 @@ def deploy():
 
 
     # run
+    actions.resource_action(rabbitmq_service1, 'run')
+    actions.resource_action(openstack_vhost, 'run')
+    actions.resource_action(openstack_rabbitmq_user, 'run')
     actions.resource_action(puppet_inifile, 'run')
     actions.resource_action(puppet_mysql, 'run')
     actions.resource_action(puppet_stdlib, 'run')
@@ -79,6 +97,7 @@ def deploy():
     actions.resource_action(keystone_db, 'run')
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_puppet, 'run')
+    actions.resource_action(neutron_puppet, 'run')
     time.sleep(10)
 
     # test working configuration
@@ -112,6 +131,7 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
 
+    actions.resource_action(resources['neutron_puppet'], 'remove')
     actions.resource_action(resources['keystone_puppet'], 'remove')
     actions.resource_action(resources['keystone_db_user'], 'remove')
     actions.resource_action(resources['keystone_db'], 'remove')
@@ -119,6 +139,9 @@ def undeploy():
     actions.resource_action(resources['puppet_stdlib'], 'remove')
     actions.resource_action(resources['puppet_mysql'], 'remove')
     actions.resource_action(resources['puppet_inifile'], 'remove')
+    actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
+    actions.resource_action(resources['openstack_vhost'], 'remove')
+    actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
     db.clear()
 
