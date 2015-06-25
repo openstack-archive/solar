@@ -57,6 +57,7 @@ resources:
       keystone_ip: 'keystone_service_1::ip'
       keystone_admin_port: 'keystone_service_1::admin_port'
       keystone_port: 'keystone_service_1::port'
+      admin_token: 'keystone_config_1::admin_token'
 
   - id: glance_base
     from: templates/glance_base.yml
@@ -67,6 +68,20 @@ resources:
       db_name: 'glance'
       user_password: 'glance'
       user_name: 'glance'
+      ip: '{{ip}}'
+      ssh_user: '{{ssh_user}}'
+      ssh_key: '{{ssh_key}}'
+
+  - id: glance_registry_1
+    from: templates/glance_registry.yml
+    values:
+      idx: 1
+      keystone_admin_port: 'keystone_service_1::admin_port'
+      keystone_ip: 'keystone_service_1::ip'
+      mysql_password: 'glance_db_user::user_password'
+      mysql_user: 'keystone_db_user::user_name'
+      mysql_db: 'keystone_db_user::db_name'
+      mysql_ip: 'mariadb_service::ip'
       ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'
       ssh_key: '{{ssh_key}}'
