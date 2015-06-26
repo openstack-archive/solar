@@ -4,7 +4,7 @@ resources:
   - id: mariadb_service
     from: resources/mariadb_service
     values:
-      port: 5000
+      port: 3306
       root_password: mariadb
       image: mariadb 
       ip: '{{ip}}'
