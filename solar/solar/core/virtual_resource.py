@@ -54,21 +54,21 @@ def create_virtual_resource(vr_name, template):
                     emitter, src = arg.split('::')
                     connections.append((emitter, name, {src: key}))
 
-    db = resource_module.load_all()
-    for emitter, reciver, mapping in connections:
-        emitter = db[emitter]
-        reciver = db[reciver]
-        signals.connect(emitter, reciver, mapping)
+        db = resource_module.load_all()
+        for emitter, reciver, mapping in connections:
+            emitter = db[emitter]
+            reciver = db[reciver]
+            signals.connect(emitter, reciver, mapping)
 
-    for r in db.values():
-        if not isinstance(r, resource_module.Resource):
-            continue
+        for r in db.values():
+            if not isinstance(r, resource_module.Resource):
+                continue
 
-        print 'Validating {}'.format(r.name)
-        errors = validation.validate_resource(r)
-        if errors:
-            print 'ERROR: %s: %s' % (r.name, errors)
-            #import sys;sys.exit()
+            print 'Validating {}'.format(r.name)
+            errors = validation.validate_resource(r)
+            if errors:
+                print 'ERROR: %s: %s' % (r.name, errors)
+                #import sys;sys.exit()
     return created_resources
 
 def create(name, path, kwargs, virtual_resource=None):
