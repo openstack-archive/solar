@@ -49,13 +49,6 @@ def parse_plan(plan_data):
     return dg
 
 
-def reset(uid):
-    dg = get_graph(uid)
-    for n in dg:
-        dg.node[n]['status'] = 'PENDING'
-    save_graph(uid, dg)
-
-
 def create_plan(plan_data):
     """
     """
@@ -63,6 +56,36 @@ def create_plan(plan_data):
     dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
     save_graph(dg.graph['uid'], dg)
     return dg.graph['uid']
+
+
+def update_plan(uid, plan_data):
+    """update preserves old status of tasks if they werent removed
+    """
+    dg = parse_plan(plan_data)
+    old_dg = get_graph(uid)
+    dg.graph = old_dg.graph
+    for n in dg:
+        if n in old_dg:
+            dg.node[n]['status'] = old_dg.node[n]['status']
+
+    save_graph(uid, dg)
+    return uid
+
+
+def reset(uid, states=None):
+    dg = get_graph(uid)
+    for n in dg:
+        if states is None or dg.node[n]['status'] in states:
+            dg.node[n]['status'] = 'PENDING'
+    save_graph(uid, dg)
+
+
+def soft_stop(uid):
+    """Graph will stop when all currently inprogress tasks will be finished
+    """
+    dg = get_graph(uid)
+    dg.graph['stop'] = True
+    save_graph(uid, dg)
 
 
 def report_topo(uid):

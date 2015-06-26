@@ -1,8 +1,8 @@
 name: simple
 tasks:
-    - uid: sleep_some_time
+    - uid: echo_stuff
       parameters:
-          type: sleep
+          type: echo
           args: [10]
     - uid: just_fail
       parameters:

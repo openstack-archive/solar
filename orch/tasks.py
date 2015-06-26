@@ -114,19 +114,24 @@ def fire_timeout(task_id):
     schedule_next.apply_async(args=[task_id, 'ERROR'], queue='master')
 
 
+def schedule(plan_uid, dg):
+    if not dg.graph.get('stop'):
+        next_tasks = list(traverse(dg))
+        print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
+        group(next_tasks)()
+    graph.save_graph(plan_uid, dg)
+
+
 @app.task
-def schedule_start(plan_uid):
+def schedule_start(plan_uid, start=None, end=None):
     """On receive finished task should update storage with task result:
 
     - find successors that should be executed
     - apply different policies to tasks
     """
     dg = graph.get_graph(plan_uid)
-
-    next_tasks = list(get_next(dg))
-    print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
-    graph.save_graph(plan_uid, dg)
-    group(next_tasks)()
+    dg.graph['stop'] = False
+    schedule(plan_uid, dg)
 
 
 @app.task
@@ -135,13 +140,17 @@ def schedule_next(task_id, status):
     dg = graph.get_graph(plan_uid)
     dg.node[task_name]['status'] = status
 
-    next_tasks = list(get_next(dg))
-    print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
-    graph.save_graph(plan_uid, dg)
-    group(next_tasks)()
+    schedule(plan_uid, dg)
+
+# TODO(dshulyak) some tasks should be evaluated even if not all predecessors
+# succeded, how to identify this?
+# - add ignor_error on edge
+# - add ignore_predecessor_errors on task in consideration
+# - make fault_tolerance not a task but a policy for all tasks
+control_tasks = [fault_tolerance, anchor]
 
 
-def get_next(dg):
+def traverse(dg):
     visited = set()
     for node in dg:
         data = dg.node[node]
@@ -156,7 +165,6 @@ def get_next(dg):
         elif data['status'] == 'INPROGRESS':
             continue
 
-
         predecessors = set(dg.predecessors(node))
 
         if predecessors <= visited:
@@ -164,21 +172,32 @@ def get_next(dg):
 
             task_name = 'orch.tasks.{0}'.format(data['type'])
             task = app.tasks[task_name]
-            dg.node[node]['status'] = 'INPROGRESS'
-            subtask = task.subtask(
-                data['args'], task_id=task_id,
-                time_limit=data.get('time_limit', None),
-                soft_time_limit=data.get('soft_time_limit', None))
 
-            if data.get('target', None):
-                subtask.set(queue=data['target'])
+            if all_success(dg, predecessors) or task in control_tasks:
+                dg.node[node]['status'] = 'INPROGRESS'
+                for t in generate_task(task, dg, data, task_id):
+                    yield t
 
-            timeout = data.get('timeout')
 
-            yield subtask
+def generate_task(task, dg, data, task_id):
 
-            if timeout:
-                timeout_task = fire_timeout.subtask([node], countdown=timeout)
-                timeout_task.set(queue='master')
-                yield timeout_task
+    subtask = task.subtask(
+        data['args'], task_id=task_id,
+        time_limit=data.get('time_limit', None),
+        soft_time_limit=data.get('soft_time_limit', None))
 
+    if data.get('target', None):
+        subtask.set(queue=data['target'])
+
+    timeout = data.get('timeout')
+
+    yield subtask
+
+    if timeout:
+        timeout_task = fire_timeout.subtask([task_id], countdown=timeout)
+        timeout_task.set(queue='master')
+        yield timeout_task
+
+
+def all_success(dg, nodes):
+    return all((n for n in nodes if dg.node[n]['status'] == 'SUCCESS'))

@@ -28,6 +28,12 @@ def create(plan):
 
 @click.command()
 @click.argument('uid')
+@click.argument('plan', type=click.File('rb'))
+def update(uid, plan):
+    graph.update_plan(uid, plan.read())
+
+@click.command()
+@click.argument('uid')
 def report(uid):
     colors = {
         'PENDING': 'white',
@@ -43,8 +49,13 @@ def report(uid):
 
 @click.command()
 @click.argument('uid')
-def execute(uid):
-    tasks.schedule_start.apply_async(args=[uid], queue='master')
+@click.option('--start', default=None)
+@click.option('--end', default=None)
+def execute(uid, start, end):
+    tasks.schedule_start.apply_async(
+        args=[uid],
+        kwargs={'start': start, 'end': end},
+        queue='master')
 
 
 @click.command()
@@ -62,11 +73,31 @@ def reset(uid):
     graph.reset(uid)
 
 
+@click.command()
+@click.argument('uid')
+def stop(uid):
+    # TODO(dshulyak) how to do "hard" stop?
+    # using revoke(terminate=True) will lead to inability to restart execution
+    # research possibility of customizations of
+    # app.control and Panel.register in celery
+    graph.soft_stop(uid)
+
+
+@click.command()
+@click.argument('uid')
+def retry(uid):
+    graph.reset(uid, ['ERROR'])
+    tasks.schedule_start.apply_async(args=[uid], queue='master')
+
+
 orchestration.add_command(create)
+orchestration.add_command(update)
 orchestration.add_command(report)
 orchestration.add_command(execute)
 orchestration.add_command(restart)
 orchestration.add_command(reset)
+orchestration.add_command(stop)
+orchestration.add_command(retry)
 
 
 if __name__ == '__main__':
