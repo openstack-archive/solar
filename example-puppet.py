@@ -30,7 +30,7 @@ def deploy():
 
     node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
 
-    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': '15672', 'port': '5672', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
+    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': 15672, 'port': 5672, 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
     openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})
     openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})
 
@@ -59,12 +59,32 @@ def deploy():
 
     neutron_keystone_service_endpoint = resource.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Network Service', 'type': 'network', 'port': 9696, 'admin_port': 9696})
 
+    #cinder_puppet = resource.create('cinder_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'cinder'), {})
+    cinder_puppet = resource.create('cinder_puppet', 'resources/cinder_puppet', {})
+
+    cinder_keystone_user = resource.create('cinder_keystone_user', 'resources/keystone_user', {'user_name': 'cinder', 'user_password': 'cinder'})
+    cinder_keystone_role = resource.create('cinder_keystone_role', 'resources/keystone_role', {'role_name': 'cinder'})
+
+    #nova_puppet = resource.create('nova_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+    # TODO: fix rabbitmq user/password
+    nova_puppet = resource.create('nova_puppet', 'resources/nova_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})
+
+    nova_keystone_user = resource.create('nova_keystone_user', 'resources/keystone_user', {'user_name': 'nova', 'user_password': 'nova'})
+    nova_keystone_role = resource.create('nova_keystone_role', 'resources/keystone_role', {'role_name': 'nova'})
+
+    # TODO: 'services' tenant-id is hardcoded
+    nova_keystone_service_endpoint = resource.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}/v2/services', 'internalurl': 'http://{{ip}}:{{port}}/v2/services', 'publicurl': 'http://{{ip}}:{{port}}/v2/services', 'description': 'OpenStack Compute Service', 'type': 'compute', 'port': 8776, 'admin_port': 8776})
+
 
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
     signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
     signals.connect(rabbitmq_service1, neutron_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
+    signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbitmq_vhost'})
+    signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbitmq_user', 'password': 'rabbitmq_password'})
+    signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
+    signals.connect(rabbitmq_service1, nova_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
     signals.connect(node1, puppet_inifile)
     signals.connect(node1, puppet_mysql)
@@ -91,6 +111,7 @@ def deploy():
     signals.connect(keystone_db, keystone_puppet, {'db_name': 'db_name'})
     signals.connect(keystone_db_user, keystone_puppet, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
 
+    # NEUTRON
     signals.connect(node1, neutron_puppet)
     signals.connect(admin_user, neutron_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
     signals.connect(keystone_puppet, neutron_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
@@ -98,6 +119,27 @@ def deploy():
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
     #signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'port': 'admin_port'})
     signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
+
+    # CINDER
+    signals.connect(node1, cinder_puppet)
+    signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
+
+    signals.connect(services_tenant, cinder_keystone_user)
+    signals.connect(cinder_keystone_user, cinder_keystone_role)
+
+    signals.connect(cinder_keystone_user, cinder_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
+
+    # NOVA
+    signals.connect(node1, nova_puppet)
+
+    signals.connect(services_tenant, nova_keystone_user)
+    signals.connect(neutron_keystone_user, nova_keystone_role)
+
+    signals.connect(nova_keystone_user, nova_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
+    signals.connect(keystone_puppet, nova_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
+
+    signals.connect(nova_puppet, nova_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
+    signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
 
 
     has_errors = False
@@ -141,6 +183,17 @@ def deploy():
     actions.resource_action(neutron_puppet, 'run')
     actions.resource_action(neutron_keystone_service_endpoint, 'run')
 
+    actions.resource_action(cinder_keystone_user, 'run')
+    actions.resource_action(cinder_keystone_role, 'run')
+
+    actions.resource_action(cinder_puppet, 'run')
+
+    actions.resource_action(nova_keystone_user, 'run')
+    actions.resource_action(nova_keystone_role, 'run')
+
+    actions.resource_action(nova_puppet, 'run')
+    actions.resource_action(nova_keystone_service_endpoint, 'run')
+
     time.sleep(10)
 
     # test working configuration
@@ -149,39 +202,54 @@ def deploy():
     #requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
     requests.get('http://%s:%s' % (keystone_puppet.args['ip'].value, keystone_puppet.args['port'].value))
 
-    token_data = requests.post(
-        'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
-        json.dumps({
-            'auth': {
-                'tenantName': admin_tenant.args['tenant_name'].value,
-                'passwordCredentials': {
-                    'username': admin_user.args['user_name'].value,
-                    'password': admin_user.args['user_password'].value,
+    for service_name in ['admin', 'neutron', 'cinder', 'nova']:
+        if service_name == 'admin':
+            tenant = admin_tenant.args['tenant_name'].value
+        else:
+            tenant = services_tenant.args['tenant_name'].value
+
+        if service_name == 'admin':
+            user = admin_user
+        elif service_name == 'neutron':
+            user = neutron_keystone_user
+        elif service_name == 'cinder':
+            user = cinder_keystone_user
+        elif service_name == 'nova':
+            user = nova_keystone_user
+
+        token_data = requests.post(
+            'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
+            json.dumps({
+                'auth': {
+                    'tenantName': tenant,
+                    'passwordCredentials': {
+                        'username': user.args['user_name'].value,
+                        'password': user.args['user_password'].value,
+                    },
                 },
-            },
-        }),
-        headers={'Content-Type': 'application/json'}
-    )
+            }),
+            headers={'Content-Type': 'application/json'}
+        )
 
-    token = token_data.json()['access']['token']['id']
-    print 'ADMIN TOKEN: {}'.format(token)
+        token = token_data.json()['access']['token']['id']
+        print '{} TOKEN: {}'.format(service_name.upper(), token)
 
-    neutron_token_data = requests.post(
-        'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
-        json.dumps({
-            'auth': {
-                'tenantName': services_tenant.args['tenant_name'].value,
-                'passwordCredentials': {
-                    'username': neutron_keystone_user.args['user_name'].value,
-                    'password': neutron_keystone_user.args['user_password'].value,
-                },
-            },
-        }),
-        headers={'Content-Type': 'application/json'}
-    )
-
-    neutron_token = neutron_token_data.json()['access']['token']['id']
-    print 'NEUTRON TOKEN: {}'.format(neutron_token)
+    # neutron_token_data = requests.post(
+    #     'http://%s:%s/v2.0/tokens' % (keystone_puppet.args['ip'].value, 5000),
+    #     json.dumps({
+    #         'auth': {
+    #             'tenantName': services_tenant.args['tenant_name'].value,
+    #             'passwordCredentials': {
+    #                 'username': neutron_keystone_user.args['user_name'].value,
+    #                 'password': neutron_keystone_user.args['user_password'].value,
+    #             },
+    #         },
+    #     }),
+    #     headers={'Content-Type': 'application/json'}
+    # )
+    #
+    # neutron_token = neutron_token_data.json()['access']['token']['id']
+    # print 'NEUTRON TOKEN: {}'.format(neutron_token)
 
 
 @click.command()
@@ -191,8 +259,19 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
 
+    actions.resource_action(resources['nova_keystone_service_endpoint'], 'remove' )
+    actions.resource_action(resources['nova_puppet'], 'remove' )
+
+    actions.resource_action(resources['nova_keystone_role'], 'remove')
+    actions.resource_action(resources['nova_keystone_user'], 'remove')
+
+    actions.resource_action(resources['cinder_puppet'], 'remove' )
+
     actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
     actions.resource_action(resources['neutron_puppet'], 'remove' )
+
+    actions.resource_action(resources['cinder_keystone_role'], 'remove')
+    actions.resource_action(resources['cinder_keystone_user'], 'remove')
 
     actions.resource_action(resources['neutron_keystone_role'], 'remove')
     actions.resource_action(resources['neutron_keystone_user'], 'remove')
