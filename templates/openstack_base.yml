@@ -5,7 +5,7 @@ resources:
     from: resources/keystone_tenant
     values:
       tenant_name: admin
-      keystone_port: '{{keystone_port}}'
+      keystone_port: '{{keystone_admin_port}}'
       keystone_host: '{{keystone_ip}}'
       admin_token: '{{admin_token}}'
       ip: '{{ip}}'
@@ -18,7 +18,7 @@ resources:
       user_name: 'admin'
       user_password: 'admin'
       tenant_name: 'admin_tenant::tenant_name'
-      keystone_port: '{{keystone_port}}'
+      keystone_port: '{{keystone_admin_port}}'
       keystone_host: '{{keystone_ip}}'
       admin_token: '{{admin_token}}'
       ip: '{{ip}}'
@@ -29,15 +29,20 @@ resources:
     from: resources/keystone_service_endpoint
     values:
      {% raw %}
-      adminurl: 'http://{{keystone_ip}}:{{admin_port}}/v2.0'
-      internalurl: 'http://{{keystone_ip}}:{{port}}/v2.0'
-      publicurl: 'http://{{keystone_ip}}:{{port}}/v2.0'
+      adminurl: 'http://{{admin_ip}}:{{admin_port}}/v2.0'
+      internalurl: 'http://{{internal_ip}}:{{internal_port}}/v2.0'
+      publicurl: 'http://{{public_ip}}:{{public_port}}/v2.0'
      {% endraw %}
       description: 'OpenStack Identity Service'
       type: 'identity'
-      admin_port: '{{keystone_port}}'
-      port: '{{keystone_admin_port}}'
-      keystone_port: '{{keystone_port}}'
+      name: 'keystone'
+      admin_port: '{{keystone_admin_port}}'
+      public_port: '{{keystone_port}}'
+      internal_port: '{{keystone_port}}'
+      admin_ip: '{{ip}}'
+      public_ip: '{{ip}}'
+      internal_ip: '{{ip}}'
+      keystone_admin_port: '{{keystone_admin_port}}'
       keystone_host: '{{keystone_ip}}'
       admin_token: '{{admin_token}}'
       ip: '{{ip}}'
@@ -48,7 +53,7 @@ resources:
     from: resources/keystone_tenant
     values:
       tenant_name: services
-      keystone_port: '{{keystone_port}}'
+      keystone_port: '{{keystone_admin_port}}'
       keystone_host: '{{keystone_ip}}'
       admin_token: '{{admin_token}}'
       ip: '{{ip}}'
