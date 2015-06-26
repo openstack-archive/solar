@@ -48,7 +48,7 @@ def maybe_ignore(func):
 
 @solar_task
 @maybe_ignore
-def cmd(cmd):
+def cmd(ctxt, cmd):
     popen = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = popen.communicate()
@@ -72,9 +72,12 @@ def error(ctxt, message):
 
 @solar_task
 def fault_tolerance(ctxt, percent):
-    dg = graph.get_graph('current')
+    task_id = ctxt.request.id
+    plan_uid, task_name = task_id.rsplit(':', 1)
+
+    dg = graph.get_graph(plan_uid)
     success = 0.0
-    predecessors = dg.predecessors(ctxt.request.id)
+    predecessors = dg.predecessors(task_name)
     lth = len(predecessors)
 
     for s in predecessors:
@@ -112,29 +115,29 @@ def fire_timeout(task_id):
 
 
 @app.task
-def schedule_start():
+def schedule_start(plan_uid):
     """On receive finished task should update storage with task result:
 
     - find successors that should be executed
     - apply different policies to tasks
     """
-    dg = graph.get_graph('current')
+    dg = graph.get_graph(plan_uid)
 
-    concurrency = dg.graph.get('concurrency', None)
-    next_tasks = list(islice(get_next(dg), 0, concurrency))
+    next_tasks = list(get_next(dg))
     print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
-    graph.save_graph('current', dg)
+    graph.save_graph(plan_uid, dg)
     group(next_tasks)()
 
 
 @app.task
 def schedule_next(task_id, status):
-    dg = graph.get_graph('current')
-    dg.node[task_id]['status'] = status
-    concurrency = dg.graph.get('concurrency', None)
-    next_tasks = list(islice(get_next(dg), 0, concurrency))
+    plan_uid, task_name = task_id.rsplit(':', 1)
+    dg = graph.get_graph(plan_uid)
+    dg.node[task_name]['status'] = status
+
+    next_tasks = list(get_next(dg))
     print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
-    graph.save_graph('current', dg)
+    graph.save_graph(plan_uid, dg)
     group(next_tasks)()
 
 
@@ -157,12 +160,13 @@ def get_next(dg):
         predecessors = set(dg.predecessors(node))
 
         if predecessors <= visited:
+            task_id = '{}:{}'.format(dg.graph['uid'], node)
 
             task_name = 'orch.tasks.{0}'.format(data['type'])
             task = app.tasks[task_name]
             dg.node[node]['status'] = 'INPROGRESS'
             subtask = task.subtask(
-                data['args'], task_id=node,
+                data['args'], task_id=task_id,
                 time_limit=data.get('time_limit', None),
                 soft_time_limit=data.get('soft_time_limit', None))
 

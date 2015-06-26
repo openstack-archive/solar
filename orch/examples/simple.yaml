@@ -1,0 +1,10 @@
+name: simple
+tasks:
+    - uid: sleep_some_time
+      parameters:
+          type: sleep
+          args: [10]
+    - uid: just_fail
+      parameters:
+        type: error
+        args: ['message']

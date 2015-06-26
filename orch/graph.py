@@ -5,6 +5,11 @@ import networkx as nx
 import redis
 import json
 
+import yaml
+
+import uuid
+
+
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
 
@@ -23,3 +28,50 @@ def get_graph(name):
     dg.add_nodes_from(nodes)
     dg.add_edges_from(edges)
     return dg
+
+
+get_plan = get_graph
+
+
+def parse_plan(plan_data):
+    """ parses yaml definition and returns graph
+    """
+    plan = yaml.load(plan_data)
+    dg = nx.DiGraph()
+    dg.graph['name'] = plan['name']
+    for task in plan['tasks']:
+        dg.add_node(
+            task['uid'], status='PENDING', **task['parameters'])
+        for v in task.get('before', ()):
+            dg.add_edge(task['uid'], v)
+        for u in task.get('after', ()):
+            dg.add_edge(u, task['uid'])
+    return dg
+
+
+def reset(uid):
+    dg = get_graph(uid)
+    for n in dg:
+        dg.node[n]['status'] = 'PENDING'
+    save_graph(uid, dg)
+
+
+def create_plan(plan_data):
+    """
+    """
+    dg = parse_plan(plan_data)
+    dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
+    save_graph(dg.graph['uid'], dg)
+    return dg.graph['uid']
+
+
+def report_topo(uid):
+
+    dg = get_graph(uid)
+    report = []
+
+    for task in nx.topological_sort(dg):
+        status = dg.node[task]['status']
+        report.append([task, status])
+
+    return report
