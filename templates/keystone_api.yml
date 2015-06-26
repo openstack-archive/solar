@@ -18,7 +18,7 @@ resources:
   - id:  keystone_service_{{idx}}
     from: resources/keystone_service
     values:
-      image: 'kollaglue/centos-rdo-k-keystone'
+      image: 'kollaglue/centos-rdo-j-keystone'
       config_dir: 'keystone_config_{{idx}}::config_dir'
       ip: 'keystone_config_{{idx}}::ip'
       ssh_user: 'keystone_config_{{idx}}::ssh_user'
