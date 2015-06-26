@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 import click
 
 from orch import graph
@@ -8,7 +9,15 @@ from orch import tasks
 
 @click.group()
 def orchestration():
-    pass
+    """
+    \b
+    ./cli.py create orch/examples/multi.yaml
+    <id>
+    ./cli.py execute <id>
+    ./cli.py report <id>
+    <task> -> <status>
+    ./cli.py restart <id> --reset
+    """
 
 
 @click.command()
