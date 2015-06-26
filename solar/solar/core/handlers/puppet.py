@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from fabric import api as fabric_api
+from fabric.contrib import project as fabric_project
 import os
 
 from solar.core.log import log
@@ -54,7 +55,8 @@ class Puppet(BaseHandler):
         print 'SCP: ', _from, _to
 
         with fabric_api.settings(**self._fabric_settings(resource)):
-            return fabric_api.put(_from, _to)
+            #return fabric_api.put(_from, _to)
+            return fabric_project.rsync_project(_to, local_dir=_from)
 
 
     def _fabric_settings(self, resource):

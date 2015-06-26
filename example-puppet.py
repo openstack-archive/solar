@@ -53,9 +53,12 @@ def deploy():
     admin_user = resource.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})
     admin_role = resource.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})
 
-    services_tenant = resource.create('neutron_keystone_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})
+    services_tenant = resource.create('services_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})
     neutron_keystone_user = resource.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})
     neutron_keystone_role = resource.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})
+
+    neutron_keystone_service_endpoint = resource.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Network Service', 'type': 'network', 'port': 9696, 'admin_port': 9696})
+
 
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
@@ -90,6 +93,11 @@ def deploy():
 
     signals.connect(node1, neutron_puppet)
     signals.connect(admin_user, neutron_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
+    signals.connect(keystone_puppet, neutron_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
+
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
+    #signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'port': 'admin_port'})
+    signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
 
 
     has_errors = False
@@ -131,6 +139,7 @@ def deploy():
     actions.resource_action(neutron_keystone_role, 'run')
 
     actions.resource_action(neutron_puppet, 'run')
+    actions.resource_action(neutron_keystone_service_endpoint, 'run')
 
     time.sleep(10)
 
@@ -182,7 +191,8 @@ def undeploy():
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
 
-    actions.resource_action(resources['neutron_puppet'], 'remove')
+    actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
+    actions.resource_action(resources['neutron_puppet'], 'remove' )
 
     actions.resource_action(resources['neutron_keystone_role'], 'remove')
     actions.resource_action(resources['neutron_keystone_user'], 'remove')
