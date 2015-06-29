@@ -3,6 +3,6 @@
   tasks:
     - name: glance api container
       docker:
-        name: {{ name }}
+        name: {{ resource_name }}
         image: {{ image }}
         state: absent

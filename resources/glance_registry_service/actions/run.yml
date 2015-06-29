@@ -5,7 +5,7 @@
     - docker:
        #command: /bin/bash -c "glance-manage db_sync && /usr/bin/glance-registry"
        command: /usr/bin/glance-registry
-       name: {{ name }}
+       name: {{ resource_name }}
        image: {{ image }}
        state: running
        net: host
