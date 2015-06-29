@@ -177,8 +177,15 @@ def prepare_meta(meta):
 
 
 def create(name, base_path, args, tags=[], connections={}):
+    from solar.core import resource_provider
+
+    if isinstance(base_path, resource_provider.BaseProvider):
+        base_path = base_path.directory
+
     if not os.path.exists(base_path):
-        raise Exception('Base resource does not exist: {0}'.format(base_path))
+        raise Exception(
+            'Base resource does not exist: {0}'.format(base_path)
+        )
 
     base_meta_file = os.path.join(base_path, 'meta.yaml')
 
