@@ -328,6 +328,12 @@ def init_cli_resource():
         r.update(args)
 
     @resource.command()
+    def validate():
+        errors = vr.validate_resources()
+        for r, error in errors:
+            print 'ERROR: %s: %s' % (r.name, error)
+
+    @resource.command()
     @click.argument('path')
     def get_inputs(path):
         with open(path) as f:

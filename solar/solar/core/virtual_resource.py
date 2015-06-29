@@ -9,6 +9,7 @@ from jinja2 import Template, Environment, meta
 from solar import utils
 from solar.core import validation
 from solar.core import resource as resource_module
+from solar.core import resource_provider
 from solar.core import signals
 
 
@@ -60,30 +61,37 @@ def create_virtual_resource(vr_name, template):
             reciver = db[reciver]
             signals.connect(emitter, reciver, mapping)
 
-        for r in db.values():
-            if not isinstance(r, resource_module.Resource):
-                continue
-
-            print 'Validating {}'.format(r.name)
-            errors = validation.validate_resource(r)
-            if errors:
-                print 'ERROR: %s: %s' % (r.name, errors)
-                #import sys;sys.exit()
     return created_resources
 
-def create(name, path, kwargs, virtual_resource=None):
-    if not os.path.exists(path):
-        raise Exception('Base resource does not exist: {0}'.format(path))
+def create(name, base_path, kwargs, virtual_resource=None):
+    if isinstance(base_path, resource_provider.BaseProvider):
+        base_path = base_path.directory
+    if not os.path.exists(base_path):
+        raise Exception(
+            'Base resource does not exist: {0}'.format(base_path)
+        )
 
-    if is_virtual(path):
-        template = _compile_file(name, path, kwargs)
+    if is_virtual(base_path):
+        template = _compile_file(name, base_path, kwargs)
         yaml_template = yaml.load(StringIO(template))
         resources = create_virtual_resource(name, yaml_template)
     else:
-        resource = create_resource(name, path, kwargs, virtual_resource)
+        resource = create_resource(name, base_path, kwargs, virtual_resource)
         resources = [resource]
 
     return resources
+
+def validate_resources():
+    db = resource_module.load_all()
+    all_errors = []
+    for r in db.values():
+        if not isinstance(r, resource_module.Resource):
+            continue
+
+        errors = validation.validate_resource(r)
+        if errors:
+            all_errors.append((r, errors))
+    return all_errors
 
 def _compile_file(name, path, kwargs):
     with open(path) as f:
