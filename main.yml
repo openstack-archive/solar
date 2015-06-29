@@ -10,9 +10,13 @@
 
     - apt: name=git state=present
 
+    - shell: wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -O /root/puppetlabs-release-trusty.deb
+    - shell: dpkg -i /root/puppetlabs-release-trusty.deb
+    - shell: apt-get update
+
     - apt: name=puppet state=present
     - git: repo=https://github.com/CGenie/hiera-redis dest=/root/hiera-redis
-    - shell: gem build hiera-redis.gemspec && gem install hiera-redis-1.0.2.gem chdir=/root/hiera-redis
+    - shell: gem build hiera-redis.gemspec && gem install hiera-redis-3.0.0.gem chdir=/root/hiera-redis
     - template: src=/vagrant/hiera.yaml dest=/etc/puppet/hiera.yaml
     - file: path=/etc/puppet/hieradata state=directory
 

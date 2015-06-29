@@ -1,7 +1,7 @@
 :backends:
   - redis
-  - yaml
-  - json
+  #- yaml
+  #- json
 :yaml:
   :datadir: /etc/puppet/hieradata
 :json:
