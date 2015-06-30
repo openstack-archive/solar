@@ -14,7 +14,8 @@
     #- apt: name=virtualenvwrapper state=present
     - apt: name=ipython state=present
     - apt: name=python-pudb state=present
-    - apt: name=python-pip state=present
+    #- apt: name=python-pip state=present
+    - shell: easy_install pip
     - apt: name=python-mysqldb state=present
     - apt: name=jq state=present
     - shell: pip install -U pip
