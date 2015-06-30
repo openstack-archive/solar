@@ -18,7 +18,8 @@ rs/
 solar.log
 x-venv/
 
-celery*
+celery*.pid
+celery*.log
 
 *.dot
 *.png

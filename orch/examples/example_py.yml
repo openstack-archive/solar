@@ -2,7 +2,7 @@ name: example_py
 tasks:
     - uid: rabbitmq_service1
       parameters:
-        type: sleep
+        type: solar_resource
         args: [rabbitmq_service1, run]
     - uid: openstack_vhost
       parameters:
@@ -11,7 +11,7 @@ tasks:
       after: [rabbitmq_service1]
     - uid: openstack_rabbitmq_user
       parameters:
-        type: sleep
+        type: solar_resource
         args: [openstack_rabbitmq_user, run]
       after: [rabbitmq_service1]
 
@@ -85,7 +85,7 @@ tasks:
     - uid: services_tenant
       parameters:
         type: solar_resource
-        args: [services_tenant, run]
+        args: [glance_keystone_tenant, run]
       after: [keystone_service_endpoint]
 
     - uid: glance_keystone_user
