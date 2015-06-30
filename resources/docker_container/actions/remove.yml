@@ -2,5 +2,5 @@
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - shell: docker stop {{ name }}
-    - shell: docker rm {{ name }}
+    - shell: docker stop {{ resource_name }}
+    - shell: docker rm {{ resource_name }}

@@ -5,5 +5,5 @@
     - name: keystone container
       docker:
         image: {{ image }}
-        name: {{ name }}
+        name: {{ resource_name }}
         state: absent

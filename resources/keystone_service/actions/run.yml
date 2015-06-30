@@ -4,7 +4,7 @@
     - name: keystone container
       docker:
         command: /bin/bash -c "keystone-manage db_sync && /usr/bin/keystone-all"
-        name: {{ name }}
+        name: {{ resource_name }}
         image: {{ image }}
         state: running
         expose:
