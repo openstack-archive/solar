@@ -74,7 +74,7 @@ def deploy():
     admin_user = vr.create('admin_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'admin', 'user_password': 'admin'})[0]
     admin_role = vr.create('admin_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})[0]
     keystone_service_endpoint = vr.create('keystone_service_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})[0]
-    openrc = vr.create('openrc_file', 'resources/openrc_file', {'ip':'', 'ssh_key' : '', 'ssh_user':'', 'keystone_host':'', 'keystone_port':'', 'user_name':'','password':'', 'tenant': ''})[0]
+    openrc = vr.create('openrc_file', 'resources/openrc_file', {})[0]
 
 
     ####
