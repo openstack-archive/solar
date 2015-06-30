@@ -8,6 +8,7 @@ from solar.core import actions
 from solar.core import virtual_resource as vr
 from solar.core import resource
 from solar.core import signals
+from solar.core import testing
 
 from solar.interfaces.db import get_db
 from solar.core.resource_provider import  GitProvider, RemoteZipProvider
@@ -224,39 +225,42 @@ def deploy():
     time.sleep(10)
 
     # test working configuration
-    requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
-    requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
-    requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
+    testing.test_all()
+    # requests.get('http://%s:%s' % (keystone_service1.args['ip'].value, keystone_service1.args['port'].value))
+    # requests.get('http://%s:%s' % (keystone_service2.args['ip'].value, keystone_service2.args['port'].value))
+    # requests.get('http://%s:%s' % (haproxy_service.args['ip'].value, haproxy_service.args['ports'].value[0]['value'][0]['value']))
+    #
+    # token_data = requests.post(
+    #     'http://%s:%s/v2.0/tokens' % (haproxy_service.args['ip'].value, haproxy_keystone_config.args['listen_port'].value),
+    #     json.dumps({
+    #         'auth': {
+    #             'tenantName': glance_keystone_user.args['tenant_name'].value,
+    #             'passwordCredentials': {
+    #                 'username': glance_keystone_user.args['user_name'].value,
+    #                 'password': glance_keystone_user.args['user_password'].value,
+    #             }
+    #         }
+    #     }),
+    #     headers={'Content-Type': 'application/json'}
+    # )
+    #
+    # token = token_data.json()['access']['token']['id']
+    # print 'TOKEN: {}'.format(token)
 
-    token_data = requests.post(
-        'http://%s:%s/v2.0/tokens' % (haproxy_service.args['ip'].value, haproxy_keystone_config.args['listen_port'].value),
-        json.dumps({
-            'auth': {
-                'tenantName': glance_keystone_user.args['tenant_name'].value,
-                'passwordCredentials': {
-                    'username': glance_keystone_user.args['user_name'].value,
-                    'password': glance_keystone_user.args['user_password'].value,
-                }
-            }
-        }),
-        headers={'Content-Type': 'application/json'}
-    )
+    # requests.get('http://%s:%s' % (rabbitmq_service1.args['ip'].value, rabbitmq_service1.args['management_port'].value))
 
-    token = token_data.json()['access']['token']['id']
-    print 'TOKEN: {}'.format(token)
+    # images = requests.get(
+    #     'http://%s:%s/v1/images' % (glance_api_container.args['ip'].value, haproxy_glance_api_config.args['listen_port'].value),
+    #     headers={'X-Auth-Token': token}
+    # )
+    # assert images.json() == {'images': []}
 
-    requests.get('http://%s:%s' % (rabbitmq_service1.args['ip'].value, rabbitmq_service1.args['management_port'].value))
-
-    images = requests.get(
-        'http://%s:%s/v1/images' % (glance_api_container.args['ip'].value, haproxy_glance_api_config.args['listen_port'].value),
-        headers={'X-Auth-Token': token}
-    )
-    assert images.json() == {'images': []}
-    images = requests.get(
-        'http://%s:%s' % (glance_registry_container.args['ip'].value, glance_registry_container.args['ports'].value[0]['value'][0]['value']),
-        headers={'X-Auth-Token': token}
-    )
-    assert images.json() == {'images': []}
+    # TODO
+    # images = requests.get(
+    #     'http://%s:%s' % (glance_registry_container.args['ip'].value, glance_registry_container.args['ports'].value[0]['value'][0]['value']),
+    #     headers={'X-Auth-Token': token}
+    # )
+    # assert images.json() == {'images': []}
 
 
 @click.command()

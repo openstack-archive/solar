@@ -34,6 +34,7 @@ from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
 from solar.core import virtual_resource as vr
+from solar.core import testing
 from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
@@ -157,6 +158,10 @@ def init_changes():
             click.echo(operations.rollback_all())
         elif uid:
             click.echo(operations.rollback_uid(uid))
+
+    @changes.command()
+    def test():
+        testing.test_all()
 
 
 def init_cli_connect():
