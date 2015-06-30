@@ -46,4 +46,4 @@ setup(
     include_package_data=True,
     entry_points={
         'console_scripts': [
-            'solar = solar.cli:run']})
+            'solar = solar.cli.main:run']})

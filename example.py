@@ -191,7 +191,7 @@ def deploy():
             print 'ERROR: %s: %s' % (r.name, error)
         sys.exit(1)
 
-    return
+
     # run
     actions.resource_action(mariadb_service1, 'run')
     actions.resource_action(rabbitmq_service1, 'run')
