@@ -14,6 +14,10 @@ from orch import graph
 
 import redis
 
+
+from solar.core import actions
+from solar.core import resource
+
 app = Celery(
     'tasks',
     backend='redis://10.0.0.2:6379/1',
@@ -25,10 +29,13 @@ r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 class ReportTask(task.Task):
 
     def on_success(self, retval, task_id, args, kwargs):
-        schedule_next.apply_async(args=[task_id, 'SUCCESS'], queue='master')
+        schedule_next.apply_async(args=[task_id, 'SUCCESS'], queue='scheduler')
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        schedule_next.apply_async(args=[task_id, 'ERROR'], queue='master')
+        schedule_next.apply_async(
+            args=[task_id, 'ERROR'],
+            kwargs={'errmsg': str(einfo.exception)},
+            queue='scheduler')
 
 
 solar_task = partial(app.task, base=ReportTask, bind=True)
@@ -47,7 +54,12 @@ def maybe_ignore(func):
 
 
 @solar_task
-@maybe_ignore
+def solar_resource(ctxt, resource_name, action):
+    res = resource.load(resource_name)
+    return actions.resource_action(res, action)
+
+
+@solar_task
 def cmd(ctxt, cmd):
     popen = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -59,13 +71,11 @@ def cmd(ctxt, cmd):
 
 
 @solar_task
-@maybe_ignore
 def sleep(ctxt, seconds):
     time.sleep(seconds)
 
 
 @solar_task
-@maybe_ignore
 def error(ctxt, message):
     raise Exception('message')
 
@@ -91,7 +101,6 @@ def fault_tolerance(ctxt, percent):
 
 
 @solar_task
-@maybe_ignore
 def echo(ctxt, message):
     return message
 
@@ -135,10 +144,11 @@ def schedule_start(plan_uid, start=None, end=None):
 
 
 @app.task
-def schedule_next(task_id, status):
+def schedule_next(task_id, status, errmsg=None):
     plan_uid, task_name = task_id.rsplit(':', 1)
     dg = graph.get_graph(plan_uid)
     dg.node[task_name]['status'] = status
+    dg.node[task_name]['errmsg'] = errmsg
 
     schedule(plan_uid, dg)
 
@@ -195,7 +205,7 @@ def generate_task(task, dg, data, task_id):
 
     if timeout:
         timeout_task = fire_timeout.subtask([task_id], countdown=timeout)
-        timeout_task.set(queue='master')
+        timeout_task.set(queue='scheduler')
         yield timeout_task
 
 

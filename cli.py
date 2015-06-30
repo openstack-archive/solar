@@ -6,6 +6,8 @@ import click
 from orch import graph
 from orch import tasks
 
+import networkx as nx
+import subprocess
 
 @click.group()
 def orchestration():
@@ -36,15 +38,17 @@ def update(uid, plan):
 @click.argument('uid')
 def report(uid):
     colors = {
-        'PENDING': 'white',
+        'PENDING': 'blue',
         'ERROR': 'red',
         'SUCCESS': 'green',
         'INPROGRESS': 'yellow'}
 
     report = graph.report_topo(uid)
     for item in report:
-        click.echo(
-            click.style('{} -> {}'.format(item[0], item[1]), fg=colors[item[1]]))
+        msg = '{} -> {}'.format(item[0], item[1])
+        if item[2]:
+            msg += ' :: {}'.format(item[2])
+        click.echo(click.style(msg, fg=colors[item[1]]))
 
 
 @click.command()
@@ -55,16 +59,14 @@ def execute(uid, start, end):
     tasks.schedule_start.apply_async(
         args=[uid],
         kwargs={'start': start, 'end': end},
-        queue='master')
+        queue='scheduler')
 
 
 @click.command()
 @click.argument('uid')
-@click.option('--reset', default=False, is_flag=True)
-def restart(uid, reset):
-    if reset:
-        graph.reset(uid)
-    tasks.schedule_start.apply_async(args=[uid], queue='master')
+def restart(uid):
+    graph.reset(uid)
+    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @click.command()
@@ -87,7 +89,25 @@ def stop(uid):
 @click.argument('uid')
 def retry(uid):
     graph.reset(uid, ['ERROR'])
-    tasks.schedule_start.apply_async(args=[uid], queue='master')
+    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+
+
+@click.command()
+@click.argument('uid')
+def dg(uid):
+    plan = graph.get_graph(uid)
+
+    colors = {
+        'PENDING': 'blue',
+        'ERROR': 'red',
+        'SUCCESS': 'green',
+        'INPROGRESS': 'yellow'}
+
+    for n in plan:
+        color = colors[plan.node[n]['status']]
+        plan.node[n]['color'] = color
+    nx.write_dot(plan, 'graph.dot')
+    subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
 
 
 orchestration.add_command(create)
@@ -98,6 +118,7 @@ orchestration.add_command(restart)
 orchestration.add_command(reset)
 orchestration.add_command(stop)
 orchestration.add_command(retry)
+orchestration.add_command(dg)
 
 
 if __name__ == '__main__':

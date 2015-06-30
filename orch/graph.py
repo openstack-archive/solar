@@ -41,7 +41,7 @@ def parse_plan(plan_data):
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
         dg.add_node(
-            task['uid'], status='PENDING', **task['parameters'])
+            task['uid'], status='PENDING', errmsg=None, **task['parameters'])
         for v in task.get('before', ()):
             dg.add_edge(task['uid'], v)
         for u in task.get('after', ()):
@@ -94,7 +94,6 @@ def report_topo(uid):
     report = []
 
     for task in nx.topological_sort(dg):
-        status = dg.node[task]['status']
-        report.append([task, status])
+        report.append([task, dg.node[task]['status'], dg.node[task]['errmsg']])
 
     return report
