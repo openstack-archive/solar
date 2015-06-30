@@ -30,9 +30,13 @@ class Ansible(BaseHandler):
         return inventory_path
 
     def _render_inventory(self, r):
-        inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh ansible_ssh_user={2} ansible_ssh_private_key_file={3}'
+        inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh ansible_ssh_user={2} ansible_ssh_private_key_file={3} {4}'
         host, user, ssh_key = r.args['ip'].value, r.args['ssh_user'].value, r.args['ssh_key'].value
-        inventory = inventory.format(host, host, user, ssh_key)
+        args = []
+        for arg in r.args:
+            args.append('{0}="{1}"'.format(arg, r.args[arg].value))
+        args = ' '.join(args)
+        inventory = inventory.format(host, host, user, ssh_key, args)
         log.debug(inventory)
         return inventory
 

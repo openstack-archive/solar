@@ -5,16 +5,16 @@ import sys
 import time
 
 from solar.core import actions
+from solar.core import virtual_resource as vr
 from solar.core import resource
 from solar.core import signals
-from solar.core import validation
 
 from solar.interfaces.db import get_db
 from solar.core.resource_provider import  GitProvider, RemoteZipProvider
 
 
-GIT_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource'
-ZIP_KEYSTONE_RESOURCE_URL = 'https://github.com/CGenie/keystone-resource/archive/master.zip'
+GIT_KEYSTONE_RESOURCE_URL = 'https://github.com/loles/keystone-resource'
+ZIP_KEYSTONE_RESOURCE_URL = 'https://github.com/loles/keystone-resource/archive/master.zip'
 
 
 @click.group()
@@ -29,51 +29,51 @@ def deploy():
 
     signals.Connections.clear()
 
-    node1 = resource.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})
-    node2 = resource.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})
+    node1 = vr.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
+    node2 = vr.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
 
-    rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': '15672', 'port': '5672', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
-    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})
-    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})
+    rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': 15672, 'port': 5672, 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})[0]
+    openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})[0]
+    openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})[0]
 
-    mariadb_service1 = resource.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306})
-    keystone_db = resource.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})
-    keystone_db_user = resource.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})
+    mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306})[0]
+    keystone_db = vr.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})[0]
+    keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_user/', {'user_name': 'keystone', 'user_password': 'keystone', 'login_user': 'root'})[0]
 
-    keystone_config1 = resource.create('keystone_config1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, path='keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
-    keystone_service1 = resource.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})
+    keystone_config1 = vr.create('keystone_config1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, path='keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})[0]
+    keystone_service1 = vr.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})[0]
 
-    keystone_config2 = resource.create('keystone_config2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})
-    keystone_service2 = resource.create('keystone_service2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5002, 'admin_port': 35358})
+    keystone_config2 = vr.create('keystone_config2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})[0]
+    keystone_service2 = vr.create('keystone_service2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5002, 'admin_port': 35358})[0]
 
-    haproxy_keystone_config = resource.create('haproxy_keystone1_config', 'resources/haproxy_service_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers':[], 'ports':[]})
-    haproxy_config = resource.create('haproxy_config', 'resources/haproxy_config', {'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})
-    haproxy_service = resource.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[]})
+    haproxy_keystone_config = vr.create('haproxy_keystone1_config', 'resources/haproxy_service_config/', {'name': 'keystone_config', 'listen_port': 5000, 'servers':[], 'ports':[]})[0]
+    haproxy_config = vr.create('haproxy_config', 'resources/haproxy_config', {'configs_names':[], 'configs_ports':[], 'listen_ports':[], 'configs':[]})[0]
+    haproxy_service = vr.create('haproxy_service', 'resources/docker_container/', {'image': 'tutum/haproxy', 'ports': [], 'host_binds': [], 'volume_binds':[]})[0]
 
-    glance_db = resource.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_user': 'root'})
-    glance_db_user = resource.create('glance_db_user', 'resources/mariadb_user/', {'new_user_name': 'glance', 'new_user_password': 'glance', 'login_user': 'root'})
+    glance_db = vr.create('glance_db', 'resources/mariadb_db/', {'db_name': 'glance_db', 'login_user': 'root'})[0]
+    glance_db_user = vr.create('glance_db_user', 'resources/mariadb_user/', {'user_name': 'glance', 'user_password': 'glance', 'login_user': 'root'})[0]
 
-    services_tenant = resource.create('glance_keystone_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'services'})
+    services_tenant = vr.create('glance_keystone_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'services'})[0]
 
-    glance_keystone_user = resource.create('glance_keystone_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins'})
-    glance_keystone_role = resource.create('glance_keystone_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})
+    glance_keystone_user = vr.create('glance_keystone_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'glance_admin', 'user_password': 'password1234', 'tenant_name': 'service_admins'})[0]
+    glance_keystone_role = vr.create('glance_keystone_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})[0]
 
     # TODO: add api_host and registry_host -- they can be different! Currently 'ip' is used.
-    glance_config = resource.create('glance_config', 'resources/glance_config/', {'api_port': 9393})
-    glance_api_container = resource.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9393}]}], 'host_binds': [], 'volume_binds': []})
-    glance_registry_container = resource.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': []})
+    glance_config = vr.create('glance_config', 'resources/glance_config/', {'api_port': 9393})[0]
+    glance_api_container = vr.create('glance_api_container', 'resources/glance_api_service/', {'image': 'cgenie/centos-rdo-glance-api', 'ports': [{'value': [{'value': 9393}]}], 'host_binds': [], 'volume_binds': []})[0]
+    glance_registry_container = vr.create('glance_registry_container', 'resources/glance_registry_service/', {'image': 'cgenie/centos-rdo-glance-registry', 'ports': [{'value': [{'value': 9191}]}], 'host_binds': [], 'volume_binds': []})[0]
     # TODO: admin_port should be refactored, we need to rethink docker
     # container resource and make it common for all
     # resources used in this demo
-    glance_api_endpoint = resource.create('glance_api_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'type': 'image'})
+    glance_api_endpoint = vr.create('glance_api_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Image Service', 'type': 'image'})[0]
     # TODO: ports value 9393 is a HACK -- fix glance_api_container's port and move to some config
     # TODO: glance registry container's API port needs to point to haproxy_config
-    haproxy_glance_api_config = resource.create('haproxy_glance_api_config', 'resources/haproxy_service_config/', {'name': 'glance_api_config', 'listen_port': 9292, 'servers': [], 'ports':[{'value': 9393}]})
+    haproxy_glance_api_config = vr.create('haproxy_glance_api_config', 'resources/haproxy_service_config/', {'name': 'glance_api_config', 'listen_port': 9292, 'servers': [], 'ports':[{'value': 9393}]})[0]
 
-    admin_tenant = resource.create('admin_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'admin'})
-    admin_user = resource.create('admin_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'admin', 'user_password': 'admin'})
-    admin_role = resource.create('admin_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})
-    keystone_service_endpoint = resource.create('keystone_service_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})
+    admin_tenant = vr.create('admin_tenant', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_tenant'), {'tenant_name': 'admin'})[0]
+    admin_user = vr.create('admin_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'admin', 'user_password': 'admin'})[0]
+    admin_role = vr.create('admin_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})[0]
+    keystone_service_endpoint = vr.create('keystone_service_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})[0]
 
 
     ####
@@ -100,14 +100,14 @@ def deploy():
 
     signals.connect(node1, keystone_config1)
     signals.connect(mariadb_service1, keystone_config1, {'ip': 'db_host', 'port': 'db_port'})
-    signals.connect(keystone_db_user, keystone_config1, {'db_name': 'db_name', 'new_user_name': 'db_user', 'new_user_password': 'db_password'})
+    signals.connect(keystone_db_user, keystone_config1, {'db_name': 'db_name', 'user_name': 'db_user', 'user_password': 'db_password'})
 
     signals.connect(node1, keystone_service1)
     signals.connect(keystone_config1, keystone_service1, {'config_dir': 'config_dir'})
 
     signals.connect(node2, keystone_config2)
     signals.connect(mariadb_service1, keystone_config2, {'ip': 'db_host', 'port': 'db_port'})
-    signals.connect(keystone_db_user, keystone_config2, {'db_name': 'db_name', 'new_user_name': 'db_user', 'new_user_password': 'db_password'})
+    signals.connect(keystone_db_user, keystone_config2, {'db_name': 'db_name', 'user_name': 'db_user', 'user_password': 'db_password'})
 
     signals.connect(node2, keystone_service2)
     signals.connect(keystone_config2, keystone_service2, {'config_dir': 'config_dir'})
@@ -153,24 +153,17 @@ def deploy():
     signals.connect(haproxy_service, glance_config, {'ip': 'keystone_ip'})
     signals.connect(mariadb_service1, glance_config, {'ip': 'mysql_ip'})
     signals.connect(glance_db, glance_config, {'db_name': 'mysql_db'})
-    signals.connect(glance_db_user, glance_config, {'new_user_name': 'mysql_user', 'new_user_password': 'mysql_password'})
+    signals.connect(glance_db_user, glance_config, {'user_name': 'mysql_user', 'user_password': 'mysql_password'})
     signals.connect(node2, glance_api_container)
     signals.connect(glance_config, glance_api_container, {'config_dir': 'host_binds'})
 
-    signals.connect(glance_db_user, glance_api_container, {'new_user_password': 'db_password'})
+    signals.connect(glance_db_user, glance_api_container, {'user_password': 'db_password'})
     signals.connect(glance_keystone_user, glance_api_container, {'user_password': 'keystone_password'})
     signals.connect(glance_keystone_user, glance_api_container, {'admin_token': 'keystone_admin_token'})
     signals.connect(haproxy_config, glance_api_container, {'ip': 'keystone_host'})
 
     signals.connect(node2, glance_registry_container)
     signals.connect(glance_config, glance_registry_container, {'config_dir': 'host_binds'})
-
-    signals.connect(mariadb_service1, glance_registry_container, {'ip': 'db_host'})
-    signals.connect(glance_db, glance_registry_container, {'db_name': 'db_name', 'login_password': 'db_root_password'})
-    signals.connect(glance_db_user, glance_registry_container, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
-    signals.connect(glance_keystone_user, glance_registry_container, {'tenant_name': 'keystone_admin_tenant', 'user_name': 'keystone_user', 'user_password': 'keystone_password'})
-    signals.connect(glance_keystone_user, glance_registry_container, {'admin_token': 'keystone_admin_token'})
-    signals.connect(haproxy_config, glance_registry_container, {'ip': 'keystone_host'})
 
     # glance haproxy
     signals.connect(glance_api_container, haproxy_glance_api_config, {'ip': 'servers'})
@@ -186,18 +179,10 @@ def deploy():
     signals.connect(haproxy_glance_api_config, glance_api_endpoint, {'listen_port': 'port'})
 
 
-    has_errors = False
-    for r in locals().values():
-        if not isinstance(r, resource.Resource):
-            continue
-
-        print 'Validating {}'.format(r.name)
-        errors = validation.validate_resource(r)
-        if errors:
-            has_errors = True
-            print 'ERROR: %s: %s' % (r.name, errors)
-
-    if has_errors:
+    errors = vr.validate_resources()
+    if errors:
+        for r, error in errors:
+            print 'ERROR: %s: %s' % (r.name, error)
         sys.exit(1)
 
 

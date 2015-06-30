@@ -3,7 +3,7 @@
   tasks:
     - name: mariadb container
       docker:
-        name: {{ name }}
+        name: {{ resource_name }}
         image: {{ image }}
         state: running
         ports:
@@ -11,7 +11,7 @@
         env:
           MYSQL_ROOT_PASSWORD: {{ root_password }}
 
-    - shell: docker exec -t {{ name }} mysql -p{{ root_password }} -uroot -e "SELECT 1"
+    - shell: docker exec -t {{ resource_name }} mysql -p{{ root_password }} -uroot -e "SELECT 1"
       register: result
       until: result.rc == 0
       retries: 30

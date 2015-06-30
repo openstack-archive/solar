@@ -7,7 +7,7 @@ input:
       value:
     image:
       schema: str!
-      value:
+      value: cgenie/centos-rdo-glance-registry
     ports:
       schema: [{value: [{value: int}]}]
       value: []
@@ -23,36 +23,5 @@ input:
     ssh_key:
       schema: str!
       value: []
-
-    db_host:
-      schema: str!
-      value:
-    db_root_password:
-      schema: str!
-      value:
-    db_name:
-      schema: str!
-      value:
-    db_password:
-      schema: str!
-      value:
-    db_user:
-      schema: str!
-      value:
-    keystone_admin_token:
-      schema: str!
-      value:
-    keystone_admin_tenant:
-      schema: str!
-      value:
-    keystone_user:
-      schema: str!
-      value:
-    keystone_password:
-      schema: str!
-      value:
-    keystone_host:
-      schema: str!
-      value:
 
 tags: [resource/container]

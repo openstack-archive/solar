@@ -47,7 +47,7 @@ class BaseHandler(object):
         return tpl.render(str=str, zip=zip, **args)
 
     def _make_args(self, resource):
-        args = {'name': resource.name}
+        args = {'resource_name': resource.name}
         args['resource_dir'] = resource.metadata['base_path']
         args.update(resource.args)
         return args
