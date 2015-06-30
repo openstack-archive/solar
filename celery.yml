@@ -1,13 +1,16 @@
 - hosts: all
+  vars:
+    celery_dir: /var/run/celery
   tasks:
+    - shell: mkdir -p {{celery_dir}}
     - shell: pip install celery
     - shell: hostname
       register: hostname
     - shell: celery multi kill 2
-             chdir=/vagrant/
-    - shell: celery multi start 2 -A orch.tasks -Q:1 celery,scheduler -Q:2 celery,{{hostname.stdout}}
-             chdir=/vagrant/
+             chdir={{celery_dir}}
+    - shell: celery multi start 2 -A solar.orchestration.tasks -Q:1 celery,scheduler -Q:2 celery,{{hostname.stdout}}
+             chdir={{celery_dir}}
       tags: [master]
-    - shell: celery multi start 1 -A orch.tasks -Q:1 celery,{{hostname.stdout}}
-             chdir=/vagrant/
+    - shell: celery multi start 1 -A solar.orchestration.tasks -Q:1 celery,{{hostname.stdout}}
+             chdir={{celery_dir}}
       tags: [slave]

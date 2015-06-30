@@ -10,13 +10,14 @@ from itertools import islice
 import subprocess
 import time
 
-from orch import graph
+from solar.orchestration import graph
 
 import redis
 
 
 from solar.core import actions
 from solar.core import resource
+
 
 app = Celery(
     'tasks',

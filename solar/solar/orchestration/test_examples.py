@@ -2,8 +2,8 @@
 
 import networkx as nx
 
-from orch.tasks import *
-from orch.graph import *
+from solar.orchestration.tasks import *
+from solar.orchestratoin.graph import *
 
 from pytest import fixture
 

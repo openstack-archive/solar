@@ -3,8 +3,8 @@
 
 import click
 
-from orch import graph
-from orch import tasks
+from solar.orchestration import graph
+from solar.orchestration import tasks
 
 import networkx as nx
 import subprocess
