@@ -1,0 +1,11 @@
+id: ansible_sample
+handler: local_ansible
+version: 0.0.1
+input:
+    var1:
+      type: str!
+      value: some_value
+    uuid:
+      type: str!
+      value: 'aa1das1231'
+
