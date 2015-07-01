@@ -21,6 +21,8 @@ app = Celery(
     'tasks',
     backend='redis://10.0.0.2:6379/1',
     broker='redis://10.0.0.2:6379/1')
+app.conf.update(CELERY_ACCEPT_CONTENT = ['json'])
+app.conf.update(CELERY_TASK_SERIALIZER = 'json')
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
@@ -102,11 +104,10 @@ def anchor(ctxt, *args):
 
 
 def schedule(plan_uid, dg):
-    if not dg.graph.get('stop'):
-        next_tasks = list(traverse(dg))
-        print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
-        group(next_tasks)()
+    next_tasks = list(traverse(dg))
     graph.save_graph(plan_uid, dg)
+    print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
+    group(next_tasks)()
 
 
 @app.task
@@ -187,4 +188,4 @@ def generate_task(task, dg, data, task_id):
 
 
 def all_success(dg, nodes):
-    return all((n for n in nodes if dg.node[n]['status'] == 'SUCCESS'))
+    return all((dg.node[n]['status'] == 'SUCCESS' for n in nodes))

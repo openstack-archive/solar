@@ -1,4 +1,5 @@
 - hosts: all
+  sudo: yes
   vars:
     celery_dir: /var/run/celery
   tasks:
@@ -8,6 +9,7 @@
       register: hostname
     - shell: celery multi kill 2
              chdir={{celery_dir}}
+      tags: [stop]
     - shell: celery multi start 2 -A solar.orchestration.tasks -Q:1 celery,scheduler -Q:2 celery,{{hostname.stdout}}
              chdir={{celery_dir}}
       tags: [master]

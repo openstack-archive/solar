@@ -15,7 +15,7 @@ def orchestration():
     \b
     create solar/orchestration/examples/multi.yaml
     <id>
-    execute <id>
+    run-once <id>
     report <id>
     <task> -> <status>
     restart <id> --reset
@@ -48,11 +48,11 @@ def report(uid):
             msg += ' :: {}'.format(item[2])
         click.echo(click.style(msg, fg=colors[item[1]]))
 
-@orchestration.command()
+@orchestration.command(name='run-once')
 @click.argument('uid')
 @click.option('--start', default=None)
 @click.option('--end', default=None)
-def execute(uid, start, end):
+def run_once(uid, start, end):
     tasks.schedule_start.apply_async(
         args=[uid],
         kwargs={'start': start, 'end': end},
