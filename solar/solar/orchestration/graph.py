@@ -1,13 +1,11 @@
 
 
-import networkx as nx
-
-import redis
 import json
-
-import yaml
-
 import uuid
+
+import networkx as nx
+import redis
+import yaml
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)

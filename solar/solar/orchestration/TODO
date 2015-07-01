@@ -15,7 +15,9 @@ deployment is not exposed, it is stored only in rabbitmq resources template,
 but it exposes several *anchors* - amqp_cluster_ready and amqp_one_node_ready
 
 3. Granular testing
-3.1. How to integrate pre/post verifications
+3.1. How to integrate pre/post verifications with graph execution
+
+4. Add back timeout support
 
 Orchestration features
 -------------------------

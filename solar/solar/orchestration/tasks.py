@@ -1,20 +1,18 @@
 
+
+
+from functools import partial, wraps
+from itertools import islice
+import subprocess
+import time
+
 from celery import Celery
 from celery.app import task
 from celery import group
 from celery.exceptions import Ignore
-
-from functools import partial, wraps
-from itertools import islice
-
-import subprocess
-import time
-
-from solar.orchestration import graph
-
 import redis
 
-
+from solar.orchestration import graph
 from solar.core import actions
 from solar.core import resource
 
@@ -39,28 +37,16 @@ class ReportTask(task.Task):
             queue='scheduler')
 
 
-solar_task = partial(app.task, base=ReportTask, bind=True)
+report_task = partial(app.task, base=ReportTask, bind=True)
 
 
-def maybe_ignore(func):
-    """used to ignore tasks when they are in queue, but should be discarded
-    """
-
-    @wraps(func)
-    def wrapper(ctxt, *args, **kwargs):
-        if r.sismember('tasks.ignore', ctxt.request.id):
-            raise Ignore()
-        return func(ctxt, *args, **kwargs)
-    return wrapper
-
-
-@solar_task
+@report_task
 def solar_resource(ctxt, resource_name, action):
     res = resource.load(resource_name)
     return actions.resource_action(res, action)
 
 
-@solar_task
+@report_task
 def cmd(ctxt, cmd):
     popen = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -71,17 +57,17 @@ def cmd(ctxt, cmd):
     return popen.returncode, out, err
 
 
-@solar_task
+@report_task
 def sleep(ctxt, seconds):
     time.sleep(seconds)
 
 
-@solar_task
+@report_task
 def error(ctxt, message):
     raise Exception('message')
 
 
-@solar_task
+@report_task
 def fault_tolerance(ctxt, percent):
     task_id = ctxt.request.id
     plan_uid, task_name = task_id.rsplit(':', 1)
@@ -101,27 +87,18 @@ def fault_tolerance(ctxt, percent):
             succes_percent, percent))
 
 
-@solar_task
+@report_task
 def echo(ctxt, message):
     return message
 
 
-@solar_task
+@report_task
 def anchor(ctxt, *args):
-    # it should be configurable to wait for atleast 1 / 3 resources
+    # such tasks should be walked when atleast 1/3/exact number of resources visited
     dg = graph.get_graph('current')
     for s in dg.predecessors(ctxt.request.id):
         if dg.node[s]['status'] != 'SUCCESS':
             raise Exception('One of the tasks erred, cant proceeed')
-
-
-@app.task
-def fire_timeout(task_id):
-    result = app.AsyncResult(task_id)
-    if result.state in ['ERROR', 'SUCCESS']:
-        return
-    r.sadd('tasks.ignore', task_id)
-    schedule_next.apply_async(args=[task_id, 'ERROR'], queue='master')
 
 
 def schedule(plan_uid, dg):
@@ -162,6 +139,12 @@ control_tasks = [fault_tolerance, anchor]
 
 
 def traverse(dg):
+    """
+    1. Node should be visited only when all predecessors already visited
+    2. Visited nodes should have any state except PENDING, INPROGRESS, for now
+    is SUCCESS or ERROR, but it can be extended
+    3. If node is INPROGRESS it should not be visited once again
+    """
     visited = set()
     for node in dg:
         data = dg.node[node]
@@ -181,7 +164,7 @@ def traverse(dg):
         if predecessors <= visited:
             task_id = '{}:{}'.format(dg.graph['uid'], node)
 
-            task_name = 'orch.tasks.{0}'.format(data['type'])
+            task_name = '{}.{}'.format(__name__, data['type'])
             task = app.tasks[task_name]
 
             if all_success(dg, predecessors) or task in control_tasks:
@@ -200,14 +183,7 @@ def generate_task(task, dg, data, task_id):
     if data.get('target', None):
         subtask.set(queue=data['target'])
 
-    timeout = data.get('timeout')
-
     yield subtask
-
-    if timeout:
-        timeout_task = fire_timeout.subtask([task_id], countdown=timeout)
-        timeout_task.set(queue='scheduler')
-        yield timeout_task
 
 
 def all_success(dg, nodes):

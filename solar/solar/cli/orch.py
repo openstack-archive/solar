@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
+import subprocess
 
 import click
+import networkx as nx
 
 from solar.orchestration import graph
 from solar.orchestration import tasks
-
-import networkx as nx
-import subprocess
 
 
 @click.group(name='orch')
