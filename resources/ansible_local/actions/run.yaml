@@ -1,4 +1,4 @@
-- hosts: localhost
+- hosts: '*'
   sudo: yes
   roles:
     - { role: "test_role" }

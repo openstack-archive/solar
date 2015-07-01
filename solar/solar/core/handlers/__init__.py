@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-from solar.core.handlers.ansible import Ansible
+from solar.core.handlers.ansible_template import AnsibleTemplate
+from solar.core.handlers.ansible_playbook import AnsiblePlaybook
 from solar.core.handlers.base import Empty
 from solar.core.handlers.puppet import Puppet
 from solar.core.handlers.shell import Shell
-from solar.core.handlers.local_ansible import LocalAnsible
 
 
-HANDLERS = {'ansible': Ansible,
-            'puppet': Puppet,
+HANDLERS = {'ansible': AnsibleTemplate,
+            'ansible_playbook': AnsiblePlaybook,
             'shell': Shell,
-            'none': Empty,
-            'local_ansible': LocalAnsible}
+            'none': Empty}
 
 def get(handler_name):
     handler = HANDLERS.get(handler_name, None)

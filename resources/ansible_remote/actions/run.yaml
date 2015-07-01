@@ -1,0 +1,4 @@
+- hosts: '*'
+  sudo: yes
+  tasks:
+    - debug: "my message"

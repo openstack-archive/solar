@@ -1,0 +1,13 @@
+id: ansible_sample
+handler: ansible_playbook
+version: 0.0.1
+input:
+    ip:
+      type: str!
+      value:
+    ssh_user:
+      type: str!
+      value:
+    ssh_key:
+      type: str!
+      value:

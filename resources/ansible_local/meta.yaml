@@ -1,5 +1,5 @@
 id: ansible_sample
-handler: local_ansible
+handler: ansible_playbook
 version: 0.0.1
 input:
     var1:
