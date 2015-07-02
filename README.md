@@ -4,7 +4,7 @@
 * Setup environment
 
 ```
-$ cd fuel-ng
+$ cd solar
 $ vagrant up
 ```
 
