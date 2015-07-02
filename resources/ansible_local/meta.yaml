@@ -4,7 +4,7 @@ version: 0.0.1
 input:
     var1:
       type: str!
-      value: some_value
+      value: meta
     uuid:
       type: str!
       value: 'aa1das1231'

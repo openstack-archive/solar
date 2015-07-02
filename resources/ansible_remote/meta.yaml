@@ -11,3 +11,6 @@ input:
     ssh_key:
       type: str!
       value:
+    default1:
+      type: str!
+      value: meta

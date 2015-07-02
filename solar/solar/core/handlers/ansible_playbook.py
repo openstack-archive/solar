@@ -8,6 +8,7 @@ from ansible import callbacks
 import ansible.constants as C
 
 from solar.core.handlers import base
+from solar import errors
 
 
 class AnsiblePlaybook(base.BaseHandler):
@@ -24,16 +25,16 @@ class AnsiblePlaybook(base.BaseHandler):
         remote_user = variables.get('ssh_user') or C.DEFAULT_REMOTE_USER
         private_key_file = variables.get('ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
         if variables.get('ip'):
-            host_list = [variables['ip']]
+            host = variables['ip']
             transport = C.DEFAULT_TRANSPORT
         else:
-            host_list = ['localhost']
+            host = 'localhost'
             transport = 'local'
 
         play = PlayBook(
             playbook=action_file,
             remote_user=remote_user,
-            host_list = host_list,
+            host_list = [host],
             private_key_file=private_key_file,
             extra_vars=variables,
             callbacks=playbook_cb,
@@ -41,4 +42,10 @@ class AnsiblePlaybook(base.BaseHandler):
             stats=stats,
             transport=transport)
 
-        return play.run()
+        play.run()
+        summary = stats.summarize(host)
+
+        if summary.get('unreachable') or summary.get('failures'):
+            raise errors.SolarError(
+                'Ansible playbook %s failed with next summary %s',
+                action_file, summary)
