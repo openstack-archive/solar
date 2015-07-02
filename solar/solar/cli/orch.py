@@ -7,6 +7,7 @@ import networkx as nx
 
 from solar.orchestration import graph
 from solar.orchestration import tasks
+from solar.orchestration import filters
 from solar.cli.uids_history import SOLARUID
 
 
@@ -63,6 +64,17 @@ def run_once(uid, start, end):
         kwargs={'start': start, 'end': end},
         queue='scheduler')
 
+
+@orchestration.command()
+@click.argument('uid', type=SOLARUID)
+@click.option('--start', '-s', multiple=True)
+@click.option('--end', '-e', multiple=True)
+def path(uid, start, end):
+    dg = graph.get_graph(uid)
+    subpath = filters.traverse(dg, start=start, end=end)
+    click.echo(subpath.nodes())
+
+
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def restart(uid):
@@ -81,7 +93,7 @@ def reset(uid):
 def stop(uid):
     # TODO(dshulyak) how to do "hard" stop?
     # using revoke(terminate=True) will lead to inability to restart execution
-    # research possibility of customizations of
+    # research possibility of customizations
     # app.control and Panel.register in celery
     tasks.soft_stop.apply_async(args=[uid], queue='scheduler')
 
@@ -115,6 +127,7 @@ def dg(uid):
     for n in plan:
         color = colors[plan.node[n]['status']]
         plan.node[n]['color'] = color
+
     nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
         'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),

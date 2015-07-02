@@ -8,6 +8,7 @@ from celery.app import task
 import redis
 
 from solar.orchestration import graph
+from solar.orchestration import filters
 from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
@@ -116,7 +117,7 @@ def schedule(plan_uid, dg):
 
 
 @app.task(name='schedule_start')
-def schedule_start(plan_uid, start=None, end=None):
+def schedule_start(plan_uid, path=[]):
     """On receive finished task should update storage with task result:
 
     - find successors that should be executed
