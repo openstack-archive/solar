@@ -1,6 +1,6 @@
 # Setup development env
 
-* Install vagrant
+* Install [Vagrant](http://www.vagrantup.com/downloads.html)
 * Setup environment:
 ```
 cd solar
@@ -18,7 +18,24 @@ solar --help
 python example.py
 ```
 
+* Get ssh details for running slave nodes (vagrant/vagrant):
+```
+vagrant ssh-config
+```
+
+* Get list of docker containers and attach to the foo container
+```
+sudo docker ps -a
+sudo docker exec -it foo
+```
+
 ## Solar usage
+
+* To get data for the resource bar (raw and pretty-JSON):
+```
+solar resource show --tag 'resources/bar'
+solar resource show --use-json --tag 'resources/bar' | jq .
+```
 
 * To clear all resources/connections:
 ```
