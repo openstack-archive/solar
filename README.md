@@ -32,8 +32,22 @@ cd /vagrant
 
 solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
 solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
+solar resource create keystone_db resources/mariadb_keystone_db/ '{"db_name": "keystone_db", "login_user": "root"}'
+solar resource create keystone_db_user resources/mariadb_user/ '{"user_name": "keystone", "user_password": "keystone", "login_user": "root"}'
 
 solar connect node1 mariadb_service
+solar connect node1 keystone_db
+solar connect mariadb_service keystone_db --mapping '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db_user --mapping '{"root_password": "login_password", "port": "login_port"}'
+solar connect keystone_db keystone_db_user
+
+solar changes stage
+solar changes commit
+```
+
+You can fiddle with the above configuration like this:
+```
+solar resource update keystone_db_user '{"user_password": "new_keystone_password"}'
 
 solar changes stage
 solar changes commit

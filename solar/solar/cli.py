@@ -342,6 +342,7 @@ def init_cli_resource():
     @click.argument('args')
     def update(name, args):
         args = json.loads(args)
+        click.echo('Updating resource {} with args {}'.format(name, args))
         all = sresource.load_all()
         r = all[name]
         r.update(args)
