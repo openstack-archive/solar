@@ -11,7 +11,8 @@ def resources():
         {'id': 'node1',
          'input': {'ip': {'value': '10.0.0.3'}}})
     mariadb_service1 = resource.wrap_resource(
-        {'id': 'mariadb', 'input': {
+        {'id': 'mariadb',
+         'input': {
             'port' : {'value': 3306},
             'ip': {'value': ''}}})
     keystone_db = resource.wrap_resource(
@@ -51,28 +52,84 @@ def test_update_port_on_mariadb(resources):
 
 
 @pytest.fixture
+def simple_input():
+    res1 = resource.wrap_resource(
+        {'id': 'res1',
+         'input': {'ip': {'value': '10.10.0.2'}}})
+    res2 = resource.wrap_resource(
+        {'id': 'res2',
+         'input': {'ip': {'value': '10.10.0.3'}}})
+
+    signals.connect(res1, res2)
+    return resource.load_all()
+
+
+def test_update_simple_resource(simple_input):
+    operations.stage_changes()
+    operations.commit_changes()
+
+    res1 = simple_input['res1']
+    res1.update({'ip': '10.0.0.3'})
+
+    log = operations.stage_changes()
+
+    assert len(log) == 2
+
+    assert log.items[0].diff == [
+        ('change', u'input.ip.value', ('10.10.0.2', '10.0.0.3')),
+        ('change', 'metadata.input.ip.value', ('10.10.0.2', '10.0.0.3')),
+    ]
+    assert log.items[1].diff == [
+        ('change', u'input.ip.value', ('10.10.0.2', '10.0.0.3')),
+        ('change', 'metadata.input.ip.value', ('10.10.0.2', '10.0.0.3')),
+        ]
+
+    operations.commit_changes()
+    assert simple_input['res1'].args_dict() == {
+        'ip': '10.0.0.3',
+    }
+    assert simple_input['res2'].args_dict() == {
+        'ip': '10.0.0.3',
+    }
+
+    log_item = operations.rollback_last()
+    assert log_item.diff == [
+        ('change', u'input.ip.value', (u'10.0.0.3', u'10.10.0.2')),
+        ('change', 'metadata.input.ip.value', ('10.0.0.3', '10.10.0.2')),
+    ]
+
+    res2 = resource.load('res2')
+    assert res2.args_dict() == {
+        'ip': '10.10.0.2',
+    }
+
+
+@pytest.fixture
 def list_input():
     res1 = resource.wrap_resource(
-        {'id': 'res1', 'input': {'ip': {'value': '10.10.0.2'}}})
+        {'id': 'res1',
+         'input': {'ip': {'value': '10.10.0.2'}}})
     res2 = resource.wrap_resource(
-        {'id': 'res2', 'input': {'ip': {'value': '10.10.0.3'}}})
+        {'id': 'res2',
+         'input': {'ip': {'value': '10.10.0.3'}}})
     consumer = resource.wrap_resource(
-        {'id': 'consumer', 'input':
-            {'ips': {'value': [],
-                     'schema': ['str']}}})
+        {'id': 'consumer',
+         'input':
+             {'ips': {'value': [],
+                      'schema': ['str']}}})
 
     signals.connect(res1, consumer, {'ip': 'ips'})
     signals.connect(res2, consumer, {'ip': 'ips'})
     return resource.load_all()
 
 
-@pytest.mark.xfail
 def test_update_list_resource(list_input):
     operations.stage_changes()
     operations.commit_changes()
 
     res3 = resource.wrap_resource(
-        {'id': 'res3', 'input': {'ip': {'value': '10.10.0.4'}}})
+        {'id': 'res3',
+         'input': {'ip': {'value': '10.10.0.4'}}})
     signals.connect(res3, list_input['consumer'], {'ip': 'ips'})
 
     log = operations.stage_changes()
@@ -110,5 +167,3 @@ def test_update_list_resource(list_input):
                  {u'emitter': u'ip',
                   u'emitter_attached_to': u'res2',
                   u'value': u'10.10.0.3'}]}
-
-
