@@ -1,55 +1,53 @@
 # Setup development env
-* Install virtualbox
-* Install vagrant
-* Setup environment
 
+* Install vagrant
+* Setup environment:
 ```
-$ cd solar
-$ vagrant up
+cd solar
+vagrant up
 ```
 
 * Login into vm, the code is available in /vagrant directory
-
 ```
-$ vagrant ssh
-$ solar --help
+vagrant ssh
+solar --help
+```
+
+* Launch standard deployment:
+```
+python example.py
 ```
 
 ## Solar usage
-* discover nodes, with standard file based discovery
 
+* To clear all resources/connections:
 ```
-solar discover
-```
-
-* create profile (global config)
-
-```
-solar profile --create --id prf1 --tags env/test_env
-
-```
-* assign nodes to profile with tags
-
-
-* edit nodes files, in the future we want to provide
-  some cli in order to change the data
-
-```
-vim tmp/storage/nodes-id.yaml
+solar resource clear_all
+solar connections clear_all
 ```
 
-* add `env/test_env` in tags list
-* assign resources to nodes
-
+* Some very simple cluster setup:
 ```
-# TODO Does not work without default values in golden templates
-solar assign -n "env/test_env && node/1" -r resource/mariadb
+cd /vagrant
+
+solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
+solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
+
+solar connect node1 mariadb_service
+
+solar changes stage
+solar changes commit
 ```
 
+* Show the connections/graph:
+```
+solar connections show
+solar connections graph
+```
 
 # Low level API
 
-## HAProxy deployment
+## HAProxy deployment (not maintained)
 
 ```
 cd /vagrant
