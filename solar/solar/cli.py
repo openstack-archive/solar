@@ -23,6 +23,7 @@ import json
 import networkx as nx
 import os
 import pprint
+import sys
 import yaml
 
 from solar import utils
@@ -129,6 +130,14 @@ def init_changes():
         pass
 
     @changes.command()
+    def validate():
+        errors = vr.validate_resources()
+        if errors:
+            for r, error in errors:
+                print 'ERROR: %s: %s' % (r.name, error)
+            sys.exit(1)
+
+    @changes.command()
     def stage():
         log = operations.stage_changes()
         click.echo(log.show())
@@ -190,6 +199,11 @@ def init_cli_connections():
     @main.group()
     def connections():
         pass
+
+    @connections.command()
+    def clear_all():
+        click.echo('Clearing all connections')
+        signals.Connections.clear()
 
     @connections.command()
     def show():
@@ -256,14 +270,19 @@ def init_cli_resource():
         pass
 
     @resource.command()
-    @click.argument('resource_path')
+    @click.argument('resource_name')
     @click.argument('action_name')
-    def action(action_name, resource_path):
+    def action(action_name, resource_name):
         click.echo(
-            'action {} for resource {}'.format(action_name, resource_path)
+            'action {} for resource {}'.format(action_name, resource_name)
         )
-        r = sresource.load(resource_path)
+        r = sresource.load(resource_name)
         actions.resource_action(r, action_name)
+
+    @resource.command()
+    def clear_all():
+        click.echo('Clearing all resources')
+        db.clear()
 
     @resource.command()
     @click.argument('name')
@@ -323,6 +342,7 @@ def init_cli_resource():
     @click.argument('args')
     def update(name, args):
         args = json.loads(args)
+        click.echo('Updating resource {} with args {}'.format(name, args))
         all = sresource.load_all()
         r = all[name]
         r.update(args)
