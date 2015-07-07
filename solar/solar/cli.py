@@ -24,6 +24,7 @@ import networkx as nx
 import os
 import pprint
 import sys
+import tabulate
 import yaml
 
 from solar import utils
@@ -43,6 +44,31 @@ from solar.extensions.modules.discovery import Discovery
 
 
 db = get_db()
+
+
+# HELPERS
+def format_resource_input(resource_name, resource_input_name):
+    return '{}::{}'.format(
+        #click.style(resource_name, fg='white', bold=True),
+        resource_name,
+        click.style(resource_input_name, fg='yellow')
+    )
+
+def show_emitter_connections(emitter_name, destinations):
+    inputs = sorted(destinations)
+
+    for emitter_input in inputs:
+        click.echo(
+            '{} -> {}'.format(
+                format_resource_input(emitter_name, emitter_input),
+                '[{}]'.format(
+                    ', '.join(
+                        format_resource_input(*r)
+                        for r in destinations[emitter_input]
+                    )
+                )
+            )
+        )
 
 
 @click.group()
@@ -76,13 +102,6 @@ def assign(resources, nodes):
         "For {0} nodes assign {1} resources".format(len(nodes), len(resources))
     )
     assign_resources_to_nodes(resources, nodes)
-
-
-# @main.command()
-# @click.option('-p', '--profile')
-# def connect(profile):
-#     profile_ = db.get_record('profiles', profile)
-#     connect_resources(profile_)
 
 
 @main.command()
@@ -172,16 +191,23 @@ def init_cli_connect():
     @main.command()
     @click.argument('emitter')
     @click.argument('receiver')
-    @click.option('--mapping', default=None)
+    @click.argument('mapping', default='')
     def connect(mapping, receiver, emitter):
+        mapping_parsed = {}
+
         click.echo('Connect {} to {}'.format(emitter, receiver))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        click.echo(emitter)
-        click.echo(receiver)
-        if mapping is not None:
-            mapping = json.loads(mapping)
-        signals.connect(emitter, receiver, mapping=mapping)
+        try:
+            mapping_parsed.update(json.loads(mapping))
+        except ValueError:
+            for m in mapping.split():
+                k, v = m.split('->')
+                mapping_parsed.update({k: v})
+        signals.connect(emitter, receiver, mapping=mapping_parsed)
+
+        clients = signals.Connections.read_clients()
+        show_emitter_connections(emitter.name, clients[emitter.name])
 
     @main.command()
     @click.argument('emitter')
@@ -193,6 +219,9 @@ def init_cli_connect():
         click.echo(emitter)
         click.echo(receiver)
         signals.disconnect(emitter, receiver)
+
+        clients = signals.Connections.read_clients()
+        show_emitter_connections(emitter.name, clients[emitter.name])
 
 
 def init_cli_connections():
@@ -207,29 +236,6 @@ def init_cli_connections():
 
     @connections.command()
     def show():
-        def format_resource_input(resource_name, resource_input_name):
-            return '{}::{}'.format(
-                #click.style(resource_name, fg='white', bold=True),
-                resource_name,
-                click.style(resource_input_name, fg='yellow')
-            )
-
-        def show_emitter_connections(emitter_name, destinations):
-            inputs = sorted(destinations)
-
-            for emitter_input in inputs:
-                click.echo(
-                    '{} -> {}'.format(
-                        format_resource_input(emitter_name, emitter_input),
-                        '[{}]'.format(
-                            ', '.join(
-                                format_resource_input(*r)
-                                for r in destinations[emitter_input]
-                            )
-                        )
-                    )
-                )
-
         clients = signals.Connections.read_clients()
         keys = sorted(clients)
         for emitter_name in keys:
@@ -286,51 +292,64 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('base_path')
-    @click.argument('args')
+    @click.argument('base_path', type=click.Path(exists=True, file_okay=False))
+    @click.argument('args', nargs=-1)
     def create(args, base_path, name):
+        args_parsed = {}
+
         click.echo('create {} {} {}'.format(name, base_path, args))
-        args = json.loads(args) if args else {}
-        resources = vr.create(name, base_path, args)
+        for arg in args:
+            try:
+                args_parsed.update(json.loads(arg))
+            except ValueError:
+                k, v = arg.split('=')
+                args_parsed.update({k: v})
+        resources = vr.create(name, base_path, args_parsed)
         for res in resources:
-            print res.name
+            click.echo(res.color_repr())
 
     @resource.command()
+    @click.option('--name', default=None)
     @click.option('--tag', default=None)
-    @click.option('--use-json/--no-use-json', default=False)
-    @click.option('--color/--no-color', default=True)
-    def show(color, use_json, tag):
+    @click.option('--json', default=False, is_flag=True)
+    @click.option('--color', default=True, is_flag=True)
+    def show(**kwargs):
         resources = []
 
         for name, res in sresource.load_all().items():
             show = True
-            if tag:
-                if tag not in res.tags:
+            if kwargs['tag']:
+                if kwargs['tag'] not in res.tags:
+                    show = False
+            if kwargs['name']:
+                if res.name != kwargs['name']:
                     show = False
 
             if show:
                 resources.append(res)
 
-        if use_json:
+        echo = click.echo_via_pager
+        if kwargs['json']:
             output = json.dumps([r.to_dict() for r in resources], indent=2)
+            echo = click.echo
         else:
-            if color:
+            if kwargs['color']:
                 formatter = lambda r: r.color_repr()
             else:
                 formatter = lambda r: unicode(r)
             output = '\n'.join(formatter(r) for r in resources)
 
         if output:
-            click.echo_via_pager(output)
+            echo(output)
 
 
     @resource.command()
-    @click.argument('resource_path')
+    @click.argument('resource_name')
     @click.argument('tag_name')
     @click.option('--add/--delete', default=True)
-    def tag(add, tag_name, resource_path):
-        click.echo('Tag {} with {} {}'.format(resource_path, tag_name, add))
-        r = sresource.load(resource_path)
+    def tag(add, tag_name, resource_name):
+        click.echo('Tag {} with {} {}'.format(resource_name, tag_name, add))
+        r = sresource.load(resource_name)
         if add:
             r.add_tag(tag_name)
         else:
@@ -339,22 +358,43 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('args')
+    @click.argument('args', nargs=-1)
     def update(name, args):
-        args = json.loads(args)
-        click.echo('Updating resource {} with args {}'.format(name, args))
+        args_parsed = {}
+        for arg in args:
+            try:
+                args_parsed.update(json.loads(arg))
+            except ValueError:
+                k, v = arg.split('=')
+                args_parsed.update({k: v})
+        click.echo('Updating resource {} with args {}'.format(name, args_parsed))
         all = sresource.load_all()
         r = all[name]
-        r.update(args)
+        r.update(args_parsed)
 
     @resource.command()
-    def validate():
+    @click.option('--check-missing-connections', default=False, is_flag=True)
+    def validate(check_missing_connections):
         errors = vr.validate_resources()
         for r, error in errors:
-            print 'ERROR: %s: %s' % (r.name, error)
+            click.echo('ERROR: %s: %s' % (r.name, error))
+
+        if check_missing_connections:
+            missing_connections = vr.find_missing_connections()
+            if missing_connections:
+                click.echo(
+                    'The following resources have inputs of the same value '
+                    'but are not connected:'
+                )
+                click.echo(
+                    tabulate.tabulate([
+                        ['%s::%s' % (r1, i1), '%s::%s' % (r2, i2)]
+                        for r1, i1, r2, i2 in missing_connections
+                    ])
+                )
 
     @resource.command()
-    @click.argument('path')
+    @click.argument('path', type=click.Path(exists=True, dir_okay=False))
     def get_inputs(path):
         with open(path) as f:
             content = f.read()
