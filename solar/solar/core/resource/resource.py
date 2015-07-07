@@ -8,7 +8,6 @@ import solar
 from solar.core import actions
 from solar.core import observer
 from solar.core import signals
-from solar import utils
 from solar.core import validation
 
 from solar.core.connections import ResourcesConnectionGraph
@@ -20,7 +19,7 @@ db = get_db()
 class Resource(object):
     _metadata = {}
 
-    def __init__(self, name, metadata, args, tags=None):
+    def __init__(self, name, metadata, args, tags=None, virtual_resource=None):
         self.name = name
         if metadata:
             self.metadata = metadata
@@ -30,6 +29,7 @@ class Resource(object):
         self.metadata['id'] = name
 
         self.tags = tags or []
+        self.virtual_resource = virtual_resource
         self.set_args_from_dict(args)
 
     @property
@@ -67,6 +67,7 @@ class Resource(object):
         args.update(new_args)
 
         self.metadata['tags'] = self.tags
+        self.metadata['virtual_resource'] = self.virtual_resource
         for k, v in args.items():
             if k not in self.metadata['input']:
                 raise NotImplementedError(
@@ -165,48 +166,13 @@ class Resource(object):
             raise Exception('Uuups, action is not available')
 
 
-def prepare_meta(meta):
-    actions_path = os.path.join(meta['base_path'], 'actions')
-    meta['actions_path'] = actions_path
-    meta['base_name'] = os.path.split(meta['base_path'])[-1]
-
-    meta['actions'] = {}
-    if os.path.exists(meta['actions_path']):
-        for f in os.listdir(meta['actions_path']):
-            meta['actions'][os.path.splitext(f)[0]] = f
-
-
-def create(name, base_path, args, tags=[], connections={}):
-    from solar.core import resource_provider
-
-    if isinstance(base_path, resource_provider.BaseProvider):
-        base_path = base_path.directory
-
-    if not os.path.exists(base_path):
-        raise Exception(
-            'Base resource does not exist: {0}'.format(base_path)
-        )
-
-    base_meta_file = os.path.join(base_path, 'meta.yaml')
-
-    meta = utils.yaml_load(base_meta_file)
-    meta['base_path'] = os.path.abspath(base_path)
-    meta['version'] = '1.0.0'
-
-    prepare_meta(meta)
-
-    resource = Resource(name, meta, args, tags=tags)
-    signals.assign_connections(resource, connections)
-
-    return resource
-
-
 def wrap_resource(raw_resource):
     name = raw_resource['id']
     args = {k: v['value'] for k, v in raw_resource['input'].items()}
     tags = raw_resource.get('tags', [])
+    virtual_resource = raw_resource.get('virtual_resource', [])
 
-    return Resource(name, raw_resource, args, tags=tags)
+    return Resource(name, raw_resource, args, tags=tags, virtual_resource=virtual_resource)
 
 
 def load(resource_name):

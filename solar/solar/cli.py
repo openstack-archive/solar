@@ -18,11 +18,12 @@ On create "golden" resource should be moved to special place
 """
 
 import click
+from fabric import api as fabric_api
 import json
 import networkx as nx
 import os
 import pprint
-import subprocess
+import sys
 import yaml
 
 from solar import utils
@@ -33,6 +34,7 @@ from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
+from solar.core import virtual_resource as vr
 from solar.interfaces.db import get_db
 
 # NOTE: these are extensions, they shouldn't be imported here
@@ -128,6 +130,14 @@ def init_changes():
         pass
 
     @changes.command()
+    def validate():
+        errors = vr.validate_resources()
+        if errors:
+            for r, error in errors:
+                print 'ERROR: %s: %s' % (r.name, error)
+            sys.exit(1)
+
+    @changes.command()
     def stage():
         log = operations.stage_changes()
         click.echo(log.show())
@@ -191,6 +201,11 @@ def init_cli_connections():
         pass
 
     @connections.command()
+    def clear_all():
+        click.echo('Clearing all connections')
+        signals.Connections.clear()
+
+    @connections.command()
     def show():
         def format_resource_input(resource_name, resource_input_name):
             return '{}::{}'.format(
@@ -230,7 +245,7 @@ def init_cli_connections():
                                               end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
-        subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+        fabric_api.local('dot', '-Tpng', 'graph.dot', '-o', 'graph.png')
 
         # Matplotlib
         #pos = nx.spring_layout(g)
@@ -255,13 +270,13 @@ def init_cli_resource():
         pass
 
     @resource.command()
-    @click.argument('resource_path')
+    @click.argument('resource_name')
     @click.argument('action_name')
-    def action(action_name, resource_path):
+    def action(action_name, resource_name):
         click.echo(
-            'action {} for resource {}'.format(action_name, resource_path)
+            'action {} for resource {}'.format(action_name, resource_name)
         )
-        r = sresource.load(resource_path)
+        r = sresource.load(resource_name)
         actions.resource_action(r, action_name)
 
     @resource.command()
@@ -279,6 +294,10 @@ def init_cli_resource():
 
             compiler.compile(meta)
 
+    @resource.command()
+    def clear_all():
+        click.echo('Clearing all resources')
+        db.clear()
 
     @resource.command()
     @click.argument('name')
@@ -286,8 +305,10 @@ def init_cli_resource():
     @click.argument('args')
     def create(args, base_path, name):
         click.echo('create {} {} {}'.format(name, base_path, args))
-        args = json.loads(args)
-        sresource.create(name, base_path, args)
+        args = json.loads(args) if args else {}
+        resources = vr.create(name, base_path, args)
+        for res in resources:
+            print res.name
 
     @resource.command()
     @click.option('--tag', default=None)
@@ -336,9 +357,23 @@ def init_cli_resource():
     @click.argument('args')
     def update(name, args):
         args = json.loads(args)
+        click.echo('Updating resource {} with args {}'.format(name, args))
         all = sresource.load_all()
         r = all[name]
         r.update(args)
+
+    @resource.command()
+    def validate():
+        errors = vr.validate_resources()
+        for r, error in errors:
+            print 'ERROR: %s: %s' % (r.name, error)
+
+    @resource.command()
+    @click.argument('path')
+    def get_inputs(path):
+        with open(path) as f:
+            content = f.read()
+        print vr.get_inputs(content)
 
 
 def run():

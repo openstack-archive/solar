@@ -13,3 +13,4 @@ redis==2.10.3
 pytest
 fakeredis
 inflection
+Fabric==1.10.2

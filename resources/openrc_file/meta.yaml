@@ -1,26 +1,21 @@
-id: mariadb_user
+id: nova_config
 handler: ansible
 version: 1.0.0
-actions:
-    run: run.yml
-    remove: remove.yml
+
 input:
-    user_password:
+    keystone_host:
+      schema: str!
+      value:
+    keystone_port:
+      schema: int!
+      value:
+    tenant:
       schema: str!
       value:
     user_name:
       schema: str!
       value:
-    db_name:
-      schema: str!
-      value:
-    login_password:
-      schema: str!
-      value:
-    login_port:
-      schema: int!
-      value:
-    login_user:
+    password:
       schema: str!
       value:
     ip:

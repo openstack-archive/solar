@@ -9,10 +9,10 @@ input:
       schema: str!
       value: rabbitmq_service
     management_port:
-      schema: str!
+      schema: int!
       value: 15672
     port:
-      schema: str!
+      schema: int!
       value: 5672
     ip:
       schema: str!

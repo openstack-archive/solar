@@ -11,8 +11,8 @@ from solar.core import actions
 db = get_db()
 
 from dictdiffer import diff, patch, revert
+from fabric import api as fabric_api
 import networkx as nx
-import subprocess
 
 
 def guess_action(from_, to):
@@ -98,11 +98,10 @@ def stage_changes():
 
 
 def execute(res, action):
-    return state.STATES.success
     try:
         actions.resource_action(res, action)
         return state.STATES.success
-    except subprocess.CalledProcessError:
+    except Exception as e:
         return state.STATES.error
 
 

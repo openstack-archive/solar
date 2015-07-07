@@ -1,0 +1,9 @@
+#!/bin/sh
+export LC_ALL=C
+export OS_NO_CACHE="true"
+export OS_TENANT_NAME={{tenant}}
+export OS_USERNAME={{user_name}}
+export OS_PASSWORD={{password}}
+export OS_AUTH_URL=http://{{keystone_host}}:{{keystone_port}}/v2.0
+export OS_AUTH_STRATEGY=keystone
+export OS_REGION_NAME='RegionOne'

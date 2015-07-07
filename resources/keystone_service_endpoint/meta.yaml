@@ -5,36 +5,39 @@ input:
     keystone_host:
       schema: str!
       value:
-    keystone_port:
+    keystone_admin_port:
       schema: int!
       value:
     admin_token:
       schema: str!
       value:
-    port:
-      schema: int!
-      value:
-    admin_port:
-      schema: int!
-      value:
     type:
       schema: str!
-      value: identity
     description:
       schema: str!
-      value: OpenStack Identity Service
+    name:
+      schema: str!
+    public_ip:
+      schema: str!
+    public_port:
+      schema: int!
     publicurl:
       schema: str!
-      value: http://{{ip}}:{{port}}/v2.0
+      value: http://{{public_ip}}:{{public_port}}/v2.0
+    internal_ip:
+      schema: str!
+    internal_port:
+      schema: int!
     internalurl:
       schema: str!
       value: http://{{ip}}:{{port}}/v2.0
+    admin_ip:
+      schema: str!
+    admin_port:
+      schema: int!
     adminurl:
       schema: str!
       value: http://{{ip}}:{{admin_port}}/v2.0
-    adminurl:
-      schema: str!
-      value:
     ip:
       schema: str!
       value:
