@@ -24,6 +24,7 @@ import networkx as nx
 import os
 import pprint
 import sys
+import tabulate
 import yaml
 
 from solar import utils
@@ -375,7 +376,20 @@ def init_cli_resource():
     def validate():
         errors = vr.validate_resources()
         for r, error in errors:
-            print 'ERROR: %s: %s' % (r.name, error)
+            click.echo('ERROR: %s: %s' % (r.name, error))
+
+        missing_connections = vr.find_missing_connections()
+        if missing_connections:
+            click.echo(
+                'The following resources have inputs of the same value '
+                'but are not connected:'
+            )
+            click.echo(
+                tabulate.tabulate([
+                    ['%s::%s' % (r1, i1), '%s::%s' % (r2, i2)]
+                    for r1, i1, r2, i2 in missing_connections
+                ])
+            )
 
     @resource.command()
     @click.argument('path', type=click.Path(exists=True, dir_okay=False))
