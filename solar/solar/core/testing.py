@@ -16,7 +16,7 @@ def test_all():
 
         script_path = os.path.join(r.metadata['base_path'], 'test.py')
         if not os.path.exists(script_path):
-            continue
+            print 'WARNING: resource {} has no tests'.format(name)
 
         print 'File {} found'.format(script_path)
 
