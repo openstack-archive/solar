@@ -114,6 +114,8 @@ def commit(li, resources, commited, history):
             commited[li.res]['metadata'])
         result_state = execute(commited_res, 'remove')
 
+        staged_res.set_args_from_dict(staged_data['input'])
+
         if result_state is state.STATES.success:
             result_state = execute(staged_res, 'run')
     else:

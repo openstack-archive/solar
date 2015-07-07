@@ -4,7 +4,7 @@ import tempfile
 import unittest
 import yaml
 
-from solar.core import resource as xr
+from solar.core import virtual_resource as vr
 from solar.core import signals as xs
 from solar.interfaces.db import get_db
 
@@ -31,4 +31,4 @@ class BaseResourceTest(unittest.TestCase):
         return path
 
     def create_resource(self, name, src, args):
-        return xr.create(name, src, args)
+        return vr.create(name, src, args)[0]

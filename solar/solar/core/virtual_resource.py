@@ -38,6 +38,7 @@ def create_resource(name, base_path, args, virtual_resource=None):
     resource = resource_module.Resource(name, metadata, args, tags, virtual_resource)
     return resource
 
+
 def create_virtual_resource(vr_name, template):
     resources = template['resources']
     connections = []
@@ -63,6 +64,7 @@ def create_virtual_resource(vr_name, template):
 
     return created_resources
 
+
 def create(name, base_path, kwargs, virtual_resource=None):
     if isinstance(base_path, resource_provider.BaseProvider):
         base_path = base_path.directory
@@ -81,6 +83,7 @@ def create(name, base_path, kwargs, virtual_resource=None):
 
     return resources
 
+
 def validate_resources():
     db = resource_module.load_all()
     all_errors = []
@@ -93,6 +96,62 @@ def validate_resources():
             all_errors.append((r, errors))
     return all_errors
 
+
+def find_inputs_without_source():
+    """Find resources and inputs values of which are hardcoded.
+
+    :return: [(resource_name, input_name)]
+    """
+    resources = resource_module.load_all()
+
+    ret = set([(r.name, input_name) for r in resources.values()
+               for input_name in r.args])
+
+    clients = signals.Connections.read_clients()
+
+    for dest_dict in clients.values():
+        for destinations in dest_dict.values():
+            for receiver_name, receiver_input in destinations:
+                try:
+                    ret.remove((receiver_name, receiver_input))
+                except KeyError:
+                    continue
+
+    return list(ret)
+
+
+def find_missing_connections():
+    """Find resources whose input values are duplicated
+
+    and they are not connected between each other (i.e. the values
+    are hardcoded, not coming from connection).
+
+    NOTE: this we could have 2 inputs of the same value living in 2 "circles".
+    This is not covered, we find only inputs whose value is hardcoded.
+
+    :return: [(resource_name1, input_name1, resource_name2, input_name2)]
+    """
+    ret = set()
+
+    resources = resource_module.load_all()
+
+    inputs_without_source = find_inputs_without_source()
+
+    for resource1, input1 in inputs_without_source:
+        r1 = resources[resource1]
+        v1 = r1.args[input1]
+
+        for resource2, input2 in inputs_without_source:
+            r2 = resources[resource2]
+            v2 = r2.args[input2]
+
+            if v1 == v2 and resource1 != resource2 and \
+                    (resource2, input2, resource1, input1) not in ret:
+                ret.add((resource1, input1, resource2, input2))
+
+    return list(ret)
+
+
 def _compile_file(name, path, kwargs):
     with open(path) as f:
         content = f.read()
@@ -101,10 +160,12 @@ def _compile_file(name, path, kwargs):
     template = _get_template(name, content, kwargs, inputs)
     return template
 
+
 def get_inputs(content):
     env = Environment()
     ast = env.parse(content)
     return meta.find_undeclared_variables(ast)
+
 
 def _get_template(name, content, kwargs, inputs):
     missing = []
@@ -117,5 +178,7 @@ def _get_template(name, content, kwargs, inputs):
     template = template.render(str=str, zip=zip, **kwargs)
     return template
 
+
 def is_virtual(path):
     return os.path.isfile(path)
+
