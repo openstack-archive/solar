@@ -373,23 +373,25 @@ def init_cli_resource():
         r.update(args_parsed)
 
     @resource.command()
-    def validate():
+    @click.option('--check-missing-connections', default=False, is_flag=True)
+    def validate(check_missing_connections):
         errors = vr.validate_resources()
         for r, error in errors:
             click.echo('ERROR: %s: %s' % (r.name, error))
 
-        missing_connections = vr.find_missing_connections()
-        if missing_connections:
-            click.echo(
-                'The following resources have inputs of the same value '
-                'but are not connected:'
-            )
-            click.echo(
-                tabulate.tabulate([
-                    ['%s::%s' % (r1, i1), '%s::%s' % (r2, i2)]
-                    for r1, i1, r2, i2 in missing_connections
-                ])
-            )
+        if check_missing_connections:
+            missing_connections = vr.find_missing_connections()
+            if missing_connections:
+                click.echo(
+                    'The following resources have inputs of the same value '
+                    'but are not connected:'
+                )
+                click.echo(
+                    tabulate.tabulate([
+                        ['%s::%s' % (r1, i1), '%s::%s' % (r2, i2)]
+                        for r1, i1, r2, i2 in missing_connections
+                    ])
+                )
 
     @resource.command()
     @click.argument('path', type=click.Path(exists=True, dir_okay=False))
