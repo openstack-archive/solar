@@ -34,7 +34,9 @@ sudo docker exec -it foo
 * To get data for the resource bar (raw and pretty-JSON):
 ```
 solar resource show --tag 'resources/bar'
-solar resource show --use-json --tag 'resources/bar' | jq .
+solar resource show --json --tag 'resources/bar' | jq .
+solar resource show --name 'resource_name'
+solar resource show --name 'resource_name' --json | jq .
 ```
 
 * To clear all resources/connections:
