@@ -190,14 +190,20 @@ def init_cli_connect():
     @main.command()
     @click.argument('emitter')
     @click.argument('receiver')
-    @click.option('--mapping', default=None)
+    @click.argument('mapping', default='')
     def connect(mapping, receiver, emitter):
+        mapping_parsed = {}
+
         click.echo('Connect {} to {}'.format(emitter, receiver))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        if mapping is not None:
-            mapping = json.loads(mapping)
-        signals.connect(emitter, receiver, mapping=mapping)
+        try:
+            mapping_parsed.update(json.loads(mapping))
+        except ValueError:
+            for m in mapping.split():
+                k, v = m.split('->')
+                mapping_parsed.update({k: v})
+        signals.connect(emitter, receiver, mapping=mapping_parsed)
 
         clients = signals.Connections.read_clients()
         show_emitter_connections(emitter.name, clients[emitter.name])
@@ -286,11 +292,18 @@ def init_cli_resource():
     @resource.command()
     @click.argument('name')
     @click.argument('base_path', type=click.Path(exists=True, file_okay=False))
-    @click.argument('args')
+    @click.argument('args', nargs=-1)
     def create(args, base_path, name):
+        args_parsed = {}
+
         click.echo('create {} {} {}'.format(name, base_path, args))
-        args = json.loads(args) if args else {}
-        resources = vr.create(name, base_path, args)
+        for arg in args:
+            try:
+                args_parsed.update(json.loads(arg))
+            except ValueError:
+                k, v = arg.split('=')
+                args_parsed.update({k: v})
+        resources = vr.create(name, base_path, args_parsed)
         for res in resources:
             click.echo(res.color_repr())
 
@@ -344,13 +357,19 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('args')
+    @click.argument('args', nargs=-1)
     def update(name, args):
-        args = json.loads(args)
-        click.echo('Updating resource {} with args {}'.format(name, args))
+        args_parsed = {}
+        for arg in args:
+            try:
+                args_parsed.update(json.loads(arg))
+            except ValueError:
+                k, v = arg.split('=')
+                args_parsed.update({k: v})
+        click.echo('Updating resource {} with args {}'.format(name, args_parsed))
         all = sresource.load_all()
         r = all[name]
-        r.update(args)
+        r.update(args_parsed)
 
     @resource.command()
     def validate():
