@@ -62,8 +62,6 @@ def create_diff(staged, commited):
 def _stage_changes(staged_resources, conn_graph,
                    commited_resources, staged_log):
 
-    action = None
-
     try:
         srt = nx.topological_sort(conn_graph)
     except:
@@ -197,5 +195,3 @@ def rollback_all():
 
     while cl:
         rollback(cl.pop())
-
-
