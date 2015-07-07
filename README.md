@@ -1,55 +1,84 @@
 # Setup development env
-* Install virtualbox
-* Install vagrant
-* Setup environment
 
+* Install [Vagrant](http://www.vagrantup.com/downloads.html)
+* Setup environment:
 ```
-$ cd fuel-ng
-$ vagrant up
+cd solar
+vagrant up
 ```
 
 * Login into vm, the code is available in /vagrant directory
-
 ```
-$ vagrant ssh
-$ solar --help
+vagrant ssh
+solar --help
+```
+
+* Launch standard deployment:
+```
+python example.py
+```
+
+* Get ssh details for running slave nodes (vagrant/vagrant):
+```
+vagrant ssh-config
+```
+
+* Get list of docker containers and attach to the foo container
+```
+sudo docker ps -a
+sudo docker exec -it foo
 ```
 
 ## Solar usage
-* discover nodes, with standard file based discovery
 
+* To get data for the resource bar (raw and pretty-JSON):
 ```
-solar discover
-```
-
-* create profile (global config)
-
-```
-solar profile --create --id prf1 --tags env/test_env
-
-```
-* assign nodes to profile with tags
-
-
-* edit nodes files, in the future we want to provide
-  some cli in order to change the data
-
-```
-vim tmp/storage/nodes-id.yaml
+solar resource show --tag 'resources/bar'
+solar resource show --use-json --tag 'resources/bar' | jq .
 ```
 
-* add `env/test_env` in tags list
-* assign resources to nodes
-
+* To clear all resources/connections:
 ```
-# TODO Does not work without default values in golden templates
-solar assign -n "env/test_env && node/1" -r resource/mariadb
+solar resource clear_all
+solar connections clear_all
 ```
 
+* Some very simple cluster setup:
+```
+cd /vagrant
+
+solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
+solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
+solar resource create keystone_db resources/mariadb_keystone_db/ '{"db_name": "keystone_db", "login_user": "root"}'
+solar resource create keystone_db_user resources/mariadb_user/ '{"user_name": "keystone", "user_password": "keystone", "login_user": "root"}'
+
+solar connect node1 mariadb_service
+solar connect node1 keystone_db
+solar connect mariadb_service keystone_db --mapping '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db_user --mapping '{"root_password": "login_password", "port": "login_port"}'
+solar connect keystone_db keystone_db_user
+
+solar changes stage
+solar changes commit
+```
+
+You can fiddle with the above configuration like this:
+```
+solar resource update keystone_db_user '{"user_password": "new_keystone_password"}'
+
+solar changes stage
+solar changes commit
+```
+
+* Show the connections/graph:
+```
+solar connections show
+solar connections graph
+```
 
 # Low level API
 
-## HAProxy deployment
+## HAProxy deployment (not maintained)
 
 ```
 cd /vagrant

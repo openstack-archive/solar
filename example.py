@@ -75,6 +75,7 @@ def deploy():
     admin_user = vr.create('admin_user', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_user'), {'user_name': 'admin', 'user_password': 'admin'})[0]
     admin_role = vr.create('admin_role', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_role'), {'role_name': 'admin'})[0]
     keystone_service_endpoint = vr.create('keystone_service_endpoint', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service_endpoint'), {'adminurl': 'http://{{ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{ip}}:{{port}}/v2.0', 'publicurl': 'http://{{ip}}:{{port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})[0]
+    openrc = vr.create('openrc_file', 'resources/openrc_file', {})[0]
 
 
     ####
@@ -178,6 +179,9 @@ def deploy():
     signals.connect(keystone_service1, glance_api_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port'})
     signals.connect(haproxy_glance_api_config, glance_api_endpoint, {'listen_port': 'admin_port'})
     signals.connect(haproxy_glance_api_config, glance_api_endpoint, {'listen_port': 'port'})
+    signals.connect(node1, openrc)
+    signals.connect(keystone_service1, openrc, {'ip': 'keystone_host', 'admin_port':'keystone_port'})
+    signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
 
     errors = vr.validate_resources()
@@ -206,6 +210,7 @@ def deploy():
     actions.resource_action(admin_user, 'run')
     actions.resource_action(admin_role, 'run')
     actions.resource_action(keystone_service_endpoint, 'run')
+    actions.resource_action(openrc, 'run')
 
     actions.resource_action(services_tenant, 'run')
     actions.resource_action(glance_keystone_user, 'run')
@@ -280,6 +285,7 @@ def undeploy():
     actions.resource_action(resources['glance_keystone_user'], 'remove')
     actions.resource_action(resources['glance_keystone_tenant'], 'remove')
 
+    actions.resource_action(resources['openrc_file'], 'remove')
     actions.resource_action(resources['keystone_service_endpoint'], 'remove')
     actions.resource_action(resources['admin_role'], 'remove')
     actions.resource_action(resources['admin_user'], 'remove')
