@@ -52,7 +52,8 @@ def deploy():
     keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_user/', {'user_name': 'keystone', 'user_password': 'keystone', 'login_user': 'root'})[0]
 
     keystone_config1 = vr.create('keystone_config1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, path='keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})[0]
-    keystone_service1 = vr.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})[0]
+    #keystone_service1 = vr.create('keystone_service1', RemoteZipProvider(ZIP_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})[0]
+    keystone_service1 = vr.create('keystone_service1', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5001, 'admin_port': 35357})[0]
 
     keystone_config2 = vr.create('keystone_config2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_config'), {'config_dir': '/etc/solar/keystone', 'admin_token': 'admin'})[0]
     keystone_service2 = vr.create('keystone_service2', GitProvider(GIT_KEYSTONE_RESOURCE_URL, 'keystone_service'), {'port': 5002, 'admin_port': 35358})[0]

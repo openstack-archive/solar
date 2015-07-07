@@ -34,7 +34,9 @@ sudo docker exec -it foo
 * To get data for the resource bar (raw and pretty-JSON):
 ```
 solar resource show --tag 'resources/bar'
-solar resource show --use-json --tag 'resources/bar' | jq .
+solar resource show --json --tag 'resources/bar' | jq .
+solar resource show --name 'resource_name'
+solar resource show --name 'resource_name' --json | jq .
 ```
 
 * To clear all resources/connections:
@@ -50,12 +52,12 @@ cd /vagrant
 solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
 solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
 solar resource create keystone_db resources/mariadb_keystone_db/ '{"db_name": "keystone_db", "login_user": "root"}'
-solar resource create keystone_db_user resources/mariadb_user/ '{"user_name": "keystone", "user_password": "keystone", "login_user": "root"}'
+solar resource create keystone_db_user resources/mariadb_user/ user_name=keystone user_password=keystone  # another valid format
 
 solar connect node1 mariadb_service
 solar connect node1 keystone_db
-solar connect mariadb_service keystone_db --mapping '{"root_password": "login_password", "port": "login_port"}'
-solar connect mariadb_service keystone_db_user --mapping '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port"}'
+# solar connect mariadb_service keystone_db_user 'root_password->login_password port->login_port'  # another valid format
 solar connect keystone_db keystone_db_user
 
 solar changes stage
@@ -65,6 +67,7 @@ solar changes commit
 You can fiddle with the above configuration like this:
 ```
 solar resource update keystone_db_user '{"user_password": "new_keystone_password"}'
+solar resource update keystone_db_user user_password=new_keystone_password   # another valid format
 
 solar changes stage
 solar changes commit
@@ -74,6 +77,11 @@ solar changes commit
 ```
 solar connections show
 solar connections graph
+```
+
+* You can make sure that all input values are correct and mapped without duplicating your values with this command:
+```
+solar resource validate
 ```
 
 # Low level API
