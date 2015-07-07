@@ -15,7 +15,8 @@ def default_resources():
         {'id': 'node1',
          'input': {'ip': {'value':'10.0.0.3'}}})
     rabbitmq_service1 = resource.wrap_resource(
-        {'id':'rabbitmq', 'input': {
+        {'id':'rabbitmq',
+         'input': {
             'ip' : {'value': ''},
             'image': {'value': 'rabbitmq:3-management'}}})
     signals.connect(node1, rabbitmq_service1)

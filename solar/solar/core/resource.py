@@ -67,6 +67,8 @@ class Resource(object):
                     'Argument {} not implemented for resource {}'.format(k, self)
                 )
 
+            if isinstance(v, dict) and 'value' in v:
+                v = v['value']
             self.metadata['input'][k]['value'] = v
 
         db.save(self.name, self.metadata, collection=db.COLLECTIONS.resource)
@@ -162,6 +164,15 @@ class Resource(object):
 def wrap_resource(raw_resource):
     name = raw_resource['id']
     args = {k: v['value'] for k, v in raw_resource['input'].items()}
+    tags = raw_resource.get('tags', [])
+    virtual_resource = raw_resource.get('virtual_resource', [])
+
+    return Resource(name, raw_resource, args, tags=tags, virtual_resource=virtual_resource)
+
+
+def wrap_resource_no_value(raw_resource):
+    name = raw_resource['id']
+    args = {k: v for k, v in raw_resource['input'].items()}
     tags = raw_resource.get('tags', [])
     virtual_resource = raw_resource.get('virtual_resource', [])
 
