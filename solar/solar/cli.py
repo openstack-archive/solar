@@ -286,7 +286,7 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('base_path')
+    @click.argument('base_path', type=click.Path(exists=True, file_okay=False))
     @click.argument('args')
     def create(args, base_path, name):
         click.echo('create {} {} {}'.format(name, base_path, args))
@@ -296,41 +296,48 @@ def init_cli_resource():
             print res.name
 
     @resource.command()
+    @click.option('--name', default=None)
     @click.option('--tag', default=None)
-    @click.option('--use-json/--no-use-json', default=False)
-    @click.option('--color/--no-color', default=True)
-    def show(color, use_json, tag):
+    @click.option('--json', default=False, is_flag=True)
+    @click.option('--color', default=True, is_flag=True)
+    def show(**kwargs):
         resources = []
 
         for name, res in sresource.load_all().items():
             show = True
-            if tag:
-                if tag not in res.tags:
+            if kwargs['tag']:
+                print res.name, res.tags
+                if kwargs['tag'] not in res.tags:
+                    show = False
+            if kwargs['name']:
+                if res.name != kwargs['name']:
                     show = False
 
             if show:
                 resources.append(res)
 
-        if use_json:
+        echo = click.echo_via_pager
+        if kwargs['json']:
             output = json.dumps([r.to_dict() for r in resources], indent=2)
+            echo = click.echo
         else:
-            if color:
+            if kwargs['color']:
                 formatter = lambda r: r.color_repr()
             else:
                 formatter = lambda r: unicode(r)
             output = '\n'.join(formatter(r) for r in resources)
 
         if output:
-            click.echo_via_pager(output)
+            echo(output)
 
 
     @resource.command()
-    @click.argument('resource_path')
+    @click.argument('resource_name')
     @click.argument('tag_name')
     @click.option('--add/--delete', default=True)
-    def tag(add, tag_name, resource_path):
-        click.echo('Tag {} with {} {}'.format(resource_path, tag_name, add))
-        r = sresource.load(resource_path)
+    def tag(add, tag_name, resource_name):
+        click.echo('Tag {} with {} {}'.format(resource_name, tag_name, add))
+        r = sresource.load(resource_name)
         if add:
             r.add_tag(tag_name)
         else:
@@ -354,7 +361,7 @@ def init_cli_resource():
             print 'ERROR: %s: %s' % (r.name, error)
 
     @resource.command()
-    @click.argument('path')
+    @click.argument('path', type=click.Path(exists=True, dir_okay=False))
     def get_inputs(path):
         with open(path) as f:
             content = f.read()
