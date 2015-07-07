@@ -45,6 +45,31 @@ from solar.extensions.modules.discovery import Discovery
 db = get_db()
 
 
+# HELPERS
+def format_resource_input(resource_name, resource_input_name):
+    return '{}::{}'.format(
+        #click.style(resource_name, fg='white', bold=True),
+        resource_name,
+        click.style(resource_input_name, fg='yellow')
+    )
+
+def show_emitter_connections(emitter_name, destinations):
+    inputs = sorted(destinations)
+
+    for emitter_input in inputs:
+        click.echo(
+            '{} -> {}'.format(
+                format_resource_input(emitter_name, emitter_input),
+                '[{}]'.format(
+                    ', '.join(
+                        format_resource_input(*r)
+                        for r in destinations[emitter_input]
+                    )
+                )
+            )
+        )
+
+
 @click.group()
 def main():
     pass
@@ -76,13 +101,6 @@ def assign(resources, nodes):
         "For {0} nodes assign {1} resources".format(len(nodes), len(resources))
     )
     assign_resources_to_nodes(resources, nodes)
-
-
-# @main.command()
-# @click.option('-p', '--profile')
-# def connect(profile):
-#     profile_ = db.get_record('profiles', profile)
-#     connect_resources(profile_)
 
 
 @main.command()
@@ -177,11 +195,12 @@ def init_cli_connect():
         click.echo('Connect {} to {}'.format(emitter, receiver))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        click.echo(emitter)
-        click.echo(receiver)
         if mapping is not None:
             mapping = json.loads(mapping)
         signals.connect(emitter, receiver, mapping=mapping)
+
+        clients = signals.Connections.read_clients()
+        show_emitter_connections(emitter.name, clients[emitter.name])
 
     @main.command()
     @click.argument('emitter')
@@ -193,6 +212,9 @@ def init_cli_connect():
         click.echo(emitter)
         click.echo(receiver)
         signals.disconnect(emitter, receiver)
+
+        clients = signals.Connections.read_clients()
+        show_emitter_connections(emitter.name, clients[emitter.name])
 
 
 def init_cli_connections():
@@ -207,29 +229,6 @@ def init_cli_connections():
 
     @connections.command()
     def show():
-        def format_resource_input(resource_name, resource_input_name):
-            return '{}::{}'.format(
-                #click.style(resource_name, fg='white', bold=True),
-                resource_name,
-                click.style(resource_input_name, fg='yellow')
-            )
-
-        def show_emitter_connections(emitter_name, destinations):
-            inputs = sorted(destinations)
-
-            for emitter_input in inputs:
-                click.echo(
-                    '{} -> {}'.format(
-                        format_resource_input(emitter_name, emitter_input),
-                        '[{}]'.format(
-                            ', '.join(
-                                format_resource_input(*r)
-                                for r in destinations[emitter_input]
-                            )
-                        )
-                    )
-                )
-
         clients = signals.Connections.read_clients()
         keys = sorted(clients)
         for emitter_name in keys:
@@ -293,7 +292,7 @@ def init_cli_resource():
         args = json.loads(args) if args else {}
         resources = vr.create(name, base_path, args)
         for res in resources:
-            print res.name
+            click.echo(res.color_repr())
 
     @resource.command()
     @click.option('--name', default=None)
