@@ -145,7 +145,8 @@ def find_missing_connections():
             r2 = resources[resource2]
             v2 = r2.args[input2]
 
-            if v1 == v2 and resource1 != resource2:
+            if v1 == v2 and resource1 != resource2 and \
+                    (resource2, input2, resource1, input1) not in ret:
                 ret.add((resource1, input1, resource2, input2))
 
     return list(ret)
