@@ -19,6 +19,8 @@
     - shell: gem build hiera-redis.gemspec && gem install hiera-redis-3.0.0.gem chdir=/root/hiera-redis
     - template: src=/vagrant/hiera.yaml dest=/etc/puppet/hiera.yaml
     - file: path=/etc/puppet/hieradata state=directory
+    - file: path=/etc/puppetlabs/code/ state=directory
+    - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
 
       # Setup additional development tools
     - apt: name=vim state=present
