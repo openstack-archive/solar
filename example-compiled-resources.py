@@ -1,3 +1,9 @@
+"""
+To run this code, first compile the resources with
+
+solar resource compile_all
+"""
+
 import click
 import json
 import requests
@@ -5,7 +11,7 @@ import sys
 import time
 
 from solar.core import actions
-from solar.core import virtual_resource as vr
+from solar.core.resource import virtual_resource as vr
 from solar.core import resource
 from solar.core import signals
 
@@ -42,8 +48,8 @@ def deploy():
 
     #rabbitmq_service1 = resource.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': '15672', 'port': '5672', 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
     rabbitmq_service1 = resources_compiled.RabbitmqServiceResource('rabbitmq_service1', None, {'management_port': 15672, 'port': 5672, 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})
-    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})
-    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})
+    openstack_vhost = resource.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})[0]
+    openstack_rabbitmq_user = resource.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})[0]
 
     node2 = vr.create('node2', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
 

@@ -8,7 +8,7 @@ from jinja2 import Template, Environment, meta
 
 from solar import utils
 from solar.core import validation
-from solar.core import resource as resource_module
+from solar.core.resource import load_all, Resource
 from solar.core import resource_provider
 from solar.core import signals
 
@@ -25,9 +25,9 @@ def create_resource(name, base_path, args, virtual_resource=None):
     metadata = utils.yaml_load(base_meta_file)
     metadata['id'] = name
     metadata['version'] = '1.0.0'
-    metadata['actions'] = {}
-    metadata['actions_path'] = actions_path
     metadata['base_path'] = os.path.abspath(base_path)
+
+    prepare_meta(metadata)
 
     if os.path.exists(actions_path):
         for f in os.listdir(actions_path):
@@ -35,7 +35,7 @@ def create_resource(name, base_path, args, virtual_resource=None):
 
     tags = metadata.get('tags', [])
 
-    resource = resource_module.Resource(name, metadata, args, tags, virtual_resource)
+    resource = Resource(name, metadata, args, tags, virtual_resource)
     return resource
 
 
@@ -56,7 +56,7 @@ def create_virtual_resource(vr_name, template):
                     emitter, src = arg.split('::')
                     connections.append((emitter, name, {src: key}))
 
-        db = resource_module.load_all()
+        db = load_all()
         for emitter, reciver, mapping in connections:
             emitter = db[emitter]
             reciver = db[reciver]
@@ -84,11 +84,22 @@ def create(name, base_path, kwargs, virtual_resource=None):
     return resources
 
 
+def prepare_meta(meta):
+    actions_path = os.path.join(meta['base_path'], 'actions')
+    meta['actions_path'] = actions_path
+    meta['base_name'] = os.path.split(meta['base_path'])[-1]
+
+    meta['actions'] = {}
+    if os.path.exists(meta['actions_path']):
+        for f in os.listdir(meta['actions_path']):
+            meta['actions'][os.path.splitext(f)[0]] = f
+
+
 def validate_resources():
-    db = resource_module.load_all()
+    db = load_all()
     all_errors = []
     for r in db.values():
-        if not isinstance(r, resource_module.Resource):
+        if not isinstance(r, Resource):
             continue
 
         errors = validation.validate_resource(r)
@@ -102,7 +113,7 @@ def find_inputs_without_source():
 
     :return: [(resource_name, input_name)]
     """
-    resources = resource_module.load_all()
+    resources = load_all()
 
     ret = set([(r.name, input_name) for r in resources.values()
                for input_name in r.args])
@@ -133,7 +144,7 @@ def find_missing_connections():
     """
     ret = set()
 
-    resources = resource_module.load_all()
+    resources = load_all()
 
     inputs_without_source = find_inputs_without_source()
 
