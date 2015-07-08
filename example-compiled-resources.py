@@ -177,8 +177,8 @@ def deploy():
     signals.connect(glance_config, glance_api_container, {'config_dir': 'host_binds'})
 
     signals.connect(glance_db_user, glance_api_container, {'user_password': 'db_password'})
-    signals.connect(glance_keystone_user, glance_api_container, {'user_password': 'keystone_password'})
-    signals.connect(glance_keystone_user, glance_api_container, {'admin_token': 'keystone_admin_token'})
+    signals.connect(glance_keystone_user, glance_api_container, {'admin_token': 'keystone_admin_token', 'user_password': 'keystone_password'})
+    signals.connect(haproxy_keystone_config, glance_api_container, {'listen_port': 'keystone_port'})
     signals.connect(haproxy_config, glance_api_container, {'ip': 'keystone_host'})
 
     signals.connect(node2, glance_registry_container)
