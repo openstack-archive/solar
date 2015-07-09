@@ -11,6 +11,7 @@ input:
     admin_token:
       schema: str!
       value:
+
     type:
       schema: str!
       value:
@@ -28,6 +29,7 @@ input:
       value: http://{{public_ip}}:{{public_port}}/v2.0
     internal_ip:
       schema: str!
+      value:
     internal_port:
       schema: int!
       value:
@@ -43,6 +45,7 @@ input:
     adminurl:
       schema: str!
       value: http://{{ip}}:{{admin_port}}/v2.0
+
     ip:
       schema: str!
       value:
