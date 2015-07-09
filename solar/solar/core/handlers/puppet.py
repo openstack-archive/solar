@@ -62,6 +62,7 @@ class LibrarianPuppet(ResourceSSHMixin):
             self.resource,
             'sudo', 'cat', '/tmp/puppet-modules/Puppetfile'
         )
+        log.debug('Puppetlabs file is: \n%s\n', puppetlabs)
 
         git = self.resource.args['git'].value
 

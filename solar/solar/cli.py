@@ -20,6 +20,7 @@ On create "golden" resource should be moved to special place
 import click
 from fabric import api as fabric_api
 import json
+from hashlib import md5
 import networkx as nx
 import os
 import pprint
@@ -283,12 +284,46 @@ def init_cli_resource():
     @resource.command()
     @click.argument('resource_name')
     @click.argument('action_name')
-    def action(action_name, resource_name):
+    @click.option('-d', '--dry-run', default=False, is_flag=True)
+    @click.option('-m', '--mapping', default='{}')
+    def action(mapping, dry_run, action_name, resource_name):
+        from fabric import api as fabric_api
+        from fabric.contrib import project as fabric_project
+        import mock
+
+        if dry_run:
+            mapping = json.loads(mapping)
+
+            executed = []
+
+            def compute_hash(key):
+                return md5(str(key)).hexdigest()
+
+            def dry_run_executor(command_name):
+                def wrapper(*args, **kwargs):
+                    key = (command_name, args, kwargs)
+
+                    executed.append(key)
+
+                    return mapping.get(compute_hash(key), '')
+
+                return wrapper
+
+            fabric_api.run = mock.Mock(side_effect=dry_run_executor('SSH RUN'))
+            fabric_project.rsync_project = mock.Mock(side_effect=dry_run_executor('RSYNC PROJECT'))
+
         click.echo(
             'action {} for resource {}'.format(action_name, resource_name)
         )
         r = sresource.load(resource_name)
         actions.resource_action(r, action_name)
+
+        print 'executed:'
+        for key in executed:
+            click.echo('{}: {}'.format(
+                click.style(compute_hash(key), fg='green'),
+                str(key)
+            ))
 
     @resource.command()
     def clear_all():
