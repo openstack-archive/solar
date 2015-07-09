@@ -1,8 +1,10 @@
 import requests
 
+from solar.core.log import log
+
 
 def test(resource):
-    print 'Testing keystone_puppet'
+    log.debug('Testing keystone_puppet')
     requests.get(
         'http://%s:%s' % (resource.args['ip'].value, resource.args['port'].value)
     )

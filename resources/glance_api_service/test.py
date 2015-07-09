@@ -1,9 +1,11 @@
 import json
 import requests
 
+from solar.core.log import log
+
 
 def test(resource):
-    print 'Testing glance_service'
+    log.debug('Testing glance_service')
     token_data = requests.post(
         'http://%s:%s/v2.0/tokens' % (resource.args['ip'].value, resource.args['keystone_port'].value),
         json.dumps({
@@ -19,7 +21,7 @@ def test(resource):
     )
 
     token = token_data.json()['access']['token']['id']
-    print 'GLANCE TOKEN: {}'.format(token)
+    log.debug('GLANCE TOKEN: %s', token)
 
     images = requests.get(
         'http://%s:%s/v1/images' % (resource.args['ip'].value, 9393),
