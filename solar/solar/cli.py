@@ -301,7 +301,7 @@ def init_cli_resource():
 
             def dry_run_executor(command_name):
                 def wrapper(*args, **kwargs):
-                    key = (command_name, args, kwargs)
+                    key = (len(executed), command_name, args, kwargs)
 
                     executed.append(key)
 
