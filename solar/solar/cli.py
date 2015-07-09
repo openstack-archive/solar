@@ -48,6 +48,35 @@ from solar.extensions.modules.discovery import Discovery
 db = get_db()
 
 
+class DryRunExecutor(object):
+    def __init__(self, mapping=None):
+        from fabric import api as fabric_api
+        from fabric.contrib import project as fabric_project
+        import mock
+
+        self.executed = []
+
+        mapping = mapping or {}
+
+        def dry_run_executor(command_name):
+            def wrapper(*args, **kwargs):
+                key = (len(self.executed), command_name, args, kwargs)
+
+                self.executed.append(key)
+
+                return mapping.get(self.compute_hash(key), '')
+
+            return wrapper
+
+        # Add your own mocks here, IO, whatever
+        fabric_api.local = mock.Mock(side_effect=dry_run_executor('LOCAL RUN'))
+        fabric_api.run = mock.Mock(side_effect=dry_run_executor('SSH RUN'))
+        fabric_project.rsync_project = mock.Mock(side_effect=dry_run_executor('RSYNC PROJECT'))
+
+    def compute_hash(self, key):
+        return md5(str(key)).hexdigest()
+
+
 # HELPERS
 def format_resource_input(resource_name, resource_input_name):
     return '{}::{}'.format(
@@ -132,9 +161,14 @@ def init_actions():
     @main.command()
     @click.option('-t', '--tags')
     @click.option('-a', '--action')
-    def run(action, tags):
+    @click.option('-d', '--dry-run', default=False, is_flag=True)
+    @click.option('-m', '--dry-run-mapping', default='{}')
+    def run(dry_run_mapping, dry_run, action, tags):
         from solar.core import actions
         from solar.core import resource
+
+        if dry_run:
+            dry_run_executor = DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         resources = filter(
             lambda r: Expression(tags, r.get('tags', [])).evaluate(),
@@ -143,6 +177,14 @@ def init_actions():
         for resource in resources:
             resource_obj = sresource.load(resource['id'])
             actions.resource_action(resource_obj, action)
+
+        if dry_run:
+            click.echo('EXECUTED:')
+            for key in dry_run_executor.executed:
+                click.echo('{}: {}'.format(
+                    click.style(dry_run_executor.compute_hash(key), fg='green'),
+                    str(key)
+                ))
 
 
 def init_changes():
@@ -285,32 +327,10 @@ def init_cli_resource():
     @click.argument('resource_name')
     @click.argument('action_name')
     @click.option('-d', '--dry-run', default=False, is_flag=True)
-    @click.option('-m', '--mapping', default='{}')
-    def action(mapping, dry_run, action_name, resource_name):
-        from fabric import api as fabric_api
-        from fabric.contrib import project as fabric_project
-        import mock
-
+    @click.option('-m', '--dry-run-mapping', default='{}')
+    def action(dry_run_mapping, dry_run, action_name, resource_name):
         if dry_run:
-            mapping = json.loads(mapping)
-
-            executed = []
-
-            def compute_hash(key):
-                return md5(str(key)).hexdigest()
-
-            def dry_run_executor(command_name):
-                def wrapper(*args, **kwargs):
-                    key = (len(executed), command_name, args, kwargs)
-
-                    executed.append(key)
-
-                    return mapping.get(compute_hash(key), '')
-
-                return wrapper
-
-            fabric_api.run = mock.Mock(side_effect=dry_run_executor('SSH RUN'))
-            fabric_project.rsync_project = mock.Mock(side_effect=dry_run_executor('RSYNC PROJECT'))
+            dry_run_executor = DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         click.echo(
             'action {} for resource {}'.format(action_name, resource_name)
@@ -318,12 +338,13 @@ def init_cli_resource():
         r = sresource.load(resource_name)
         actions.resource_action(r, action_name)
 
-        print 'executed:'
-        for key in executed:
-            click.echo('{}: {}'.format(
-                click.style(compute_hash(key), fg='green'),
-                str(key)
-            ))
+        if dry_run:
+            click.echo('EXECUTED:')
+            for key in dry_run_executor.executed:
+                click.echo('{}: {}'.format(
+                    click.style(dry_run_executor.compute_hash(key), fg='green'),
+                    str(key)
+                ))
 
     @resource.command()
     def clear_all():
