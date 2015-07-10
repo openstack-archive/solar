@@ -39,6 +39,8 @@ from solar.core import testing
 from solar.core import virtual_resource as vr
 from solar.interfaces.db import get_db
 
+from solar.cli.orch import orchestration
+
 # NOTE: these are extensions, they shouldn't be imported here
 # Maybe each extension can also extend the CLI with parsers
 from solar.extensions.modules.discovery import Discovery
@@ -414,6 +416,7 @@ def run():
     init_cli_deployment_config()
     init_cli_resource()
 
+    main.add_command(orchestration)
     main()
 
 
