@@ -61,7 +61,6 @@ def report(uid):
 def run_once(uid, start, end):
     tasks.schedule_start.apply_async(
         args=[uid],
-        kwargs={'start': start, 'end': end},
         queue='scheduler')
 
 
@@ -69,7 +68,7 @@ def run_once(uid, start, end):
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
-def path(uid, start, end):
+def filter(uid, start, end):
     dg = graph.get_graph(uid)
     subpath = filters.traverse(dg, start=start, end=end)
     click.echo(subpath.nodes())

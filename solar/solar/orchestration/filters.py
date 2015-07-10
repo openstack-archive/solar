@@ -23,6 +23,14 @@ def start_from(dg, nodes):
     return get_dfs_postorder_subgraph(dg, nodes)
 
 
+def filter_tasks(dg, nodes):
+    return dg.subgraph(nodes)
+
+
+def one_task(dg, node):
+    return filter_tasks(dg, [node])
+
+
 def traverse(dg, start=None, end=None):
     if start:
         dg = start_from(dg, start)
