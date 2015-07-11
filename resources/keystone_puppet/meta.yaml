@@ -25,7 +25,7 @@ input:
 
     git:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-keystone', branch: 'stable/juno'}
+      value: {repository: 'https://github.com/openstack/puppet-keystone', branch: '5.1.0'}
 
 #    forge:
 #      schema: str!

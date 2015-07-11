@@ -17,6 +17,8 @@ rs/
 
 solar.log
 x-venv/
+.tmp/
+modules/
 
 celery*.pid
 celery*.log
