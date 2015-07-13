@@ -128,7 +128,7 @@ class Puppet(ResourceSSHMixin, BaseHandler):
         self._scp_command(resource, action_file, '/tmp/action.pp')
 
         self._ssh_command(
-            resource, 'sudo', 'puppet', 'apply', '/tmp/action.pp'
+            resource, 'sudo', 'puppet', 'apply', '-vd', '/tmp/action.pp'
         )
 
     def clone_manifests(self, resource):
