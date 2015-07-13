@@ -23,8 +23,9 @@
     - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
     - apt: name=ruby-dev state=present
     - shell: gem install librarian-puppet
-    - file: path=/tmp/puppet-modules state=directory
+    - file: path=/tmp/puppet-modules/modules state=directory
     - file: path=/tmp/puppet-modules/Puppetfile state=touch
+    - file: path=/etc/puppet/modules state=absent
     - file: src=/tmp/puppet-modules/modules dest=/etc/puppet/modules state=link
 
       # Setup additional development tools
