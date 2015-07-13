@@ -1,12 +1,9 @@
 
-
-
 from functools import partial, wraps
 from itertools import islice
 import subprocess
 import time
 
-from celery import Celery
 from celery.app import task
 from celery import group
 from celery.exceptions import Ignore
@@ -15,16 +12,14 @@ import redis
 from solar.orchestration import graph
 from solar.core import actions
 from solar.core import resource
+from solar.orchestration.runner import app
 
-
-app = Celery(
-    'tasks',
-    backend='redis://10.0.0.2:6379/1',
-    broker='redis://10.0.0.2:6379/1')
-app.conf.update(CELERY_ACCEPT_CONTENT = ['json'])
-app.conf.update(CELERY_TASK_SERIALIZER = 'json')
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
+
+
+__all__ = ['solar_resource', 'cmd', 'sleep',
+           'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
 
 
 class ReportTask(task.Task):
@@ -106,7 +101,6 @@ def anchor(ctxt, *args):
 def schedule(plan_uid, dg):
     next_tasks = list(traverse(dg))
     graph.save_graph(plan_uid, dg)
-    print 'GRAPH {0}\n NEXT TASKS {1}'.format(dg.node, next_tasks)
     group(next_tasks)()
 
 

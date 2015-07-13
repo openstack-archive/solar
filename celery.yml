@@ -10,9 +10,9 @@
     - shell: celery multi kill 2
              chdir={{celery_dir}}
       tags: [stop]
-    - shell: celery multi start 2 -A solar.orchestration.tasks -Q:1 celery,scheduler -Q:2 celery,{{hostname.stdout}}
+    - shell: celery multi start 2 -A solar.orchestration.runner -Q:1 celery,scheduler -Q:2 celery,{{hostname.stdout}}
              chdir={{celery_dir}}
       tags: [master]
-    - shell: celery multi start 1 -A solar.orchestration.tasks -Q:1 celery,{{hostname.stdout}}
+    - shell: celery multi start 1 -A solar.orchestration.runner -Q:1 celery,{{hostname.stdout}}
              chdir={{celery_dir}}
       tags: [slave]
