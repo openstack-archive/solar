@@ -86,6 +86,7 @@ class LibrarianPuppet(ResourceSSHMixin):
             modules.append(definition)
 
         with open('/tmp/Puppetfile', 'w') as f:
+            f.write('forge "https://forge.puppetlabs.com\n"')
             f.write('\n'.join(modules))
 
         self._scp_command(
