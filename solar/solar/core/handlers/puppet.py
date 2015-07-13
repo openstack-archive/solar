@@ -73,6 +73,9 @@ class LibrarianPuppet(ResourceSSHMixin):
 
         modules = puppetlabs.split('\n')
 
+        # remove forge entry
+        modules = [module for module in modules if not module.startswith('forge')]
+
         idx = -1
         for i, module in enumerate(modules):
             if "mod '{}'".format(puppet_module) in module:
@@ -86,8 +89,9 @@ class LibrarianPuppet(ResourceSSHMixin):
             modules.append(definition)
 
         with open('/tmp/Puppetfile', 'w') as f:
-            f.write('forge "https://forge.puppetlabs.com\n"')
+            f.write('\nforge "https://forge.puppetlabs.com"\n')
             f.write('\n'.join(modules))
+            f.write('\n')
 
         self._scp_command(
             self.resource,
