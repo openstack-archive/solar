@@ -21,16 +21,19 @@ def orchestration():
     restart <id> --reset
     """
 
+
 @orchestration.command()
 @click.argument('plan', type=click.File('rb'))
 def create(plan):
     click.echo(graph.create_plan(plan.read()))
+
 
 @orchestration.command()
 @click.argument('uid')
 @click.argument('plan', type=click.File('rb'))
 def update(uid, plan):
     graph.update_plan(uid, plan.read())
+
 
 @orchestration.command()
 @click.argument('uid')
