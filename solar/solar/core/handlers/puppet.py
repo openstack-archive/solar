@@ -73,6 +73,9 @@ class LibrarianPuppet(ResourceSSHMixin):
 
         modules = puppetlabs.split('\n')
 
+        # remove forge entry
+        modules = [module for module in modules if not module.startswith('forge')]
+
         idx = -1
         for i, module in enumerate(modules):
             if "mod '{}'".format(puppet_module) in module:
@@ -86,7 +89,9 @@ class LibrarianPuppet(ResourceSSHMixin):
             modules.append(definition)
 
         with open('/tmp/Puppetfile', 'w') as f:
+            f.write('\nforge "https://forge.puppetlabs.com"\n')
             f.write('\n'.join(modules))
+            f.write('\n')
 
         self._scp_command(
             self.resource,
@@ -123,7 +128,7 @@ class Puppet(ResourceSSHMixin, BaseHandler):
         self._scp_command(resource, action_file, '/tmp/action.pp')
 
         self._ssh_command(
-            resource, 'sudo', 'puppet', 'apply', '/tmp/action.pp'
+            resource, 'sudo', 'puppet', 'apply', '-vd', '/tmp/action.pp'
         )
 
     def clone_manifests(self, resource):
