@@ -12,6 +12,7 @@ import redis
 from solar.orchestration import graph
 from solar.core import actions
 from solar.core import resource
+from solar.system_log.tasks import commit_logitem, error_logitem
 from solar.orchestration.runner import app
 
 
@@ -21,17 +22,20 @@ r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
 
-
+# NOTE(dshulyak) i am not using celery.signals because it is not possible
+# to extrace task_id from *task_success* signal
 class ReportTask(task.Task):
 
     def on_success(self, retval, task_id, args, kwargs):
         schedule_next.apply_async(args=[task_id, 'SUCCESS'], queue='scheduler')
+        commit_logitem.apply_async(args=[task_id], queue='system_log')
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         schedule_next.apply_async(
             args=[task_id, 'ERROR'],
             kwargs={'errmsg': str(einfo.exception)},
             queue='scheduler')
+        error_logitem.apply_async(args=[task_id], queue='system_log')
 
 
 report_task = partial(app.task, base=ReportTask, bind=True)

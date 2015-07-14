@@ -9,10 +9,3 @@ app = Celery(
 app.conf.update(CELERY_ACCEPT_CONTENT = ['json'])
 app.conf.update(CELERY_TASK_SERIALIZER = 'json')
 
-
-# NOTE(dshulyak) some autodiscovery system
-# maybe https://github.com/mitsuhiko/pluginbase/ ?
-from solar.system_log.signals import *
-from solar.system_log.tasks import *
-from solar.orchestration.tasks import *
-
