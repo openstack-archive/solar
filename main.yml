@@ -3,8 +3,22 @@
 - hosts: all
   sudo: yes
   tasks:
+    - apt: name=python-pip state=absent
+    - shell: easy_install pip
+    - shell: pip install -U pip
+    - shell: pip install -U setuptools
+    - shell: pip install httpie
+    #- apt: name=python-virtualenv state=present
+    #- apt: name=virtualenvwrapper state=present
+    - apt: name=ipython state=present
+    - apt: name=python-pudb state=present
+    #- apt: name=python-pip state=present
+    - shell: pip install docker-py==1.1.0
+    - shell: pip install python-keystoneclient==1.5.0
+
     - apt: name=redis-server state=present
-    - apt: name=python-redis state=present
+    #- apt: name=python-redis state=present
+    - shell: pip install redis
     - lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
     - service: name=redis-server state=restarted
 
@@ -23,30 +37,22 @@
     - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
     - apt: name=ruby-dev state=present
     - shell: gem install librarian-puppet
-    - file: path=/tmp/puppet-modules state=directory
+    - file: path=/tmp/puppet-modules/modules state=directory
     - file: path=/tmp/puppet-modules/Puppetfile state=touch
+    - file: path=/etc/puppet/modules state=absent
     - file: src=/tmp/puppet-modules/modules dest=/etc/puppet/modules state=link
 
       # Setup additional development tools
     - apt: name=vim state=present
     - apt: name=tmux state=present
     - apt: name=htop state=present
-    #- apt: name=python-virtualenv state=present
-    #- apt: name=virtualenvwrapper state=present
-    - apt: name=ipython state=present
-    - apt: name=python-pudb state=present
-    #- apt: name=python-pip state=present
-    - shell: easy_install pip
     - apt: name=python-mysqldb state=present
     - apt: name=jq state=present
-    - shell: pip install -U pip
-    - shell: pip install docker-py==1.1.0
-    - shell: pip install python-keystoneclient==1.5.0
 
-    - shell: pip install httpie
     # Graph drawing
     #- apt: name=python-matplotlib state=present
     - apt: name=python-pygraphviz state=present
+    #- shell: pip install pygraphviz
 
       # Setup development env for solar
     - shell: python setup.py develop chdir=/vagrant/solar

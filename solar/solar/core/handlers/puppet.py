@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from contextlib import nested
+from functools import partial
 
 from fabric import api as fabric_api
 from fabric.contrib import project as fabric_project
@@ -15,6 +16,10 @@ class ResourceSSHMixin(object):
     def _ssh_command(resource, *args, **kwargs):
         log.debug('SSH: %s', args)
 
+        executor = fabric_api.run
+        if kwargs.get('use_sudo', False):
+            executor = fabric_api.sudo
+
         managers = [
             fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)),
         ]
@@ -24,15 +29,34 @@ class ResourceSSHMixin(object):
                 fabric_api.cd(kwargs['cwd'])
             )
 
+        if 'env' in kwargs:
+            managers.append(
+                fabric_api.shell_env(**kwargs['env'])
+            )
+
         with nested(*managers):
-            return fabric_api.run(' '.join(args))
+            return executor(' '.join(args))
 
     @staticmethod
-    def _scp_command(resource, _from, _to):
+    def _scp_command(resource, _from, _to, use_sudo=False):
         log.debug('SCP: %s -> %s', _from, _to)
 
+        executor = partial(
+            fabric_project.upload_project,
+            remote_dir=_to,
+            local_dir=_from,
+            use_sudo=use_sudo
+        )
+        if os.path.isfile(_from):
+            executor = partial(
+                fabric_project.put,
+                remote_path=_to,
+                local_path=_from,
+                use_sudo=use_sudo
+            )
+
         with fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)):
-            return fabric_project.rsync_project(_to, local_dir=_from)
+            return executor()
 
     @staticmethod
     def _fabric_settings(resource):
@@ -74,6 +98,9 @@ class LibrarianPuppet(ResourceSSHMixin):
 
         modules = puppetlabs.split('\n')
 
+        # remove forge entry
+        modules = [module for module in modules if not module.startswith('forge')]
+
         idx = -1
         for i, module in enumerate(modules):
             if "mod '{}'".format(puppet_module) in module:
@@ -87,17 +114,15 @@ class LibrarianPuppet(ResourceSSHMixin):
             modules.append(definition)
 
         with open('/tmp/Puppetfile', 'w') as f:
+            f.write('\nforge "https://forge.puppetlabs.com"\n')
             f.write('\n'.join(modules))
+            f.write('\n')
 
         self._scp_command(
             self.resource,
             '/tmp/Puppetfile',
-            '/tmp/Puppetfile'
-        )
-
-        self._ssh_command(
-            self.resource,
-            'sudo', 'cp', '/tmp/Puppetfile', '/tmp/puppet-modules/Puppetfile'
+            '/tmp/puppet-modules/Puppetfile',
+            use_sudo=True
         )
 
         self._ssh_command(
@@ -124,7 +149,12 @@ class Puppet(ResourceSSHMixin, BaseHandler):
         self._scp_command(resource, action_file, '/tmp/action.pp')
 
         self._ssh_command(
-            resource, 'sudo', 'puppet', 'apply', '/tmp/action.pp'
+            resource,
+            'puppet', 'apply', '-vd', '/tmp/action.pp',
+            env={
+                'FACTER_resource_name': resource.name,
+            },
+            use_sudo=True
         )
 
     def clone_manifests(self, resource):

@@ -1,4 +1,4 @@
-$resource = hiera('{{ name }}')
+$resource = hiera('{{ resource_name }}')
 
 $rabbitmq_user = $resource['input']['rabbitmq_user']['value']
 $rabbitmq_password = $resource['input']['rabbitmq_password']['value']

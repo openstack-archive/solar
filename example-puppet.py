@@ -59,7 +59,7 @@ def deploy():
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})[0]
     neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]
 
-    #neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}', 'internalurl': 'http://{{ip}}:{{port}}', 'publicurl': 'http://{{ip}}:{{port}}', 'description': 'OpenStack Network Service', 'type': 'network', 'port': 9696, 'admin_port': 9696})[0]
+    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
 
     # #cinder_puppet = vr.create('cinder_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'cinder'), {})[0]
     # cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
@@ -114,9 +114,11 @@ def deploy():
     signals.connect(admin_user, neutron_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
     signals.connect(keystone_puppet, neutron_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
 
-    #signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
-    #signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'port': 'admin_port'})
-    #signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'admin_ip', 'port': 'admin_port'})
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'internal_ip', 'port': 'internal_port'})
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'public_ip', 'port': 'public_port'})
+    signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
 
     # CINDER
     # signals.connect(node1, cinder_puppet)
@@ -175,7 +177,7 @@ def deploy():
     actions.resource_action(neutron_keystone_role, 'run')
 
     actions.resource_action(neutron_puppet, 'run')
-    #actions.resource_action(neutron_keystone_service_endpoint, 'run')
+    actions.resource_action(neutron_keystone_service_endpoint, 'run')
 
     # actions.resource_action(cinder_keystone_user, 'run')
     # actions.resource_action(cinder_keystone_role, 'run')
@@ -206,7 +208,7 @@ def undeploy():
 
     # actions.resource_action(resources['cinder_puppet'], 'remove' )
 
-    #actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
+    actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
     actions.resource_action(resources['neutron_puppet'], 'remove' )
 
     # actions.resource_action(resources['cinder_keystone_role'], 'remove')

@@ -27,7 +27,11 @@ input:
 
   git:
     schema: {repository: str!, branch: str!}
-    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: 'master'}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: 'stable/juno'}
+
+  port:
+    schema: int!
+    value: 9696
 
   keystone_host:
     schema: str!

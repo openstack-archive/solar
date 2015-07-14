@@ -16,5 +16,5 @@
         adminurl: {{adminurl}}
         region: "RegionOne"
         state: present
-        endpoint: http://{{keystone_host}}:{{keystone_port}}/v2.0/
+        endpoint: http://{{keystone_host}}:{{keystone_admin_port}}/v2.0/
 
