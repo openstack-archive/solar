@@ -55,7 +55,9 @@ def create_diff(staged, commited):
     if 'tags' in commited:
         commited['tags'].sort()
         staged['tags'].sort()
-
+    if 'tags' in commited.get('metadata', {}):
+        commited['metadata']['tags'].sort()
+        staged['metadata']['tags'].sort()
     return list(diff(commited, staged))
 
 

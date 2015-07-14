@@ -31,7 +31,7 @@ def stage():
 
 
 @changes.command()
-def send():
+def process():
     click.echo(change.send_to_orchestration())
 
 
@@ -50,3 +50,9 @@ def history(n):
 @changes.command()
 def test():
     testing.test_all()
+
+
+@changes.command(name='clean-history')
+def clean_history():
+    data.CL().clean()
+    data.CD().clean()

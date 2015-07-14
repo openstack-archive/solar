@@ -70,6 +70,8 @@ class Log(object):
 
     def pop(self, uid):
         item = self.get(uid)
+        if not item:
+            return None
         self.ordered_log.rem([uid])
         return item
 
@@ -118,3 +120,6 @@ class Data(collections.MutableMapping):
 
     def __len__(self):
         return len(self.store)
+
+    def clean(self):
+        db.save(self.path, {}, collection=db.COLLECTIONS.state_data)
