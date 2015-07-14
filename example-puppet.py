@@ -60,9 +60,6 @@ def deploy():
         'password': 'openstack_password'
     })[0]
 
-    signals.connect(node1, rabbitmq_service1)
-    signals.connect(rabbitmq_service1, openstack_vhost)
-    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {
         'vhost_name',
     })
@@ -224,7 +221,8 @@ def deploy():
 
     # signals.connect(node1, cinder_db)
     # signals.connect(node1, cinder_db_user)
-    # signals.connect(node1, cinder_puppet)
+    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
+    signals.connect(node1, cinder_puppet)
     # signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbit_host', 'port': 'rabbit_port'})
     # signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
     # signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
