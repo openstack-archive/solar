@@ -3,8 +3,20 @@
 - hosts: all
   sudo: yes
   tasks:
+    - shell: easy_install pip
+    - shell: pip install -U pip
+    - shell: pip install httpie
+    #- apt: name=python-virtualenv state=present
+    #- apt: name=virtualenvwrapper state=present
+    - apt: name=ipython state=present
+    - apt: name=python-pudb state=present
+    #- apt: name=python-pip state=present
+    - shell: pip install docker-py==1.1.0
+    - shell: pip install python-keystoneclient==1.5.0
+
     - apt: name=redis-server state=present
-    - apt: name=python-redis state=present
+    #- apt: name=python-redis state=present
+    - shell: pip install redis
     - lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
     - service: name=redis-server state=restarted
 
@@ -32,25 +44,16 @@
     - apt: name=vim state=present
     - apt: name=tmux state=present
     - apt: name=htop state=present
-    #- apt: name=python-virtualenv state=present
-    #- apt: name=virtualenvwrapper state=present
-    - apt: name=ipython state=present
-    - apt: name=python-pudb state=present
-    #- apt: name=python-pip state=present
-    - shell: easy_install pip
     - apt: name=python-mysqldb state=present
     - apt: name=jq state=present
-    - shell: pip install -U pip
-    - shell: pip install docker-py==1.1.0
-    - shell: pip install python-keystoneclient==1.5.0
 
-    - shell: pip install httpie
     # Graph drawing
     #- apt: name=python-matplotlib state=present
     - apt: name=python-pygraphviz state=present
+    #- shell: pip install pygraphviz
 
       # Setup development env for solar
-    - shell: python setup.py develop chdir=/vagrant/solar
+    #- shell: python setup.py develop chdir=/vagrant/solar
 
     #- apt: name=ubuntu-cloud-keyring state=present
     #- shell: echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list
