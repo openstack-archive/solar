@@ -2,6 +2,5 @@
   sudo: yes
   tasks:
       - new_rabbitmq_vhost: name={{vhost_name}}
-                            node={{container_name}}
+                            node={{node_name}}
                             state=present
-                            rabbitmqctl="docker exec -it {{container_name}} rabbitmqctl"

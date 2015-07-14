@@ -3,5 +3,4 @@
   tasks:
     - new_rabbitmq_vhost: name={{vhost_name}}
                           state=absent
-                          rabbitmqctl="docker exec -it {{container_name}} rabbitmqctl"
-                          node={{container_name}}
+                          node={{node_name}}

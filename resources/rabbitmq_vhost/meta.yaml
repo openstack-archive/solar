@@ -2,7 +2,7 @@ id: rabbitmq_vhost
 handler: ansible
 version: 1.0.0
 input:
-    container_name:
+    node_name:
       schema: str!
       value:
     vhost_name:
