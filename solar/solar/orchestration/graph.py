@@ -47,13 +47,17 @@ def parse_plan(plan_data):
     return dg
 
 
+def create_plan_from_graph(dg):
+    dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
+    save_graph(dg.graph['uid'], dg)
+    return dg.graph['uid']
+
+
 def create_plan(plan_data):
     """
     """
     dg = parse_plan(plan_data)
-    dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
-    save_graph(dg.graph['uid'], dg)
-    return dg.graph['uid']
+    return create_plan_from_graph(dg)
 
 
 def update_plan(uid, plan_data):

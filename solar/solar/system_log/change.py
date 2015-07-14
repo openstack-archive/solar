@@ -10,6 +10,7 @@ from solar import utils
 from solar.interfaces.db import get_db
 from solar.core import actions
 from solar.system_log import data
+from solar.orchestration import graph
 
 db = get_db()
 
@@ -85,10 +86,42 @@ def _stage_changes(staged_resources, conn_graph,
 
 
 def stage_changes():
+    log = data.SL()
+    log.clean()
     conn_graph = signals.detailed_connection_graph()
     staged = {r.name: to_dict(r, conn_graph)
               for r in resource.load_all().values()}
     commited = data.CD()
-    log = data.SL()
-    log.clean()
     return _stage_changes(staged, conn_graph, commited, log)
+
+
+def send_to_orchestration(execute=False):
+    conn_graph = signals.detailed_connection_graph()
+    dg = nx.DiGraph()
+    staged = {r.name: to_dict(r, conn_graph)
+              for r in resource.load_all().values()}
+    commited = data.CD()
+
+    for res_uid in conn_graph:
+        commited_data = commited.get(res_uid, {})
+        staged_data = staged.get(res_uid, {})
+
+        df = create_diff(staged_data, commited_data)
+
+        if df:
+            dg.add_node(
+                res_uid, status='PENDING',
+                errmsg=None,
+                **parameters(res_uid, guess_action(commited_data, staged_data)))
+
+    dg.add_path(nx.topological_sort(conn_graph))
+    # what it should be?
+    dg.graph['name'] = 'system_log'
+    return graph.create_plan_from_graph(dg)
+
+
+def parameters(res, action):
+    return {
+        'parameters': {'args': [res, action],
+                       'type': 'solar_resource'}
+        }

@@ -31,6 +31,11 @@ def stage():
 
 
 @changes.command()
+def send():
+    click.echo(change.send_to_orchestration())
+
+
+@changes.command()
 @click.argument('uid')
 def commit(uid):
     operations.commit(uid)
