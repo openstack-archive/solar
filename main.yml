@@ -3,8 +3,10 @@
 - hosts: all
   sudo: yes
   tasks:
+    - apt: name=python-pip state=absent
     - shell: easy_install pip
     - shell: pip install -U pip
+    - shell: pip install -U setuptools
     - shell: pip install httpie
     #- apt: name=python-virtualenv state=present
     #- apt: name=virtualenvwrapper state=present
