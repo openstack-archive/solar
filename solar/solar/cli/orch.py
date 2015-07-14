@@ -107,3 +107,8 @@ def dg(uid):
         plan.node[n]['color'] = color
     nx.write_dot(plan, 'graph.dot')
     subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+
+@orchestration.command()
+@click.argument('uid')
+def show(uid):
+    click.echo(graph.show(uid))

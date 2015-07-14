@@ -121,7 +121,5 @@ def send_to_orchestration(execute=False):
 
 
 def parameters(res, action):
-    return {
-        'parameters': {'args': [res, action],
-                       'type': 'solar_resource'}
-        }
+    return {'args': [res, action],
+            'type': 'solar_resource'}
