@@ -1,6 +1,51 @@
+"""
+Validation for meta.yaml files.
+
+Each input looks like this:
+
+ip:
+  schema: int!
+  value: 5000
+
+or like this:
+
+ip:
+  jsonschema:
+    type: number
+  value: 5000
+
+For more complicated objects:
+
+mount_points:
+  schema: [{src: str!, dst: str!}]
+  value:
+
+or
+
+mount_points:
+  jsonschema:
+    type: array
+    items:
+      type: object
+      properties:
+        src:
+          $ref: #/definitions/object_src
+        dst:
+          $ref: #/definitions/object_dst
+    definitions:
+      object_src:
+        type: string
+        minLength: 1
+      object_dst:
+        type: string
+        minLength: 1
+"""
+
 from jsonschema import validate, ValidationError
 
 from solar.core.log import log
+
+
 
 
 def schema_input_type(schema):
