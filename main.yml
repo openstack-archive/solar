@@ -55,7 +55,7 @@
     #- shell: pip install pygraphviz
 
       # Setup development env for solar
-    #- shell: python setup.py develop chdir=/vagrant/solar
+    - shell: python setup.py develop chdir=/vagrant/solar
 
     #- apt: name=ubuntu-cloud-keyring state=present
     #- shell: echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list
