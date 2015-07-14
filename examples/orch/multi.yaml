@@ -1,0 +1,63 @@
+
+name: multi
+tasks:
+    - uid: rabbitmq_cluster1.create
+      parameters:
+          type: cmd
+          args: ['echo rabbitmq_cluster1.create']
+      before: [amqp_cluster_configured]
+
+    - uid: rabbitmq_cluster2.join
+      parameters:
+          type: cmd
+          args: ['echo rabbitmq_cluster2.join']
+      after: [rabbitmq_cluster1.create]
+      before: [amqp_cluster_configured]
+    - uid: rabbitmq_cluster3.join
+      parameters:
+          type: cmd
+          args: ['echo rabbitmq_cluster3.join']
+      after: [rabbitmq_cluster1.create]
+      before: [amqp_cluster_configured]
+
+    - uid: amqp_cluster_configured
+      parameters:
+          type: fault_tolerance
+          args: [100]
+
+    - uid: compute1
+      parameters:
+          type: echo
+          args: [compute1]
+      before: [compute_ready]
+      after: [amqp_cluster_configured]
+    - uid: compute2
+      parameters:
+          type: echo
+          args: [compute2]
+      before: [compute_ready]
+      after: [amqp_cluster_configured]
+    - uid: compute3
+      parameters:
+          type: echo
+          args: [compute3]
+      before: [compute_ready]
+      after: [amqp_cluster_configured]
+    - uid: compute4
+      parameters:
+          type: error
+          args: [compute4]
+      before: [compute_ready]
+      after: [amqp_cluster_configured]
+    - uid: compute5
+      parameters:
+          type: error
+          args: [compute5]
+      before: [compute_ready]
+      after: [amqp_cluster_configured]
+
+    - uid: compute_ready
+      parameters:
+          type: fault_tolerance
+          args: [60]
+
