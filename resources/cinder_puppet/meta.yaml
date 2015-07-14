@@ -1,0 +1,192 @@
+id: cinder_puppet
+handler: puppet
+puppet_module: cinder
+version: 1.0.0
+input:
+    database_connection:
+      schema: str!
+      value: 'sqlite:////var/lib/cinder/cinder.sqlite'
+    database_idle_timeout:
+      schema: int!
+      value: 3600
+    database_min_pool_size:
+      schema: int!
+      value: 1
+    database_max_pool_size:
+      schema: str!
+      value: undef
+    database_max_retries:
+      schema: int!
+      value: 10
+    database_retry_interval:
+      schema: int!
+      value: 10
+    database_max_overflow:
+      schema: str!
+      value: undef
+    rpc_backend:
+      schema: str!
+      value: 'cinder.openstack.common.rpc.impl_kombu'
+    control_exchange:
+      schema: str!
+      value: 'openstack'
+    rabbit_host:
+      schema: str!
+      value: '127.0.0.1'
+    rabbit_port:
+      schema: int!
+      value: 5672
+    rabbit_hosts:
+      schema: str!
+      value: false
+    rabbit_virtual_host:
+      schema: str!
+      value: '/'
+    rabbit_userid:
+      schema: str!
+      value: 'guest'
+    rabbit_password:
+      schema: str!
+      value: false
+    rabbit_use_ssl:
+      schema: str!
+      value: false
+    kombu_ssl_ca_certs:
+      schema: str!
+      value: undef
+    kombu_ssl_certfile:
+      schema: str!
+      value: undef
+    kombu_ssl_keyfile:
+      schema: str!
+      value: undef
+    kombu_ssl_version:
+      schema: str!
+      value: 'TLSv1'
+    amqp_durable_queues:
+      schema: str!
+      value: false
+    qpid_hostname:
+      schema: str!
+      value: 'localhost'
+    qpid_port:
+      schema: int!
+      value: 5672
+    qpid_username:
+      schema: str!
+      value: 'guest'
+    qpid_password:
+      schema: str!
+      value: false
+    qpid_sasl_mechanisms:
+      schema: str!
+      value: false
+    qpid_reconnect:
+      schema: str!
+      value: true
+    qpid_reconnect_timeout:
+      schema: int!
+      value: 0
+    qpid_reconnect_limit:
+      schema: int!
+      value: 0
+    qpid_reconnect_interval_min:
+      schema: int!
+      value: 0
+    qpid_reconnect_interval_max:
+      schema: int!
+      value: 0
+    qpid_reconnect_interval:
+      schema: int!
+      value: 0
+    qpid_heartbeat:
+      schema: int!
+      value: 60
+    qpid_protocol:
+      schema: str!
+      value: 'tcp'
+    qpid_tcp_nodelay:
+      schema: str!
+      value: true
+    package_ensure:
+      schema: str!
+      value: 'present'
+    use_ssl:
+      schema: str!
+      value: false
+    ca_file:
+      schema: str!
+      value: false
+    cert_file:
+      schema: str!
+      value: false
+    key_file:
+      schema: str!
+      value: false
+    api_paste_config:
+      schema: str!
+      value: '/etc/cinder/api-paste.ini'
+    use_syslog:
+      schema: str!
+      value: false
+    log_facility:
+      schema: str!
+      value: 'LOG_USER'
+    log_dir:
+      schema: str!
+      value: '/var/log/cinder'
+    verbose:
+      schema: str!
+      value: false
+    debug:
+      schema: str!
+      value: false
+    storage_availability_zone:
+      schema: str!
+      value: 'nova'
+    default_availability_zone:
+      schema: str!
+      value: false
+    mysql_module:
+      schema: str!
+      value: undef
+    sql_connection:
+      schema: str!
+      value: undef
+    sql_idle_timeout:
+      schema: str!
+      value: undef
+
+    db_user:
+      schema: str!
+      value: cinder
+    db_password:
+      schema: str!
+      value: cinder
+    db_name:
+      schema: str!
+      value: cinder
+
+    port:
+      schema: int!
+      value: 8776
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+
+#    forge:
+#      schema: str!
+#      value: 'stackforge-cinder'
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/cinder_service, resources/cinder]
