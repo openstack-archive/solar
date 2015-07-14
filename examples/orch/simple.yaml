@@ -1,0 +1,10 @@
+name: simple
+tasks:
+    - uid: echo_stuff
+      parameters:
+          type: echo
+          args: [10]
+    - uid: just_fail
+      parameters:
+        type: error
+        args: ['message']

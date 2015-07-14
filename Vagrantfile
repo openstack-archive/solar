@@ -19,6 +19,14 @@ pip install ansible
 ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml /vagrant/slave.yml
 SCRIPT
 
+master_celery = <<SCRIPT
+ansible-playbook -i "localhost," -c local /vagrant/celery.yml --skip-tags slave
+SCRIPT
+
+slave_celery = <<SCRIPT
+ansible-playbook -i "localhost," -c local /vagrant/celery.yml --skip-tags master
+SCRIPT
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.box = "deb/jessie-amd64"
@@ -27,6 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
     config.vm.provision "shell", inline: init_script, privileged: true
+    config.vm.provision "shell", inline: master_celery, privileged: true
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.network "private_network", ip: "10.0.0.2"
@@ -44,6 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define "solar-dev#{index}" do |config|
       config.vm.provision "shell", inline: init_script, privileged: true
       config.vm.provision "shell", inline: slave_script, privileged: true
+      config.vm.provision "shell", inline: slave_celery, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 
