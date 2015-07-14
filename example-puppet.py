@@ -38,7 +38,6 @@ def deploy():
     signals.Connections.clear()
 
     node1 = vr.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
-
     rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {'management_port': 15672, 'port': 5672, 'container_name': 'rabbitmq_service1', 'image': 'rabbitmq:3-management'})[0]
     openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})[0]
     openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})[0]
@@ -61,6 +60,13 @@ def deploy():
     admin_user = vr.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})[0]
     admin_role = vr.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})[0]
     services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})[0]
+
+    # OPENRC
+    openrc = vr.create('openrc_file', 'resources/openrc_file', {})[0]
+
+    signals.connect(node1, openrc)
+    signals.connect(keystone_puppet, openrc, {'ip': 'keystone_host', 'admin_port':'keystone_port'})
+    signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
@@ -97,7 +103,7 @@ def deploy():
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
 
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})[0]
-    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]    
+    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]
     neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'neutron', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
 
     signals.connect(node1, neutron_puppet)
@@ -195,6 +201,7 @@ def deploy():
     actions.resource_action(keystone_db, 'run')
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_puppet, 'run')
+    actions.resource_action(openrc, 'run')
 
     actions.resource_action(admin_tenant, 'run')
     actions.resource_action(admin_user, 'run')
@@ -239,6 +246,7 @@ def undeploy():
         'admin_role',
         'admin_user',
         'admin_tenant',
+        'openrc',
         'keystone_puppet',
         'keystone_db_user',
         'keystone_db',
