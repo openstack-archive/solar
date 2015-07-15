@@ -75,6 +75,9 @@ def _construct_jsonschema(schema, definition_base=''):
     if schema == 'int' or schema == 'int!':
         return {'type': 'number'}, {}
 
+    if schema == 'bool' or schema == 'bool!':
+        return {'type': 'boolean'}, {}
+
     if isinstance(schema, list):
         items, definitions = _construct_jsonschema(schema[0], definition_base=definition_base)
 
