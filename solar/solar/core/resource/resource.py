@@ -17,9 +17,16 @@ db = get_db()
 
 
 class Resource(object):
+    _metadata = {}
+
     def __init__(self, name, metadata, args, tags=None, virtual_resource=None):
         self.name = name
-        self.metadata = metadata
+        if metadata:
+            self.metadata = metadata
+        else:
+            self.metadata = deepcopy(self._metadata)
+
+        self.metadata['id'] = name
 
         self.tags = tags or []
         self.virtual_resource = virtual_resource
