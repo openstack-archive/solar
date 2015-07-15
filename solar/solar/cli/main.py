@@ -36,6 +36,8 @@ from solar.core.tags_set_parser import Expression
 from solar.core import testing
 from solar.core.resource import virtual_resource as vr
 from solar.interfaces.db import get_db
+from solar import errors
+from solar.core.log import log
 
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
@@ -240,8 +242,13 @@ def init_cli_resource():
         click.echo(
             'action {} for resource {}'.format(action, resource)
         )
-        actions.resource_action(sresource.load(resource), action)
 
+        r = sresource.load(resource_name)
+        try:
+            actions.resource_action(r, action_name)
+        except errors.SolarError as e:
+            log.debug(e)
+            sys.exit(1)
 
     @resource.command()
     def compile_all():

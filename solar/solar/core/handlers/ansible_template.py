@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 from fabric import api as fabric_api
+from fabric.state import env
 import os
 
 from solar.core.log import log
 from solar.core.handlers.base import TempFileHandler
+from solar import errors
 
+
+# otherwise fabric will sys.exit(1) in case of errors
+env.warn_only = True
 
 class AnsibleTemplate(TempFileHandler):
     def action(self, resource, action_name):
@@ -15,12 +20,10 @@ class AnsibleTemplate(TempFileHandler):
         call_args = ['ansible-playbook', '--module-path', '/vagrant/library', '-i', inventory_file, playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
-        try:
-            fabric_api.local(' '.join(call_args))
-        except Exception as e:
-            log.error(e.output)
-            log.exception(e)
-            raise
+        out = fabric_api.local(' '.join(call_args), capture=True)
+        if out.failed:
+            raise errors.SolarError(out)
+
 
     def _create_inventory(self, r):
         directory = self.dirs[r.name]
