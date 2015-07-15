@@ -175,6 +175,22 @@ input:
       schema: {repository: str!, branch: str!}
       value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
 
+    keystone_host:
+      schema: str!
+      value: ''
+    keystone_port:
+      schema: int!
+      value: ''
+    keystone_user:
+      schema: str!
+      value: ''
+    keystone_password:
+      schema: str!
+      value: ''
+    keystone_tenant:
+      schema: str!
+      value: ''
+
 #    forge:
 #      schema: str!
 #      value: 'stackforge-cinder'
