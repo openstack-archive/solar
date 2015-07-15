@@ -79,6 +79,12 @@ solar connections show
 solar connections graph
 ```
 
+You can also limit graph to show only specific resources:
+
+```
+solar connections graph --start-with mariadb_service --end-with keystone_db
+```
+
 * You can make sure that all input values are correct and mapped without duplicating your values with this command:
 ```
 solar resource validate

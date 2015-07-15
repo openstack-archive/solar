@@ -258,7 +258,7 @@ def init_cli_connections():
                                               end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
-        fabric_api.local('dot', '-Tpng', 'graph.dot', '-o', 'graph.png')
+        fabric_api.local('dot -Tpng graph.dot -o graph.png')
 
         # Matplotlib
         #pos = nx.spring_layout(g)
