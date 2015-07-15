@@ -82,7 +82,7 @@ def stage_changes():
     return _stage_changes(staged, conn_graph, commited, log)
 
 
-def send_to_orchestration(execute=False):
+def send_to_orchestration():
     conn_graph = signals.detailed_connection_graph()
     dg = nx.DiGraph()
     staged = {r.name: r.args_show()
@@ -100,8 +100,9 @@ def send_to_orchestration(execute=False):
                 res_uid, status='PENDING',
                 errmsg=None,
                 **parameters(res_uid, guess_action(commited_data, staged_data)))
+            for pred in conn_graph.predecessors(res_uid):
+                dg.add_edge(pred, res_uid)
 
-    dg.add_path(nx.topological_sort(conn_graph))
     # what it should be?
     dg.graph['name'] = 'system_log'
     return graph.create_plan_from_graph(dg)

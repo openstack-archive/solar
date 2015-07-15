@@ -105,8 +105,11 @@ def dg(uid):
     for n in plan:
         color = colors[plan.node[n]['status']]
         plan.node[n]['color'] = color
-    nx.write_dot(plan, 'graph.dot')
-    subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+    nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    subprocess.call(
+        'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),
+        shell=True)
+    click.echo('Created {name}.png'.format(name=plan.graph['name']))
 
 
 @orchestration.command()
