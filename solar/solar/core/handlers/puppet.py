@@ -11,6 +11,20 @@ from solar.core.handlers.base import BaseHandler
 from solar.core.provider import GitProvider
 
 
+# TODO:
+# puppet wont always return 0 on error, example:
+# http://unix.stackexchange.com/questions/165333/how-to-get-non-zero-exit-code-from-puppet-when-configuration-cannot-be-applied
+
+# in fuel there is special handler based on puppet summary, but i think we can also use --detailed-exitcode
+# https://docs.puppetlabs.com/references/3.6.2/man/agent.html
+# --detailed-exitcodes
+# Provide transaction information via exit codes. If this is enabled, an exit
+# code of '2' means there were changes, an exit code of '4' means there were
+# failures during the transaction, and an exit code of '6' means there were
+# both changes and failures.
+
+
+
 class ResourceSSHMixin(object):
     @staticmethod
     def _ssh_command(resource, *args, **kwargs):
