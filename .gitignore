@@ -25,3 +25,4 @@ celery*.log
 
 *.dot
 *.png
+resources_compiled.py
