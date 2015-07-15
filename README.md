@@ -151,6 +151,43 @@ from x import resource
 all_resources = resource.load_all('rs')
 ```
 
+## Dry run
+
+Solar CLI has possibility to show dry run of actions to be performed.
+To see what will happen when you run Puppet action, for example, try this:
+
+```
+solar resource action keystone_puppet run -d
+```
+
+This should print out something like this:
+
+```
+EXECUTED:
+73c6cb1cf7f6cdd38d04dd2d0a0729f8: (0, 'SSH RUN', ('sudo cat /tmp/puppet-modules/Puppetfile',), {})
+3dd4d7773ce74187d5108ace0717ef29: (1, 'SSH SUDO', ('mv "1038cb062449340bdc4832138dca18cba75caaf8" "/tmp/puppet-modules/Puppetfile"',), {})
+ae5ad2455fe2b02ba46b4b7727eff01a: (2, 'SSH RUN', ('sudo librarian-puppet install',), {})
+208764fa257ed3159d1788f73c755f44: (3, 'SSH SUDO', ('puppet apply -vd /tmp/action.pp',), {})
+```
+
+By default every mocked command returns an empty string. If you want it to return
+something else (to check how would dry run behave in different situation) you provide
+a mapping (in JSON format), something along the lines of:
+
+```
+solar resource action keystone_puppet run -d -m "{\"73c\": \"mod 'openstack-keystone'\n\"}"
+```
+
+The above means the return string of first command (with hash `73c6c...`) will be
+as specified in the mapping. Notice that in mapping you don't have to specify the
+whole hash, just it's unique beginning. Also, you don't have to specify the whole
+return string in mapping. Dry run executor can read file and return it's contents
+instead, just use the `>` operator when specifying hash:
+
+```
+solar resource action keystone_puppet run -d -m "{\"73c>\": \"./Puppetlabs-file\"}"
+```
+
 ## CLI
 
 You can do the above from the command-line client:
