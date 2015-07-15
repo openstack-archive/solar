@@ -1,0 +1,44 @@
+id: keystone_puppet
+handler: puppet
+puppet_module: keystone
+version: 1.0.0
+input:
+    admin_token:
+      schema: str!
+      value: admin_token
+    db_user:
+      schema: str!
+      value: keystone
+    db_password:
+      schema: str!
+      value: keystone
+    db_name:
+      schema: str!
+      value: keystone
+
+    admin_port:
+      schema: int!
+      value: 35357
+    port:
+      schema: int!
+      value: 5000
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-keystone', branch: 'stable/juno'}
+
+#    forge:
+#      schema: str!
+#      value: 'stackforge-keystone'
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/keystone_service, resources/keystone]

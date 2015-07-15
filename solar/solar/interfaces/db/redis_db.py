@@ -79,6 +79,7 @@ class RedisDB(object):
         if isinstance(collection, self.COLLECTIONS):
             collection = collection.name
 
+        # NOTE: hiera-redis backend depends on this!
         return '{0}:{1}'.format(collection, _id)
 
 

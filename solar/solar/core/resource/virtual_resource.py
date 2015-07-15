@@ -9,14 +9,12 @@ from jinja2 import Template, Environment, meta
 from solar import utils
 from solar.core import validation
 from solar.core.resource import load_all, Resource
-from solar.core import resource_provider
+from solar.core import provider
 from solar.core import signals
 
 
 def create_resource(name, base_path, args, virtual_resource=None):
-    from solar.core import resource_provider
-
-    if isinstance(base_path, resource_provider.BaseProvider):
+    if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
     base_meta_file = os.path.join(base_path, 'meta.yaml')
@@ -66,8 +64,9 @@ def create_virtual_resource(vr_name, template):
 
 
 def create(name, base_path, kwargs, virtual_resource=None):
-    if isinstance(base_path, resource_provider.BaseProvider):
+    if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
+
     if not os.path.exists(base_path):
         raise Exception(
             'Base resource does not exist: {0}'.format(base_path)

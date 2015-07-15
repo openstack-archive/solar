@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from solar.core.handlers.ansible import Ansible
 from solar.core.handlers.base import Empty
+from solar.core.handlers.puppet import Puppet
 from solar.core.handlers.shell import Shell
 
 
 HANDLERS = {'ansible': Ansible,
+            'puppet': Puppet,
             'shell': Shell,
             'none': Empty}
 

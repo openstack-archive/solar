@@ -1,0 +1,11 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    - lineinfile: line='slaveof 10.0.0.2 6379' dest=/etc/redis/redis.conf 
+    - service: name=redis-server state=restarted
+
+    # turn off default ubuntu repos since they conflict with our custom mirrors
+    #- template: src=/vagrant/sources.list dest=/etc/apt/sources.list
+    # shell: apt-get update

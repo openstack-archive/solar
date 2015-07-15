@@ -11,7 +11,7 @@ from solar.core import signals
 from solar.core import testing
 
 from solar.interfaces.db import get_db
-from solar.core.resource_provider import  GitProvider, RemoteZipProvider
+from solar.core.provider import  GitProvider, RemoteZipProvider
 
 
 GIT_KEYSTONE_RESOURCE_URL = 'https://github.com/loles/keystone-resource'
