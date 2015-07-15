@@ -38,7 +38,6 @@ def deploy():
     signals.Connections.clear()
 
     node1 = vr.create('node1', 'resources/ro_node/', {'ip': '10.0.0.3', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
-    node2 = vr.create('node1', 'resources/ro_node/', {'ip': '10.0.0.4', 'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key', 'ssh_user': 'vagrant'})[0]
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {'image': 'mariadb', 'root_password': 'mariadb', 'port': 3306})[0]
@@ -47,7 +46,6 @@ def deploy():
 
     # RABBIT
     rabbitmq_service1 = vr.create('rabbitmq1', 'resources/rabbitmq_service', {'management_port': 15672, 'port': 5672, 'node_name': 'rabbitmq_service1'})[0]
-    rabbitmq_service2 = vr.create('rabbitmq1', '/home/vagrant/puppet-libs-resource/rabbitmq', {'management_port': 15672, 'port': 5672, 'node_name': 'rabbitmq_service2'})[0]
     openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})[0]
     openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})[0]
 
@@ -242,11 +240,11 @@ def undeploy():
         'neutron_keystone_role',
         'neutron_keystone_user',
         'services_tenant',
-        'keystone_service_endpoint',
+        #'keystone_service_endpoint',
         'admin_role',
         'admin_user',
         'admin_tenant',
-        'openrc',
+        'openrc_file',
         'keystone_puppet',
         'keystone_db_user',
         'keystone_db',

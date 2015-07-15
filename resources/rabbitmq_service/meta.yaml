@@ -4,15 +4,16 @@ input:
   ip:
     schema: str!
     value: ''
-  node_name:
-    schema: str!
-    value: 'node1'
   ssh_key:
     schema: str!
     value: ''
   ssh_user:
     schema: str!
     value: ''
+
+  node_name:
+    schema: str!
+    value: 'node1'
   port:
     schema: int!
     value: ''
