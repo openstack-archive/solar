@@ -88,7 +88,11 @@ class Log(object):
         return None
 
     def collection(self, n=0):
-        for item in self.ordered_log.get_left(n):
+        for item in self.ordered_log.reverse(n=n):
+            yield LogItem.from_dict(**item)
+
+    def reverse(self, n=0):
+        for item in self.ordered_log.list(n=n):
             yield LogItem.from_dict(**item)
 
     def __iter__(self):

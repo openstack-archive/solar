@@ -27,7 +27,10 @@ def validate():
 @changes.command()
 def stage():
     log = change.stage_changes()
-    click.echo(list(log.collection()))
+    staged = list(log.reverse())
+    if not staged:
+        click.echo('No changes')
+    click.echo(staged)
 
 
 @changes.command()
@@ -44,7 +47,12 @@ def commit(uid):
 @changes.command()
 @click.option('-n', default=5)
 def history(n):
-    click.echo(list(data.CL().collection(n)))
+    commited = list(data.CL().collection(n))
+    if not commited:
+        click.echo('No history.')
+        return
+    commited.reverse()
+    click.echo(commited)
 
 
 @changes.command()

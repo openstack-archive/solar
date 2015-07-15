@@ -108,6 +108,7 @@ def dg(uid):
     nx.write_dot(plan, 'graph.dot')
     subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
 
+
 @orchestration.command()
 @click.argument('uid')
 def show(uid):

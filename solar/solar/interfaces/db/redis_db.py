@@ -124,9 +124,15 @@ class OrderedSet(object):
     def rem_left(self, n=1):
         self.rem(r.zrevrange(self.order, 0, n-1))
 
-    def get_left(self, n=1):
+    def reverse(self, n=1):
         result = []
         for key in self.r.zrevrange(self.order, 0, n-1):
+            result.append(self.get(key))
+        return result
+
+    def list(self, n=0):
+        result = []
+        for key in self.r.zrange(self.order, 0, n-1):
             result.append(self.get(key))
         return result
 
