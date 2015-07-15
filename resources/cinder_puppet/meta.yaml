@@ -4,157 +4,157 @@ puppet_module: cinder
 version: 1.0.0
 input:
     database_connection:
-      schema: str!
+      schema: str
       value: 'sqlite:////var/lib/cinder/cinder.sqlite'
     database_idle_timeout:
-      schema: int!
+      schema: int
       value: 3600
     database_min_pool_size:
-      schema: int!
+      schema: int
       value: 1
     database_max_pool_size:
-      schema: str!
+      schema: str
       value: undef
     database_max_retries:
-      schema: int!
+      schema: int
       value: 10
     database_retry_interval:
-      schema: int!
+      schema: int
       value: 10
     database_max_overflow:
-      schema: str!
+      schema: str
       value: undef
     rpc_backend:
-      schema: str!
+      schema: str
       value: 'cinder.openstack.common.rpc.impl_kombu'
     control_exchange:
-      schema: str!
+      schema: str
       value: 'openstack'
     rabbit_host:
-      schema: str!
+      schema: str
       value: '127.0.0.1'
     rabbit_port:
-      schema: int!
+      schema: int
       value: 5672
     rabbit_hosts:
-      schema: str!
+      schema: bool
       value: false
     rabbit_virtual_host:
-      schema: str!
+      schema: str
       value: '/'
     rabbit_userid:
-      schema: str!
+      schema: str
       value: 'guest'
     rabbit_password:
       schema: str!
-      value: false
+      value: 'rabbit'
     rabbit_use_ssl:
-      schema: str!
+      schema: bool
       value: false
     kombu_ssl_ca_certs:
-      schema: str!
+      schema: str
       value: undef
     kombu_ssl_certfile:
-      schema: str!
+      schema: str
       value: undef
     kombu_ssl_keyfile:
-      schema: str!
+      schema: str
       value: undef
     kombu_ssl_version:
-      schema: str!
+      schema: str
       value: 'TLSv1'
     amqp_durable_queues:
-      schema: str!
+      schema: bool
       value: false
     qpid_hostname:
-      schema: str!
+      schema: str
       value: 'localhost'
     qpid_port:
-      schema: int!
+      schema: int
       value: 5672
     qpid_username:
-      schema: str!
+      schema: str
       value: 'guest'
     qpid_password:
       schema: str!
-      value: false
+      value: 'qpid'
     qpid_sasl_mechanisms:
-      schema: str!
+      schema: bool
       value: false
     qpid_reconnect:
-      schema: str!
+      schema: bool
       value: true
     qpid_reconnect_timeout:
-      schema: int!
+      schema: int
       value: 0
     qpid_reconnect_limit:
-      schema: int!
+      schema: int
       value: 0
     qpid_reconnect_interval_min:
-      schema: int!
+      schema: int
       value: 0
     qpid_reconnect_interval_max:
-      schema: int!
+      schema: int
       value: 0
     qpid_reconnect_interval:
-      schema: int!
+      schema: int
       value: 0
     qpid_heartbeat:
-      schema: int!
+      schema: int
       value: 60
     qpid_protocol:
-      schema: str!
+      schema: str
       value: 'tcp'
     qpid_tcp_nodelay:
-      schema: str!
+      schema: bool
       value: true
     package_ensure:
-      schema: str!
+      schema: str
       value: 'present'
     use_ssl:
-      schema: str!
+      schema: bool
       value: false
     ca_file:
-      schema: str!
+      schema: bool
       value: false
     cert_file:
-      schema: str!
+      schema: bool
       value: false
     key_file:
-      schema: str!
+      schema: bool
       value: false
     api_paste_config:
-      schema: str!
+      schema: str
       value: '/etc/cinder/api-paste.ini'
     use_syslog:
-      schema: str!
+      schema: bool
       value: false
     log_facility:
-      schema: str!
+      schema: str
       value: 'LOG_USER'
     log_dir:
-      schema: str!
+      schema: str
       value: '/var/log/cinder'
     verbose:
-      schema: str!
+      schema: bool
       value: false
     debug:
-      schema: str!
+      schema: bool
       value: false
     storage_availability_zone:
-      schema: str!
+      schema: str
       value: 'nova'
     default_availability_zone:
-      schema: str!
+      schema: bool
       value: false
     mysql_module:
-      schema: str!
+      schema: str
       value: undef
     sql_connection:
-      schema: str!
+      schema: str
       value: undef
     sql_idle_timeout:
-      schema: str!
+      schema: str
       value: undef
 
     db_user:
