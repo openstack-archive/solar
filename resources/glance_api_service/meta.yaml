@@ -36,5 +36,8 @@ input:
     keystone_host:
       schema: str!
       value:
+    keystone_port:
+      schema: int!
+      value:
 
 tags: [resource/container]

@@ -1,28 +1,30 @@
 import json
 import requests
 
+from solar.core.log import log
+
 
 def test(resource):
-    print 'Testing glance_service'
+    log.debug('Testing glance_service')
     token_data = requests.post(
-        'http://%s:%s/v2.0/tokens' % (resource.args['ip'].value, resource.args['listen_port'].value),
+        'http://%s:%s/v2.0/tokens' % (resource.args['ip'].value, resource.args['keystone_port'].value),
         json.dumps({
             'auth': {
-                'tenantName': resource.args['tenant_name'].value,
+                'tenantName': 'services',
                 'passwordCredentials': {
-                    'username': resource.args['user_name'].value,
-                    'password': resource.args['user_password'].value,
-                    }
+                    'username': 'glance_admin',
+                    'password': resource.args['keystone_password'].value,
+                }
             }
         }),
         headers={'Content-Type': 'application/json'}
     )
 
     token = token_data.json()['access']['token']['id']
-    print 'GLANCE TOKEN: {}'.format(token)
+    log.debug('GLANCE TOKEN: %s', token)
 
     images = requests.get(
-        'http://%s:%s/v1/images' % (resource.args['ip'].value, resource.args['listen_port'].value),
+        'http://%s:%s/v1/images' % (resource.args['ip'].value, 9393),
         headers={'X-Auth-Token': token}
     )
     assert images.json() == {'images': []}

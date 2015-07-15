@@ -12,6 +12,13 @@ pip install ansible
 ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml
 SCRIPT
 
+slave_script = <<SCRIPT
+apt-get update
+apt-get -y install python-pip python-dev
+pip install ansible
+ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml /vagrant/slave.yml
+SCRIPT
+
 master_celery = <<SCRIPT
 ansible-playbook -i "localhost," -c local /vagrant/celery.yml --skip-tags slave
 SCRIPT
@@ -23,7 +30,8 @@ SCRIPT
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.box = "deb/jessie-amd64"
-  config.vm.box = "rustyrobot/deb-jessie-amd64"
+  #config.vm.box = "rustyrobot/deb-jessie-amd64"
+  config.vm.box = "ubuntu/trusty64"
 
   config.vm.define "solar-dev", primary: true do |config|
     config.vm.provision "shell", inline: init_script, privileged: true
@@ -44,6 +52,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
       config.vm.provision "shell", inline: init_script, privileged: true
+      config.vm.provision "shell", inline: slave_script, privileged: true
       config.vm.provision "shell", inline: slave_celery, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"

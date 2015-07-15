@@ -1,0 +1,53 @@
+handler: puppet
+id: 'neutron'
+input:
+  ip:
+    schema: str!
+    value: ''
+  ssh_key:
+    schema: str!
+    value: ''
+  ssh_user:
+    schema: str!
+    value: ''
+
+  # TODO: add vhost!
+  rabbitmq_host:
+    schema: str!
+    value: ''
+  rabbitmq_port:
+    schema: int!
+    value: ''
+  rabbitmq_user:
+    schema: str!
+    value: ''
+  rabbitmq_password:
+    schema: str!
+    value: ''
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: 'stable/juno'}
+
+  port:
+    schema: int!
+    value: 9696
+
+  keystone_host:
+    schema: str!
+    value: ''
+  keystone_port:
+    schema: int!
+    value: ''
+  keystone_user:
+    schema: str!
+    value: ''
+  keystone_password:
+    schema: str!
+    value: ''
+  keystone_tenant:
+    schema: str!
+    value: ''
+puppet_module: 'neutron'
+tags: []
+version: 1.0.0
