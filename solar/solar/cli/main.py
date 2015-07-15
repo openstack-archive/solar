@@ -314,7 +314,7 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('base_path', type=click.Path(exists=True, file_okay=False))
+    @click.argument('base_path', type=click.Path(exists=True, file_okay=True))
     @click.argument('args', nargs=-1)
     def create(args, base_path, name):
         args_parsed = {}
