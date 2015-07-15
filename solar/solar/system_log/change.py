@@ -42,22 +42,7 @@ def connections(res, graph):
     return result
 
 
-def to_dict(resource, graph):
-    res = resource.to_dict()
-    res['connections'] = connections(resource, graph)
-    return res
-
-
 def create_diff(staged, commited):
-    if 'connections' in commited:
-        commited['connections'].sort()
-        staged['connections'].sort()
-    if 'tags' in commited:
-        commited['tags'].sort()
-        staged['tags'].sort()
-    if 'tags' in commited.get('metadata', {}):
-        commited['metadata']['tags'].sort()
-        staged['metadata']['tags'].sort()
     return list(diff(commited, staged))
 
 
@@ -91,7 +76,7 @@ def stage_changes():
     log = data.SL()
     log.clean()
     conn_graph = signals.detailed_connection_graph()
-    staged = {r.name: to_dict(r, conn_graph)
+    staged = {r.name: r.args_show()
               for r in resource.load_all().values()}
     commited = data.CD()
     return _stage_changes(staged, conn_graph, commited, log)
@@ -100,7 +85,7 @@ def stage_changes():
 def send_to_orchestration(execute=False):
     conn_graph = signals.detailed_connection_graph()
     dg = nx.DiGraph()
-    staged = {r.name: to_dict(r, conn_graph)
+    staged = {r.name: r.args_show()
               for r in resource.load_all().values()}
     commited = data.CD()
 
