@@ -157,6 +157,30 @@ from x import resource
 all_resources = resource.load_all('rs')
 ```
 
+## Resource compiling
+
+You can compile all `meta.yaml` definitions into Python code with classes that
+derive from `Resource`. To do this run
+
+```
+solar resource compile_all
+```
+
+This generates file `resources_compiled.py` in the main directory (do not commit
+this file into the repo). Then you can import classes from that file, create
+their instances and assign values just like these were normal properties.
+If your editor supports Python static checking, you will have autocompletion
+there too. An example on how to create a node with this:
+
+```
+import resources_compiled
+
+node1 = resources_compiled.RoNodeResource('node1', None, {})
+node1.ip = '10.0.0.3'
+node1.ssh_key = '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
+node1.ssh_user = 'vagrant'
+```
+
 ## CLI
 
 You can do the above from the command-line client:
