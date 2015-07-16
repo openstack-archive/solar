@@ -12,6 +12,9 @@ input:
       schema: str!
       value:
 
+    endpoint_name:
+      schema: str!
+      value:
     type:
       schema: str!
       value:

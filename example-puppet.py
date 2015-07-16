@@ -48,6 +48,8 @@ def deploy():
     #keystone_puppet = vr.create('keystone_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='keystone'), {})[0]
     keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
 
+    keystone_service_endpoint = vr.create('keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'keystone', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2.0', 'publicurl': 'http://{{public_ip}}:{{public_port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})[0]
+
     # # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
     # neutron_puppet = vr.create('neutron_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='neutron'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
@@ -60,7 +62,7 @@ def deploy():
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})[0]
     neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]
 
-    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
+    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'neutron', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
 
     # #cinder_puppet = vr.create('cinder_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'cinder'), {})[0]
     # cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
@@ -95,6 +97,12 @@ def deploy():
     signals.connect(mariadb_service1, keystone_db, {'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(mariadb_service1, keystone_db_user, {'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(keystone_db, keystone_db_user, {'db_name': 'db_name'})
+
+    signals.connect(node1, keystone_service_endpoint)
+    signals.connect(keystone_puppet, keystone_service_endpoint, {'admin_token': 'admin_token', 'admin_port': 'keystone_admin_port', 'ip': 'keystone_host'})
+    signals.connect(keystone_puppet, keystone_service_endpoint, {'admin_port': 'admin_port', 'ip': 'admin_ip'})
+    signals.connect(keystone_puppet, keystone_service_endpoint, {'port': 'internal_port', 'ip': 'internal_ip'})
+    signals.connect(keystone_puppet, keystone_service_endpoint, {'port': 'public_port', 'ip': 'public_ip'})
 
     signals.connect(keystone_puppet, admin_tenant)
     signals.connect(keystone_puppet, admin_tenant, {'admin_port': 'keystone_port', 'ip': 'keystone_host'})
@@ -173,6 +181,8 @@ def deploy():
     actions.resource_action(admin_user, 'run')
     actions.resource_action(admin_role, 'run')
 
+    actions.resource_action(keystone_service_endpoint, 'run')
+
     actions.resource_action(services_tenant, 'run')
     actions.resource_action(neutron_keystone_user, 'run')
     actions.resource_action(neutron_keystone_role, 'run')
@@ -198,8 +208,30 @@ def deploy():
 def undeploy():
     db = get_db()
 
+    to_remove = [
+        'neutron_keystone_service_endpoint',
+        'neutron_puppet',
+        'neutron_keystone_role',
+        'neutron_keystone_user',
+        'services_tenant',
+        'keystone_service_endpoint',
+        'admin_role',
+        'admin_user',
+        'admin_tenant',
+        'keystone_puppet',
+        'keystone_db_user',
+        'keystone_db',
+        'mariadb_service1',
+        'openstack_rabbitmq_user',
+        'openstack_vhost',
+        'rabbitmq_service1',
+    ]
+
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
+
+    for name in to_remove:
+        actions.resource_action(resources[name], 'remove')
 
     #actions.resource_action(resources['nova_keystone_service_endpoint'], 'remove' )
     # actions.resource_action(resources['nova_network_puppet'], 'remove' )
@@ -209,29 +241,29 @@ def undeploy():
 
     # actions.resource_action(resources['cinder_puppet'], 'remove' )
 
-    actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
-    actions.resource_action(resources['neutron_puppet'], 'remove' )
+    # actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
+    # actions.resource_action(resources['neutron_puppet'], 'remove' )
 
     # actions.resource_action(resources['cinder_keystone_role'], 'remove')
     # actions.resource_action(resources['cinder_keystone_user'], 'remove')
 
-    actions.resource_action(resources['neutron_keystone_role'], 'remove')
-    actions.resource_action(resources['neutron_keystone_user'], 'remove')
-    actions.resource_action(resources['services_tenant'], 'remove')
+    # actions.resource_action(resources['neutron_keystone_role'], 'remove')
+    # actions.resource_action(resources['neutron_keystone_user'], 'remove')
+    # actions.resource_action(resources['services_tenant'], 'remove')
 
-    actions.resource_action(resources['admin_role'], 'remove')
-    actions.resource_action(resources['admin_user'], 'remove')
-    actions.resource_action(resources['admin_tenant'], 'remove')
+    # actions.resource_action(resources['admin_role'], 'remove')
+    # actions.resource_action(resources['admin_user'], 'remove')
+    # actions.resource_action(resources['admin_tenant'], 'remove')
 
-    actions.resource_action(resources['keystone_puppet'], 'remove')
-    actions.resource_action(resources['keystone_db_user'], 'remove')
-    actions.resource_action(resources['keystone_db'], 'remove')
+    # actions.resource_action(resources['keystone_puppet'], 'remove')
+    # actions.resource_action(resources['keystone_db_user'], 'remove')
+    # actions.resource_action(resources['keystone_db'], 'remove')
 
-    actions.resource_action(resources['mariadb_service1'], 'remove')
+    # actions.resource_action(resources['mariadb_service1'], 'remove')
 
-    actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
-    actions.resource_action(resources['openstack_vhost'], 'remove')
-    actions.resource_action(resources['rabbitmq_service1'], 'remove')
+    # actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
+    # actions.resource_action(resources['openstack_vhost'], 'remove')
+    # actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
     db.clear()
 
