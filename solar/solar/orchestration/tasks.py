@@ -118,8 +118,16 @@ def schedule_start(plan_uid, start=None, end=None):
     - apply different policies to tasks
     """
     dg = graph.get_graph(plan_uid)
-    dg.graph['stop'] = False
     schedule(plan_uid, dg)
+
+
+@app.task
+def soft_stop(plan_uid):
+    dg = graph.get_graph(plan_uid)
+    for n in dg:
+        if dg.node[n]['status'] == 'PENDING':
+            dg.node[n]['status'] = 'SKIPPED'
+    graph.save_graph(plan_uid, dg)
 
 
 @app.task
@@ -149,7 +157,7 @@ def traverse(dg):
     visited = set()
     for node in dg:
         data = dg.node[node]
-        if data['status'] not in ('PENDING', 'INPROGRESS'):
+        if data['status'] not in ('PENDING', 'INPROGRESS', 'SKIPPED'):
             visited.add(node)
 
     for node in dg:
@@ -157,7 +165,7 @@ def traverse(dg):
 
         if node in visited:
             continue
-        elif data['status'] == 'INPROGRESS':
+        elif data['status'] in ('INPROGRESS', 'SKIPPED'):
             continue
 
         predecessors = set(dg.predecessors(node))

@@ -78,14 +78,6 @@ def reset(uid, states=None):
     save_graph(uid, dg)
 
 
-def soft_stop(uid):
-    """Graph will stop when all currently inprogress tasks will be finished
-    """
-    dg = get_graph(uid)
-    dg.graph['stop'] = True
-    save_graph(uid, dg)
-
-
 def report_topo(uid):
 
     dg = get_graph(uid)
