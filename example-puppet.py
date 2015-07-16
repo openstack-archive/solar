@@ -62,12 +62,6 @@ def deploy():
     admin_role = vr.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})[0]
     services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})[0]
 
-    signals.connect(node1, rabbitmq_service1)
-    signals.connect(rabbitmq_service1, openstack_vhost)
-    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
-    signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
-
-    signals.connect(node1, mariadb_service1)
     signals.connect(node1, keystone_db)
     signals.connect(node1, keystone_db_user)
     signals.connect(node1, keystone_puppet)
