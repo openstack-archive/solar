@@ -200,40 +200,48 @@ def deploy():
         'port': ['admin_port', 'internal_port', 'public_port'],
     })
 
-    # # CINDER
-    # cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {
-    #     'rabbit_userid': 'guest', 'rabbit_password': 'guest'})[0]
-    # cinder_db = vr.create('cinder_db', 'resources/mariadb_db/', {
-    #     'db_name': 'cinder_db', 'login_user': 'root'})[0]
-    # cinder_db_user = vr.create('cinder_db_user', 'resources/mariadb_user/', {
-    #     'user_name': 'cinder', 'user_password': 'cinder', 'login_user': 'root'})[0]
-    # cinder_keystone_user = vr.create('cinder_keystone_user', 'resources/keystone_user', {
-    #     'user_name': 'cinder', 'user_password': 'cinder'})[0]
-    # cinder_keystone_role = vr.create('cinder_keystone_role', 'resources/keystone_role', {
-    #     'role_name': 'cinder'})[0]
-    # cinder_keystone_service_endpoint = vr.create(
-    #     'cinder_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
-    #         'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
-    #         'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
-    #         'publicurl': 'http://{{public_ip}}:{{public_port}}',
-    #         'description': 'OpenStack Network Service', 'type': 'network'})[0]
+    # CINDER
+    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {
+        'rabbit_userid': 'guest', 'rabbit_password': 'guest'})[0]
+    cinder_db = vr.create('cinder_db', 'resources/mariadb_db/', {
+        'db_name': 'cinder_db', 'login_user': 'root'})[0]
+    cinder_db_user = vr.create('cinder_db_user', 'resources/mariadb_user/', {
+        'user_name': 'cinder', 'user_password': 'cinder', 'login_user': 'root'})[0]
+    cinder_keystone_user = vr.create('cinder_keystone_user', 'resources/keystone_user', {
+        'user_name': 'cinder', 'user_password': 'cinder'})[0]
+    cinder_keystone_role = vr.create('cinder_keystone_role', 'resources/keystone_role', {
+        'role_name': 'cinder'})[0]
+    cinder_keystone_service_endpoint = vr.create(
+        'cinder_keystone_service_endpoint',
+        'resources/keystone_service_endpoint', {
+            'endpoint_name': 'cinder',
+            'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
+            'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
+            'publicurl': 'http://{{public_ip}}:{{public_port}}',
+            'description': 'OpenStack Block Storage Service', 'type': 'volume'})[0]
 
-
-    # signals.connect(node1, cinder_db)
-    # signals.connect(node1, cinder_db_user)
-    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
+    signals.connect(node1, cinder_db)
+    signals.connect(node1, cinder_db_user)
     signals.connect(node1, cinder_puppet)
-    # signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbit_host', 'port': 'rabbit_port'})
-    # signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
-    # signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
-    # signals.connect(mariadb_service1, cinder_db, {
-    #     'port': 'login_port', 'root_password': 'login_password'})
-    # signals.connect(mariadb_service1, cinder_db_user, {
-    #     'port': 'login_port', 'root_password': 'login_password'})
-    # signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
-
-    # signals.connect(services_tenant, cinder_keystone_user)
-    # signals.connect(cinder_keystone_user, cinder_keystone_role)
+    signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbit_host', 'port': 'rabbit_port'})
+    signals.connect(admin_user, cinder_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'}) #?
+    signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
+    #signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
+    signals.connect(mariadb_service1, cinder_db, {
+        'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(mariadb_service1, cinder_db_user, {
+        'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
+    signals.connect(cinder_db, cinder_puppet, {'db_name': 'db_name'})
+    signals.connect(cinder_db_user, cinder_puppet, {'login_user': 'db_user', 'login_password': 'db_password'})
+    signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'}) #?
+    signals.connect(services_tenant, cinder_keystone_user)
+    signals.connect(cinder_keystone_user, cinder_keystone_role)
+    signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'}) #?
+    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'admin_ip', 'port': 'admin_port'})
+    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'internal_ip', 'port': 'internal_port'})
+    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'public_ip', 'port': 'public_port'})
+    signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'}) #?
 
     # NOVA
     # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
@@ -291,20 +299,19 @@ def deploy():
     actions.resource_action(admin_role, 'run')
 
     actions.resource_action(keystone_service_endpoint, 'run')
-
     actions.resource_action(services_tenant, 'run')
+
     actions.resource_action(neutron_keystone_user, 'run')
     actions.resource_action(neutron_keystone_role, 'run')
-
     actions.resource_action(neutron_puppet, 'run')
     actions.resource_action(neutron_keystone_service_endpoint, 'run')
 
-    # actions.resource_action(cinder_db, 'run')
-    # actions.resource_action(cinder_db_user, 'run')
-    # actions.resource_action(cinder_keystone_user, 'run')
-    # actions.resource_action(cinder_keystone_role, 'run')
-
-    # actions.resource_action(cinder_puppet, 'run')
+    actions.resource_action(cinder_db, 'run')
+    actions.resource_action(cinder_db_user, 'run')
+    actions.resource_action(cinder_keystone_user, 'run')
+    actions.resource_action(cinder_keystone_role, 'run')
+    actions.resource_action(cinder_puppet, 'run')
+    actions.resource_action(cinder_keystone_service_endpoint, 'run')
 
     # actions.resource_action(nova_keystone_user, 'run')
     # actions.resource_action(nova_keystone_role, 'run')
@@ -320,6 +327,12 @@ def undeploy():
     db = get_db()
 
     to_remove = [
+        'cinder_keystone_service_endpoint',
+        'cinder_puppet',
+        'cinder_keystone_role',
+        'cinder_keystone_user',
+        'cinder_db_user',
+        'cinder_db',
         'neutron_keystone_service_endpoint',
         'neutron_puppet',
         'neutron_keystone_role',
