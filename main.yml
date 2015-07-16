@@ -37,8 +37,8 @@
     - file: path=/etc/puppetlabs/code/ state=directory
     - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
     - apt: name=ruby-dev state=present
-    - file: path=/var/lib/puppet/modules state=directory
-    - file: path=/var/lib/puppet/Puppetfile state=touch
+    - file: path=/var/lib/puppet/modules state=directory owner=puppet
+    - file: path=/var/lib/puppet/Puppetfile state=touch owner=puppet
     - file: path=/etc/puppet/modules state=absent
     - file: path=/etc/puppetlabs/code/modules state=absent
     - file: path=/etc/puppetlabs/code/hieradata state=absent
