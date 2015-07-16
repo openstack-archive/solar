@@ -106,7 +106,7 @@ def deploy():
     signals.connect(keystone_puppet, neutron_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     signals.connect(services_tenant, neutron_keystone_user)
     signals.connect(neutron_keystone_user, neutron_keystone_role)
-    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
+    signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'admin_ip', 'port': 'admin_port'})
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'internal_ip', 'port': 'internal_port'})
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {'ip': 'public_ip', 'port': 'public_port'})
