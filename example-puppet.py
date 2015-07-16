@@ -55,51 +55,18 @@ def deploy():
     keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
     keystone_db = vr.create('keystone_db', 'resources/mariadb_keystone_db/', {'db_name': 'keystone_db', 'login_user': 'root'})[0]
     keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'keystone', 'new_user_password': 'keystone', 'login_user': 'root'})[0]
-
-    #keystone_puppet = vr.create('keystone_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='keystone'), {})[0]
-    keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
-
     keystone_service_endpoint = vr.create('keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'keystone', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2.0', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2.0', 'publicurl': 'http://{{public_ip}}:{{public_port}}/v2.0', 'description': 'OpenStack Identity Service', 'type': 'identity'})[0]
-
-    # # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
-    # neutron_puppet = vr.create('neutron_puppet', GitProvider(GIT_PUPPET_LIBS_URL, path='neutron'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
-    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
 
     admin_tenant = vr.create('admin_tenant', 'resources/keystone_tenant', {'tenant_name': 'admin'})[0]
     admin_user = vr.create('admin_user', 'resources/keystone_user', {'user_name': 'admin', 'user_password': 'admin'})[0]
     admin_role = vr.create('admin_role', 'resources/keystone_role', {'role_name': 'admin'})[0]
     services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {'tenant_name': 'services'})[0]
-    neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})[0]
-    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]
-
-    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'neutron', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
-
-    # #cinder_puppet = vr.create('cinder_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'cinder'), {})[0]
-    # cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
-
-    # cinder_keystone_user = vr.create('cinder_keystone_user', 'resources/keystone_user', {'user_name': 'cinder', 'user_password': 'cinder'})[0]
-    # cinder_keystone_role = vr.create('cinder_keystone_role', 'resources/keystone_role', {'role_name': 'cinder'})[0]
-
-    # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
-    # # TODO: fix rabbitmq user/password
-    # nova_network_puppet = vr.create('nova_network_puppet', 'resources/nova_network_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
-
-    # nova_keystone_user = vr.create('nova_keystone_user', 'resources/keystone_user', {'user_name': 'nova', 'user_password': 'nova'})[0]
-    # nova_keystone_role = vr.create('nova_keystone_role', 'resources/keystone_role', {'role_name': 'nova'})[0]
-
-    # TODO: 'services' tenant-id is hardcoded
-    #nova_keystone_service_endpoint = vr.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}/v2/services', 'internalurl': 'http://{{ip}}:{{public_port}}/v2/services', 'publicurl': 'http://{{ip}}:{{port}}/v2/services', 'description': 'OpenStack Compute Service', 'type': 'compute', 'port': 8776, 'admin_port': 8776})[0]
-
 
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
     signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
     signals.connect(rabbitmq_service1, neutron_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
-    # signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbitmq_vhost'})
-    # signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbitmq_user', 'password': 'rabbitmq_password'})
-    # signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
-    # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
     signals.connect(node1, mariadb_service1)
     signals.connect(node1, keystone_db)
@@ -131,8 +98,8 @@ def deploy():
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
 
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {'user_name': 'neutron', 'user_password': 'neutron'})[0]
-    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]
-    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
+    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {'role_name': 'neutron'})[0]    
+    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'endpoint_name': 'neutron', 'adminurl': 'http://{{admin_ip}}:{{admin_port}}', 'internalurl': 'http://{{internal_ip}}:{{internal_port}}', 'publicurl': 'http://{{public_ip}}:{{public_port}}', 'description': 'OpenStack Network Service', 'type': 'network'})[0]
 
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
