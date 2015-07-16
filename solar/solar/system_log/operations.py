@@ -9,7 +9,7 @@ def set_error(task_uuid, *args, **kwargs):
     item = sl.get(task_uuid)
     if item:
         item.state = data.STATES.error
-        sl.update(task_uuid, item)
+        sl.update(item)
 
 
 def move_to_commited(task_uuid, *args, **kwargs):
