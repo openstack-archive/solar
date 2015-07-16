@@ -31,15 +31,20 @@
     - apt: name=puppet state=present
     - git: repo=https://github.com/CGenie/hiera-redis dest=/root/hiera-redis
     - shell: gem build hiera-redis.gemspec && gem install hiera-redis-3.0.0.gem chdir=/root/hiera-redis
-    - file: path=/etc/puppet/Puppetfile state=touch
     - template: src=/vagrant/hiera.yaml dest=/etc/puppet/hiera.yaml
     - file: path=/etc/puppet/hieradata state=directory
     # Make paths puppet 4 compatible
     - file: path=/etc/puppetlabs/code/ state=directory
     - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
-    - file: src=/etc/puppet/hieradata dest=/etc/puppetlabs/code/hieradata state=link
-    - file: src=/etc/puppet/modules dest=/etc/puppetlabs/code/modules state=link
     - apt: name=ruby-dev state=present
+    - file: path=/var/lib/puppet/modules state=directory
+    - file: path=/var/lib/puppet/Puppetfile state=touch
+    - file: path=/etc/puppet/modules state=absent
+    - file: path=/etc/puppetlabs/code/modules state=absent
+    - file: path=/etc/puppetlabs/code/hieradata state=absent
+    - file: src=/var/lib/puppet/modules dest=/etc/puppet/modules state=link
+    - file: src=/var/lib/puppet/modules dest=/etc/puppetlabs/code/modules state=link
+    - file: src=/etc/puppet/hieradata dest=/etc/puppetlabs/code/hieradata state=link
     - shell: gem install librarian-puppet --no-ri --no-rdoc
 
       # Setup additional development tools
