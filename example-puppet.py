@@ -238,25 +238,75 @@ def deploy():
     # signals.connect(cinder_keystone_user, cinder_keystone_role)
 
     # NOVA
-    # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
-    # # TODO: fix rabbitmq user/password
-    # nova_network_puppet = vr.create('nova_network_puppet', 'resources/nova_network_puppet', {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
+    nova_api = vr.create('nova_api', 'resources/nova_api', {})[0]
+    nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
+        'db_name': 'nova_db',
+        'login_user': 'root'})[0]
+    nova_db_user = vr.create('nova_db_user', 'resources/mariadb_user/', {
+        'user_name': 'nova',
+        'user_password': 'nova',
+        'login_user': 'root'})[0]
+    nova_keystone_user = vr.create('nova_keystone_user', 'resources/keystone_user', {
+        'user_name': 'nova',
+        'user_password': 'nova'})[0]
+    nova_keystone_role = vr.create('nova_keystone_role', 'resources/keystone_role', {
+        'role_name': 'admin'})[0]
+    nova_keystone_service_endpoint = vr.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
+        'endpoint_name': 'nova',
+        'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2/%(tenant_id)s',
+        'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
+        'publicurl': 'http://{{public_ip}}:{{public_port}}/v2/%(tenant_id)s',
+        'description': 'OpenStack Compute Service',
+        'type': 'compute',
+        'public_port': 8774,
+        'internal_port': 8774,
+        'admin_port': 8774})[0]
 
-    # nova_keystone_user = vr.create('nova_keystone_user', 'resources/keystone_user', {'user_name': 'nova', 'user_password': 'nova'})[0]
-    # nova_keystone_role = vr.create('nova_keystone_role', 'resources/keystone_role', {'role_name': 'nova'})[0]
+    signals.connect(node1, nova_api)
+    signals.connect(node1, nova_db)
+    signals.connect(node1, nova_db_user)
+    signals.connect(mariadb_service1, nova_db, {
+        'port': 'login_port',
+        'root_password': 'login_password'})
+    signals.connect(mariadb_service1, nova_db_user, {
+        'port': 'login_port',
+        'root_password': 'login_password'})
+    signals.connect(nova_db, nova_db_user, {
+        'db_name': 'db_name'})
+    signals.connect(services_tenant, nova_keystone_user)
+    signals.connect(nova_keystone_user, nova_keystone_role)
+    signals.connect(keystone_puppet, nova_api, {
+        'ip': 'keystone_host',
+        'admin_port': 'keystone_port'})
+    signals.connect(nova_keystone_user, nova_api, {
+        'user_name': 'keystone_user_name',
+        'tenant_name': 'keystone_tenant_name',
+        'user_password': 'keystone_password'})
+    signals.connect(rabbitmq_service1, nova_api, {
+        'ip': 'rabbitmq_host'})
+    signals.connect(openstack_rabbitmq_user, nova_api, {
+        'user_name': 'rabbitmq_user',
+        'password': 'rabbitmq_password'})
+    signals.connect(keystone_puppet, nova_keystone_service_endpoint, {
+        'ip': 'keystone_host',
+        'admin_port': 'keystone_admin_port',
+        'admin_token': 'admin_token'})
+    signals.connect(mariadb_service1, nova_api, {
+        'ip':'db_host'})
+    signals.connect(nova_db_user, nova_api, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password'})
+    signals.connect(nova_api, nova_keystone_service_endpoint, {
+        'ip': ['ip', 'public_ip', 'internal_ip', 'admin_ip'],
+        'ssh_key': 'ssh_key',
+        'ssh_user': 'ssh_user'})
+    signals.connect(nova_api, nova_keystone_service_endpoint, {
+        'ip': 'ip',
+        'ssh_key': 'ssh_key',
+        'ssh_user': 'ssh_user'})
 
-    # TODO: 'services' tenant-id is hardcoded
-    # nova_keystone_service_endpoint = vr.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {'adminurl': 'http://{{ip}}:{{admin_port}}/v2/services', 'internalurl': 'http://{{ip}}:{{public_port}}/v2/services', 'publicurl': 'http://{{ip}}:{{port}}/v2/services', 'description': 'OpenStack Compute Service', 'type': 'compute', 'port': 8776, 'admin_port': 8776})[0]
-
-    # signals.connect(node1, nova_network_puppet)
-
-    # signals.connect(services_tenant, nova_keystone_user)
-    # signals.connect(neutron_keystone_user, nova_keystone_role)
-
-    # signals.connect(nova_keystone_user, nova_network_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'})
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
-
-    # signals.connect(nova_network_puppet, nova_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
@@ -308,11 +358,12 @@ def deploy():
 
     # actions.resource_action(cinder_puppet, 'run')
 
-    # actions.resource_action(nova_keystone_user, 'run')
-    # actions.resource_action(nova_keystone_role, 'run')
-
-    # actions.resource_action(nova_network_puppet, 'run')
-    #actions.resource_action(nova_keystone_service_endpoint, 'run')
+    actions.resource_action(nova_db, 'run')
+    actions.resource_action(nova_db_user, 'run')
+    actions.resource_action(nova_keystone_user, 'run')
+    actions.resource_action(nova_keystone_role, 'run')
+    actions.resource_action(nova_api, 'run')
+    actions.resource_action(nova_keystone_service_endpoint, 'run')
 
     time.sleep(10)
 
@@ -322,6 +373,10 @@ def undeploy():
     db = get_db()
 
     to_remove = [
+        'nova_db',
+        'nova_db_user',
+        'nova_keystone_service_endpoint',
+        'nova_api',
         'neutron_keystone_service_endpoint',
         'neutron_puppet',
         'neutron_keystone_role',
