@@ -92,13 +92,13 @@ solar resource validate
 
 * Disconnect
 ```
-solar disconnect rs/mariadb_nova_data rs/node1
+solar disconnect mariadb_service node1
 ```
 
 * Tag a resource:
 ```
-solar resource tag rs/node1 test-tags # Remove tags
-python cli.py resource tag rs/node1 test-tag --delete
+solar resource tag node1 test-tags # Remove tags
+solar resource tag node1 test-tag --delete
 ```
 
 # Low level API
@@ -181,13 +181,13 @@ node1.ssh_user = 'vagrant'
 
 ```
 cd /vagrant
-python cli.py deploy haproxy_deployment/haproxy-deployment.yaml
+solar deploy haproxy_deployment/haproxy-deployment.yaml
 ```
 
 or from Python shell:
 
 ```
-from x import deployment
+from solar.core import deployment
 
 deployment.deploy('/vagrant/haproxy_deployment/haproxy-deployment.yaml')
 ```
