@@ -17,9 +17,12 @@ rs/
 
 solar.log
 x-venv/
+.tmp/
+modules/
 
 celery*.pid
 celery*.log
 
 *.dot
 *.png
+resources_compiled.py

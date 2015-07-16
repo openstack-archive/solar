@@ -10,7 +10,7 @@ $port = $resource['input']['port']['value']
 
 class {'keystone':
   package_ensure       => 'present',
-  verbose              => True,
+  verbose              => true,
   catalog_type         => 'sql',
   admin_token          => $admin_token,
   database_connection  => "mysql://$db_user:$db_password@$ip/$db_name",

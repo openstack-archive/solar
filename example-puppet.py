@@ -7,7 +7,7 @@ from solar.core import resource
 from solar.core.provider import  GitProvider
 from solar.core import signals
 from solar.core import validation
-from solar.core import virtual_resource as vr
+from solar.core.resource import virtual_resource as vr
 
 from solar.interfaces.db import get_db
 
