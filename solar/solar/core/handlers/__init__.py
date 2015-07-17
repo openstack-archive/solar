@@ -9,6 +9,7 @@ from solar.core.handlers.shell import Shell
 HANDLERS = {'ansible': AnsibleTemplate,
             'ansible_playbook': AnsiblePlaybook,
             'shell': Shell,
+            'puppet': Puppet,
             'none': Empty}
 
 def get(handler_name):
