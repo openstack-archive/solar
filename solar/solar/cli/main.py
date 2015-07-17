@@ -243,9 +243,9 @@ def init_cli_resource():
             'action {} for resource {}'.format(action, resource)
         )
 
-        r = sresource.load(resource_name)
+        r = sresource.load(resource)
         try:
-            actions.resource_action(r, action_name)
+            actions.resource_action(r, action)
         except errors.SolarError as e:
             log.debug(e)
             sys.exit(1)
