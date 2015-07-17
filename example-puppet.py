@@ -220,29 +220,30 @@ def deploy():
             'publicurl': 'http://{{public_ip}}:{{public_port}}',
             'description': 'OpenStack Block Storage Service', 'type': 'volume'})[0]
 
+    signals.connect(node1, cinder_puppet)
     signals.connect(node1, cinder_db)
     signals.connect(node1, cinder_db_user)
-    signals.connect(node1, cinder_puppet)
     signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbit_host', 'port': 'rabbit_port'})
     signals.connect(admin_user, cinder_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'}) #?
     signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
     #signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
-    signals.connect(mariadb_service1, cinder_db, {
-        'port': 'login_port', 'root_password': 'login_password'})
-    signals.connect(mariadb_service1, cinder_db_user, {
-        'port': 'login_port', 'root_password': 'login_password'})
-    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name', 'login_user': 'login_user', 'login_password': 'login_password'}) #?
-    #signals.connect(cinder_db, cinder_puppet, {'db_name': 'db_name'})
-    signals.connect(cinder_db_user, cinder_puppet, {'db_name': 'db_name', 'login_user': 'db_user', 'login_password': 'db_password'}) #?
-    signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'}) #?
+    signals.connect(mariadb_service1, cinder_db, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(mariadb_service1, cinder_db_user, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
+    signals.connect(cinder_db_user, cinder_puppet, {'user_name':'db_user', 'db_name':'db_name', 'user_password':'db_password'})
+    signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'admin_port': 'keystone_port'}) #or non admin port?
     signals.connect(services_tenant, cinder_keystone_user)
     signals.connect(cinder_keystone_user, cinder_keystone_role)
-    signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user'}) #?
+    signals.connect(cinder_keystone_user, cinder_puppet, {'user_name': 'keystone_user', 'tenant_name': 'keystone_tenant', 'user_password': 'keystone_password'})
+    signals.connect(mariadb_service1, cinder_puppet, {'ip':'ip'})
+    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {
+        'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',})
+    signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
+        'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
     signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'admin_ip', 'port': 'admin_port'})
     signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'internal_ip', 'port': 'internal_port'})
     signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'public_ip', 'port': 'public_port'})
-    signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'}) #?
-
+    
     # NOVA
     # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
     # # TODO: fix rabbitmq user/password
