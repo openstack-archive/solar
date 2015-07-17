@@ -48,7 +48,6 @@ def deploy():
 
     # RABBIT
     rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
-        'node_name': 'rabbitmq_service1',
         'management_port': 15672,
         'port': 5672,
     })[0]

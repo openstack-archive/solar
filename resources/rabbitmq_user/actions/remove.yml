@@ -4,4 +4,3 @@
     - new_rabbitmq_user: user={{user_name}}
                          vhost={{vhost_name}}
                          state=absent
-                         node={{node_name}}

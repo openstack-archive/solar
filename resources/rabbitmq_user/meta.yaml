@@ -2,9 +2,6 @@ id: rabbitmq_user
 handler: ansible
 version: 1.0.0
 input:
-    node_name:
-      schema: str!
-      value:
     user_name:
       schema: str!
       value: openstack

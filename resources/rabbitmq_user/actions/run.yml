@@ -8,4 +8,3 @@
                          read_priv=.*
                          write_priv=.*
                          state=present
-                         node={{node_name}}
