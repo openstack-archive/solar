@@ -56,4 +56,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/nova_service, resources/nova]
+tags: [resource/nova_service, resources/nova, resource/nova-api]
