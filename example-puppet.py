@@ -118,9 +118,9 @@ def deploy():
     signals.connect(node1, keystone_service_endpoint)
     signals.connect(keystone_puppet, keystone_service_endpoint, {
         'admin_token': 'admin_token',
-        'admin_port': 'keystone_admin_port',
+        'admin_port': ['admin_port', 'keystone_admin_port'],
         'ip': ['keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
-        'port': ['admin_port', 'internal_port', 'public_port'],
+        'port': ['internal_port', 'public_port'],
     })
 
     signals.connect(keystone_puppet, admin_tenant)
@@ -327,7 +327,7 @@ def undeploy():
         'neutron_keystone_role',
         'neutron_keystone_user',
         'services_tenant',
-        #'keystone_service_endpoint',
+        'keystone_service_endpoint',
         'admin_role',
         'admin_user',
         'admin_tenant',
@@ -338,7 +338,7 @@ def undeploy():
         'mariadb_service1',
         'openstack_rabbitmq_user',
         'openstack_vhost',
-        'rabbitmq1',
+        'rabbitmq_service1',
     ]
 
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
@@ -376,7 +376,7 @@ def undeploy():
 
     # actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
     # actions.resource_action(resources['openstack_vhost'], 'remove')
-    # actions.resource_action(resources['rabbitmq1'], 'remove')
+    # actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
     db.clear()
 
