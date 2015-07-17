@@ -4,7 +4,7 @@ import sys
 import click
 
 from solar.core import testing
-from solar.core import virtual_resource as vr
+from solar.core import resource
 from solar.system_log import change
 from solar.system_log import operations
 from solar.system_log import data
@@ -17,7 +17,7 @@ def changes():
 
 @changes.command()
 def validate():
-    errors = vr.validate_resources()
+    errors = resource.validate_resources()
     if errors:
         for r, error in errors:
             print 'ERROR: %s: %s' % (r.name, error)
