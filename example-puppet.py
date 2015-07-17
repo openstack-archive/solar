@@ -45,7 +45,7 @@ def deploy():
     signals.connect(node1, mariadb_service1)
 
     # RABBIT
-    rabbitmq_service1 = vr.create('rabbitmq1', 'resources/rabbitmq_service', {'management_port': 15672, 'port': 5672, 'node_name': 'rabbitmq_service1'})[0]
+    rabbitmq_service1 = vr.create('rabbitmq1', 'resources/rabbitmq_service', {'management_port': 15672, 'port': 5672})[0]
     openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {'vhost_name': 'openstack'})[0]
     openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {'user_name': 'openstack', 'password': 'openstack_password'})[0]
 

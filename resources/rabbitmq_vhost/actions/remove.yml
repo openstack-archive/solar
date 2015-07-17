@@ -3,4 +3,3 @@
   tasks:
     - new_rabbitmq_vhost: name={{vhost_name}}
                           state=absent
-                          node={{node_name}}
