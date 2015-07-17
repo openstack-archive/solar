@@ -38,11 +38,19 @@ def deploy():
 
     node1 = vr.create('nodes', 'templates/nodes.yml', {})[0]
 
+    # MARIADB
+    mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
+        'image': 'mariadb',
+        'port': 3306
+    })[0]
+
+    signals.connect(node1, mariadb_service1)
+
+    # RABBIT
     rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
+        'node_name': 'rabbitmq_service1',
         'management_port': 15672,
         'port': 5672,
-        'container_name': 'rabbitmq_service1',
-        'image': 'rabbitmq:3-management'
     })[0]
     openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {
         'vhost_name': 'openstack'
@@ -53,12 +61,6 @@ def deploy():
         'password': 'openstack_password'
     })[0]
 
-    mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
-        'image': 'mariadb',
-        'port': 3306
-    })[0]
-
-    signals.connect(node1, mariadb_service1)
     signals.connect(node1, rabbitmq_service1)
     signals.connect(rabbitmq_service1, openstack_vhost)
     signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
@@ -143,6 +145,13 @@ def deploy():
         'new_user_name': 'db_user',
         'new_user_password': 'db_password'
     })
+
+    # OPENRC
+    openrc = vr.create('openrc_file', 'resources/openrc_file', {})[0]
+
+    signals.connect(node1, openrc)
+    signals.connect(keystone_puppet, openrc, {'ip': 'keystone_host', 'admin_port':'keystone_port'})
+    signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
     # NEUTRON
     # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
@@ -278,6 +287,7 @@ def deploy():
     actions.resource_action(keystone_db, 'run')
     actions.resource_action(keystone_db_user, 'run')
     actions.resource_action(keystone_puppet, 'run')
+    actions.resource_action(openrc, 'run')
 
     actions.resource_action(admin_tenant, 'run')
     actions.resource_action(admin_user, 'run')
@@ -318,17 +328,18 @@ def undeploy():
         'neutron_keystone_role',
         'neutron_keystone_user',
         'services_tenant',
-        'keystone_service_endpoint',
+        #'keystone_service_endpoint',
         'admin_role',
         'admin_user',
         'admin_tenant',
+        'openrc_file',
         'keystone_puppet',
         'keystone_db_user',
         'keystone_db',
         'mariadb_service1',
         'openstack_rabbitmq_user',
         'openstack_vhost',
-        'rabbitmq_service1',
+        'rabbitmq1',
     ]
 
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
@@ -366,7 +377,7 @@ def undeploy():
 
     # actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
     # actions.resource_action(resources['openstack_vhost'], 'remove')
-    # actions.resource_action(resources['rabbitmq_service1'], 'remove')
+    # actions.resource_action(resources['rabbitmq1'], 'remove')
 
     db.clear()
 

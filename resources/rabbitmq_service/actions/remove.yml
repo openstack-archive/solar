@@ -1,8 +1,0 @@
-- hosts: [{{ ip }}]
-  sudo: yes
-  tasks:
-    - name: rabbitmq container
-      docker:
-        name: {{ container_name }}
-        image: {{ image }}
-        state: absent
