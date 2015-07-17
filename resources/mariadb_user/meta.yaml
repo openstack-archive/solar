@@ -11,9 +11,11 @@ input:
     user_name:
       schema: str!
       value:
+
     db_name:
       schema: str!
       value:
+
     login_password:
       schema: str!
       value:
@@ -23,6 +25,7 @@ input:
     login_user:
       schema: str!
       value:
+
     ip:
       schema: str!
       value:
