@@ -351,19 +351,19 @@ def init_cli_resource():
         pass
 
     @resource.command()
-    @click.argument('resource_name')
-    @click.argument('action_name')
+    @click.argument('action')
+    @click.argument('resource')
     @click.option('-d', '--dry-run', default=False, is_flag=True)
     @click.option('-m', '--dry-run-mapping', default='{}')
-    def action(dry_run_mapping, dry_run, action_name, resource_name):
+    def action(dry_run_mapping, dry_run, action, resource):
         if dry_run:
             dry_run_executor = DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         click.echo(
-            'action {} for resource {}'.format(action_name, resource_name)
+            'action {} for resource {}'.format(action, resource)
         )
-        r = sresource.load(resource_name)
-        actions.resource_action(r, action_name)
+        actions.resource_action(sresource.load(resource), action)
+
 
         if dry_run:
             click.echo('EXECUTED:')

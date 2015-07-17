@@ -2,5 +2,4 @@
   sudo: yes
   tasks:
       - new_rabbitmq_vhost: name={{vhost_name}}
-                            node={{node_name}}
                             state=present

@@ -15,7 +15,7 @@
     - apt: name=python-pudb state=present
     #- apt: name=python-pip state=present
     - shell: pip install docker-py==1.1.0
-    - shell: pip install python-keystoneclient==1.5.0
+    - apt: name=python-keystoneclient state=present
 
     - apt: name=redis-server state=present
     #- apt: name=python-redis state=present
