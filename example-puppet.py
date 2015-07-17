@@ -238,7 +238,7 @@ def deploy():
     # signals.connect(cinder_keystone_user, cinder_keystone_role)
 
     # NOVA
-    nova_api = vr.create('nova_api', 'resources/nova_api', {})[0]
+    nova_api = vr.create('nova_api', 'resources/nova_api_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
         'db_name': 'nova_db',
         'login_user': 'root'})[0]
