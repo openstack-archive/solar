@@ -1,0 +1,11 @@
+id: ansible_sample
+handler: ansible_playbook
+version: 0.0.1
+input:
+    var1:
+      type: str!
+      value: meta
+    uuid:
+      type: str!
+      value: 'aa1das1231'
+
