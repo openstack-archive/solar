@@ -36,11 +36,7 @@ def deploy():
 
     signals.Connections.clear()
 
-    node1 = vr.create('node1', 'resources/ro_node/', {
-        'ip': '10.0.0.3',
-        'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
-        'ssh_user': 'vagrant'
-    })[0]
+    node1 = vr.create('nodes', 'templates/nodes.yml', {})[0]
 
     rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
         'management_port': 15672,
@@ -67,7 +63,7 @@ def deploy():
     signals.connect(rabbitmq_service1, openstack_vhost)
     signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {
-        'vhost_name': 'vhost_name'
+        'vhost_name',
     })
 
     # KEYSTONE
@@ -103,47 +99,27 @@ def deploy():
         'tenant_name': 'services'
     })[0]
 
-    signals.connect(node1, rabbitmq_service1)
-    signals.connect(rabbitmq_service1, openstack_vhost)
-    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
-    signals.connect(openstack_vhost, openstack_rabbitmq_user, {
-        'vhost_name': 'vhost_name'
-    })
-
-    signals.connect(node1, mariadb_service1)
     signals.connect(node1, keystone_db)
     signals.connect(node1, keystone_db_user)
     signals.connect(node1, keystone_puppet)
     signals.connect(mariadb_service1, keystone_db, {
         'port': 'login_port',
-        'root_password': 'login_password'
-    })
-    signals.connect(mariadb_service1, keystone_db_user, {
-        'port': 'login_port',
         'root_user': 'login_user',
         'root_password': 'login_password',
     })
     signals.connect(keystone_db, keystone_db_user, {
-        'db_name': 'db_name'
+        'db_name',
+        'login_port',
+        'login_user',
+        'login_password'
     })
 
     signals.connect(node1, keystone_service_endpoint)
     signals.connect(keystone_puppet, keystone_service_endpoint, {
         'admin_token': 'admin_token',
         'admin_port': 'keystone_admin_port',
-        'ip': 'keystone_host'
-    })
-    signals.connect(keystone_puppet, keystone_service_endpoint, {
-        'admin_port': 'admin_port',
-        'ip': 'admin_ip'
-    })
-    signals.connect(keystone_puppet, keystone_service_endpoint, {
-        'port': 'internal_port',
-        'ip': 'internal_ip'
-    })
-    signals.connect(keystone_puppet, keystone_service_endpoint, {
-        'port': 'public_port',
-        'ip': 'public_ip'
+        'ip': ['keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
+        'port': ['admin_port', 'internal_port', 'public_port'],
     })
 
     signals.connect(keystone_puppet, admin_tenant)
@@ -161,7 +137,7 @@ def deploy():
     })
 
     signals.connect(keystone_db, keystone_puppet, {
-        'db_name': 'db_name'
+        'db_name',
     })
     signals.connect(keystone_db_user, keystone_puppet, {
         'new_user_name': 'db_user',
@@ -208,26 +184,15 @@ def deploy():
     signals.connect(services_tenant, neutron_keystone_user)
     signals.connect(neutron_keystone_user, neutron_keystone_role)
     signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {
-        'ip': 'ip',
+        'ip': ['ip', 'keystone_host'],
         'ssh_key': 'ssh_key',
-        'ssh_user': 'ssh_user'
-    })
-    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
-        'ip': 'admin_ip',
-        'port': 'admin_port'
-    })
-    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
-        'ip': 'internal_ip',
-        'port': 'internal_port'
-    })
-    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
-        'ip': 'public_ip',
-        'port': 'public_port'
-    })
-    signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {
-        'ip': 'keystone_host',
+        'ssh_user': 'ssh_user',
         'admin_port': 'keystone_admin_port',
-        'admin_token': 'admin_token'
+        'admin_token': 'admin_token',
+    })
+    signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
+        'ip': ['admin_ip', 'internal_ip', 'public_ip'],
+        'port': ['admin_port', 'internal_port', 'public_port'],
     })
 
     # # CINDER

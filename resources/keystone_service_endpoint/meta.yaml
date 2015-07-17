@@ -38,7 +38,7 @@ input:
       value:
     internalurl:
       schema: str!
-      value: http://{{ip}}:{{port}}/v2.0
+      value: http://{{internal_ip}}:{{internal_port}}/v2.0
     admin_ip:
       schema: str!
       value:
@@ -47,7 +47,7 @@ input:
       value:
     adminurl:
       schema: str!
-      value: http://{{ip}}:{{admin_port}}/v2.0
+      value: http://{{admin_ip}}:{{admin_port}}/v2.0
 
     ip:
       schema: str!
