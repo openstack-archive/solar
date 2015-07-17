@@ -354,6 +354,41 @@ def deploy():
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
 
+    # GLANCE
+    # glance = vr.create('glance', 'templates/glance.yml', {
+    #     'idx': '1',
+    #     'ip': 'node1::ip',
+    #     'ssh_key': 'node1::ssh_key',
+    #     'ssh_user': 'node1::ssh_user',
+    #     'db_login_user': 'mariadb_service1::login_user',
+    #     'db_login_password': 'mariadb_service1::root_password',
+    #     'db_host': 'mariadb_service1::ip',
+    #     'db_port': 'mariadb_service1::port',
+    #     'db_name': 'glance',
+    #     'db_user': 'glance',
+    #     'db_password': 'glance123',
+    # })[0]
+
+    glance_puppet = vr.create('glance_puppet', 'resources/glance_puppet', {})[0]
+    glance_db_user = vr.create('glance_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'glance', 'new_user_password': 'glance'})[0]
+    glance_db = vr.create('glance_db', 'resources/mariadb_keystone_db/', {'db_name': 'glance', 'login_user': 'root'})[0]
+    glance_keystone_user = vr.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance', 'user_password': 'glance123'})[0]
+    glance_keystone_role = vr.create('glance_keystone_role', 'resources/keystone_role', {'role_name': 'glance'})[0]
+
+    signals.connect(node1, glance_puppet, {})
+    signals.connect(mariadb_service1, glance_db)
+    signals.connect(mariadb_service1, glance_db, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(services_tenant, glance_keystone_user, {'tenant_name': 'tenant_name'})
+    signals.connect(keystone_puppet, glance_keystone_user)
+    signals.connect(keystone_puppet, glance_keystone_user, {'ip': 'keystone_host', 'port': 'keystone_port'})
+    signals.connect(keystone_puppet, glance_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
+    signals.connect(glance_keystone_user, glance_keystone_role)
+    signals.connect(mariadb_service1, glance_puppet, {'ip': 'db_host', 'port': 'db_port'})
+    signals.connect(glance_db, glance_db_user)
+    signals.connect(glance_db, glance_puppet, {'db_name': 'db_name'})
+    signals.connect(glance_db_user, glance_puppet, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
+
+
     has_errors = False
     for r in locals().values():
         if not isinstance(r, resource.Resource):
@@ -409,6 +444,14 @@ def deploy():
     actions.resource_action(nova_api, 'run')
     actions.resource_action(nova_keystone_service_endpoint, 'run')
 
+    actions.resource_action(glance_keystone_user, 'run')
+    actions.resource_action(glance_keystone_role, 'run')
+    actions.resource_action(glance_db_user, 'run')
+    actions.resource_action(glance_db, 'run')
+    actions.resource_action(glance_puppet, 'run')
+
+    #actions.resource_action(glance, 'run')
+
     time.sleep(10)
 
 
@@ -417,6 +460,11 @@ def undeploy():
     db = get_db()
 
     to_remove = [
+        'glance_puppet',
+        'glance_db',
+        'glance_db_user',
+        'glance_keystone_role',
+        'glance_keystone_user',
         'nova_db',
         'nova_db_user',
         'nova_keystone_service_endpoint',
