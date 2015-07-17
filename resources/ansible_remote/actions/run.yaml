@@ -1,0 +1,6 @@
+- hosts: '*'
+  sudo: yes
+  vars:
+    default1: playbook
+  tasks:
+    - debug: msg="my message {{default1}}"

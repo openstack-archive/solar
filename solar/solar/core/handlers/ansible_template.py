@@ -3,10 +3,10 @@ from fabric import api as fabric_api
 import os
 
 from solar.core.log import log
-from solar.core.handlers.base import BaseHandler
+from solar.core.handlers.base import TempFileHandler
 
 
-class Ansible(BaseHandler):
+class AnsibleTemplate(TempFileHandler):
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
         playbook_file = self._create_playbook(resource, action_name)

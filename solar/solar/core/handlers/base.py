@@ -9,6 +9,18 @@ from solar.core.log import log
 
 
 class BaseHandler(object):
+
+    def __init__(self, resources):
+        self.resources = resources
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc, value, traceback):
+        return
+
+
+class TempFileHandler(BaseHandler):
     def __init__(self, resources):
         self.dst = tempfile.mkdtemp()
         self.resources = resources

@@ -1,0 +1,9 @@
+- hosts: localhost
+  sudo: yes
+  vars:
+    var1: 'playbook'
+  roles:
+    - { role: "test_role" }
+  tasks:
+    - debug: msg="VAR1 value is {{var1}}"
+    - fail: msg='just test failure'
