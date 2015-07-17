@@ -7,7 +7,7 @@ from fabric.contrib import project as fabric_project
 import os
 
 from solar.core.log import log
-from solar.core.handlers.base import BaseHandler
+from solar.core.handlers.base import TempFileHandler
 from solar.core.provider import GitProvider
 
 
@@ -151,7 +151,7 @@ class LibrarianPuppet(ResourceSSHMixin):
 # - hiera-redis is installed with the 2.0 fix (https://github.com/GGenie/hiera-redis)
 # - redis is installed and cluster set up with master (on slaves set up 'slaveof 10.0.0.2 6379')
 # - redis keys are separated by colon (same as in hiera-redis backend)
-class Puppet(ResourceSSHMixin, BaseHandler):
+class Puppet(ResourceSSHMixin, TempFileHandler):
     def action(self, resource, action_name):
         log.debug('Executing Puppet manifest %s %s', action_name, resource)
 

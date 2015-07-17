@@ -124,16 +124,30 @@ def guess_mapping(emitter, receiver):
     return guessed
 
 
+def connect_single(emitter, src, receiver, dst):
+    # Disconnect all receiver inputs
+    # Check if receiver input is of list type first
+    if receiver.args[dst].type_ != 'list':
+        disconnect_receiver_by_input(receiver, dst)
+
+    emitter.args[src].subscribe(receiver.args[dst])
+
+
 def connect(emitter, receiver, mapping=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
-    for src, dst in mapping.items():
-        # Disconnect all receiver inputs
-        # Check if receiver input is of list type first
-        if receiver.args[dst].type_ != 'list':
-            disconnect_receiver_by_input(receiver, dst)
+    if isinstance(mapping, set):
+        for src in mapping:
+            connect_single(emitter, src, receiver, src)
+        return
 
-        emitter.args[src].subscribe(receiver.args[dst])
+    for src, dst in mapping.items():
+        if isinstance(dst, list):
+            for d in dst:
+                connect_single(emitter, src, receiver, d)
+            continue
+
+        connect_single(emitter, src, receiver, dst)
 
     #receiver.save()
 

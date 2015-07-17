@@ -5,6 +5,9 @@ input:
     image: 
       schema: str!
       value: mariadb
+    root_user:
+      schema: str!
+      value: root
     root_password:
       schema: str!
       value: mariadb
