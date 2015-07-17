@@ -10,6 +10,7 @@
     - shell: pip install httpie
     #- apt: name=python-virtualenv state=present
     #- apt: name=virtualenvwrapper state=present
+    - apt: name=python-mock state=present
     - apt: name=ipython state=present
     - apt: name=python-pudb state=present
     #- apt: name=python-pip state=present
