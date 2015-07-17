@@ -55,7 +55,8 @@ $debug                        = $resource['input']['debug']['value']
 $storage_availability_zone    = $resource['input']['storage_availability_zone']['value']
 $default_availability_zone    = $resource['input']['default_availability_zone']['value']
 $mysql_module                 = $resource['input']['mysql_module']['value']
-$sql_connection               = $resource['input']['sql_connection']['value']
+# Do not apply the legacy stuff
+#$sql_connection               = $resource['input']['sql_connection']['value']
 $sql_idle_timeout             = $resource['input']['sql_idle_timeout']['value']
 
 class {'cinder':

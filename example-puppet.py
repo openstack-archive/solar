@@ -231,9 +231,9 @@ def deploy():
         'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(mariadb_service1, cinder_db_user, {
         'port': 'login_port', 'root_password': 'login_password'})
-    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
-    signals.connect(cinder_db, cinder_puppet, {'db_name': 'db_name'})
-    signals.connect(cinder_db_user, cinder_puppet, {'login_user': 'db_user', 'login_password': 'db_password'})
+    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name', 'login_user': 'login_user', 'login_password': 'login_password'}) #?
+    #signals.connect(cinder_db, cinder_puppet, {'db_name': 'db_name'})
+    signals.connect(cinder_db_user, cinder_puppet, {'db_name': 'db_name', 'login_user': 'db_user', 'login_password': 'db_password'}) #?
     signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'}) #?
     signals.connect(services_tenant, cinder_keystone_user)
     signals.connect(cinder_keystone_user, cinder_keystone_role)
