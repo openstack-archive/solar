@@ -18,7 +18,7 @@ def test(resource):
     resp_json = resp.json()
     assert 'services' in resp_json
 
-    service = [s for s in resp_json['services'] if s['name'] == resource.name][0]
+    service = [s for s in resp_json['services'] if s['name'] == resource.args['endpoint_name'].value][0]
     service_id = service['id']
 
     assert service['description'] == resource.args['description'].value
