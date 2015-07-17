@@ -1,27 +1,29 @@
-id: rabbitmq_service
-handler: ansible
-version: 1.0.0
+handler: puppet
+id: 'rabbitmq'
 input:
-    image: 
-      schema: str!
-      value: rabbitmq:3-management
-    container_name:
-      schema: str!
-      value: rabbitmq_service
-    management_port:
-      schema: int!
-      value: 15672
-    port:
-      schema: int!
-      value: 5672
-    ip:
-      schema: str!
-      value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+  ip:
+    schema: str!
+    value: ''
+  ssh_key:
+    schema: str!
+    value: ''
+  ssh_user:
+    schema: str!
+    value: ''
 
-tags: [resources/rabbitmq, resource/rabbitmq_service]
+  node_name:
+    schema: str!
+    value: 'node1'
+  port:
+    schema: int!
+    value: ''
+  management_port:
+    schema: int! 
+    value: ''
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/puppetlabs/puppetlabs-rabbitmq.git', branch: '5.1.0'}
+
+puppet_module: 'rabbitmq'
+tags: []
+version: 1.0.0

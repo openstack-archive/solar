@@ -8,5 +8,4 @@
                          read_priv=.*
                          write_priv=.*
                          state=present
-                         node={{container_name}}
-                         rabbitmqctl="docker exec -it {{container_name}} rabbitmqctl"
+                         node={{node_name}}

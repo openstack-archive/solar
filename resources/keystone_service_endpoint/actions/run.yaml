@@ -4,7 +4,7 @@
     - name: keystone service and endpoint
       keystone_service:
         token: {{admin_token}}
-        name: {{resource_name}}
+        name: {{endpoint_name}}
         type: {{type}}
         description: {{description}}
         publicurl: {{publicurl}}

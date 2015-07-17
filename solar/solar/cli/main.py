@@ -37,7 +37,7 @@ from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
 from solar.core import testing
-from solar.core import virtual_resource as vr
+from solar.core.resource import virtual_resource as vr
 from solar.interfaces.db import get_db
 
 from solar.cli.orch import orchestration
@@ -326,7 +326,7 @@ def init_cli_connections():
                                               end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
-        fabric_api.local('dot', '-Tpng', 'graph.dot', '-o', 'graph.png')
+        fabric_api.local('dot -Tpng graph.dot -o graph.png')
 
         # Matplotlib
         #pos = nx.spring_layout(g)
@@ -374,13 +374,28 @@ def init_cli_resource():
                 ))
 
     @resource.command()
+    def compile_all():
+        from solar.core.resource import compiler
+
+        destination_path = utils.read_config()['resources-compiled-file']
+
+        if os.path.exists(destination_path):
+            os.remove(destination_path)
+
+        for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
+            meta = utils.yaml_load(path)
+            meta['base_path'] = os.path.dirname(path)
+
+            compiler.compile(meta)
+
+    @resource.command()
     def clear_all():
         click.echo('Clearing all resources')
         db.clear()
 
     @resource.command()
     @click.argument('name')
-    @click.argument('base_path', type=click.Path(exists=True, file_okay=False))
+    @click.argument('base_path', type=click.Path(exists=True, file_okay=True))
     @click.argument('args', nargs=-1)
     def create(args, base_path, name):
         args_parsed = {}

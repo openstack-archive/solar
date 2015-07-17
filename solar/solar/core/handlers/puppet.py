@@ -98,7 +98,7 @@ class LibrarianPuppet(ResourceSSHMixin):
 
         puppetlabs = self._ssh_command(
             self.resource,
-            'sudo', 'cat', '/tmp/puppet-modules/Puppetfile'
+            'sudo', 'cat', '/var/tmp/puppet/Puppetfile'
         )
         log.debug('Puppetlabs file is: \n%s\n', puppetlabs)
 
@@ -135,14 +135,14 @@ class LibrarianPuppet(ResourceSSHMixin):
         self._scp_command(
             self.resource,
             '/tmp/Puppetfile',
-            '/tmp/puppet-modules/Puppetfile',
+            '/var/tmp/puppet/Puppetfile',
             use_sudo=True
         )
 
         self._ssh_command(
             self.resource,
             'sudo', 'librarian-puppet', 'install',
-            cwd='/tmp/puppet-modules'
+            cwd='/var/tmp/puppet'
         )
 
 

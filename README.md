@@ -79,27 +79,29 @@ solar connections show
 solar connections graph
 ```
 
+You can also limit graph to show only specific resources:
+
+```
+solar connections graph --start-with mariadb_service --end-with keystone_db
+```
+
 * You can make sure that all input values are correct and mapped without duplicating your values with this command:
 ```
 solar resource validate
 ```
 
+* Disconnect
+```
+solar disconnect mariadb_service node1
+```
+
+* Tag a resource:
+```
+solar resource tag node1 test-tags # Remove tags
+solar resource tag node1 test-tag --delete
+```
+
 # Low level API
-
-## HAProxy deployment (not maintained)
-
-```
-cd /vagrant
-python cli.py deploy haproxy_deployment/haproxy-deployment.yaml
-```
-
-or from Python shell:
-
-```
-from x import deployment
-
-deployment.deploy('/vagrant/haproxy_deployment/haproxy-deployment.yaml')
-```
 
 ## Usage:
 
@@ -188,42 +190,42 @@ instead, just use the `>` operator when specifying hash:
 solar resource action keystone_puppet run -d -m "{\"73c>\": \"./Puppetlabs-file\"}"
 ```
 
-## CLI
+## Resource compiling
 
-You can do the above from the command-line client:
+You can compile all `meta.yaml` definitions into Python code with classes that
+derive from `Resource`. To do this run
+
+```
+solar resource compile_all
+```
+
+This generates file `resources_compiled.py` in the main directory (do not commit
+this file into the repo). Then you can import classes from that file, create
+their instances and assign values just like these were normal properties.
+If your editor supports Python static checking, you will have autocompletion
+there too. An example on how to create a node with this:
+
+```
+import resources_compiled
+
+node1 = resources_compiled.RoNodeResource('node1', None, {})
+node1.ip = '10.0.0.3'
+node1.ssh_key = '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
+node1.ssh_user = 'vagrant'
+```
+
+## HAProxy deployment (not maintained)
 
 ```
 cd /vagrant
-
-python cli.py resource create node1 x/resources/ro_node/ rs/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/tmp/keys/ssh_private", "ssh_user":"vagrant"}'
-
-python cli.py resource create node2 x/resources/ro_node/ rs/ '{"ip":"10.0.0.4", "ssh_key" : "/vagrant/tmp/keys/ssh_private", "ssh_user":"vagrant"}'
-
-python cli.py resource create mariadb_keystone_data x/resources/data_container/ rs/ '{"image": "mariadb", "export_volumes" : ["/var/lib/mysql"], "ip": "", "ssh_user": "", "ssh_key": ""}'
-
-python cli.py resource create mariadb_nova_data x/resources/data_container/ rs/ '{"image" : "mariadb", "export_volumes" : ["/var/lib/mysql"], "ip": "", "ssh_user": "", "ssh_key": ""}'
-
-# View resourcespython cli.py resource show rs/mariadb_keystone_data
-# Show all resources at location rs/
-python cli.py resource show rs/ --all
-
-# Show resources with specific tagspython cli.py resources show rs/ --tag test
-
-# Connect resourcespython cli.py connect rs/node2 rs/mariadb_keystone_data
-python cli.py connect rs/node1 rs/mariadb_nova_data
-# Test updatepython cli.py update rs/node2 '{"ip": "1.1.1.1"}'
-python cli.py resource show rs/mariadb_keystone_data  # --> IP is 1.1.1.1
-
-# View connections
-python cli.py connections show
-
-# Outputs graph to 'graph.png' file, please note that arrows don't have "normal" pointers, but just the line is thicker
-# please see http://networkx.lanl.gov/_modules/networkx/drawing/nx_pylab.html
-python cli.py connections graph
-
-# Disconnect
-python cli.py disconnect rs/mariadb_nova_data rs/node1
-
-# Tag a resource:
-python cli.py resource tag rs/node1 test-tags# Remove tagspython cli.py resource tag rs/node1 test-tag --delete
+solar deploy haproxy_deployment/haproxy-deployment.yaml
 ```
+
+or from Python shell:
+
+```
+from solar.core import deployment
+
+deployment.deploy('/vagrant/haproxy_deployment/haproxy-deployment.yaml')
+```
+

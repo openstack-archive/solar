@@ -4,5 +4,4 @@
     - new_rabbitmq_user: user={{user_name}}
                          vhost={{vhost_name}}
                          state=absent
-                         node={{container_name}}
-                         rabbitmqctl="docker exec -it {{container_name}} rabbitmqctl"
+                         node={{node_name}}
