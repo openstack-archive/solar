@@ -283,14 +283,14 @@ def init_cli_resource():
         pass
 
     @resource.command()
-    @click.argument('resource_name')
-    @click.argument('action_name')
-    def action(action_name, resource_name):
+    @click.argument('action')
+    @click.argument('resource')
+    def action(action, resource):
         click.echo(
-            'action {} for resource {}'.format(action_name, resource_name)
+            'action {} for resource {}'.format(action, resource)
         )
-        r = sresource.load(resource_name)
-        actions.resource_action(r, action_name)
+        actions.resource_action(sresource.load(resource), action)
+
 
     @resource.command()
     def compile_all():
