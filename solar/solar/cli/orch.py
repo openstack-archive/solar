@@ -21,16 +21,19 @@ def orchestration():
     restart <id> --reset
     """
 
+
 @orchestration.command()
 @click.argument('plan', type=click.File('rb'))
 def create(plan):
     click.echo(graph.create_plan(plan.read()))
+
 
 @orchestration.command()
 @click.argument('uid')
 @click.argument('plan', type=click.File('rb'))
 def update(uid, plan):
     graph.update_plan(uid, plan.read())
+
 
 @orchestration.command()
 @click.argument('uid')
@@ -102,5 +105,14 @@ def dg(uid):
     for n in plan:
         color = colors[plan.node[n]['status']]
         plan.node[n]['color'] = color
-    nx.write_dot(plan, 'graph.dot')
-    subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+    nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    subprocess.call(
+        'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),
+        shell=True)
+    click.echo('Created {name}.png'.format(name=plan.graph['name']))
+
+
+@orchestration.command()
+@click.argument('uid')
+def show(uid):
+    click.echo(graph.show(uid))
