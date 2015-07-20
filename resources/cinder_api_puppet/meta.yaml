@@ -3,6 +3,9 @@ handler: puppet
 puppet_module: cinder_api
 version: 1.0.0
 input:
+  keystone_password:
+    schema: str!
+    value: 'keystone'
   keystone_enabled:
     schema: bool
     value: true
@@ -56,7 +59,7 @@ input:
     value: false
   ratelimits_factory:
     schema: str
-    value: 
+    value: 'cinder.api.v1.limits:RateLimitingMiddleware.factory'
   validate:
     schema: bool
     value: false
