@@ -14,7 +14,7 @@ input:
       value: 1
     database_max_pool_size:
       schema: str
-      value: undef
+      value: ''
     database_max_retries:
       schema: int
       value: 10
@@ -23,7 +23,7 @@ input:
       value: 10
     database_max_overflow:
       schema: str
-      value: undef
+      value: ''
     rpc_backend:
       schema: str
       value: 'cinder.openstack.common.rpc.impl_kombu'
@@ -53,13 +53,13 @@ input:
       value: false
     kombu_ssl_ca_certs:
       schema: str
-      value: undef
+      value: ''
     kombu_ssl_certfile:
       schema: str
-      value: undef
+      value: ''
     kombu_ssl_keyfile:
       schema: str
-      value: undef
+      value: ''
     kombu_ssl_version:
       schema: str
       value: 'TLSv1'
@@ -149,13 +149,13 @@ input:
       value: false
     mysql_module:
       schema: str
-      value: undef
+      value: ''
     sql_connection:
       schema: str
-      value: undef
+      value: ''
     sql_idle_timeout:
       schema: str
-      value: undef
+      value: ''
 
     db_user:
       schema: str!
