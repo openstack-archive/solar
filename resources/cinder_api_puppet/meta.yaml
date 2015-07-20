@@ -1,0 +1,81 @@
+id: cinder_api_puppet
+handler: puppet
+puppet_module: cinder_api
+version: 1.0.0
+input:
+  keystone_enabled:
+    schema: bool
+    value: true
+  keystone_tenant:
+    schema: str
+    value: 'services'
+  keystone_user:
+    schema: str
+    value: 'cinder'
+  keystone_auth_host:
+    schema: str
+    value: 'localhost'
+  keystone_auth_port:
+    schema: int
+    value: 35357
+  keystone_auth_protocol:
+    schema: str
+    value: 'http'
+  keystone_auth_admin_prefix:
+    schema: bool
+    value: false
+  keystone_auth_uri:
+    schema: bool
+    value: false
+  os_region_name:
+    schema: str
+    value: undef
+  service_port:
+    schema: int
+    value: 5000
+  service_workers:
+    schema: str
+    value: $::processorcount
+  package_ensure:
+    schema: str
+    value: 'present'
+  bind_host:
+    schema: str
+    value: '0.0.0.0'
+  enabled:
+    schema: bool
+    value: true
+  manage_service:
+    schema: bool
+    value: true
+  ratelimits:
+    schema: str
+    value: undef
+  default_volume_type:
+    schema: bool
+    value: false
+  ratelimits_factory:
+    schema: str
+    value: 
+  validate:
+    schema: bool
+    value: false
+  validation_options:
+    schema: {}
+    value: {}
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder_api', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/cinder_api_service, resources/cinder_api]
