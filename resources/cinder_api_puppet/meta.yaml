@@ -37,8 +37,8 @@ input:
     schema: int
     value: 5000
   service_workers:
-    schema: str
-    value: $::processorcount
+    schema: int
+    value: 1
   package_ensure:
     schema: str
     value: 'present'
