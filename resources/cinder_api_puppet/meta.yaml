@@ -32,7 +32,7 @@ input:
       value: false
     os_region_name:
       schema: str
-      value: undef
+      value: ''
     service_port:
       schema: int
       value: 5000
@@ -53,7 +53,7 @@ input:
       value: true
     ratelimits:
       schema: str
-      value: undef
+      value: ''
     default_volume_type:
       schema: bool
       value: false
