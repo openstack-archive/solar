@@ -1,4 +1,4 @@
-$resource = hiera('{{ resource_name }}')
+$resource = hiera($::resource_name)
 
 $ip = $resource['input']['ip']['value']
 
@@ -6,6 +6,7 @@ $rabbitmq_user = $resource['input']['rabbitmq_user']['value']
 $rabbitmq_password = $resource['input']['rabbitmq_password']['value']
 $rabbitmq_host = $resource['input']['rabbitmq_host']['value']
 $rabbitmq_port = $resource['input']['rabbitmq_port']['value']
+$rabbitmq_virtual_host = $resource['input']['rabbitmq_virtual_host']['value']
 
 $keystone_host = $resource['input']['keystone_host']['value']
 $keystone_port = $resource['input']['keystone_port']['value']
@@ -23,6 +24,7 @@ class { 'neutron':
   rabbit_password => $rabbitmq_password,
   rabbit_host     => $rabbitmq_host,
   rabbit_port     => $rabbitmq_port,
+  rabbit_virtual_host => $rabbitmq_virtual_host,
   service_plugins => ['metering']
 }
 

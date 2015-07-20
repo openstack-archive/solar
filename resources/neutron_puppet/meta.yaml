@@ -24,6 +24,9 @@ input:
   rabbitmq_password:
     schema: str!
     value: ''
+  rabbitmq_virtual_host:
+    schema: str!
+    value: ''
 
   git:
     schema: {repository: str!, branch: str!}

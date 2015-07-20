@@ -154,17 +154,14 @@ def deploy():
 
     # NEUTRON
     # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
-    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
-        'rabbitmq_user': 'guest',
-        'rabbitmq_password': 'guest'
-    })[0]
+    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
 
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {
         'user_name': 'neutron',
         'user_password': 'neutron'
     })[0]
     neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {
-        'role_name': 'neutron'
+        'role_name': 'admin'
     })[0]
     neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
         'endpoint_name': 'neutron',
@@ -180,6 +177,11 @@ def deploy():
         'ip': 'rabbitmq_host',
         'port': 'rabbitmq_port'
     })
+    signals.connect(openstack_rabbitmq_user, neutron_puppet, {
+        'user_name': 'rabbitmq_user',
+        'password': 'rabbitmq_password'})
+    signals.connect(openstack_vhost, neutron_puppet, {
+        'vhost_name': 'rabbitmq_virtual_host'})
     signals.connect(admin_user, neutron_puppet, {
         'user_name': 'keystone_user',
         'user_password': 'keystone_password',
