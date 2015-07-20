@@ -60,6 +60,9 @@ def deploy():
         'password': 'openstack_password'
     })[0]
 
+    signals.connect(node1, rabbitmq_service1)
+    signals.connect(rabbitmq_service1, openstack_vhost)
+    signals.connect(rabbitmq_service1, openstack_rabbitmq_user)
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {
         'vhost_name',
     })
