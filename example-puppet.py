@@ -218,9 +218,9 @@ def deploy():
         'cinder_keystone_service_endpoint',
         'resources/keystone_service_endpoint', {
             'endpoint_name': 'cinder',
-            'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
-            'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
-            'publicurl': 'http://{{public_ip}}:{{public_port}}',
+            'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2/%(tenant_id)s',
+            'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
+            'publicurl': 'http://{{public_ip}}:{{public_port}}/v2/%(tenant_id)s',
             'description': 'OpenStack Block Storage Service', 'type': 'volume'})[0]
 
     signals.connect(node1, cinder_puppet)
