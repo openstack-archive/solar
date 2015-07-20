@@ -259,6 +259,15 @@ def deploy():
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
     
+    # CINDER API
+    cinder_api_puppet = vr.create('cinder_api_puppet', 'resources/cinder_api_puppet', {})[0]
+    signals.connect(node1, cinder_api_puppet)
+    signals.connect(cinder_puppet, cinder_api_puppet, {
+        'keystone_password', 'keystone_tenant', 'keystone_user'})
+    signals.connect(cinder_puppet, cinder_api_puppet, {
+        'keystone_host': 'keystone_auth_host',
+        'keystone_port': 'keystone_auth_port'})
+
     # NOVA
     # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
     # # TODO: fix rabbitmq user/password
@@ -328,6 +337,7 @@ def deploy():
     actions.resource_action(cinder_keystone_role, 'run')
     actions.resource_action(cinder_puppet, 'run')
     actions.resource_action(cinder_keystone_service_endpoint, 'run')
+    actions.resource_action(cinder_api_puppet, 'run')
 
     # actions.resource_action(nova_keystone_user, 'run')
     # actions.resource_action(nova_keystone_role, 'run')
@@ -343,6 +353,7 @@ def undeploy():
     db = get_db()
 
     to_remove = [
+        'cinder_api_puppet',
         'cinder_keystone_service_endpoint',
         'cinder_puppet',
         'cinder_keystone_role',
