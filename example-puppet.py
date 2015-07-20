@@ -240,12 +240,11 @@ def deploy():
     signals.connect(cinder_keystone_user, cinder_puppet, {'user_name': 'keystone_user', 'tenant_name': 'keystone_tenant', 'user_password': 'keystone_password'})
     signals.connect(mariadb_service1, cinder_puppet, {'ip':'ip'})
     signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {
-        'ip': 'ip', 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',})
+        'ip': ['ip', 'keystone_host'], 'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',})
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
-        'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
-    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'admin_ip', 'port': 'admin_port'})
-    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'internal_ip', 'port': 'internal_port'})
-    signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {'ip': 'public_ip', 'port': 'public_port'})
+        'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token',
+        'ip': ['admin_ip', 'internal_ip', 'public_ip'],
+        'port': ['admin_port', 'internal_port', 'public_port'],})
     
     # NOVA
     # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
