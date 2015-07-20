@@ -213,7 +213,7 @@ def deploy():
     cinder_keystone_user = vr.create('cinder_keystone_user', 'resources/keystone_user', {
         'user_name': 'cinder', 'user_password': 'cinder'})[0]
     cinder_keystone_role = vr.create('cinder_keystone_role', 'resources/keystone_role', {
-        'role_name': 'cinder'})[0]
+        'role_name': 'admin'})[0]
     cinder_keystone_service_endpoint = vr.create(
         'cinder_keystone_service_endpoint',
         'resources/keystone_service_endpoint', {
