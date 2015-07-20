@@ -24,6 +24,13 @@ $ratelimits_factory          = $resource['input']['ratelimits_factory']['value']
 $validate                    = $resource['input']['validate']['value']
 $validation_options          = $resource['input']['validation_options']['value']
 
+include cinder::params
+
+package { 'cinder':
+  ensure  => $package_ensure,
+  name    => $::cinder::params::package_name,
+} ->
+
 class {'cinder::api':
   keystone_password           => $keystone_password,
   keystone_enabled            => $keystone_enabled,
