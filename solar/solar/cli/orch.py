@@ -39,10 +39,11 @@ def update(uid, plan):
 @click.argument('uid')
 def report(uid):
     colors = {
-        'PENDING': 'blue',
+        'PENDING': 'cyan',
         'ERROR': 'red',
         'SUCCESS': 'green',
-        'INPROGRESS': 'yellow'}
+        'INPROGRESS': 'yellow',
+        'SKIPPED': 'blue'}
 
     report = graph.report_topo(uid)
     for item in report:
@@ -81,7 +82,14 @@ def stop(uid):
     # using revoke(terminate=True) will lead to inability to restart execution
     # research possibility of customizations of
     # app.control and Panel.register in celery
-    graph.soft_stop(uid)
+    tasks.soft_stop.apply_async(args=[uid], queue='scheduler')
+
+
+@orchestration.command()
+@click.argument('uid')
+def resume(uid):
+    graph.reset(uid, ['SKIPPED'])
+    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
@@ -97,10 +105,11 @@ def dg(uid):
     plan = graph.get_graph(uid)
 
     colors = {
-        'PENDING': 'blue',
+        'PENDING': 'cyan',
         'ERROR': 'red',
         'SUCCESS': 'green',
-        'INPROGRESS': 'yellow'}
+        'INPROGRESS': 'yellow',
+        'SKIPPED': 'blue'}
 
     for n in plan:
         color = colors[plan.node[n]['status']]
