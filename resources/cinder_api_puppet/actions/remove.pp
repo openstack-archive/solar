@@ -1,6 +1,7 @@
 class {'cinder::api':
   enabled            => false,
-  package_ensure     => 'absent'
+  package_ensure     => 'absent',
+  keystone_password  => 'not important as removed',
 }
 
 include cinder::params

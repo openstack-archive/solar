@@ -1,4 +1,4 @@
-$resource = hiera('{{ resource_name }}')
+$resource = hiera($::resource_name)
 
 $ip = $resource['input']['ip']['value']
 
