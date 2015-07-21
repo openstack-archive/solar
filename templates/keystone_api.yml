@@ -10,8 +10,8 @@ resources:
       db_user: '{{db_user}}'
       db_password: '{{db_password}}'
 
-      admin_port: '{{admin_port}}'
-      port: '{{port}}'
+      admin_port: {{admin_port}}
+      port: {{port}}
       ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'
       ssh_key: '{{ssh_key}}'
