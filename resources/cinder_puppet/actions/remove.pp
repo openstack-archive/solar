@@ -1,4 +1,4 @@
 class {'cinder':
-  enabled            => false,
-  package_ensure     => 'absent'
+  package_ensure     => 'absent',
+  rabbit_password    => 'not important as removed',
 }
