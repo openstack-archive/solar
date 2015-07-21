@@ -15,6 +15,9 @@ input:
     db_name:
       schema: str!
       value: keystone
+    db_host:
+      schema: str!
+      value: keystone
 
     admin_port:
       schema: int!
