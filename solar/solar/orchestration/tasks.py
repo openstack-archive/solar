@@ -14,6 +14,7 @@ from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
 from solar.orchestration.runner import app
+from solar.orchestration.traversal import traversal
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
@@ -103,7 +104,7 @@ def anchor(ctxt, *args):
 
 
 def schedule(plan_uid, dg):
-    next_tasks = list(traverse(dg))
+    next_tasks = list(traverse(dg, control_tasks=(fault_tolerance,)))
     graph.save_graph(plan_uid, dg)
     group(next_tasks)()
 
@@ -136,62 +137,3 @@ def schedule_next(task_id, status, errmsg=None):
     dg.node[task_name]['errmsg'] = errmsg
 
     schedule(plan_uid, dg)
-
-# TODO(dshulyak) some tasks should be evaluated even if not all predecessors
-# succeded, how to identify this?
-# - add ignor_error on edge
-# - add ignore_predecessor_errors on task in consideration
-# - make fault_tolerance not a task but a policy for all tasks
-control_tasks = [fault_tolerance, anchor]
-
-
-def traverse(dg):
-    """
-    1. Node should be visited only when all predecessors already visited
-    2. Visited nodes should have any state except PENDING, INPROGRESS, for now
-    is SUCCESS or ERROR, but it can be extended
-    3. If node is INPROGRESS it should not be visited once again
-    """
-    visited = set()
-    for node in dg:
-        data = dg.node[node]
-        if data['status'] not in ('PENDING', 'INPROGRESS', 'SKIPPED'):
-            visited.add(node)
-
-    for node in dg:
-        data = dg.node[node]
-
-        if node in visited:
-            continue
-        elif data['status'] in ('INPROGRESS', 'SKIPPED'):
-            continue
-
-        predecessors = set(dg.predecessors(node))
-
-        if predecessors <= visited:
-            task_id = '{}:{}'.format(dg.graph['uid'], node)
-
-            task_name = '{}.{}'.format(__name__, data['type'])
-            task = app.tasks[task_name]
-
-            if all_success(dg, predecessors) or task in control_tasks:
-                dg.node[node]['status'] = 'INPROGRESS'
-                for t in generate_task(task, dg, data, task_id):
-                    yield t
-
-
-def generate_task(task, dg, data, task_id):
-
-    subtask = task.subtask(
-        data['args'], task_id=task_id,
-        time_limit=data.get('time_limit', None),
-        soft_time_limit=data.get('soft_time_limit', None))
-
-    if data.get('target', None):
-        subtask.set(queue=data['target'])
-
-    yield subtask
-
-
-def all_success(dg, nodes):
-    return all((dg.node[n]['status'] == 'SUCCESS' for n in nodes))
