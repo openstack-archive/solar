@@ -204,8 +204,7 @@ def deploy():
     })
 
     # CINDER
-    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {
-        'rabbit_userid': 'guest', 'rabbit_password': 'guest'})[0]
+    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
     cinder_db = vr.create('cinder_db', 'resources/mariadb_db/', {
         'db_name': 'cinder_db', 'login_user': 'root'})[0]
     cinder_db_user = vr.create('cinder_db_user', 'resources/mariadb_user/', {
@@ -229,7 +228,7 @@ def deploy():
     signals.connect(rabbitmq_service1, cinder_puppet, {'ip': 'rabbit_host', 'port': 'rabbit_port'})
     signals.connect(admin_user, cinder_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'}) #?
     signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
-    #signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
+    signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
     signals.connect(mariadb_service1, cinder_db, {'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(mariadb_service1, cinder_db_user, {'port': 'login_port', 'root_password': 'login_password'})
     signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
