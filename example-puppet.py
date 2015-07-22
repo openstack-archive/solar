@@ -272,6 +272,11 @@ def deploy():
     cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     signals.connect(node1, cinder_scheduler_puppet)
     signals.connect(cinder_puppet, cinder_scheduler_puppet)
+
+    # CINDER VOLUME
+    cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
+    signals.connect(node1, cinder_volume_puppet)
+    signals.connect(cinder_puppet, cinder_volume_puppet)
     
     # NOVA
     # #nova_network_puppet = vr.create('nova_network_puppet', GitProvider(GIT_PUPPET_LIBS_URL, 'nova_network'), {'rabbitmq_user': 'guest', 'rabbitmq_password': 'guest'})[0]
@@ -344,7 +349,7 @@ def deploy():
     actions.resource_action(cinder_keystone_service_endpoint, 'run')
     actions.resource_action(cinder_api_puppet, 'run')
     actions.resource_action(cinder_scheduler_puppet, 'run')
-
+    actions.resource_action(cinder_volume_puppet, 'run')
     # actions.resource_action(nova_keystone_user, 'run')
     # actions.resource_action(nova_keystone_role, 'run')
 
@@ -359,6 +364,7 @@ def undeploy():
     db = get_db()
 
     to_remove = [
+        'cinder_volume_puppet',
         'cinder_scheduler_puppet',
         'cinder_api_puppet',
         'cinder_keystone_service_endpoint',

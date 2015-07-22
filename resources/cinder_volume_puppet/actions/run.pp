@@ -10,7 +10,7 @@ package { 'cinder':
 } ->
 
 class {'cinder::volume':
-package_ensure    => $package_ensure,
-enabled           => true,
-manage_service    => true,
+  package_ensure    => $package_ensure,
+  enabled           => true,
+  manage_service    => true,
 }

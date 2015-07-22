@@ -9,4 +9,4 @@ def test(resource):
 #        'http://%s:%s' % (resource.args['ip'].value, resource.args['port'].value)
 # TODO(bogdando) figure out how to test this
 # http://docs.openstack.org/developer/nova/devref/volume.html
-    )
+#    )
