@@ -69,13 +69,13 @@ def deploy():
 
     # KEYSTONE
     keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
-    keystone_db = vr.create('keystone_db', 'resources/mariadb_keystone_db/', {
+    keystone_db = vr.create('keystone_db', 'resources/mariadb_db/', {
         'db_name': 'keystone_db',
         'login_user': 'root'
     })[0]
-    keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_keystone_user/', {
-        'new_user_name': 'keystone',
-        'new_user_password': 'keystone',
+    keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_user/', {
+        'user_name': 'keystone',
+        'user_password': 'keystone',
     })[0]
     keystone_service_endpoint = vr.create('keystone_service_endpoint', 'resources/keystone_service_endpoint', {
         'endpoint_name': 'keystone',
@@ -107,12 +107,14 @@ def deploy():
         'port': 'login_port',
         'root_user': 'login_user',
         'root_password': 'login_password',
+        'ip' : 'db_host',
     })
     signals.connect(keystone_db, keystone_db_user, {
         'db_name',
         'login_port',
         'login_user',
-        'login_password'
+        'login_password',
+        'db_host'
     })
 
     signals.connect(node1, keystone_service_endpoint)
@@ -141,8 +143,9 @@ def deploy():
         'db_name',
     })
     signals.connect(keystone_db_user, keystone_puppet, {
-        'new_user_name': 'db_user',
-        'new_user_password': 'db_password'
+        'user_name': 'db_user',
+        'user_password': 'db_password',
+        'db_host' : 'db_host'
     })
 
     # OPENRC
