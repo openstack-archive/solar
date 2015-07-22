@@ -9,12 +9,6 @@ input:
     package_ensure:
       schema: str
       value: 'present'
-    enabled:
-      schema: bool
-      value: true
-    manage_service:
-      schema: bool
-      value: true
 
     git:
       schema: {repository: str!, branch: str!}
