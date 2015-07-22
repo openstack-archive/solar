@@ -1,0 +1,30 @@
+id: cinder_volume_puppet
+handler: puppet
+puppet_module: cinder_volume
+version: 1.0.0
+input:
+    package_ensure:
+      schema: str
+      value: 'present'
+    enabled:
+      schema: bool
+      value: true
+    manage_service:
+      schema: bool
+      value: true
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/cinder_volume_service, resources/cinder_volume, resources/cinder]
