@@ -35,18 +35,17 @@ resources:
     from: templates/keystone_api.yml
     values:
       idx: 1
-      image: 'kollaglue/centos-rdo-k-keystone'
-      config_dir: '/etc/solar/keystone_config_1'
       db_password: 'keystone_db_user::user_password'
       db_user: 'keystone_db_user::user_name'
       db_port: 'keystone_db_user::login_port'
       db_name: 'keystone_db_user::db_name'
       db_host: 'mariadb_service::ip'
+      admin_token: 132fdsfwqee
+      admin_port: 35357
+      port: 5000
       ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'
       ssh_key: '{{ssh_key}}'
-
-  # TODO: HAproxy
 
   - id: openstack_base
     from: templates/openstack_base.yml
@@ -57,34 +56,20 @@ resources:
       keystone_ip: 'keystone_service_1::ip'
       keystone_admin_port: 'keystone_service_1::admin_port'
       keystone_port: 'keystone_service_1::port'
-      admin_token: 'keystone_config_1::admin_token'
+      admin_token: 'keystone_service_1::admin_token'
 
-  - id: glance_base
-    from: templates/glance_base.yml
+  - id: openrc_file
+    from: resources/openrc_file
     values:
-      login_user: root
-      login_password: 'mariadb_service::root_password'
-      login_port: 'mariadb_service::port'
-      db_name: 'glance'
-      user_password: 'glance'
-      user_name: 'glance'
+      keystone_host: 'keystone_service_1::ip'
+      keystone_port: 'keystone_service_1::admin_port'
+      tenant: 'admin_user::tenant_name'
+      user_name: 'admin_user::user_name'
+      password: 'admin_user::user_password'
+      
       ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
       ssh_key: '{{ssh_key}}'
-
-  - id: glance_registry_1
-    from: templates/glance_registry.yml
-    values:
-      idx: 1
-      keystone_admin_port: 'keystone_service_1::admin_port'
-      keystone_ip: 'keystone_service_1::ip'
-      mysql_password: 'glance_db_user::user_password'
-      mysql_user: 'keystone_db_user::user_name'
-      mysql_db: 'keystone_db_user::db_name'
-      mysql_ip: 'mariadb_service::ip'
-      ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
 
 tags: ['resources/controller', 'resource/primary_controller']
 

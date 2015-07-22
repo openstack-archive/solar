@@ -1,27 +1,20 @@
 id: keystone_api_{{idx}}
 
 resources:
-  - id: keystone_config_{{idx}}
-    from: resources/keystone_config
+  - id: keystone_service_{{idx}}
+    from: resources/keystone_puppet
     values:
-      config_dir: '/etc/solar/keystone_{{idx}}'
+      admin_token: '{{admin_token}}'
       db_host: '{{db_host}}'
-      db_port: '{{db_port}}'
       db_name: '{{db_name}}'
       db_user: '{{db_user}}'
       db_password: '{{db_password}}'
+
+      admin_port: {{admin_port}}
+      port: {{port}}
       ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'
       ssh_key: '{{ssh_key}}'
 
-
-  - id:  keystone_service_{{idx}}
-    from: resources/keystone_service
-    values:
-      image: 'kollaglue/centos-rdo-j-keystone'
-      config_dir: 'keystone_config_{{idx}}::config_dir'
-      ip: 'keystone_config_{{idx}}::ip'
-      ssh_user: 'keystone_config_{{idx}}::ssh_user'
-      ssh_key: 'keystone_config_{{idx}}::ssh_key'
 
 tags: ['resources/keystone', 'resource/keystone_api']
