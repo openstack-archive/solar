@@ -62,14 +62,6 @@ source https://github.com/openstack/puppet-cinder/blob/5.1.0/manifests/api.pp
    (optional) The cinder api bind address
    Defaults to 0.0.0.0
 
- ``enabled``
-   (optional) The state of the service
-   Defaults to true
-
- ``manage_service``
-   (optional) Whether to start/stop the service
-   Defaults to true
-
  ``ratelimits``
    (optional) The state of the service
    Defaults to undef. If undefined the default ratelimiting values are used.

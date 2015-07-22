@@ -1,7 +1,5 @@
 $resource = hiera($::resource_name)
 
-$ip = $resource['input']['ip']['value']
-
 $keystone_password           = $resource['input']['keystone_password']['value']
 $keystone_enabled            = $resource['input']['keystone_enabled']['value']
 $keystone_tenant             = $resource['input']['keystone_tenant']['value']
@@ -16,8 +14,6 @@ $service_port                = $resource['input']['service_port']['value']
 $service_workers             = $resource['input']['service_workers']['value']
 $package_ensure              = $resource['input']['package_ensure']['value']
 $bind_host                   = $resource['input']['bind_host']['value']
-$enabled                     = $resource['input']['enabled']['value']
-$manage_service              = $resource['input']['manage_service']['value']
 $ratelimits                  = $resource['input']['ratelimits']['value']
 $default_volume_type         = $resource['input']['default_volume_type']['value']
 $ratelimits_factory          = $resource['input']['ratelimits_factory']['value']
@@ -46,8 +42,8 @@ class {'cinder::api':
   service_workers             => $service_workers,
   package_ensure              => $package_ensure,
   bind_host                   => $bind_host,
-  enabled                     => $enabled,
-  manage_service              => $manage_service,
+  enabled                     => true,
+  manage_service              => true,
   ratelimits                  => $ratelimits,
   default_volume_type         => $default_volume_type,
   ratelimits_factory          => $ratelimits_factory,

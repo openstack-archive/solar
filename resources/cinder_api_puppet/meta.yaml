@@ -45,12 +45,6 @@ input:
     bind_host:
       schema: str
       value: '0.0.0.0'
-    enabled:
-      schema: bool
-      value: true
-    manage_service:
-      schema: bool
-      value: true
     ratelimits:
       schema: str
       value: ''
