@@ -1,60 +1,40 @@
+"""
+
+task should be visited only when predecessors are visited,
+visited node could be only in SUCCESS or ERROR
+
+task can be scheduled for execution if it is not yet visited, and state
+not in SKIPPED, INPROGRESS
+
+PENDING - task that is scheduled to be executed
+ERROR - visited node, but failed, can be failed by timeout
+SUCCESS - visited node, successfull
+INPROGRESS - task already scheduled, can be moved to ERROR or SUCCESS
+SKIPPED - not visited, and should be skipped from execution
+"""
 
 
-from solar.orchestration.runner import app
-
+VISITED = ('SUCCESS', 'ERROR')
+BLOCKED = ('INPROGRESS', 'SKIPPED')
 
 # TODO(dshulyak) some tasks should be evaluated even if not all predecessors
 # succeded, how to identify this?
 # - add ignor_error on edge
 # - add ignore_predecessor_errors on task in consideration
 # - make fault_tolerance not a task but a policy for all tasks
-def traverse(dg, control_tasks=()):
-    """
-    1. Node should be visited only when all predecessors already visited
-    2. Visited nodes should have any state except PENDING, INPROGRESS, for now
-    is SUCCESS or ERROR, but it can be extended
-    3. If node is INPROGRESS it should not be visited once again
-    """
+def traverse(dg):
+
     visited = set()
     for node in dg:
         data = dg.node[node]
-        if data['status'] not in ('PENDING', 'INPROGRESS', 'SKIPPED'):
+        if data['status'] in VISITED:
             visited.add(node)
 
     for node in dg:
         data = dg.node[node]
 
-        if node in visited:
-            continue
-        elif data['status'] in ('INPROGRESS', 'SKIPPED'):
+        if node in visited or data['status'] in BLOCKED:
             continue
 
-        predecessors = set(dg.predecessors(node))
-
-        if predecessors <= visited:
-            task_id = '{}:{}'.format(dg.graph['uid'], node)
-
-            task_name = '{}.{}'.format(__name__, data['type'])
-            task = app.tasks[task_name]
-
-            if all_success(dg, predecessors) or task in control_tasks:
-                dg.node[node]['status'] = 'INPROGRESS'
-                for t in generate_task(task, dg, data, task_id):
-                    yield t
-
-
-def generate_task(task, dg, data, task_id):
-
-    subtask = task.subtask(
-        data['args'], task_id=task_id,
-        time_limit=data.get('time_limit', None),
-        soft_time_limit=data.get('soft_time_limit', None))
-
-    if data.get('target', None):
-        subtask.set(queue=data['target'])
-
-    yield subtask
-
-
-def all_success(dg, nodes):
-    return all((dg.node[n]['status'] == 'SUCCESS' for n in nodes))
+        if set(dg.predecessors(node)) <= visited:
+            yield node

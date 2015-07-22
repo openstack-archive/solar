@@ -24,7 +24,7 @@ __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
 
 # NOTE(dshulyak) i am not using celery.signals because it is not possible
-# to extrace task_id from *task_success* signal
+# to extract task_id from *task_success* signal
 class ReportTask(task.Task):
 
     def on_success(self, retval, task_id, args, kwargs):
@@ -42,13 +42,13 @@ class ReportTask(task.Task):
 report_task = partial(app.task, base=ReportTask, bind=True)
 
 
-@report_task
+@report_task(name='solar_resource')
 def solar_resource(ctxt, resource_name, action):
     res = resource.load(resource_name)
     return actions.resource_action(res, action)
 
 
-@report_task
+@report_task(name='cmd')
 def cmd(ctxt, cmd):
     popen = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -59,17 +59,17 @@ def cmd(ctxt, cmd):
     return popen.returncode, out, err
 
 
-@report_task
+@report_task(name='sleep')
 def sleep(ctxt, seconds):
     time.sleep(seconds)
 
 
-@report_task
+@report_task(name='error')
 def error(ctxt, message):
     raise Exception('message')
 
 
-@report_task
+@report_task(name='fault_tolerance')
 def fault_tolerance(ctxt, percent):
     task_id = ctxt.request.id
     plan_uid, task_name = task_id.rsplit(':', 1)
@@ -89,12 +89,12 @@ def fault_tolerance(ctxt, percent):
             succes_percent, percent))
 
 
-@report_task
+@report_task(name='echo')
 def echo(ctxt, message):
     return message
 
 
-@report_task
+@report_task(name='anchor')
 def anchor(ctxt, *args):
     # such tasks should be walked when atleast 1/3/exact number of resources visited
     dg = graph.get_graph('current')
@@ -104,12 +104,12 @@ def anchor(ctxt, *args):
 
 
 def schedule(plan_uid, dg):
-    next_tasks = list(traverse(dg, control_tasks=(fault_tolerance,)))
+    next_tasks = list(traverse(dg, control_tasks=('fault_tolerance',)))
     graph.save_graph(plan_uid, dg)
     group(next_tasks)()
 
 
-@app.task
+@app.task(name='schedule_start')
 def schedule_start(plan_uid, start=None, end=None):
     """On receive finished task should update storage with task result:
 
@@ -120,7 +120,7 @@ def schedule_start(plan_uid, start=None, end=None):
     schedule(plan_uid, dg)
 
 
-@app.task
+@app.task(name='soft_stop')
 def soft_stop(plan_uid):
     dg = graph.get_graph(plan_uid)
     for n in dg:
@@ -129,7 +129,7 @@ def soft_stop(plan_uid):
     graph.save_graph(plan_uid, dg)
 
 
-@app.task
+@app.task(name='schedule_next')
 def schedule_next(task_id, status, errmsg=None):
     plan_uid, task_name = task_id.rsplit(':', 1)
     dg = graph.get_graph(plan_uid)
