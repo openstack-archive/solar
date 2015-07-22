@@ -5,6 +5,8 @@ $package_ensure    = $resource['input']['package_ensure']['value']
 $enabled           = $resource['input']['enabled']['value']
 $manage_service    = $resource['input']['manage_service']['value']
 
+include cinder::params
+
 package { 'cinder':
   ensure  => $package_ensure,
   name    => $::cinder::params::package_name,

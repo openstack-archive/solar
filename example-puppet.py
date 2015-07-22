@@ -269,7 +269,7 @@ def deploy():
         'keystone_port': 'keystone_auth_port'})
 
     # CINDER SCHEDULER
-    cinder_api_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
+    cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     signals.connect(node1, cinder_scheduler_puppet)
     signals.connect(cinder_puppet, cinder_scheduler_puppet)
     
