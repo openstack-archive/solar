@@ -166,6 +166,9 @@ input:
     db_name:
       schema: str!
       value: cinder
+    db_host:
+      schema: str!
+      value: 
 
     port:
       schema: int!
