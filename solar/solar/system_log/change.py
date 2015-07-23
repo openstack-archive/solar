@@ -89,7 +89,7 @@ def send_to_orchestration():
               for r in resource.load_all().values()}
     commited = data.CD()
 
-    for res_uid in conn_graph:
+    for res_uid in nx.topological_sort(conn_graph):
         commited_data = commited.get(res_uid, {})
         staged_data = staged.get(res_uid, {})
 
@@ -101,7 +101,8 @@ def send_to_orchestration():
                 errmsg=None,
                 **parameters(res_uid, guess_action(commited_data, staged_data)))
             for pred in conn_graph.predecessors(res_uid):
-                dg.add_edge(pred, res_uid)
+                if pred in dg:
+                    dg.add_edge(pred, res_uid)
 
     # what it should be?
     dg.graph['name'] = 'system_log'
