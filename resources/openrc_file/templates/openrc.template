@@ -7,3 +7,4 @@ export OS_PASSWORD={{password}}
 export OS_AUTH_URL=http://{{keystone_host}}:{{keystone_port}}/v2.0
 export OS_AUTH_STRATEGY=keystone
 export OS_REGION_NAME='RegionOne'
+export OS_VOLUME_API_VERSION='2'
