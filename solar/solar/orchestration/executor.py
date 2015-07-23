@@ -5,15 +5,17 @@ from celery import group
 
 def celery_executor(dg, tasks, control_tasks=()):
     to_execute = []
-    for task in tasks:
+
+    for task_name in tasks:
+
         # task_id needs to be unique, so for each plan we will use
         # generated uid of this plan and task_name
-        task_id = '{}.{}'.format(dg.graph['uid'], task)
-        task = app.tasks[dg.node[task]['type']]
+        task_id = '{}:{}'.format(dg.graph['uid'], task_name)
+        task = app.tasks[dg.node[task_name]['type']]
 
-        if all_success(dg, dg.predecessors(task)) or task in control_tasks:
-            dg.node[task]['status'] = 'INPROGRESS'
-            for t in generate_task(task, dg.node[task], task_id):
+        if all_success(dg, dg.predecessors(task_name)) or task_name in control_tasks:
+            dg.node[task_name]['status'] = 'INPROGRESS'
+            for t in generate_task(task, dg.node[task_name], task_id):
                 to_execute.append(t)
     return group(to_execute)
 

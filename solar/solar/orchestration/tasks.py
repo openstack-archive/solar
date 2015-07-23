@@ -111,7 +111,6 @@ def schedule(plan_uid, dg):
         tasks)
     execution = executor.celery_executor(
         dg, limit_chain, control_tasks=('fault_tolerance',))
-
     graph.save_graph(plan_uid, dg)
     execution()
 
