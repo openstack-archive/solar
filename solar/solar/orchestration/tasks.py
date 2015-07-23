@@ -5,8 +5,6 @@ import subprocess
 import time
 
 from celery.app import task
-from celery import group
-from celery.exceptions import Ignore
 import redis
 
 from solar.orchestration import graph
@@ -14,7 +12,9 @@ from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
 from solar.orchestration.runner import app
-from solar.orchestration.traversal import traversal
+from solar.orchestration.traversal import traverse
+from solar.orchestration import limits
+from solar.orchestration import executor
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
@@ -104,9 +104,16 @@ def anchor(ctxt, *args):
 
 
 def schedule(plan_uid, dg):
-    next_tasks = list(traverse(dg, control_tasks=('fault_tolerance',)))
+    tasks = traverse(dg)
+    limit_chain = limits.get_default_chain(
+        dg,
+        [t for t in dg if dg.node[t]['status'] == 'INPROGRESS'],
+        tasks)
+    execution = executor.celery_executor(
+        dg, limit_chain, control_tasks=('fault_tolerance',))
+
     graph.save_graph(plan_uid, dg)
-    group(next_tasks)()
+    execution()
 
 
 @app.task(name='schedule_start')
