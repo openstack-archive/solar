@@ -1,0 +1,186 @@
+id: cinder_scheduler_puppet
+handler: puppet
+puppet_module: cinder_scheduler
+version: 1.0.0
+input:
+    apache_name:
+      schema: str
+      value: 'apache2'
+    service_name:
+      schema: str
+      value: 'apache2'
+    default_mods:
+      schema: bool
+      value: true
+    default_vhost:
+      schema: bool
+      value: true
+    default_charset:
+      schema: str
+      value: ''
+    default_confd_files:
+      schema: bool
+      value: true
+    default_ssl_vhost:
+      schema: bool
+      value: false
+    default_ssl_cert:
+      schema: str
+      value: '/etc/ssl/certs/ssl-cert-snakeoil.pem'
+    default_ssl_key:
+      schema: str
+      value: '/etc/ssl/private/ssl-cert-snakeoil.key'
+    default_ssl_chain:
+      schema: str
+      value: ''
+    default_ssl_ca:
+      schema: str
+      value: ''
+    default_ssl_crl_path:
+      schema: str
+      value: ''
+    default_ssl_crl:
+      schema: str
+      value: ''
+    default_ssl_crl_check:
+      schema: str
+      value: ''
+    default_type:
+      schema: str
+      value: 'none'
+    service_restart:
+      schema: str
+      value: 'restart'
+    purge_configs:
+      schema: bool
+      value: true
+    purge_vhost_dir:
+      schema: str
+      value: ''
+    purge_vdir:
+      schema: bool
+      value: false
+    serveradmin:
+      schema: str
+      value: 'root@localhost'
+    sendfile:
+      schema: str
+      value: 'On'
+    error_documents:
+      schema: bool
+      value: false
+    timeout:
+      schema: int
+      value: 120
+    httpd_dir:
+      schema: str
+      value: '/etc/apache2'
+    server_root:
+      schema: str
+      value: '/etc/apache2'
+    conf_dir:
+      schema: str
+      value: '/etc/apache2'
+    confd_dir:
+      schema: str
+      value: '/etc/apache2/conf.d'
+    vhost_dir:
+      schema: str
+      value: '/etc/apache2/sites-available'
+    vhost_enable_dir:
+      schema: str
+      value: '/etc/apache2/sites-enabled'
+    mod_dir:
+      schema: str
+      value: '/etc/apache2/mods-available'
+    mod_enable_dir:
+      schema: str
+      value: '/etc/apache2/mods-enabled'
+    mpm_module:
+      schema: str
+      value: 'worker'
+    lib_path:
+      schema: str
+      value: '/usr/lib/apache2/modules'
+    conf_template:
+      schema: str
+      value: 'apache/httpd.conf.erb'
+    servername:
+      schema: str!
+      value: ''
+    manage_user:
+      schema: bool
+      value: true
+    manage_group:
+      schema: bool
+      value: true
+    user:
+      schema: str
+      value: 'www-data'
+    group:
+      schema: str
+      value: 'www-data'
+    keepalive:
+      schema: str
+      value: 'Off'
+    keepalive_timeout:
+      schema: int
+      value: 15
+    max_keepalive_requests:
+      schema: int
+      value: 100
+    logroot:
+      schema: str
+      value: '/var/log/apache2'
+    logroot_mode:
+      schema: str
+      value: '0640'
+    log_level:
+      schema: str
+      value: 'warn'
+    log_formats:
+      schema: {}
+      value: {}
+    ports_file:
+      schema: str
+      value: '/etc/apache2/ports.conf'
+    docroot:
+      schema: str
+      value: '/srv/www'
+    apache_version:
+      schema: str
+      value: '2.4'
+    server_tokens:
+      schema: str
+      value: 'OS'
+    server_signature:
+      schema: str
+      value: 'On'
+    trace_enable:
+      schema: str
+      value: 'On'
+    allow_encoded_slashes:
+      schema: str
+      value: ''
+    package_ensure:
+      schema: str
+      value: 'installed'
+    use_optional_includes:
+      schema: bool
+      value: false
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/puppetlabs/puppetlabs-apache.git', branch: '1.5.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/apache_service, resources/apache]
