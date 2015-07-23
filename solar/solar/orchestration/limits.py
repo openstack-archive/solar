@@ -4,7 +4,7 @@ class Chain(object):
 
     def __init__(self, dg, inprogress, added):
         self.dg = dg
-        self.inprogress
+        self.inprogress = inprogress
         self.added = added
         self.rules = []
 
@@ -18,6 +18,7 @@ class Chain(object):
                 if not rule(self.dg, self.inprogress, item):
                     break
             else:
+                self.inprogress.append(item)
                 yield item
 
     def __iter__(self):
@@ -36,16 +37,21 @@ def type_based_rule(dg, inprogress, item):
     """condition will be specified like:
         type_limit: 2
     """
-    _type = item['resource_type']
+    _type = dg.node[item].get('resource_type')
+    if not 'type_limit' in dg.node[item]: return True
+    if not _type: return True
+
     type_count = 0
     for n in inprogress:
         if dg.node[n].get('resource_type') == _type:
             type_count += 1
-    return item['type_limit'] > type_count
+    return dg.node[item]['type_limit'] > type_count
 
 
 def target_based_rule(dg, inprogress, item, limit=1):
-    target = item['target']
+    target = dg.node[item].get('target')
+    if not target: return True
+
     target_count = 0
     for n in inprogress:
         if dg.node[n].get('target') == target:
@@ -53,5 +59,5 @@ def target_based_rule(dg, inprogress, item, limit=1):
     return limit > target_count
 
 
-def items_rule(dg, inprogress, item, limit=10):
+def items_rule(dg, inprogress, item, limit=100):
     return len(inprogress) < limit
