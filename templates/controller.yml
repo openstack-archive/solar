@@ -25,6 +25,7 @@ resources:
       login_password: 'mariadb_service::root_password'
       login_port: 'mariadb_service::port'
       db_name: 'keystone'
+      db_host: 'mariadb_service::ip'
       user_password: 'keystone'
       user_name: 'keystone'
       ip: '{{ip}}'
