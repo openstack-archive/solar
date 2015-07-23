@@ -14,14 +14,10 @@ SKIPPED - not visited, and should be skipped from execution
 """
 
 
-VISITED = ('SUCCESS', 'ERROR')
+VISITED = ('SUCCESS', 'ERROR', 'NOOP')
 BLOCKED = ('INPROGRESS', 'SKIPPED')
 
-# TODO(dshulyak) some tasks should be evaluated even if not all predecessors
-# succeded, how to identify this?
-# - add ignor_error on edge
-# - add ignore_predecessor_errors on task in consideration
-# - make fault_tolerance not a task but a policy for all tasks
+
 def traverse(dg):
 
     visited = set()
