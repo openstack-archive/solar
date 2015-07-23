@@ -229,10 +229,18 @@ def deploy():
     signals.connect(admin_user, cinder_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'}) #?
     signals.connect(openstack_vhost, cinder_puppet, {'vhost_name': 'rabbit_virtual_host'})
     signals.connect(openstack_rabbitmq_user, cinder_puppet, {'user_name': 'rabbit_userid', 'password': 'rabbit_password'})
-    signals.connect(mariadb_service1, cinder_db, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(mariadb_service1, cinder_db, {
+        'port': 'login_port',
+        'root_password': 'login_password',
+        'root_user': 'login_user',
+        'ip' : 'db_host'})
     signals.connect(mariadb_service1, cinder_db_user, {'port': 'login_port', 'root_password': 'login_password'})
-    signals.connect(cinder_db, cinder_db_user, {'db_name': 'db_name'})
-    signals.connect(cinder_db_user, cinder_puppet, {'user_name':'db_user', 'db_name':'db_name', 'user_password':'db_password'})
+    signals.connect(cinder_db, cinder_db_user, {'db_name', 'db_host'})
+    signals.connect(cinder_db_user, cinder_puppet, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'})
     signals.connect(keystone_puppet, cinder_puppet, {'ip': 'keystone_host', 'admin_port': 'keystone_port'}) #or non admin port?
     signals.connect(services_tenant, cinder_keystone_user)
     signals.connect(cinder_keystone_user, cinder_keystone_role)
