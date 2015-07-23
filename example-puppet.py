@@ -7,6 +7,7 @@ from solar.core import resource
 from solar.core import signals
 from solar.core import validation
 from solar.core.resource import virtual_resource as vr
+from solar import errors
 
 from solar.interfaces.db import get_db
 
@@ -350,7 +351,10 @@ def undeploy():
     resources = {r.name: r for r in resources}
 
     for name in to_remove:
-        actions.resource_action(resources[name], 'remove')
+        try:
+            actions.resource_action(resources[name], 'remove')
+        except errors.SolarError as e:
+            print 'WARNING: %s' % str(e)
 
     #actions.resource_action(resources['nova_keystone_service_endpoint'], 'remove' )
     # actions.resource_action(resources['nova_network_puppet'], 'remove' )
