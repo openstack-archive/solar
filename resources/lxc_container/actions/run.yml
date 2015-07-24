@@ -2,18 +2,31 @@
 - hosts: '*'
   sudo: yes
   gather_facts: false
+  # this is default variables, they will be overwritten by resource one
   vars:
-    ansible_ssh_host: 10.0.3.2
-    container_address: 10.0.3.2
-    container_name: test1
+    ansible_ssh_host: 10.0.0.4
+    container_name: test2
+    inventory_hostname: test2
     container_networks:
-        management_address: 10.0.3.2
-        bridge: lxcbr0
-        interface: eth1
-        netmask: 255.255.255.0
-        type: veth
-    physical_host: 10.0.0.3
+        mgmt:
+            address: 172.18.10.5
+            bridge: br-test0
+            bridge_address: 172.18.10.253/24
+            interface: eth1
+            netmask: 255.255.255.0
+            type: veth
+    physical_host: 10.0.0.4
     properties:
         container_release: trusty
+  pre_tasks:
+    - shell: pip install git+https://github.com/lxc/python2-lxc.git#egg=lxc
+    - shell: ip l add {{item.value.bridge}} type bridge
+      with_dict: container_networks
+      ignore_errors: true
+    - shell: ip l set {{item.value.bridge}} up
+      with_dict: container_networks
+    - shell: ip a add dev {{item.value.bridge}} {{item.value.bridge_address}}
+      with_dict: container_networks
+      ignore_errors: true
   roles:
     - { role: "lxc_container_create", tags: [ "lxc-container-create" ] }

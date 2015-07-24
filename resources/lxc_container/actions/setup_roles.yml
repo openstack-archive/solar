@@ -1,0 +1,10 @@
+
+- stat: path=/tmp/os-ansible-deployment
+  register: repo
+- git: repo=https://github.com/stackforge/os-ansible-deployment.git
+       dest=/tmp/os-ansible-deployment
+  when: repo.stat.exists == False
+- shell: cp -r /tmp/os-ansible-deployment/playbooks/roles/{{item}} /etc/ansible/roles/
+  with_items:
+    - lxc_container_create
+    - lxc_container_destroy
