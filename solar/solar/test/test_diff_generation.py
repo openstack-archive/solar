@@ -3,7 +3,7 @@ from pytest import fixture
 from dictdiffer import revert, patch
 import networkx as nx
 
-from solar import operations
+from solar.system_log import change
 from solar.core.resource import wrap_resource
 
 
@@ -32,12 +32,12 @@ def commited():
 
 @fixture
 def full_diff(staged):
-    return operations.create_diff(staged, {})
+    return change.create_diff(staged, {})
 
 
 @fixture
 def diff_for_update(staged, commited):
-    return operations.create_diff(staged, commited)
+    return change.create_diff(staged, commited)
 
 
 def test_create_diff_with_empty_commited(full_diff):
@@ -98,7 +98,7 @@ def conn_graph():
 
 def test_stage_changes(resources, conn_graph):
     commited = {}
-    log = operations._stage_changes(resources, conn_graph, commited, [])
+    log = change._stage_changes(resources, conn_graph, commited, [])
 
     assert len(log) == 3
     assert [l.res for l in log] == ['n.1', 'r.1', 'h.1']

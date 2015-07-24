@@ -5,8 +5,6 @@ import subprocess
 import time
 
 from celery.app import task
-from celery import group
-from celery.exceptions import Ignore
 import redis
 
 from solar.orchestration import graph
@@ -14,6 +12,9 @@ from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
 from solar.orchestration.runner import app
+from solar.orchestration.traversal import traverse
+from solar.orchestration import limits
+from solar.orchestration import executor
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
@@ -23,7 +24,7 @@ __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
 
 # NOTE(dshulyak) i am not using celery.signals because it is not possible
-# to extrace task_id from *task_success* signal
+# to extract task_id from *task_success* signal
 class ReportTask(task.Task):
 
     def on_success(self, retval, task_id, args, kwargs):
@@ -41,13 +42,13 @@ class ReportTask(task.Task):
 report_task = partial(app.task, base=ReportTask, bind=True)
 
 
-@report_task
+@report_task(name='solar_resource')
 def solar_resource(ctxt, resource_name, action):
     res = resource.load(resource_name)
     return actions.resource_action(res, action)
 
 
-@report_task
+@report_task(name='cmd')
 def cmd(ctxt, cmd):
     popen = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -58,17 +59,17 @@ def cmd(ctxt, cmd):
     return popen.returncode, out, err
 
 
-@report_task
+@report_task(name='sleep')
 def sleep(ctxt, seconds):
     time.sleep(seconds)
 
 
-@report_task
+@report_task(name='error')
 def error(ctxt, message):
     raise Exception('message')
 
 
-@report_task
+@report_task(name='fault_tolerance')
 def fault_tolerance(ctxt, percent):
     task_id = ctxt.request.id
     plan_uid, task_name = task_id.rsplit(':', 1)
@@ -88,12 +89,12 @@ def fault_tolerance(ctxt, percent):
             succes_percent, percent))
 
 
-@report_task
+@report_task(name='echo')
 def echo(ctxt, message):
     return message
 
 
-@report_task
+@report_task(name='anchor')
 def anchor(ctxt, *args):
     # such tasks should be walked when atleast 1/3/exact number of resources visited
     dg = graph.get_graph('current')
@@ -103,12 +104,18 @@ def anchor(ctxt, *args):
 
 
 def schedule(plan_uid, dg):
-    next_tasks = list(traverse(dg))
+    tasks = traverse(dg)
+    limit_chain = limits.get_default_chain(
+        dg,
+        [t for t in dg if dg.node[t]['status'] == 'INPROGRESS'],
+        tasks)
+    execution = executor.celery_executor(
+        dg, limit_chain, control_tasks=('fault_tolerance',))
     graph.save_graph(plan_uid, dg)
-    group(next_tasks)()
+    execution()
 
 
-@app.task
+@app.task(name='schedule_start')
 def schedule_start(plan_uid, start=None, end=None):
     """On receive finished task should update storage with task result:
 
@@ -119,7 +126,7 @@ def schedule_start(plan_uid, start=None, end=None):
     schedule(plan_uid, dg)
 
 
-@app.task
+@app.task(name='soft_stop')
 def soft_stop(plan_uid):
     dg = graph.get_graph(plan_uid)
     for n in dg:
@@ -128,7 +135,7 @@ def soft_stop(plan_uid):
     graph.save_graph(plan_uid, dg)
 
 
-@app.task
+@app.task(name='schedule_next')
 def schedule_next(task_id, status, errmsg=None):
     plan_uid, task_name = task_id.rsplit(':', 1)
     dg = graph.get_graph(plan_uid)
@@ -136,62 +143,3 @@ def schedule_next(task_id, status, errmsg=None):
     dg.node[task_name]['errmsg'] = errmsg
 
     schedule(plan_uid, dg)
-
-# TODO(dshulyak) some tasks should be evaluated even if not all predecessors
-# succeded, how to identify this?
-# - add ignor_error on edge
-# - add ignore_predecessor_errors on task in consideration
-# - make fault_tolerance not a task but a policy for all tasks
-control_tasks = [fault_tolerance, anchor]
-
-
-def traverse(dg):
-    """
-    1. Node should be visited only when all predecessors already visited
-    2. Visited nodes should have any state except PENDING, INPROGRESS, for now
-    is SUCCESS or ERROR, but it can be extended
-    3. If node is INPROGRESS it should not be visited once again
-    """
-    visited = set()
-    for node in dg:
-        data = dg.node[node]
-        if data['status'] not in ('PENDING', 'INPROGRESS', 'SKIPPED'):
-            visited.add(node)
-
-    for node in dg:
-        data = dg.node[node]
-
-        if node in visited:
-            continue
-        elif data['status'] in ('INPROGRESS', 'SKIPPED'):
-            continue
-
-        predecessors = set(dg.predecessors(node))
-
-        if predecessors <= visited:
-            task_id = '{}:{}'.format(dg.graph['uid'], node)
-
-            task_name = '{}.{}'.format(__name__, data['type'])
-            task = app.tasks[task_name]
-
-            if all_success(dg, predecessors) or task in control_tasks:
-                dg.node[node]['status'] = 'INPROGRESS'
-                for t in generate_task(task, dg, data, task_id):
-                    yield t
-
-
-def generate_task(task, dg, data, task_id):
-
-    subtask = task.subtask(
-        data['args'], task_id=task_id,
-        time_limit=data.get('time_limit', None),
-        soft_time_limit=data.get('soft_time_limit', None))
-
-    if data.get('target', None):
-        subtask.set(queue=data['target'])
-
-    yield subtask
-
-
-def all_success(dg, nodes):
-    return all((dg.node[n]['status'] == 'SUCCESS' for n in nodes))
