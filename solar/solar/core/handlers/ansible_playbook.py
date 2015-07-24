@@ -9,9 +9,14 @@ import ansible.constants as C
 
 from solar.core.handlers import base
 from solar import errors
+from solar.core.provider import SVNProvider
 
 
 class AnsiblePlaybook(base.BaseHandler):
+
+    def download_roles(self, urls):
+        for url in urls:
+            SVNProvider(url, '/etc/ansible/roles').run()
 
     def action(self, resource, action):
         action_file = os.path.join(
@@ -22,6 +27,9 @@ class AnsiblePlaybook(base.BaseHandler):
         runner_cb = callbacks.PlaybookRunnerCallbacks(stats, verbose=utils.VERBOSITY)
 
         variables = resource.args_dict()
+        if 'roles' in variables:
+            self.download_roles(variables['roles'])
+
         remote_user = variables.get('ssh_user') or C.DEFAULT_REMOTE_USER
         private_key_file = variables.get('ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
         if variables.get('ip'):

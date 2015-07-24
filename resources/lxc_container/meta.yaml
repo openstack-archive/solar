@@ -21,3 +21,8 @@ input:
     container_name:
       schema: str!
       value:
+    roles:
+      schema: [{value: str}]
+      value:
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/lxc_container_create
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/lxc_container_destroy

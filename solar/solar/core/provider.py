@@ -103,3 +103,23 @@ class RemoteZipProvider(BaseProvider):
             self.directory = os.path.join(directory, path)
         else:
             self.directory = directory
+
+
+class SVNProvider(BaseProvider):
+    """With git you cant checkout only directory from repo,
+    but with svn you can
+    """
+
+    def __init__(self, url, path='.'):
+        self.url = url
+        self.path = path
+
+    def run(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+        if not os.path.exists(self.url.rsplit('/', 1)[-1]):
+            fabric.local(
+                'cd {path} && svn checkout {url}'.format(
+                    path=self.path,
+                    url=self.url))

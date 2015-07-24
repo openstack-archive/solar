@@ -12,3 +12,9 @@ input:
     ssh_user:
       schema: str!
       value:
+    roles:
+      schema: [{value: str}]
+      value:
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/lxc_hosts
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/pip_install
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/apt_package_pinning
