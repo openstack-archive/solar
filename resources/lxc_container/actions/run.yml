@@ -1,0 +1,19 @@
+
+- hosts: '*'
+  sudo: yes
+  gather_facts: false
+  vars:
+    ansible_ssh_host: 10.0.3.2
+    container_address: 10.0.3.2
+    container_name: test1
+    container_networks:
+        management_address: 10.0.3.2
+        bridge: lxcbr0
+        interface: eth1
+        netmask: 255.255.255.0
+        type: veth
+    physical_host: 10.0.0.3
+    properties:
+        container_release: trusty
+  roles:
+    - { role: "lxc_container_create", tags: [ "lxc-container-create" ] }

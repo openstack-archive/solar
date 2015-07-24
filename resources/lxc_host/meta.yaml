@@ -1,0 +1,14 @@
+id: lxc_host
+handler: ansible_playbook
+version: 1.0.0
+actions:
+input:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:

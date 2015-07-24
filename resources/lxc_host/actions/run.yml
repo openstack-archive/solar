@@ -1,0 +1,4 @@
+- hosts: '*'
+  sudo: yes
+  roles:
+    - { role: "lxc_hosts", tags: [ "lxc-host", "host-setup" ] }
