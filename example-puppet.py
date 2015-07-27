@@ -362,7 +362,7 @@ def deploy():
     glance_keystone_user = vr.create('glance_keystone_user', 'resources/keystone_user', {
         'user_name': 'glance', 'user_password': 'glance123'})[0]
     glance_keystone_role = vr.create('glance_keystone_role', 'resources/keystone_role', {
-        'role_name': 'glance'})[0]
+        'role_name': 'admin'})[0]
     glance_keystone_service_endpoint = vr.create(
         'glance_keystone_service_endpoint',
         'resources/keystone_service_endpoint', {
