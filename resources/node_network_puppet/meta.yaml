@@ -1,0 +1,25 @@
+id: l23network_puppet
+handler: puppet
+puppet_module: l23network
+version: 1.0.0
+input:
+    #TODO
+    package_ensure:
+      schema: str
+      value: 'present'
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/l23network_service, resources/l23network, resources/cinder]
