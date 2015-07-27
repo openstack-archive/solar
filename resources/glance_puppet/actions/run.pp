@@ -92,10 +92,8 @@ class {'glance::api':
   validation_options        => $validation_options,
   mysql_module              => $mysql_module,
   sql_idle_timeout          => $sql_idle_timeout,
-}->
+}
 
 class { 'glance::backend::file':
   filesystem_store_datadir => $filesystem_store_datadir,
 }
-
-
