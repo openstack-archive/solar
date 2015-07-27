@@ -400,7 +400,7 @@ def deploy():
     signals.connect(glance_api_puppet, glance_keystone_service_endpoint, {
         'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',
         'ip': ['ip', 'keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
-        'port': ['admin_port', 'internal_port', 'public_port'],})
+        'bind_port': ['admin_port', 'internal_port', 'public_port'],})
     signals.connect(keystone_puppet, glance_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
 
@@ -459,10 +459,11 @@ def deploy():
     actions.resource_action(nova_api, 'run')
     actions.resource_action(nova_keystone_service_endpoint, 'run')
 
-    actions.resource_action(glance_keystone_user, 'run')
-    actions.resource_action(glance_keystone_role, 'run')
-    actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_db, 'run')
+    actions.resource_action(glance_db_user, 'run')
+    actions.resource_action(glance_keystone_user, 'run')
+    actions.resource_action(glance_keystone_role, 'run')  
+    actions.resource_action(glance_keystone_service_endpoint, 'run')
     actions.resource_action(glance_api_puppet, 'run')
 
     #actions.resource_action(glance, 'run')
@@ -476,10 +477,11 @@ def undeploy():
 
     to_remove = [
         'glance_puppet',
-        'glance_db',
-        'glance_db_user',
+        'glance_keystone_service_endpoint',
         'glance_keystone_role',
         'glance_keystone_user',
+        'glance_db_user',
+        'glance_db',
         'nova_db',
         'nova_db_user',
         'nova_keystone_service_endpoint',
