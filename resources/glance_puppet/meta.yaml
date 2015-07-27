@@ -3,44 +3,134 @@ handler: puppet
 puppet_module: glance
 version: 1.0.0
 input:
-    db_host:
-      schema: str!
-      value:
-    db_port:
-      schema: int!
-      value:
-    db_user:
-      schema: str!
-      value: keystone
-    db_password:
-      schema: str!
-      value: keystone
-    db_name:
-      schema: str!
-      value: keystone
-
-    keystone_host:
-      schema: str!
-      value:
-    keystone_port:
-      schema: int!
-      value: 5000
-    keystone_user:
-      schema: str!
-      value: glance
-    keystone_role:
-      schema: str!
-      value: glance
-    keystone_password:
-      schema: str!
-      value: glance123
+    package_ensure:
+      schema: str
+      value: 'present'
+    filesystem_store_datadir:
+      schema: str
+      value: '/var/lib/glance/images/'
+    verbose:
+      schema: bool
+      value: false
+    debug:
+      schema: bool
+      value: false
+    bind_host:
+      schema: str
+      value: '0.0.0.0'
+    bind_port:
+      schema: int
+      value: 9292
+    backlog:
+      schema: int
+      value: 4096
+    workers:
+      schema: int
+      value: 1
+    log_file:
+      schema: str
+      value: '/var/log/glance/api.log'
+    log_dir:
+      schema: str
+      value: '/var/log/glance'
+    registry_host:
+      schema: str
+      value: '0.0.0.0'
+    registry_port:
+      schema: int
+      value: 9191
+    registry_client_protocol:
+      schema: str
+      value: 'http'
+    auth_type:
+      schema: str
+      value: 'keystone'
+    auth_host:
+      schema: str
+      value: '127.0.0.1'
+    auth_url:
+      schema: str
+      value: 'http://localhost:5000/v2.0'
+    auth_port:
+      schema: int
+      value: 35357
+    auth_uri:
+      schema: str
+      value: ''
+    auth_admin_prefix:
+      schema: str
+      value: ''
+    auth_protocol:
+      schema: str
+      value: 'http'
+    pipeline:
+      schema: str
+      value: 'keystone+cachemanagement'
     keystone_tenant:
-      schema: str!
-      value: services
+      schema: str
+      value: 'services'
+    keystone_user:
+      schema: str
+      value: 'glance'
+    use_syslog:
+      schema: bool
+      value: false
+    log_facility:
+      schema: str
+      value: 'LOG_USER'
+    show_image_direct_url:
+      schema: bool
+      value: false
+    purge_config:
+      schema: bool
+      value: false
+    cert_file:
+      schema: str
+      value: ''
+    key_file:
+      schema: str
+      value: ''
+    ca_file:
+      schema: str
+      value: ''
+    known_stores:
+      schema: str
+      value: ''
+    database_connection:
+      schema: str
+      value: 'sqlite:///var/lib/glance/glance.sqlite'
+    database_idle_timeout:
+      schema: int
+      value: 3600
+    image_cache_dir:
+      schema: str
+      value: '/var/lib/glance/image-cache'
+    os_region_name:
+      schema: str
+      value: 'RegionOne'
+    validate:
+      schema: bool
+      value: false
+    validation_options:
+      schema: {}
+      value: {}
+    mysql_module:
+      schema: str
+      value: ''
+    sql_idle_timeout:
+      schema: str
+      value: ''
+    sql_connection:
+      schema: str
+      value: ''
+
+    port:
+      schema: int!
+      value: 9292
 
     git:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-glance', branch: 'stable/juno'}
+      value: {repository: 'https://github.com/openstack/puppet-glance', branch: '5.1.0'}
 
     ip:
       schema: str!
@@ -52,4 +142,33 @@ input:
       schema: str!
       value:
 
-tags: [resource/glance_service, resources/glance]
+    db_user:
+      schema: str!
+      value: cinder
+    db_password:
+      schema: str!
+      value: cinder
+    db_name:
+      schema: str!
+      value: cinder
+    db_host:
+      schema: str!
+      value:
+
+    keystone_host:
+      schema: str!
+      value: ''
+    keystone_port:
+      schema: int!
+      value: ''
+    keystone_user:
+      schema: str!
+      value: ''
+    keystone_password:
+      schema: str!
+      value: ''
+    keystone_tenant:
+      schema: str!
+      value: ''
+
+tags: [resource/glance_service, resources/glance, resource/glance_api_service]

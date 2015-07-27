@@ -353,41 +353,56 @@ def deploy():
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
 
+    # GLANCE (base and API)
+    glance_api_puppet = vr.create('glance_api_puppet', 'resources/glance_puppet', {})[0]
+    glance_db_user = vr.create('glance_db_user', 'resources/mariadb_user/', {
+        'user_name': 'glance', 'user_password': 'glance', 'login_user': 'root'})[0]
+    glance_db = vr.create('glance_db', 'resources/mariadb_db/', {
+        'db_name': 'glance', 'login_user': 'root'})[0]
+    glance_keystone_user = vr.create('glance_keystone_user', 'resources/keystone_user', {
+        'user_name': 'glance', 'user_password': 'glance123'})[0]
+    glance_keystone_role = vr.create('glance_keystone_role', 'resources/keystone_role', {
+        'role_name': 'glance'})[0]
+    glance_keystone_service_endpoint = vr.create(
+        'glance_keystone_service_endpoint',
+        'resources/keystone_service_endpoint', {
+            'endpoint_name': 'glance',
+            'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
+            'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
+            'publicurl': 'http://{{public_ip}}:{{public_port}}',
+            'description': 'OpenStack Image Service', 'type': 'volume'})[0]
 
-    # GLANCE
-    # glance = vr.create('glance', 'templates/glance.yml', {
-    #     'idx': '1',
-    #     'ip': 'node1::ip',
-    #     'ssh_key': 'node1::ssh_key',
-    #     'ssh_user': 'node1::ssh_user',
-    #     'db_login_user': 'mariadb_service1::login_user',
-    #     'db_login_password': 'mariadb_service1::root_password',
-    #     'db_host': 'mariadb_service1::ip',
-    #     'db_port': 'mariadb_service1::port',
-    #     'db_name': 'glance',
-    #     'db_user': 'glance',
-    #     'db_password': 'glance123',
-    # })[0]
-
-    glance_puppet = vr.create('glance_puppet', 'resources/glance_puppet', {})[0]
-    glance_db_user = vr.create('glance_db_user', 'resources/mariadb_keystone_user/', {'new_user_name': 'glance', 'new_user_password': 'glance'})[0]
-    glance_db = vr.create('glance_db', 'resources/mariadb_keystone_db/', {'db_name': 'glance', 'login_user': 'root'})[0]
-    glance_keystone_user = vr.create('glance_keystone_user', 'resources/keystone_user', {'user_name': 'glance', 'user_password': 'glance123'})[0]
-    glance_keystone_role = vr.create('glance_keystone_role', 'resources/keystone_role', {'role_name': 'glance'})[0]
-
-    signals.connect(node1, glance_puppet, {})
-    signals.connect(mariadb_service1, glance_db)
-    signals.connect(mariadb_service1, glance_db, {'port': 'login_port', 'root_password': 'login_password'})
-    signals.connect(services_tenant, glance_keystone_user, {'tenant_name': 'tenant_name'})
-    signals.connect(keystone_puppet, glance_keystone_user)
-    signals.connect(keystone_puppet, glance_keystone_user, {'ip': 'keystone_host', 'port': 'keystone_port'})
-    signals.connect(keystone_puppet, glance_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
+    signals.connect(node1, glance_api_puppet)
+    signals.connect(node1, glance_db)
+    signals.connect(node1, glance_db_user)
+    signals.connect(admin_user, glance_api_puppet, {
+        'user_name': 'keystone_user', 'user_password': 'keystone_password',
+        'tenant_name': 'keystone_tenant'}) #?
+    signals.connect(mariadb_service1, glance_db, {
+        'port': 'login_port',
+        'root_password': 'login_password',
+        'root_user': 'login_user',
+        'ip' : 'db_host'})
+    signals.connect(mariadb_service1, glance_db_user, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(glance_db, glance_db_user, {'db_name', 'db_host'})
+    signals.connect(glance_db_user, glance_api_puppet, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'})
+    signals.connect(keystone_puppet, glance_api_puppet, {'ip': 'keystone_host', 'admin_port': 'keystone_port'}) #or non admin port?
+    signals.connect(services_tenant, glance_keystone_user)
     signals.connect(glance_keystone_user, glance_keystone_role)
-    signals.connect(mariadb_service1, glance_puppet, {'ip': 'db_host', 'port': 'db_port'})
-    signals.connect(glance_db, glance_db_user)
-    signals.connect(glance_db, glance_puppet, {'db_name': 'db_name'})
-    signals.connect(glance_db_user, glance_puppet, {'new_user_name': 'db_user', 'new_user_password': 'db_password'})
-
+    signals.connect(glance_keystone_user, glance_api_puppet, {
+        'user_name': 'keystone_user', 'tenant_name': 'keystone_tenant',
+        'user_password': 'keystone_password'})
+    signals.connect(mariadb_service1, glance_api_puppet, {'ip':'ip'})
+    signals.connect(glance_api_puppet, glance_keystone_service_endpoint, {
+        'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',
+        'ip': ['ip', 'keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
+        'port': ['admin_port', 'internal_port', 'public_port'],})
+    signals.connect(keystone_puppet, glance_keystone_service_endpoint, {
+        'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
 
     has_errors = False
     for r in locals().values():
@@ -448,7 +463,7 @@ def deploy():
     actions.resource_action(glance_keystone_role, 'run')
     actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_db, 'run')
-    actions.resource_action(glance_puppet, 'run')
+    actions.resource_action(glance_api_puppet, 'run')
 
     #actions.resource_action(glance, 'run')
 

@@ -2,52 +2,100 @@ $resource = hiera($::resource_name)
 
 $ip = $resource['input']['ip']['value']
 
-$db_host = $resource['input']['db_host']['value']
-$db_port = $resource['input']['db_port']['value']
 $db_user = $resource['input']['db_user']['value']
 $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
 
-$keystone_host = $resource['input']['keystone_host']['value']
-$keystone_port = $resource['input']['keystone_port']['value']
-$keystone_user = $resource['input']['keystone_user']['value']
-$keystone_password = $resource['input']['keystone_password']['value']
-$keystone_role = $resource['input']['keystone_role']['value']
-$keystone_tenant = $resource['input']['keystone_tenant']['value']
+$filesystem_store_datadir = $resource['input']['filesystem_store_datadir']['value']
 
-#user { 'glance':
-#  name     => 'glance',
-#  ensure   => 'present',
-#  home     => '/home/glance',
-#  system   => true
-#}
-#
-#class {'glance':
-#  package_ensure       => 'present'
-#}
+$keystone_password          = $resource['input']['keystone_password']['value']
+$verbose                   = $resource['input']['verbose']['value']
+$debug                     = $resource['input']['debug']['value']
+$bind_host                 = $resource['input']['bind_host']['value']
+$bind_port                 = $resource['input']['bind_port']['value']
+$backlog                   = $resource['input']['backlog']['value']
+$workers                   = $resource['input']['workers']['value']
+$log_file                  = $resource['input']['log_file']['value']
+$log_dir                   = $resource['input']['log_dir']['value']
+$registry_host             = $resource['input']['registry_host']['value']
+$registry_port             = $resource['input']['registry_port']['value']
+$registry_client_protocol  = $resource['input']['registry_client_protocol']['value']
+$auth_type                 = $resource['input']['auth_type']['value']
+$auth_host                 = $resource['input']['auth_host']['value']
+$auth_url                  = $resource['input']['auth_url']['value']
+$auth_port                 = $resource['input']['auth_port']['value']
+$auth_uri                  = $resource['input']['auth_uri']['value']
+$auth_admin_prefix         = $resource['input']['auth_admin_prefix']['value']
+$auth_protocol             = $resource['input']['auth_protocol']['value']
+$pipeline                  = $resource['input']['pipeline']['value']
+$keystone_tenant           = $resource['input']['keystone_tenant']['value']
+$keystone_user             = $resource['input']['keystone_user']['value']
+$use_syslog                = $resource['input']['use_syslog']['value']
+$log_facility              = $resource['input']['log_facility']['value']
+$show_image_direct_url     = $resource['input']['show_image_direct_url']['value']
+$purge_config              = $resource['input']['purge_config']['value']
+$cert_file                 = $resource['input']['cert_file']['value']
+$key_file                  = $resource['input']['key_file']['value']
+$ca_file                   = $resource['input']['ca_file']['value']
+$known_stores              = $resource['input']['known_stores']['value']
+$database_connection       = $resource['input']['database_connection']['value']
+$database_idle_timeout     = $resource['input']['database_idle_timeout']['value']
+$image_cache_dir           = $resource['input']['image_cache_dir']['value']
+$os_region_name            = $resource['input']['os_region_name']['value']
+$validate                  = $resource['input']['validate']['value']
+$validation_options        = $resource['input']['validation_options']['value']
+$mysql_module              = $resource['input']['mysql_module']['value']
+$sql_idle_timeout          = $resource['input']['sql_idle_timeout']['value']
 
-class { 'glance::api':
-  #package_ensure      => 'present',
-  verbose             => true,
-  keystone_tenant     => $keystone_tenant,
-  keystone_user       => $keystone_user,
-  keystone_password   => $keystone_password,
-  database_connection => "mysql://$db_user:$db_password@$db_host/$db_name",
+class {'glance':
+  package_ensure => 'present',
 }
 
-class { 'glance::registry':
-  package_ensure      => 'present',
-  verbose             => true,
-  keystone_tenant     => $keystone_tenant,
-  keystone_user       => $keystone_user,
-  keystone_password   => $keystone_password,
-  database_connection => "mysql://$db_user:$db_password@$db_host/$db_name",
+class {'glance::api':
+  keystone_password         => $keystone_password,
+  enabled                   => true,
+  manage_service            => true,
+  verbose                   => $verbose,
+  debug                     => $debug,
+  bind_host                 => $bind_host,
+  bind_port                 => $bind_port,
+  backlog                   => $backlog,
+  workers                   => $workers,
+  log_file                  => $log_file,
+  log_dir                   => $log_dir,
+  registry_host             => $registry_host,
+  registry_port             => $registry_port,
+  registry_client_protocol  => $registry_client_protocol,
+  auth_type                 => $auth_type,
+  auth_host                 => $auth_host,
+  auth_url                  => $auth_url,
+  auth_port                 => $auth_port,
+  auth_uri                  => $auth_uri,
+  auth_admin_prefix         => $auth_admin_prefix,
+  auth_protocol             => $auth_protocol,
+  pipeline                  => $pipeline,
+  keystone_tenant           => $keystone_tenant,
+  keystone_user             => $keystone_user,
+  use_syslog                => $use_syslog,
+  log_facility              => $log_facility,
+  show_image_direct_url     => $show_image_direct_url,
+  purge_config              => $purge_config,
+  cert_file                 => $cert_file,
+  key_file                  => $key_file,
+  ca_file                   => $ca_file,
+  known_stores              => $known_stores,
+  database_connection       => "mysql://${db_user}:${db_password}@${ip}/${db_name}",
+  database_idle_timeout     => $database_idle_timeout,
+  image_cache_dir           => $image_cache_dir,
+  os_region_name            => $os_region_name,
+  validate                  => $validate,
+  validation_options        => $validation_options,
+  mysql_module              => $mysql_module,
+  sql_idle_timeout          => $sql_idle_timeout,
+}->
+
+class { 'glance::backend::file':
+  filesystem_store_datadir => $filesystem_store_datadir,
 }
 
-class { 'glance::backend::file': }
 
-#file { '/etc/keystone/keystone-exports':
-#  owner     => 'root',
-#  group     => 'root',
-#  content   => template('keystone/exports.erb')
-#}
