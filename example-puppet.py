@@ -408,6 +408,17 @@ def deploy():
     glance_registry_puppet = vr.create('glance_registry_puppet', 'resources/glance_registry_puppet', {})[0]
     signals.connect(node1, glance_registry_puppet)
     signals.connect(glance_api_puppet, glance_registry_puppet)
+    # API and registry should not listen same ports
+    # should not use the same log destination and a pipeline,
+    # so disconnect them and restore the defaults
+    signals.disconnect_receiver_by_input(glance_registry_puppet, 'bind_port')
+    signals.disconnect_receiver_by_input(glance_registry_puppet, 'log_file')
+    signals.disconnect_receiver_by_input(glance_registry_puppet, 'pipeline')
+    glance_registry_puppet.update({
+        'bind_port': 9191,
+        'log_file': '/var/log/glance/registry.log',
+        'pipeline': 'keystone',
+    })
 
     has_errors = False
     for r in locals().values():
