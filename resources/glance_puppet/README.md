@@ -1,13 +1,13 @@
- Glance (API) resource for puppet handler
+# Glance (API) resource for puppet handler
 
 Controlls a live cycle of the glance entities,
 like the main puppet class, auth, DB, AMQP, packages,
 keystone user, role and endpoint, API service. Also configures
 glance file backend.
 
- Parameters
+# Parameters
 
-source https://github.com/openstack/puppet-glance/tree/5.1.0/manifests
+source https://github.com/openstack/puppet-glance/tree/5.1.0/manifests/init.pp
 
    ``package_ensure``
      Ensure state for package. 
