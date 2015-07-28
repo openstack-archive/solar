@@ -67,10 +67,10 @@ input:
       schema: str
       value: 'keystone+cachemanagement'
     keystone_tenant:
-      schema: str
+      schema: str!
       value: 'services'
     keystone_user:
-      schema: str
+      schema: str!
       value: 'glance'
     use_syslog:
       schema: bool
@@ -157,13 +157,7 @@ input:
     keystone_port:
       schema: int!
       value: ''
-    keystone_user:
-      schema: str!
-      value: ''
     keystone_password:
-      schema: str!
-      value: ''
-    keystone_tenant:
       schema: str!
       value: ''
 
