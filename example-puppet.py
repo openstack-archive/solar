@@ -404,6 +404,11 @@ def deploy():
     signals.connect(keystone_puppet, glance_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
 
+    # GLANCE REGISTRY
+    glance_registry_puppet = vr.create('glance_registry_puppet', 'resources/glance_registry_puppet', {})[0]
+    signals.connect(node1, glance_registry_puppet)
+    signals.connect(glance_api_puppet, glance_registry_puppet)
+
     has_errors = False
     for r in locals().values():
         if not isinstance(r, resource.Resource):
@@ -465,6 +470,7 @@ def deploy():
     actions.resource_action(glance_keystone_role, 'run')  
     actions.resource_action(glance_keystone_service_endpoint, 'run')
     actions.resource_action(glance_api_puppet, 'run')
+    actions.resource_action(glance_registry_puppet, 'run')
 
     #actions.resource_action(glance, 'run')
 
@@ -476,7 +482,8 @@ def undeploy():
     db = get_db()
 
     to_remove = [
-        'glance_puppet',
+        'glance_registry_puppet',
+        'glance_api_puppet',
         'glance_keystone_service_endpoint',
         'glance_keystone_role',
         'glance_keystone_user',
