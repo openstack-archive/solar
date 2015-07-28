@@ -11,6 +11,7 @@ ERROR - visited node, but failed, can be failed by timeout
 SUCCESS - visited node, successfull
 INPROGRESS - task already scheduled, can be moved to ERROR or SUCCESS
 SKIPPED - not visited, and should be skipped from execution
+NOOP - task wont be executed, but should be treated as visited
 """
 
 
