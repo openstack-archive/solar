@@ -9,3 +9,5 @@
         login_password: {{login_password}}
         login_port: {{login_port}}
         login_host: {{db_host}}
+        collation: {{collation}}
+        encoding: {{encoding}}
