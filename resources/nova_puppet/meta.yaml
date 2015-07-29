@@ -225,6 +225,10 @@ input:
       schema: str!
       value:
 
+    port:
+      schema: int!
+      value: 8774
+
     git:
       schema: {repository: str!, branch: str!}
       value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}

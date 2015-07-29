@@ -298,10 +298,7 @@ def deploy():
         'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
         'publicurl': 'http://{{public_ip}}:{{public_port}}/v2/%(tenant_id)s',
         'description': 'OpenStack Compute Service',
-        'type': 'compute',
-        'public_port': 8774,
-        'internal_port': 8774,
-        'admin_port': 8774})[0]
+        'type': 'compute'})[0]
 
     signals.connect(node1, nova_puppet)
     signals.connect(node1, nova_db)
