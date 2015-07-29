@@ -1,0 +1,14 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    - apt: name=lvm2 state=present
+    - command: sudo truncate -s 10G /root/cinder.img creates=/root/cinder.img
+    - shell: sudo losetup -a|grep cinder
+      register: loop_created
+      ignore_errors: True
+    - command: sudo losetup /dev/loop0 /root/cinder.img
+      when: loop_created|failed
+    - lvg: vg=cinder-volumes pvs=/dev/loop0
+      when: loop_created|failed

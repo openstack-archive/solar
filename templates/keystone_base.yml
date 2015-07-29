@@ -4,7 +4,8 @@ resources:
   - id: keystone_db
     from: resources/mariadb_db
     values:
-      db_name: {{db_name}}
+      db_name: '{{db_name}}'
+      db_host: '{{db_host}}'
       login_user: '{{login_user}}'
       login_password: '{{login_password}}'
       login_port: '{{login_port}}'
@@ -18,6 +19,7 @@ resources:
       user_password: '{{user_password}}'
       user_name: '{{user_name}}'
       db_name: 'keystone_db::db_name'
+      db_host: '{{db_host}}'
       login_user: 'keystone_db::login_user'
       login_password: 'keystone_db::login_password'
       login_port: 'keystone_db::login_port'

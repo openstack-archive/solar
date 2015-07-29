@@ -13,10 +13,10 @@ input:
 
   port:
     schema: int!
-    value: ''
+    value: 5672
   management_port:
     schema: int! 
-    value: ''
+    value: 15672
   git:
     schema: {repository: str!, branch: str!}
     value: {repository: 'https://github.com/puppetlabs/puppetlabs-rabbitmq.git', branch: '5.1.0'}

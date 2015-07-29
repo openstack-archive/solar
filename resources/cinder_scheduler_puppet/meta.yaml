@@ -1,0 +1,27 @@
+id: cinder_scheduler_puppet
+handler: puppet
+puppet_module: cinder_scheduler
+version: 1.0.0
+input:
+    scheduler_driver:
+      schema: str
+      value: ''
+    package_ensure:
+      schema: str
+      value: 'present'
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/cinder_scheduler_service, resources/cinder_scheduler, resources/cinder]
