@@ -279,7 +279,7 @@ def deploy():
     signals.connect(cinder_puppet, cinder_volume_puppet)
     
     # NOVA
-    nova_api = vr.create('nova_api', 'resources/nova_api_puppet', {})[0]
+    nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
         'db_name': 'nova_db',
         'login_user': 'root'})[0]
@@ -303,7 +303,7 @@ def deploy():
         'internal_port': 8774,
         'admin_port': 8774})[0]
 
-    signals.connect(node1, nova_api)
+    signals.connect(node1, nova_puppet)
     signals.connect(node1, nova_db)
     signals.connect(node1, nova_db_user)
     signals.connect(mariadb_service1, nova_db, {
@@ -314,38 +314,37 @@ def deploy():
     signals.connect(mariadb_service1, nova_db_user, {
         'port': 'login_port',
         'root_password': 'login_password'})
+    signals.connect(admin_user, nova_puppet, {'user_name': 'keystone_user', 'user_password': 'keystone_password', 'tenant_name': 'keystone_tenant'}) #?
+    signals.connect(openstack_vhost, nova_puppet, {'vhost_name': 'rabbit_virtual_host'})
     signals.connect(nova_db, nova_db_user, {'db_name', 'db_host'})
     signals.connect(services_tenant, nova_keystone_user)
     signals.connect(nova_keystone_user, nova_keystone_role)
-    signals.connect(keystone_puppet, nova_api, {
+    signals.connect(keystone_puppet, nova_puppet, {
         'ip': 'keystone_host',
         'admin_port': 'keystone_port'})
-    signals.connect(nova_keystone_user, nova_api, {
-        'user_name': 'keystone_user_name',
-        'tenant_name': 'keystone_tenant_name',
+    signals.connect(nova_keystone_user, nova_puppet, {
+        'user_name': 'keystone_user',
+        'tenant_name': 'keystone_tenant',
         'user_password': 'keystone_password'})
-    signals.connect(rabbitmq_service1, nova_api, {
-        'ip': 'rabbitmq_host'})
-    signals.connect(openstack_rabbitmq_user, nova_api, {
-        'user_name': 'rabbitmq_user',
-        'password': 'rabbitmq_password'})
+    signals.connect(rabbitmq_service1, nova_puppet, {
+        'ip': 'rabbit_host', 'port': 'rabbit_port'})
+    signals.connect(openstack_rabbitmq_user, nova_puppet, {
+        'user_name': 'rabbit_userid',
+        'password': 'rabbit_password'})
     signals.connect(keystone_puppet, nova_keystone_service_endpoint, {
         'ip': 'keystone_host',
         'admin_port': 'keystone_admin_port',
         'admin_token': 'admin_token'})
-    signals.connect(mariadb_service1, nova_api, {
+    signals.connect(mariadb_service1, nova_puppet, {
         'ip':'db_host'})
-    signals.connect(nova_db_user, nova_api, {
+    signals.connect(nova_db_user, nova_puppet, {
         'user_name':'db_user',
         'db_name':'db_name',
         'user_password':'db_password',
         'db_host' : 'db_host'})
-    signals.connect(nova_api, nova_keystone_service_endpoint, {
-        'ip': ['ip', 'public_ip', 'internal_ip', 'admin_ip'],
-        'ssh_key': 'ssh_key',
-        'ssh_user': 'ssh_user'})
-    signals.connect(nova_api, nova_keystone_service_endpoint, {
-        'ip': 'ip',
+    signals.connect(nova_puppet, nova_keystone_service_endpoint, {
+        'ip': ['ip', 'keystone_host', 'public_ip', 'internal_ip', 'admin_ip'],
+        'port': ['admin_port', 'internal_port', 'public_port'],
         'ssh_key': 'ssh_key',
         'ssh_user': 'ssh_user'})
 
@@ -468,11 +467,12 @@ def deploy():
     actions.resource_action(cinder_api_puppet, 'run')
     actions.resource_action(cinder_scheduler_puppet, 'run')
     actions.resource_action(cinder_volume_puppet, 'run')
+    
     actions.resource_action(nova_db, 'run')
     actions.resource_action(nova_db_user, 'run')
     actions.resource_action(nova_keystone_user, 'run')
     actions.resource_action(nova_keystone_role, 'run')
-    actions.resource_action(nova_api, 'run')
+    actions.resource_action(nova_puppet, 'run')
     actions.resource_action(nova_keystone_service_endpoint, 'run')
 
     actions.resource_action(glance_db, 'run')
@@ -503,7 +503,7 @@ def undeploy():
         'nova_db',
         'nova_db_user',
         'nova_keystone_service_endpoint',
-        'nova_api',
+        'nova_puppet',
         'cinder_volume_puppet',
         'cinder_scheduler_puppet',
         'cinder_api_puppet',
@@ -540,37 +540,6 @@ def undeploy():
             actions.resource_action(resources[name], 'remove')
         except errors.SolarError as e:
             print 'WARNING: %s' % str(e)
-
-    #actions.resource_action(resources['nova_keystone_service_endpoint'], 'remove' )
-    # actions.resource_action(resources['nova_network_puppet'], 'remove' )
-
-    # actions.resource_action(resources['nova_keystone_role'], 'remove')
-    # actions.resource_action(resources['nova_keystone_user'], 'remove')
-
-    # actions.resource_action(resources['neutron_keystone_service_endpoint'], 'remove' )
-    # actions.resource_action(resources['neutron_puppet'], 'remove' )
-
-    # actions.resource_action(resources['cinder_puppet'], 'remove' )
-    # actions.resource_action(resources['cinder_keystone_role'], 'remove')
-    # actions.resource_action(resources['cinder_keystone_user'], 'remove')
-
-    # actions.resource_action(resources['neutron_keystone_role'], 'remove')
-    # actions.resource_action(resources['neutron_keystone_user'], 'remove')
-    # actions.resource_action(resources['services_tenant'], 'remove')
-
-    # actions.resource_action(resources['admin_role'], 'remove')
-    # actions.resource_action(resources['admin_user'], 'remove')
-    # actions.resource_action(resources['admin_tenant'], 'remove')
-
-    # actions.resource_action(resources['keystone_puppet'], 'remove')
-    # actions.resource_action(resources['keystone_db_user'], 'remove')
-    # actions.resource_action(resources['keystone_db'], 'remove')
-
-    # actions.resource_action(resources['mariadb_service1'], 'remove')
-
-    # actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
-    # actions.resource_action(resources['openstack_vhost'], 'remove')
-    # actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
     db.clear()
 
