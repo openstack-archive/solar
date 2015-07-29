@@ -308,12 +308,13 @@ def deploy():
     signals.connect(node1, nova_db_user)
     signals.connect(mariadb_service1, nova_db, {
         'port': 'login_port',
-        'root_password': 'login_password'})
+        'root_password': 'login_password',
+        'root_user': 'login_user',
+        'ip' : 'db_host'})
     signals.connect(mariadb_service1, nova_db_user, {
         'port': 'login_port',
         'root_password': 'login_password'})
-    signals.connect(nova_db, nova_db_user, {
-        'db_name': 'db_name'})
+    signals.connect(nova_db, nova_db_user, {'db_name', 'db_host'})
     signals.connect(services_tenant, nova_keystone_user)
     signals.connect(nova_keystone_user, nova_keystone_role)
     signals.connect(keystone_puppet, nova_api, {
@@ -337,7 +338,8 @@ def deploy():
     signals.connect(nova_db_user, nova_api, {
         'user_name':'db_user',
         'db_name':'db_name',
-        'user_password':'db_password'})
+        'user_password':'db_password',
+        'db_host' : 'db_host'})
     signals.connect(nova_api, nova_keystone_service_endpoint, {
         'ip': ['ip', 'public_ip', 'internal_ip', 'admin_ip'],
         'ssh_key': 'ssh_key',
