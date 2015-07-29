@@ -11,9 +11,6 @@ input:
     schema: str!
     value: ''
 
-  node_name:
-    schema: str!
-    value: 'node1'
   port:
     schema: int!
     value: 5672
