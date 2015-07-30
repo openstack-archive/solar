@@ -24,11 +24,11 @@ Propagating events when there is no data changed
 
 Control for specifying events:
 
-  on <emitter>.<emmiter_action> <event> <subscriber>.<subsciber_action>
+on <emitter>.<emmiter_action> <event> <subscriber>.<subsciber_action>
 
-# on mariadb.run                changed keystone.run
-# on keystone.run               changed keystone_config.run
-# on keystone_config.run        changed haproxy.reload
+on mariadb.run                changed keystone.run
+on keystone.run               changed keystone_config.run
+on keystone_config.run        changed haproxy.reload
 
 +---------------------+
 |     mariadb.run     |
@@ -46,13 +46,13 @@ Control for specifying events:
 |   haproxy.reload    |
 +---------------------+
 
-<u> - <event>:<action> - <v>
+<u>.<action> - <event> - <v>.<action>
 
-When connection between several resources created - events connections should
+When data connection between several resources created - events connections should
 be created as well, resource a connect resource b:
 
-on a changed b reload
-on a removed b run
+on a.run    changed b.reload
+on a.remove changed b.run
 
 -------------------------------------------------
 Resolving cycles on a data plane
@@ -73,9 +73,9 @@ rmq.2.cluster_join, rmq.2.cluster_join
 
 Also cluster operation should happen only when rmq.cluster is changed.
 
-on rmq.cluster changed rmq.1 cluster_create
-on rmq.1.cluster_create changed rmq.2 cluster_join
-on rmq.1.cluster_create changed rmq.3 cluster_join
+on rmq.cluster          changed rmq.1.cluster_create
+on rmq.1.cluster_create changed rmq.2.cluster_join
+on rmq.1.cluster_create changed rmq.3.cluster_join
 
 +----------------------+
 |      rmq.1.run       |
@@ -102,7 +102,7 @@ on rmq.1.cluster_create changed rmq.3 cluster_join
 |      rmq.3.run       |  |
 +----------------------+  |
   |                       |
-  | cahnged               |
+  | changed               |
   v                       |
 +----------------------+  |
 |  rmq.3.cluster_join  | <+
@@ -113,7 +113,7 @@ on rmq.1.cluster_create changed rmq.3 cluster_join
 ---------------------------------------------------
 Resolve cycles on a execution level
 
-Lets say we have 5 objects, which forms 2 pathes
+We have 5 objects, which forms 2 pathes
 - keystone-config -> keystone-service -> haproxy-sevice
 - glance-config -> glance-service -> haproxy-service
 
