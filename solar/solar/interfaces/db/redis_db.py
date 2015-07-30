@@ -10,7 +10,7 @@ from solar import errors
 class RedisDB(object):
     COLLECTIONS = Enum(
         'Collections',
-        'connection resource state_data state_log'
+        'connection resource state_data state_log events'
     )
     DB = {
         'host': 'localhost',

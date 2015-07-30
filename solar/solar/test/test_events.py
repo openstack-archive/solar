@@ -3,6 +3,7 @@ import networkx as nx
 from pytest import fixture
 
 
+
 @fixture
 def simple():
     dg = nx.DiGraph()
@@ -10,24 +11,29 @@ def simple():
     dg.add_edge('keystone_config.run', 'haproxy.reload', event='changed')
     return dg
 
+
 def test_simple(simple):
-    nx.write_dot(simple, 'simple.dot')
+    pass
+
 
 
 @fixture
 def rmq():
     """Example of a case when we have cycles on a data plane."""
     dg = nx.DiGraph()
-    dg.add_edge('rmq.1.run', 'rmq.1.cluster_create', event='changed')
-    dg.add_edge('rmq.1.cluster_create', 'rmq.2.cluster_join', event='changed')
-    dg.add_edge('rmq.1.cluster_create', 'rmq.3.cluster_join', event='changed')
-    dg.add_edge('rmq.2.run', 'rmq.2.cluster_join', event='changed')
-    dg.add_edge('rmq.3.run', 'rmq.3.cluster_join', event='changed')
+    dg.add_edge('rmq_cluster.run', 'rmq_cluster.1.create', event='changed')
+    dg.add_edge('rmq_cluster.run', 'rmq_cluster.2.join', event='changed')
+    dg.add_edge('rmq_cluster.run', 'rmq_cluster.3.join', event='changed')
+    dg.add_edge('rmq.1.run', 'rmq_cluster.1.create', event='changed')
+    dg.add_edge('rmq.2.run', 'rmq_cluster.2.join', event='changed')
+    dg.add_edge('rmq.3.run', 'rmq_cluster.3.join', event='changed')
+    dg.add_edge('rmq_cluster.1.create', 'rmq_cluster.2.join', event='changed')
+    dg.add_edge('rmq_cluster.1.create', 'rmq_cluster.3.join', event='changed')
     return dg
 
 
 def test_rmq(rmq):
-    nx.write_dot(rmq, 'rmq.dot')
+    pass
 
 
 @fixture
@@ -43,4 +49,4 @@ def haproxy():
 
 
 def test_haproxy(haproxy):
-    nx.write_dot(haproxy, 'haproxy.dot')
+    pass
