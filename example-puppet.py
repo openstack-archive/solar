@@ -355,6 +355,11 @@ def deploy():
         'keystone_host': 'auth_host',
         'keystone_port': 'auth_port'})
 
+    # NOVA CONDUCTOR
+    nova_conductor_puppet = vr.create('nova_conductor_puppet', 'resources/nova_conductor_puppet', {})[0]
+    signals.connect(node1, nova_conductor_puppet)
+    signals.connect(nova_puppet, nova_conductor_puppet)
+
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
@@ -482,6 +487,7 @@ def deploy():
     actions.resource_action(nova_puppet, 'run')
     actions.resource_action(nova_keystone_service_endpoint, 'run')
     actions.resource_action(nova_api_puppet, 'run')
+    actions.resource_action(nova_conductor_puppet, 'run')
 
     actions.resource_action(glance_db, 'run')
     actions.resource_action(glance_db_user, 'run')
@@ -511,6 +517,7 @@ def undeploy():
         'nova_db',
         'nova_db_user',
         'nova_keystone_service_endpoint',
+        'nova_conductor_puppet',
         'nova_api_puppet',
         'nova_puppet',
         'cinder_volume_puppet',
