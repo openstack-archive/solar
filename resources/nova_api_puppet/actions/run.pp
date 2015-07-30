@@ -33,7 +33,6 @@ $conductor_workers                     = $resource['input']['conductor_workers']
 
 exec { 'post-nova_config':
   command     => '/bin/echo "Nova config has changed"',
-  refreshonly => true,
 }
 
 include nova::params

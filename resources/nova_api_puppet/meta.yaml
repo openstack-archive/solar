@@ -52,8 +52,8 @@ input:
       schema: str
       value: 'nova.volume.cinder.API'
     use_forwarded_for:
-      schema: str
-      value: ''
+      schema: bool
+      value: false
     osapi_compute_workers:
       schema: int
       value: 1
