@@ -31,6 +31,18 @@ $validation_options                    = $resource['input']['validation_options'
 $workers                               = $resource['input']['workers']['value']
 $conductor_workers                     = $resource['input']['conductor_workers']['value']
 
+exec { 'post-nova_config':
+  command     => '/bin/echo "Nova config has changed"',
+  refreshonly => true,
+}
+
+include nova::params
+
+package { 'nova-common':
+  name   => $nova::params::common_package_name,
+  ensure => $ensure_package,
+}
+
 class { 'nova::api':
   enabled                               => true,
   manage_service                        => true,
