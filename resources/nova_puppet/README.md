@@ -1,4 +1,4 @@
-# Cinder resource for puppet handler
+# Nova resource for puppet handler
 
 Controlls a live cycle of the nova entities,
 like the main puppet class, auth, DB, AMQP, packages,
