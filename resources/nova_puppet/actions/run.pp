@@ -54,7 +54,6 @@ $nova_group_id             = $resource['input']['nova_group_id']['value']
 $nova_public_key           = $resource['input']['nova_public_key']['value']
 $nova_private_key          = $resource['input']['nova_private_key']['value']
 $nova_shell                = $resource['input']['nova_shell']['value']
-$root_helper               = $resource['input']['root_helper']['value']
 $monitoring_notifications  = $resource['input']['monitoring_notifications']['value']
 $use_syslog                = $resource['input']['use_syslog']['value']
 $log_facility              = $resource['input']['log_facility']['value']
@@ -120,7 +119,6 @@ class { 'nova':
   nova_public_key           => $nova_public_key,
   nova_private_key          => $nova_private_key,
   nova_shell                => $nova_shell,
-  root_helper               => $root_helper,
   monitoring_notifications  => $monitoring_notifications,
   use_syslog                => $use_syslog,
   log_facility              => $log_facility,

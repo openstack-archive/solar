@@ -104,7 +104,7 @@ input:
       value: '/var/lib/nova'
     lock_path:
       schema: str
-      value: $::nova::params::lock_path
+      value: '/var/lock/nova'
     verbose:
       schema: bool
       value: false
@@ -124,7 +124,7 @@ input:
       schema: bool
       value: false
     enabled_ssl_apis:
-      schema: []
+      schema: [str]
       value: ['ec2', 'metadata', 'osapi_compute']
     ca_file:
       schema: str
@@ -150,9 +150,6 @@ input:
     nova_shell:
       schema: str
       value: '/bin/false'
-    root_helper:
-      schema: str
-      value: $::nova::params::root_helper
     monitoring_notifications:
       schema: bool
       value: false
@@ -166,7 +163,7 @@ input:
       schema: bool
       value: true
     notification_driver:
-      schema: []
+      schema: [str]
       value: []
     notification_topics:
       schema: str
