@@ -10,6 +10,7 @@ $auth_admin_prefix                     = $resource['input']['auth_admin_prefix']
 $auth_version                          = $resource['input']['auth_version']['value']
 $admin_tenant_name                     = $resource['input']['admin_tenant_name']['value']
 $admin_user                            = $resource['input']['admin_user']['value']
+$admin_password                        = $resource['input']['admin_password']['value']
 $api_bind_address                      = $resource['input']['api_bind_address']['value']
 $metadata_listen                       = $resource['input']['metadata_listen']['value']
 $enabled_apis                          = $resource['input']['enabled_apis']['value']
@@ -43,6 +44,7 @@ class { 'nova::api':
   auth_version                          => $auth_version,
   admin_tenant_name                     => $admin_tenant_name,
   admin_user                            => $admin_user,
+  admin_password                        => $admin_password,
   api_bind_address                      => $api_bind_address,
   metadata_listen                       => $metadata_listen,
   enabled_apis                          => $enabled_apis,

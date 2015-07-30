@@ -351,6 +351,7 @@ def deploy():
     signals.connect(nova_puppet, nova_api_puppet, {
         'keystone_tenant': 'admin_tenant_name',
         'keystone_user': 'admin_user',
+        'keystone_password': 'admin_password',
         'keystone_host': 'auth_host',
         'keystone_port': 'auth_port'})
 
