@@ -30,7 +30,7 @@ $validation_options                    = $resource['input']['validation_options'
 $workers                               = $resource['input']['workers']['value']
 $conductor_workers                     = $resource['input']['conductor_workers']['value']
 
-class { 'nova_api':
+class { 'nova::api':
   enabled                               => true,
   manage_service                        => true,
   ensure_package                        => $ensure_package,

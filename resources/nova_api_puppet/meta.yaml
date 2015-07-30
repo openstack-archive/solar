@@ -52,7 +52,7 @@ input:
       schema: str
       value: ''
     osapi_compute_workers:
-      schema: inst
+      schema: int
       value: 1
     ec2_workers:
       schema: int
