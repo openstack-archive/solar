@@ -1,4 +1,4 @@
-id: mariadb_service
+id: simple_multinode
 resources:
   - id: node1
     from: resources/ro_node
@@ -6,9 +6,6 @@ resources:
       ip: '10.0.0.3'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
       ssh_user: 'vagrant'
-
-id: compute_service
-resources:
   - id: node2
     from: resources/ro_node
     values:
