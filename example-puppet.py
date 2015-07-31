@@ -37,10 +37,8 @@ def deploy():
 
     signals.Connections.clear()
 
-    node1 = vr.create('nodes', 'templates/nodes.yml', {})[0]
-    # COMPUTE
-    node2 = vr.create('nodes', 'templates/nodes.yml', {})[1]
-
+    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})[0]
+    
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
         'image': 'mariadb',
@@ -362,6 +360,20 @@ def deploy():
     signals.connect(node1, nova_conductor_puppet)
     signals.connect(nova_puppet, nova_conductor_puppet)
 
+    # NOVA COMPUTE
+    nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
+    nova_puppet2 = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
+    signals.connect(nova_puppet, nova_puppet2 {
+        'ensure_package', 'rabbit_host',
+        'rabbit_password', 'rabbit_port', 'rabbit_userid',
+        'rabbit_virtual_host', 'db_user', 'db_password',
+        'db_name', 'db_host', 'keystone_password',
+        'keystone_port', 'keystone_host', 'keystone_tenant',
+        'keystone_user',
+    })
+    signals.connect(node2, nova_puppet2)
+    signals.connect(node2, nova_compute_puppet)
+
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
@@ -491,6 +503,9 @@ def deploy():
     actions.resource_action(nova_api_puppet, 'run')
     actions.resource_action(nova_conductor_puppet, 'run')
 
+    actions.resource_action(nova_puppet2, 'run')
+    actions.resource_action(nova_compute_puppet, 'run')
+
     actions.resource_action(glance_db, 'run')
     actions.resource_action(glance_db_user, 'run')
     actions.resource_action(glance_keystone_user, 'run')
@@ -498,8 +513,6 @@ def deploy():
     actions.resource_action(glance_keystone_service_endpoint, 'run')
     actions.resource_action(glance_api_puppet, 'run')
     actions.resource_action(glance_registry_puppet, 'run')
-
-    #actions.resource_action(glance, 'run')
 
     time.sleep(10)
 
@@ -522,6 +535,8 @@ def undeploy():
         'nova_conductor_puppet',
         'nova_api_puppet',
         'nova_puppet',
+        'nova_compute_puppet',
+        'nova_puppet2',
         'cinder_volume_puppet',
         'cinder_scheduler_puppet',
         'cinder_api_puppet',
