@@ -47,3 +47,18 @@ class { 'nova::compute':
   default_schedule_zone               => $default_schedule_zone,
   internal_service_availability_zone  => $internal_service_availability_zone,
 }
+
+exec { 'networking-refresh':
+  command     => '/sbin/ifdown -a ; /sbin/ifup -a',
+}
+
+exec { 'post-nova_config':
+  command     => '/bin/echo "Nova config has changed"',
+}
+
+include nova::params
+
+package { 'nova-common':
+  name   => $nova::params::common_package_name,
+  ensure => $ensure_package,
+}
