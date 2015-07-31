@@ -37,7 +37,7 @@ def deploy():
 
     signals.Connections.clear()
 
-    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})[0]
+    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
     
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
@@ -362,8 +362,8 @@ def deploy():
 
     # NOVA COMPUTE
     nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
-    nova_puppet2 = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
-    signals.connect(nova_puppet, nova_puppet2 {
+    nova_puppet2 = vr.create('nova_puppet2', 'resources/nova_puppet', {})[0]
+    signals.connect(nova_puppet, nova_puppet2, {
         'ensure_package', 'rabbit_host',
         'rabbit_password', 'rabbit_port', 'rabbit_userid',
         'rabbit_virtual_host', 'db_user', 'db_password',
