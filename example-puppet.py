@@ -38,6 +38,8 @@ def deploy():
     signals.Connections.clear()
 
     node1 = vr.create('nodes', 'templates/nodes.yml', {})[0]
+    # COMPUTE
+    node2 = vr.create('nodes', 'templates/nodes.yml', {})[1]
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
