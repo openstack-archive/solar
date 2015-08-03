@@ -259,6 +259,13 @@ def deploy():
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
     
+    # CINDER GLANCE
+    # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
+    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {
+        'glance_api_servers': '{{glance_api_servers_host}}:{{glance_api_servers_port}}'
+    })[0]
+    signals.connect(node1, cinder_glance_puppet)    
+
     # CINDER API
     cinder_api_puppet = vr.create('cinder_api_puppet', 'resources/cinder_api_puppet', {})[0]
     signals.connect(node1, cinder_api_puppet)
@@ -457,6 +464,11 @@ def deploy():
         'pipeline': 'keystone',
     })
 
+    # Update glance_api_service for cinder
+    signals.connect(glance_api_puppet, cinder_glance_puppet, {
+        'ip': 'glance_api_servers_host',
+        'bind_port': 'glance_api_servers_port'
+    })
     # Update glance_api_service for nova compute
     signals.connect(glance_api_puppet, nova_puppet2, {
         'ip': 'glance_api_servers_host',
@@ -508,6 +520,7 @@ def deploy():
     actions.resource_action(cinder_keystone_role, 'run')
     actions.resource_action(cinder_puppet, 'run')
     actions.resource_action(cinder_keystone_service_endpoint, 'run')
+    actions.resource_action(cinder_glance, 'run')
     actions.resource_action(cinder_api_puppet, 'run')
     actions.resource_action(cinder_scheduler_puppet, 'run')
     actions.resource_action(cinder_volume_puppet, 'run')
@@ -562,6 +575,7 @@ def undeploy():
         'cinder_volume_puppet',
         'cinder_scheduler_puppet',
         'cinder_api_puppet',
+        'cinder_glance',
         'cinder_keystone_service_endpoint',
         'cinder_puppet',
         'cinder_keystone_role',
