@@ -7,6 +7,8 @@ import networkx as nx
 import redis
 import yaml
 
+from solar import utils
+
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
@@ -47,13 +49,35 @@ def parse_plan(plan_data):
     return dg
 
 
+def create_plan_from_graph(dg):
+    dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
+    save_graph(dg.graph['uid'], dg)
+    return dg.graph['uid']
+
+
+def show(uid):
+    dg = get_graph(uid)
+    result = {}
+    tasks = []
+    result['uid'] = dg.graph['uid']
+    result['name'] = dg.graph['name']
+    for n in nx.topological_sort(dg):
+        data = dg.node[n]
+        tasks.append(
+            {'uid': n,
+             'parameters': data,
+             'before': dg.successors(n),
+             'after': dg.predecessors(n)
+             })
+    result['tasks'] = tasks
+    return utils.yaml_dump(result)
+
+
 def create_plan(plan_data):
     """
     """
     dg = parse_plan(plan_data)
-    dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
-    save_graph(dg.graph['uid'], dg)
-    return dg.graph['uid']
+    return create_plan_from_graph(dg)
 
 
 def update_plan(uid, plan_data):
@@ -75,14 +99,6 @@ def reset(uid, states=None):
     for n in dg:
         if states is None or dg.node[n]['status'] in states:
             dg.node[n]['status'] = 'PENDING'
-    save_graph(uid, dg)
-
-
-def soft_stop(uid):
-    """Graph will stop when all currently inprogress tasks will be finished
-    """
-    dg = get_graph(uid)
-    dg.graph['stop'] = True
     save_graph(uid, dg)
 
 

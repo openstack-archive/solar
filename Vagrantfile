@@ -14,9 +14,11 @@ SCRIPT
 
 slave_script = <<SCRIPT
 apt-get update
+apt-get upgrade
+apt-get dist-upgrade
 apt-get -y install python-pip python-dev
 pip install ansible
-ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml /vagrant/slave.yml
+ansible-playbook -i "localhost," -c local /vagrant/main.yml /vagrant/docker.yml /vagrant/slave.yml /vagrant/slave_cinder.yml
 SCRIPT
 
 master_celery = <<SCRIPT

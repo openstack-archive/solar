@@ -41,9 +41,11 @@ def create_virtual_resource(vr_name, template):
     resources = template['resources']
     connections = []
     created_resources = []
+
+    cwd = os.getcwd()
     for resource in resources:
         name = resource['id']
-        base_path = resource['from']
+        base_path = os.path.join(cwd, resource['from'])
         args = resource['values']
         new_resources = create(name, base_path, args, vr_name)
         created_resources += new_resources

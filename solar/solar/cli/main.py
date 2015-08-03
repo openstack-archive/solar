@@ -29,8 +29,6 @@ import tabulate
 import yaml
 
 from solar import utils
-from solar import operations
-from solar import state
 from solar.core import actions
 from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
@@ -39,8 +37,11 @@ from solar.core.tags_set_parser import Expression
 from solar.core import testing
 from solar.core.resource import virtual_resource as vr
 from solar.interfaces.db import get_db
+from solar import errors
+from solar.core.log import log
 
 from solar.cli.orch import orchestration
+from solar.cli.system_log import changes
 
 # NOTE: these are extensions, they shouldn't be imported here
 # Maybe each extension can also extend the CLI with parsers
@@ -214,54 +215,6 @@ def init_actions():
                 ))
 
 
-def init_changes():
-    @main.group()
-    def changes():
-        pass
-
-    @changes.command()
-    def validate():
-        errors = vr.validate_resources()
-        if errors:
-            for r, error in errors:
-                print 'ERROR: %s: %s' % (r.name, error)
-            sys.exit(1)
-
-    @changes.command()
-    def stage():
-        log = operations.stage_changes()
-        click.echo(log.show())
-
-    @changes.command()
-    @click.option('--one', is_flag=True, default=False)
-    def commit(one):
-        if one:
-            operations.commit_one()
-        else:
-            operations.commit_changes()
-
-    @changes.command()
-    @click.option('--limit', default=5)
-    def history(limit):
-        click.echo(state.CL().show())
-
-    @changes.command()
-    @click.option('--last', is_flag=True, default=False)
-    @click.option('--all', is_flag=True, default=False)
-    @click.option('--uid', default=None)
-    def rollback(last, all, uid):
-        if last:
-            click.echo(operations.rollback_last())
-        elif all:
-            click.echo(operations.rollback_all())
-        elif uid:
-            click.echo(operations.rollback_uid(uid))
-
-    @changes.command()
-    def test():
-        testing.test_all()
-
-
 def init_cli_connect():
     @main.command()
     @click.argument('emitter')
@@ -362,8 +315,13 @@ def init_cli_resource():
         click.echo(
             'action {} for resource {}'.format(action, resource)
         )
-        actions.resource_action(sresource.load(resource), action)
 
+        r = sresource.load(resource)
+        try:
+            actions.resource_action(r, action)
+        except errors.SolarError as e:
+            log.debug(e)
+            sys.exit(1)
 
         if dry_run:
             click.echo('EXECUTED:')
@@ -395,7 +353,8 @@ def init_cli_resource():
 
     @resource.command()
     @click.argument('name')
-    @click.argument('base_path', type=click.Path(exists=True, file_okay=True))
+    @click.argument(
+        'base_path', type=click.Path(exists=True, resolve_path=True))
     @click.argument('args', nargs=-1)
     def create(args, base_path, name):
         args_parsed = {}
@@ -506,13 +465,13 @@ def init_cli_resource():
 
 def run():
     init_actions()
-    init_changes()
     init_cli_connect()
     init_cli_connections()
     init_cli_deployment_config()
     init_cli_resource()
 
     main.add_command(orchestration)
+    main.add_command(changes)
     main()
 
 

@@ -21,10 +21,12 @@ def orchestration():
     restart <id> --reset
     """
 
+
 @orchestration.command()
 @click.argument('plan', type=click.File('rb'))
 def create(plan):
     click.echo(graph.create_plan(plan.read()))
+
 
 @orchestration.command()
 @click.argument('uid')
@@ -32,14 +34,16 @@ def create(plan):
 def update(uid, plan):
     graph.update_plan(uid, plan.read())
 
+
 @orchestration.command()
 @click.argument('uid')
 def report(uid):
     colors = {
-        'PENDING': 'blue',
+        'PENDING': 'cyan',
         'ERROR': 'red',
         'SUCCESS': 'green',
-        'INPROGRESS': 'yellow'}
+        'INPROGRESS': 'yellow',
+        'SKIPPED': 'blue'}
 
     report = graph.report_topo(uid)
     for item in report:
@@ -78,7 +82,14 @@ def stop(uid):
     # using revoke(terminate=True) will lead to inability to restart execution
     # research possibility of customizations of
     # app.control and Panel.register in celery
-    graph.soft_stop(uid)
+    tasks.soft_stop.apply_async(args=[uid], queue='scheduler')
+
+
+@orchestration.command()
+@click.argument('uid')
+def resume(uid):
+    graph.reset(uid, ['SKIPPED'])
+    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
@@ -94,13 +105,23 @@ def dg(uid):
     plan = graph.get_graph(uid)
 
     colors = {
-        'PENDING': 'blue',
+        'PENDING': 'cyan',
         'ERROR': 'red',
         'SUCCESS': 'green',
-        'INPROGRESS': 'yellow'}
+        'INPROGRESS': 'yellow',
+        'SKIPPED': 'blue'}
 
     for n in plan:
         color = colors[plan.node[n]['status']]
         plan.node[n]['color'] = color
-    nx.write_dot(plan, 'graph.dot')
-    subprocess.call(['dot', '-Tpng', 'graph.dot', '-o', 'graph.png'])
+    nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    subprocess.call(
+        'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),
+        shell=True)
+    click.echo('Created {name}.png'.format(name=plan.graph['name']))
+
+
+@orchestration.command()
+@click.argument('uid')
+def show(uid):
+    click.echo(graph.show(uid))

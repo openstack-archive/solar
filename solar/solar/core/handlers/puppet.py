@@ -9,20 +9,7 @@ import os
 from solar.core.log import log
 from solar.core.handlers.base import TempFileHandler
 from solar.core.provider import GitProvider
-
-
-# TODO:
-# puppet wont always return 0 on error, example:
-# http://unix.stackexchange.com/questions/165333/how-to-get-non-zero-exit-code-from-puppet-when-configuration-cannot-be-applied
-
-# in fuel there is special handler based on puppet summary, but i think we can also use --detailed-exitcode
-# https://docs.puppetlabs.com/references/3.6.2/man/agent.html
-# --detailed-exitcodes
-# Provide transaction information via exit codes. If this is enabled, an exit
-# code of '2' means there were changes, an exit code of '4' means there were
-# failures during the transaction, and an exit code of '6' means there were
-# both changes and failures.
-
+from solar import errors
 
 
 class ResourceSSHMixin(object):
@@ -47,6 +34,10 @@ class ResourceSSHMixin(object):
             managers.append(
                 fabric_api.shell_env(**kwargs['env'])
             )
+
+        if 'warn_only' in kwargs:
+            managers.append(
+                fabric_api.warn_only())
 
         with nested(*managers):
             return executor(' '.join(args))
@@ -162,14 +153,21 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
 
         self._scp_command(resource, action_file, '/tmp/action.pp')
 
-        self._ssh_command(
+        cmd = self._ssh_command(
             resource,
-            'puppet', 'apply', '-vd', '/tmp/action.pp',
+            'puppet', 'apply', '-vd', '/tmp/action.pp', '--detailed-exitcodes',
             env={
                 'FACTER_resource_name': resource.name,
             },
-            use_sudo=True
+            use_sudo=True,
+            warn_only=True,
         )
+        # 0 - no changes, 2 - successfull changes
+        if cmd.return_code not in [0, 2]:
+            raise errors.SolarError(
+                'Puppet for {} failed with {}'.format(
+                    resource.name, cmd.return_code))
+        return cmd
 
     def clone_manifests(self, resource):
         git = resource.args['git'].value

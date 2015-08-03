@@ -8,6 +8,9 @@ input:
     db_name:
       schema: str!
       value:
+    db_host:
+      schema: str!
+      value:
 
     login_user:
       schema: str!

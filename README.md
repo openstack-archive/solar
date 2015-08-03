@@ -61,7 +61,9 @@ solar connect mariadb_service keystone_db '{"root_password": "login_password", "
 solar connect keystone_db keystone_db_user
 
 solar changes stage
-solar changes commit
+solar changes proccess
+<uid>
+solar orch run-once <uid>
 ```
 
 You can fiddle with the above configuration like this:
@@ -70,7 +72,9 @@ solar resource update keystone_db_user '{"user_password": "new_keystone_password
 solar resource update keystone_db_user user_password=new_keystone_password   # another valid format
 
 solar changes stage
-solar changes commit
+solar changes proccess
+<uid>
+solar orch run-once <uid>
 ```
 
 * Show the connections/graph:

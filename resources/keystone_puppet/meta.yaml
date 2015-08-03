@@ -8,13 +8,16 @@ input:
       value: admin_token
     db_user:
       schema: str!
-      value: keystone
+      value:
     db_password:
       schema: str!
-      value: keystone
+      value:
     db_name:
       schema: str!
-      value: keystone
+      value: 
+    db_host:
+      schema: str!
+      value: 
 
     admin_port:
       schema: int!

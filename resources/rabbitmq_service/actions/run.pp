@@ -2,7 +2,6 @@ $resource = hiera($::resource_name)
 
 $port = "${resource['input']['port']['value']}"
 $management_port = "${resource['input']['management_port']['value']}"
-$node_name = $resource['input']['node_name']['value']
 
 class { '::rabbitmq':
   service_manage    => true,

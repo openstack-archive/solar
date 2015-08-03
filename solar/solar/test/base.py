@@ -4,7 +4,7 @@ import tempfile
 import unittest
 import yaml
 
-from solar.core import virtual_resource as vr
+from solar.core.resource import virtual_resource as vr
 from solar.core import signals as xs
 from solar.interfaces.db import get_db
 
