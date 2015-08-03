@@ -374,6 +374,11 @@ def deploy():
     signals.connect(node2, nova_puppet2)
     signals.connect(node2, nova_compute_puppet)
 
+    # NOVA COMPUTE LIBVIRT
+    # NOTE(bogdando): changes nova config, so should notify nova compute service
+    nova_compute_libvirt_puppet = vr.create('nova_compute_libvirt_puppet', 'resources/nova_compute_libvirt_puppet', {})[0]
+    signals.connect(node2, nova_compute_libvirt_puppet)    
+
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
     # signals.connect(rabbitmq_service1, nova_network_puppet, {'ip': 'rabbitmq_host', 'port': 'rabbitmq_port'})
@@ -504,6 +509,7 @@ def deploy():
     actions.resource_action(nova_conductor_puppet, 'run')
 
     actions.resource_action(nova_puppet2, 'run')
+    actions.resource_action(nova_compute_libvirt_puppet, 'run')
     actions.resource_action(nova_compute_puppet, 'run')
 
     actions.resource_action(glance_db, 'run')
@@ -536,6 +542,7 @@ def undeploy():
         'nova_api_puppet',
         'nova_puppet',
         'nova_compute_puppet',
+        'nova_compute_libvirt_puppet',
         'nova_puppet2',
         'cinder_volume_puppet',
         'cinder_scheduler_puppet',
