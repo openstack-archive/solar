@@ -520,7 +520,7 @@ def deploy():
     actions.resource_action(cinder_keystone_role, 'run')
     actions.resource_action(cinder_puppet, 'run')
     actions.resource_action(cinder_keystone_service_endpoint, 'run')
-    actions.resource_action(cinder_glance, 'run')
+    actions.resource_action(cinder_glance_puppet, 'run')
     actions.resource_action(cinder_api_puppet, 'run')
     actions.resource_action(cinder_scheduler_puppet, 'run')
     actions.resource_action(cinder_volume_puppet, 'run')
@@ -575,7 +575,7 @@ def undeploy():
         'cinder_volume_puppet',
         'cinder_scheduler_puppet',
         'cinder_api_puppet',
-        'cinder_glance',
+        'cinder_glance_puppet',
         'cinder_keystone_service_endpoint',
         'cinder_puppet',
         'cinder_keystone_role',
