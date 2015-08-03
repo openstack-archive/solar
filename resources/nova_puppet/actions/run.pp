@@ -4,6 +4,8 @@ $db_user = $resource['input']['db_user']['value']
 $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
 $db_host = $resource['input']['db_host']['value']
+$glance_api_servers_host = $resource['input']['glance_api_servers_host']['value']
+$glance_api_servers_port = $resource['input']['glance_api_servers_port']['value']
 
 $ensure_package            = $resource['input']['ensure_package']['value']
 $database_connection       = $resource['input']['database_connection']['value']
@@ -76,7 +78,7 @@ class { 'nova':
   database_idle_timeout     => $database_idle_timeout,
   rpc_backend               => $rpc_backend,
   image_service             => $image_service,
-  glance_api_servers        => $glance_api_servers,
+  glance_api_servers        => "${glance_api_servers_host}:${glance_api_servers_port}",
   memcached_servers         => $memcached_servers,
   rabbit_host               => $rabbit_host,
   rabbit_hosts              => $rabbit_hosts,

@@ -363,7 +363,10 @@ def deploy():
     # NOVA COMPUTE
     # Deploy chain (nova, node_networking(TODO)) -> (nova_compute_libvirt, nova_neutron) -> nova_compute
     nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
-    nova_puppet2 = vr.create('nova_puppet2', 'resources/nova_puppet', {})[0]
+    # TODO (bogdando) figure out how to use it for multiple glance api servers
+    nova_puppet2 = vr.create('nova_puppet2', 'resources/nova_puppet', {
+        'glance_api_servers': '{{glance_api_servers_host}}:{{glance_api_servers_port}}'
+        })[0]
     signals.connect(nova_puppet, nova_puppet2, {
         'ensure_package', 'rabbit_host',
         'rabbit_password', 'rabbit_port', 'rabbit_userid',
@@ -452,6 +455,12 @@ def deploy():
         'bind_port': 9191,
         'log_file': '/var/log/glance/registry.log',
         'pipeline': 'keystone',
+    })
+
+    # Update glance_api_service for nova compute
+    signals.connect(glance_api_puppet, nova_puppet2, {
+        'ip': 'glance_api_servers_host',
+        'bind_port': 'glance_api_servers_port'
     })
 
     has_errors = False

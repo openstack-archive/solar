@@ -222,6 +222,13 @@ input:
       schema: str!
       value:
 
+    glance_api_servers_port:
+      schema: int
+      value: 9292
+    glance_api_servers_host:
+      schema: 'str'
+      value: 'localhost'
+
     port:
       schema: int!
       value: 8774
