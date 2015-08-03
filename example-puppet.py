@@ -372,6 +372,7 @@ def deploy():
         'keystone_port', 'keystone_host', 'keystone_tenant',
         'keystone_user',
     })
+    # TODO(bogdando): Make a connection for nova_puppet2.glance_api_servers = "glance_api_puppet.ip:glance_api_puppet.bind_port"
     signals.connect(node2, nova_puppet2)
     signals.connect(node2, nova_compute_puppet)
 
