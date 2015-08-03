@@ -50,7 +50,7 @@ input:
       value: '127.0.0.1'
     auth_url:
       schema: str
-      value: 'http://localhost:5000/v2.0'
+      value: 'http://{{auth_host}}:{{auth_port}}/v2.0'
     auth_port:
       schema: int
       value: 35357
