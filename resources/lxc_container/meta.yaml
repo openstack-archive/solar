@@ -15,12 +15,30 @@ input:
     ansible_ssh_host:
       schema: str!
       value:
+    physical_host:
+      schema: str!
+      value:
     container_address:
       schema: str!
       value:
     container_name:
       schema: str!
       value:
+    inventory_hostname:
+      schema: str!
+      value:
+    container_networks:
+      schema: {}
+      value:
+    properties:
+      schema: {}
+      value:
+    pub_key:
+      schema: str!
+      value:
+    requires:
+        schema: str
+        value:
     roles:
       schema: [{value: str}]
       value:
