@@ -5,20 +5,18 @@ from solar.core import validation
 
 
 def test(resource):
-    log.debug('Testing glance_service')
+    log.debug('Testing glance_puppet')
+    requests.get(
+        'http://%s:%s' % (resource.args['ip'].value, resource.args['bind_port'].value)
+    )
+    #TODO(bogdando) test packages installed and filesystem store datadir created
 
     args = resource.args
 
     token = validation.validate_token(
         keystone_host=args['keystone_host'].value,
         keystone_port=args['keystone_port'].value,
-        user='glance_admin',
-        tenant='services',
+        user=args['keystone_user'].value,
+        tenant=args['keystone_tenant'].value,
         password=args['keystone_password'].value,
     )
-
-    images = requests.get(
-        'http://%s:%s/v1/images' % (resource.args['ip'].value, 9393),
-        headers={'X-Auth-Token': token}
-    )
-    assert images.json() == {'images': []}

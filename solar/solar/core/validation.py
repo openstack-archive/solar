@@ -41,7 +41,9 @@ mount_points:
         minLength: 1
 """
 
+import json
 from jsonschema import validate, ValidationError
+import requests
 
 from solar.core.log import log
 
@@ -164,3 +166,30 @@ def validate_resource(r):
             ret[input_name] = errors
 
     return ret
+
+
+def validate_token(
+        keystone_host=None,
+        keystone_port=None,
+        user=None,
+        tenant=None,
+        password=None):
+    token_data = requests.post(
+        'http://%s:%s/v2.0/tokens' % (keystone_host, keystone_port),
+        json.dumps({
+            'auth': {
+                'tenantName': tenant,
+                'passwordCredentials': {
+                    'username': user,
+                    'password': password,
+                },
+            },
+        }),
+        headers={'Content-Type': 'application/json'}
+    )
+
+    token = token_data.json()['access']['token']['id']
+
+    log.debug('%s TOKEN: %s', user, token)
+
+    return token
