@@ -361,6 +361,7 @@ def deploy():
     signals.connect(nova_puppet, nova_conductor_puppet)
 
     # NOVA COMPUTE
+    # Deploy chain (nova, node_networking(TODO)) -> (nova_compute_libvirt, nova_neutron) -> nova_compute
     nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
     nova_puppet2 = vr.create('nova_puppet2', 'resources/nova_puppet', {})[0]
     signals.connect(nova_puppet, nova_puppet2, {
@@ -374,10 +375,12 @@ def deploy():
     signals.connect(node2, nova_puppet2)
     signals.connect(node2, nova_compute_puppet)
 
-    # NOVA COMPUTE LIBVIRT
+    # NOVA COMPUTE LIBVIRT, NOVA_NEUTRON
     # NOTE(bogdando): changes nova config, so should notify nova compute service
     nova_compute_libvirt_puppet = vr.create('nova_compute_libvirt_puppet', 'resources/nova_compute_libvirt_puppet', {})[0]
-    signals.connect(node2, nova_compute_libvirt_puppet)    
+    signals.connect(node2, nova_compute_libvirt_puppet)
+    nova_neutron_puppet = vr.create('nova_neutron_puppet', 'resources/nova_neutron_puppet', {})[0]
+    signals.connect(node2, nova_neutron_puppet)
 
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
@@ -510,6 +513,7 @@ def deploy():
 
     actions.resource_action(nova_puppet2, 'run')
     actions.resource_action(nova_compute_libvirt_puppet, 'run')
+    actions.resource_action(nova_neutron_puppet, 'run')
     actions.resource_action(nova_compute_puppet, 'run')
 
     actions.resource_action(glance_db, 'run')
@@ -542,6 +546,7 @@ def undeploy():
         'nova_api_puppet',
         'nova_puppet',
         'nova_compute_puppet',
+        'nova_neutron_puppet',
         'nova_compute_libvirt_puppet',
         'nova_puppet2',
         'cinder_volume_puppet',
