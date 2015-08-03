@@ -19,8 +19,8 @@ input:
       schema: [str]
       value: []
     libvirt_inject_password:
-      schema: str!
-      value: 'changeme'
+      schema: bool
+      value: false
     libvirt_inject_key:
       schema: bool
       value: false
