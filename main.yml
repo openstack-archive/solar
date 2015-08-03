@@ -57,6 +57,7 @@
       - jq
       - ipython
       - python-pudb
+      - subversion
 
     # Graph drawing
     #- apt: name=python-matplotlib state=present

@@ -117,9 +117,9 @@ class SVNProvider(BaseProvider):
     def run(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-
-        if not os.path.exists(self.url.rsplit('/', 1)[-1]):
-            fabric.local(
+        full_path_role = os.path.join(self.path, self.url.rsplit('/', 1)[-1])
+        if not os.path.exists(full_path_role):
+            fabric_api.local(
                 'cd {path} && svn checkout {url}'.format(
                     path=self.path,
                     url=self.url))
