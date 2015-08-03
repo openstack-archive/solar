@@ -1,0 +1,12 @@
+- hosts: '*'
+  sudo: yes
+  gather_facts: false
+  # this is default variables, they will be overwritten by resource one
+  vars:
+    path: /vagrant/.ssh/id_rsa
+    passphrase: containers
+  tasks:
+    - stat: path={{path}}
+      register: key
+    - shell: ssh-keygen -t rsa -f {{path}} -N {{passphrase}}
+      when: key.stat.exists == False
