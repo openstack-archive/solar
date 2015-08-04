@@ -192,4 +192,4 @@ def validate_token(
 
     log.debug('%s TOKEN: %s', user, token)
 
-    return token
+    return token, token_data.json()
