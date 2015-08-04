@@ -158,9 +158,27 @@ def setup_resources():
     signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
     # NEUTRON
-    # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
+    # Deploy chain neutron -> neutron_server -> ( agents & plugins )
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
+    signals.connect(node1, neutron_puppet)
+    signals.connect(rabbitmq_service1, neutron_puppet, {
+        'ip': 'rabbitmq_host',
+        'port': 'rabbitmq_port'
+    })
+    signals.connect(openstack_rabbitmq_user, neutron_puppet, {
+        'user_name': 'rabbitmq_user',
+        'password': 'rabbitmq_password'})
+    signals.connect(openstack_vhost, neutron_puppet, {
+        'vhost_name': 'rabbitmq_virtual_host'})
 
+    # NEUTRON API (SERVER)
+    neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
+        'sync_db': True,
+    })[0]
+    neutron_db = vr.create('neutron_db', 'resources/mariadb_db/', {
+        'db_name': 'neutron_db', 'login_user': 'root'})[0]
+    neutron_db_user = vr.create('neutron_db_user', 'resources/mariadb_user/', {
+        'user_name': 'neutron', 'user_password': 'neutron', 'login_user': 'root'})[0]
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {
         'user_name': 'neutron',
         'user_password': 'neutron'
@@ -177,24 +195,29 @@ def setup_resources():
         'type': 'network'
     })[0]
 
-    signals.connect(node1, neutron_puppet)
-    signals.connect(rabbitmq_service1, neutron_puppet, {
-        'ip': 'rabbitmq_host',
-        'port': 'rabbitmq_port'
+    signals.connect(node1, neutron_db)
+    signals.connect(node1, neutron_db_user)
+    signals.connect(mariadb_service1, neutron_db, {
+        'port': 'login_port',
+        'root_password': 'login_password',
+        'root_user': 'login_user',
+        'ip' : 'db_host'})
+    signals.connect(mariadb_service1, neutron_db_user, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(neutron_db, neutron_db_user, {'db_name', 'db_host'})
+    signals.connect(neutron_db_user, neutron_server_puppet, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'})
+    signals.connect(node1, neutron_server_puppet)
+    signals.connect(admin_user, neutron_server_puppet, {
+        'user_name': 'auth_user',
+        'user_password': 'auth_password',
+        'tenant_name': 'auth_tenant'
     })
-    signals.connect(openstack_rabbitmq_user, neutron_puppet, {
-        'user_name': 'rabbitmq_user',
-        'password': 'rabbitmq_password'})
-    signals.connect(openstack_vhost, neutron_puppet, {
-        'vhost_name': 'rabbitmq_virtual_host'})
-    signals.connect(admin_user, neutron_puppet, {
-        'user_name': 'keystone_user',
-        'user_password': 'keystone_password',
-        'tenant_name': 'keystone_tenant'
-    })
-    signals.connect(keystone_puppet, neutron_puppet, {
-        'ip': 'keystone_host',
-        'port': 'keystone_port'
+    signals.connect(keystone_puppet, neutron_server_puppet, {
+        'ip': 'auth_host',
+        'port': 'auth_port'
     })
     signals.connect(services_tenant, neutron_keystone_user)
     signals.connect(neutron_keystone_user, neutron_keystone_role)
@@ -207,7 +230,7 @@ def setup_resources():
     })
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
         'ip': ['admin_ip', 'internal_ip', 'public_ip'],
-        'port': ['admin_port', 'internal_port', 'public_port'],
+        'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
 
     # CINDER
@@ -508,10 +531,13 @@ resources_to_run = [
     'keystone_service_endpoint',
     'services_tenant',
 
+    'neutron_db',
+    'neutron_db_user',
     'neutron_keystone_user',
     'neutron_keystone_role',
     'neutron_puppet',
     'neutron_keystone_service_endpoint',
+    'neutron_server_puppet',
 
     'cinder_db',
     'cinder_db_user',
