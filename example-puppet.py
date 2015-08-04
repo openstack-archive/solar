@@ -162,14 +162,14 @@ def setup_resources():
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {
-        'ip': 'rabbitmq_host',
-        'port': 'rabbitmq_port'
+        'ip': 'rabbit_host',
+        'port': 'rabbit_port'
     })
     signals.connect(openstack_rabbitmq_user, neutron_puppet, {
-        'user_name': 'rabbitmq_user',
-        'password': 'rabbitmq_password'})
+        'user_name': 'rabbit_user',
+        'password': 'rabbit_password'})
     signals.connect(openstack_vhost, neutron_puppet, {
-        'vhost_name': 'rabbitmq_virtual_host'})
+        'vhost_name': 'rabbit_virtual_host'})
 
     # NEUTRON API (SERVER)
     neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {

@@ -88,3 +88,8 @@ class { 'neutron::server':
   log_file                  => $log_file,
   report_interval           => $report_interval,
 }
+
+# Remove external class dependency
+Service <| title == 'neutron-server' |> {
+  require    => undef
+}
