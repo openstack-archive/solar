@@ -3,35 +3,35 @@ id: 'neutron_plugins_ovs_puppet'
 input:
   ip:
     schema: str!
-    value: ''
+    value:
   ssh_key:
     schema: str!
-    value: ''
+    value:
   ssh_user:
     schema: str!
-    value: ''
+    value:
 
   package_ensure:
     schema: str
     value: 'present'
   sql_connection:
     schema: str
-    value: ''
+    value:
   sql_max_retries:
     schema: str
-    value: ''
+    value:
   sql_idle_timeout:
     schema: str
-    value: ''
+    value:
   reconnect_interval:
     schema: str
-    value: ''
+    value:
   tenant_network_type:
     schema: str
     value: 'vlan'
   network_vlan_ranges:
     schema: str
-    value: ''
+    value:
   tunnel_id_ranges:
     schema: str
     value: '1:1000'

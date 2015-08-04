@@ -3,13 +3,13 @@ id: 'neutron_server_puppet'
 input:
   ip:
     schema: str!
-    value: ''
+    value:
   ssh_key:
     schema: str!
-    value: ''
+    value:
   ssh_user:
     schema: str!
-    value: ''
+    value:
 
   db_user:
     schema: str!
@@ -29,7 +29,7 @@ input:
     value: 'present'
   auth_password:
     schema: str!
-    value: ''
+    value:
   auth_type:
     schema: str
     value: 'keystone'
@@ -41,7 +41,7 @@ input:
     value: 35357
   auth_admin_prefix:
     schema: str
-    value: ''
+    value:
   auth_tenant:
     schema: str
     value: 'services'
@@ -53,7 +53,7 @@ input:
     value: 'http'
   auth_uri:
     schema: str
-    value: ''
+    value:
   database_connection:
     schema: str
     value: 'sqlite:////var/lib/neutron/ovs.sqlite'
@@ -107,40 +107,40 @@ input:
     value: '169.254.192.0/18'
   mysql_module:
     schema: str
-    value: ''
+    value:
   sql_connection:
     schema: str
-    value: ''
+    value:
   connection:
     schema: str
-    value: ''
+    value:
   sql_max_retries:
     schema: str
-    value: ''
+    value:
   max_retries:
     schema: str
-    value: ''
+    value:
   sql_idle_timeout:
     schema: str
-    value: ''
+    value:
   idle_timeout:
     schema: str
-    value: ''
+    value:
   sql_reconnect_interval:
     schema: str
-    value: ''
+    value:
   retry_interval:
     schema: str
-    value: ''
+    value:
   log_dir:
     schema: str
-    value: ''
+    value:
   log_file:
     schema: str
-    value: ''
+    value:
   report_interval:
     schema: str
-    value: ''
+    value:
 
   git:
     schema: {repository: str!, branch: str!}

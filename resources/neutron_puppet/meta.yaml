@@ -31,7 +31,7 @@ input:
     value: 'openvswitch'
   service_plugins:
     schema: str
-    value: ''
+    value:
   auth_strategy:
     schema: str
     value: 'keystone'
@@ -103,7 +103,7 @@ input:
     value: false
   kombu_ssl_ca_certs:
     schema: str
-    value: ''
+    value:
   kombu_ssl_certfile:
     schema: str
     value:
@@ -175,7 +175,7 @@ input:
     value: 'LOG_USER'
   log_file:
     schema: str
-    value: ''
+    value:
   log_dir:
     schema: str
     value: '/var/log/neutron'
