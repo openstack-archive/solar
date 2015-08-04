@@ -14,7 +14,7 @@ input:
       value: '127.0.0.1'
     vncproxy_host:
       schema: str
-      value: ''
+      value:
     vncproxy_protocol:
       schema: str
       value: 'http'
@@ -38,7 +38,7 @@ input:
       value: true
     network_device_mtu:
       schema: str
-      value: ''
+      value:
     instance_usage_audit:
       schema: bool
       value: false
@@ -56,13 +56,13 @@ input:
       value: 'nova.compute.manager.ComputeManager'
     pci_passthrough:
       schema: str
-      value: ''
+      value:
     default_availability_zone:
       schema: str
       value: 'nova'
     default_schedule_zone:
       schema: str
-      value: ''
+      value:
     internal_service_availability_zone:
       schema: str
       value: 'internal'

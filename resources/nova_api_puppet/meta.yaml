@@ -8,7 +8,7 @@ input:
       value: 'present'
     auth_strategy:
       schema: str
-      value: ''
+      value:
     auth_host:
       schema: str
       value: '127.0.0.1'
@@ -20,13 +20,13 @@ input:
       value: 'http'
     auth_uri:
       schema: str
-      value: ''
+      value:
     auth_admin_prefix:
       schema: str
-      value: ''
+      value:
     auth_version:
       schema: str
-      value: ''
+      value:
     admin_tenant_name:
       schema: str
       value: 'services'
@@ -47,7 +47,7 @@ input:
       value: 'ec2,osapi_compute,metadata'
     keystone_ec2_url:
       schema: str
-      value: ''
+      value:
     volume_api_class:
       schema: str
       value: 'nova.volume.cinder.API'
@@ -68,16 +68,16 @@ input:
       value: true
     neutron_metadata_proxy_shared_secret:
       schema: str
-      value: ''
+      value:
     osapi_v3:
       schema: bool
       value: false
     pci_alias:
       schema: str
-      value: ''
+      value:
     ratelimits:
       schema: str
-      value: ''
+      value:
     ratelimits_factory:
       schema: str
       value: 'nova.api.openstack.compute.limits:RateLimitingMiddleware.factory'
@@ -89,10 +89,10 @@ input:
       value: {}
     workers:
       schema: str
-      value: ''
+      value:
     conductor_workers:
       schema: str
-      value: ''
+      value:
 
     git:
       schema: {repository: str!, branch: str!}

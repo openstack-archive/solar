@@ -44,7 +44,7 @@ input:
       value: 600
     neutron_ca_certificates_file:
       schema: str
-      value: ''
+      value:
     network_api_class:
       schema: str
       value: 'nova.network.neutronv2.api.API'

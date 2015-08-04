@@ -3,30 +3,30 @@ id: 'neutron'
 input:
   ip:
     schema: str!
-    value: ''
+    value:
   ssh_key:
     schema: str!
-    value: ''
+    value:
   ssh_user:
     schema: str!
-    value: ''
+    value:
 
   # TODO: add vhost!
   rabbitmq_host:
     schema: str!
-    value: ''
+    value:
   rabbitmq_port:
     schema: int!
-    value: ''
+    value:
   rabbitmq_user:
     schema: str!
-    value: ''
+    value:
   rabbitmq_password:
     schema: str!
-    value: ''
+    value:
   rabbitmq_virtual_host:
     schema: str!
-    value: ''
+    value:
 
   git:
     schema: {repository: str!, branch: str!}
@@ -38,19 +38,18 @@ input:
 
   keystone_host:
     schema: str!
-    value: ''
   keystone_port:
     schema: int!
-    value: ''
+    value:
   keystone_user:
     schema: str!
-    value: ''
+    value:
   keystone_password:
     schema: str!
-    value: ''
+    value:
   keystone_tenant:
     schema: str!
-    value: ''
+    value:
 puppet_module: 'neutron'
 tags: []
 version: 1.0.0
