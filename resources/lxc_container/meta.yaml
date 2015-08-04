@@ -15,6 +15,15 @@ input:
     ansible_ssh_host:
       schema: str!
       value:
+    user:
+      schema: str!
+      value:
+    user_key:
+      schema: str!
+      value:
+    mgmt_ip:
+      schema: str!
+      value:
     physical_host:
       schema: str!
       value:

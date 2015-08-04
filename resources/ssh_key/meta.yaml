@@ -20,4 +20,4 @@ input:
       value:
     passphrase:
       schema: str
-      value: default_passphrase
+      value:
