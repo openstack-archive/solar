@@ -1,6 +1,5 @@
 $resource = hiera($::resource_name)
 
-$glance_api_servers          = $resource['input']['glance_api_servers']['value']
 $glance_api_version          = $resource['input']['glance_api_version']['value']
 $glance_num_retries          = $resource['input']['glance_num_retries']['value']
 $glance_api_insecure         = $resource['input']['glance_api_insecure']['value']

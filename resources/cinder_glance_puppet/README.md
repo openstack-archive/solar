@@ -10,6 +10,8 @@ source https://github.com/openstack/puppet-cinder/blob/5.1.0/manifests/glance.pp
    (optional) A list of the glance api servers available to cinder.
    Should be an array with [hostname|ip]:port
    Defaults to undef
+   Note: for this resource, it is decomposed to *_host and *_port due to
+   existing implementation limitations
 
  ``glance_api_version``
    (optional) Glance API version.

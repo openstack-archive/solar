@@ -3,9 +3,6 @@ handler: puppet
 puppet_module: cinder
 version: 1.0.0
 input:
-    glance_api_servers:
-      schema: str
-      value: ''
     glance_api_version:
       schema: int
       value: 2
