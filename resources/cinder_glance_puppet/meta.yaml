@@ -1,0 +1,43 @@
+id: cinder_glance_puppet
+handler: puppet
+puppet_module: cinder
+version: 1.0.0
+input:
+    glance_api_version:
+      schema: int
+      value: 2
+    glance_num_retries:
+      schema: int
+      value: 0
+    glance_api_insecure:
+      schema: bool
+      value: false
+    glance_api_ssl_compression:
+      schema: bool
+      value: false
+    glance_request_timeout:
+      schema: str
+      value: ''
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+    glance_api_servers_port:
+      schema: int
+      value: 9292
+    glance_api_servers_host:
+      schema: 'str'
+      value: 'localhost'
+
+tags: [resource/cinder_glance_service, resources/cinder_glance, resources/cinder]
