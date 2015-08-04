@@ -1,6 +1,6 @@
 id: cinder_api_puppet
 handler: puppet
-puppet_module: cinder_api
+puppet_module: cinder
 version: 1.0.0
 input:
     keystone_password:

@@ -13,7 +13,7 @@ def test(resource):
 
     args = resource.args
 
-    token = validation.validate_token(
+    token, _ = validation.validate_token(
         keystone_host=args['keystone_host'].value,
         keystone_port=args['keystone_port'].value,
         user=args['keystone_user'].value,

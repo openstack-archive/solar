@@ -1,50 +1,102 @@
-id: nova
+id: nova_api
 handler: puppet
 puppet_module: nova
 version: 1.0.0
 input:
-    db_user:
-      schema: str!
-      value: nova
-    db_password:
-      schema: str!
-      value:
-    db_name:
-      schema: str!
-      value:
-    db_host:
-      schema: str!
-      value:
-
-    rabbitmq_user:
-      schema: str!
-      value:
-    rabbitmq_password:
-      schema: str!
-      value:
-    rabbitmq_host:
-      schema: str!
-      value:
-
-    keystone_password:
-      schema: str!
-      value: 
-    keystone_port:
-      schema: int!
-      value:
-    keystone_host:
-      schema: str!
-      value:
-    keystone_tenant_name:
-      schema: str!
-      value:
-    keystone_user_name:
-      schema: str!
-      value:
+    ensure_package:
+      schema: str
+      value: 'present'
+    auth_strategy:
+      schema: str
+      value: ''
+    auth_host:
+      schema: str
+      value: '127.0.0.1'
+    auth_port:
+      schema: int
+      value: 35357
+    auth_protocol:
+      schema: str
+      value: 'http'
+    auth_uri:
+      schema: str
+      value: ''
+    auth_admin_prefix:
+      schema: str
+      value: ''
+    auth_version:
+      schema: str
+      value: ''
+    admin_tenant_name:
+      schema: str
+      value: 'services'
+    admin_user:
+      schema: str
+      value: 'nova'
+    admin_password:
+      schema: str
+      value: 'nova'
+    api_bind_address:
+      schema: str
+      value: '0.0.0.0'
+    metadata_listen:
+      schema: str
+      value: '0.0.0.0'
+    enabled_apis:
+      schema: str
+      value: 'ec2,osapi_compute,metadata'
+    keystone_ec2_url:
+      schema: str
+      value: ''
+    volume_api_class:
+      schema: str
+      value: 'nova.volume.cinder.API'
+    use_forwarded_for:
+      schema: bool
+      value: false
+    osapi_compute_workers:
+      schema: int
+      value: 1
+    ec2_workers:
+      schema: int
+      value: 1
+    metadata_workers:
+      schema: int
+      value: 1
+    sync_db:
+      schema: bool
+      value: true
+    neutron_metadata_proxy_shared_secret:
+      schema: str
+      value: ''
+    osapi_v3:
+      schema: bool
+      value: false
+    pci_alias:
+      schema: str
+      value: ''
+    ratelimits:
+      schema: str
+      value: ''
+    ratelimits_factory:
+      schema: str
+      value: 'nova.api.openstack.compute.limits:RateLimitingMiddleware.factory'
+    validate:
+      schema: bool
+      value: false
+    validation_options:
+      schema: {}
+      value: {}
+    workers:
+      schema: str
+      value: ''
+    conductor_workers:
+      schema: str
+      value: ''
 
     git:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-nova', branch: 'stable/juno'}
+      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
 
     ip:
       schema: str!
@@ -56,4 +108,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/nova_service, resources/nova, resource/nova-api]
+tags: [resource/nova_api_service, resources/nova_api, resources/nova]

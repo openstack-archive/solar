@@ -1,6 +1,6 @@
 # Glance (API) resource for puppet handler
 
-Controlls a live cycle of the glance entities,
+Controls a live cycle of the glance entities,
 like the main puppet class, auth, DB, AMQP, packages,
 keystone user, role and endpoint, API service. Also configures
 glance file backend.

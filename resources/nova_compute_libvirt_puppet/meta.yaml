@@ -1,0 +1,63 @@
+id: nova_compute_libvirt
+handler: puppet
+puppet_module: nova
+version: 1.0.0
+input:
+    libvirt_virt_type:
+      schema: str
+      value: 'kvm'
+    vncserver_listen:
+      schema: str
+      value: '127.0.0.1'
+    migration_support:
+      schema: bool
+      value: false
+    libvirt_cpu_mode:
+      schema: str
+      value: ''
+    libvirt_disk_cachemodes:
+      schema: [str]
+      value: []
+    libvirt_inject_password:
+      schema: bool
+      value: false
+    libvirt_inject_key:
+      schema: bool
+      value: false
+    libvirt_inject_partition:
+      schema: str
+      value: '-2'
+    remove_unused_base_images:
+      schema: str
+      value: ''
+    remove_unused_kernels:
+      schema: str
+      value: ''
+    remove_unused_resized_minimum_age_seconds:
+      schema: str
+      value: ''
+    remove_unused_original_minimum_age_seconds:
+      schema: str
+      value: ''
+    libvirt_service_name:
+      schema: str
+      value: 'libvirt-bin'
+    libvirt_type:
+      schema: bool
+      value: false
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/nova_compute_libvirt_service, resources/nova_compute_libvirt, resources/nova_compute, resources/nova]

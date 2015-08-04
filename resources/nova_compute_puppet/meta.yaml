@@ -1,0 +1,84 @@
+id: nova_compute
+handler: puppet
+puppet_module: nova
+version: 1.0.0
+input:
+    ensure_package:
+      schema: str
+      value: 'present'
+    vnc_enabled:
+      schema: bool
+      value: true
+    vncserver_proxyclient_address:
+      schema: str
+      value: '127.0.0.1'
+    vncproxy_host:
+      schema: str
+      value: ''
+    vncproxy_protocol:
+      schema: str
+      value: 'http'
+    vncproxy_port:
+      schema: int
+      value: 6080
+    vncproxy_path:
+      schema: str
+      value: '/vnc_auto.html'
+    vnc_keymap:
+      schema: str
+      value: 'en-us'
+    force_config_drive:
+      schema: bool
+      value: false
+    virtio_nic:
+      schema: bool
+      value: false
+    neutron_enabled:
+      schema: bool
+      value: true
+    network_device_mtu:
+      schema: str
+      value: ''
+    instance_usage_audit:
+      schema: bool
+      value: false
+    instance_usage_audit_period:
+      schema: str
+      value: 'month'
+    force_raw_images:
+      schema: bool
+      value: true
+    reserved_host_memory:
+      schema: int
+      value: 512
+    compute_manager:
+      schema: str
+      value: 'nova.compute.manager.ComputeManager'
+    pci_passthrough:
+      schema: str
+      value: ''
+    default_availability_zone:
+      schema: str
+      value: 'nova'
+    default_schedule_zone:
+      schema: str
+      value: ''
+    internal_service_availability_zone:
+      schema: str
+      value: 'internal'
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/nova_compute_service, resources/nova_compute, resources/nova]

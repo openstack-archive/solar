@@ -1,6 +1,6 @@
 id: cinder_volume_puppet
 handler: puppet
-puppet_module: cinder_volume
+puppet_module: cinder
 version: 1.0.0
 input:
     package_ensure:

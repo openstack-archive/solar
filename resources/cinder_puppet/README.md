@@ -1,6 +1,6 @@
 # Cinder resource for puppet handler
 
-Controlls a live cycle of the cinder entities,
+Controls a live cycle of the cinder entities,
 like the main puppet class, auth, DB, AMQP, packages,
 keystone user, role and endpoint.
 

@@ -12,7 +12,7 @@ def test(resource):
         'http://%s:%s/v3/services' % (resource.args['ip'].value, resource.args['keystone_admin_port'].value),
         headers={
             'X-Auth-Token': resource.args['admin_token'].value,
-            }
+        }
     )
 
     resp_json = resp.json()
