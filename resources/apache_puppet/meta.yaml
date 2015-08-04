@@ -17,7 +17,7 @@ input:
       value: true
     default_charset:
       schema: str
-      value: ''
+      value:
     default_confd_files:
       schema: bool
       value: true
@@ -32,19 +32,19 @@ input:
       value: '/etc/ssl/private/ssl-cert-snakeoil.key'
     default_ssl_chain:
       schema: str
-      value: ''
+      value:
     default_ssl_ca:
       schema: str
-      value: ''
+      value:
     default_ssl_crl_path:
       schema: str
-      value: ''
+      value:
     default_ssl_crl:
       schema: str
-      value: ''
+      value:
     default_ssl_crl_check:
       schema: str
-      value: ''
+      value:
     default_type:
       schema: str
       value: 'none'
@@ -56,7 +56,7 @@ input:
       value: true
     purge_vhost_dir:
       schema: str
-      value: ''
+      value:
     purge_vdir:
       schema: bool
       value: false
@@ -107,7 +107,7 @@ input:
       value: 'apache/httpd.conf.erb'
     servername:
       schema: str!
-      value: ''
+      value:
     manage_user:
       schema: bool
       value: true
@@ -161,7 +161,7 @@ input:
       value: 'On'
     allow_encoded_slashes:
       schema: str
-      value: ''
+      value:
     package_ensure:
       schema: str
       value: 'installed'
