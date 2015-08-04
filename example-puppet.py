@@ -261,9 +261,7 @@ def deploy():
     
     # CINDER GLANCE
     # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
-    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {
-        'glance_api_servers': '{{glance_api_servers_host}}:{{glance_api_servers_port}}'
-    })[0]
+    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
     signals.connect(node1, cinder_glance_puppet)
 
     # CINDER API
