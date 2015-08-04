@@ -1,1 +1,1 @@
-notify { "Nothing to remove here:" }
+notify { 'Nothing to remove here': }

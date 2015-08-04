@@ -25,14 +25,15 @@ GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
 # Official puppet manifests, not fuel-library
 
 
+db = get_db()
+
+
 @click.group()
 def main():
     pass
 
 
-@click.command()
-def deploy():
-    db = get_db()
+def setup_resources():
     db.clear()
 
     signals.Connections.clear()
@@ -261,9 +262,7 @@ def deploy():
     
     # CINDER GLANCE
     # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
-    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {
-        'glance_api_servers': '{{glance_api_servers_host}}:{{glance_api_servers_port}}'
-    })[0]
+    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
     signals.connect(node1, cinder_glance_puppet)
 
     # CINDER API
@@ -490,121 +489,90 @@ def deploy():
         sys.exit(1)
 
 
+resources_to_run = [
+    'rabbitmq_service1',
+    'openstack_vhost',
+    'openstack_rabbitmq_user',
+
+    'mariadb_service1',
+
+    'keystone_db',
+    'keystone_db_user',
+    'keystone_puppet',
+    'openrc_file',
+
+    'admin_tenant',
+    'admin_user',
+    'admin_role',
+
+    'keystone_service_endpoint',
+    'services_tenant',
+
+    'neutron_keystone_user',
+    'neutron_keystone_role',
+    'neutron_puppet',
+    'neutron_keystone_service_endpoint',
+
+    'cinder_db',
+    'cinder_db_user',
+    'cinder_keystone_user',
+    'cinder_keystone_role',
+    'cinder_puppet',
+    'cinder_keystone_service_endpoint',
+    'cinder_glance_puppet',
+    'cinder_api_puppet',
+    'cinder_scheduler_puppet',
+    'cinder_volume_puppet',
+
+    'nova_db',
+    'nova_db_user',
+    'nova_keystone_user',
+    'nova_keystone_role',
+    'nova_puppet',
+    'nova_keystone_service_endpoint',
+    'nova_api_puppet',
+    'nova_conductor_puppet',
+
+    'nova_puppet2',
+    'nova_compute_libvirt_puppet',
+    'nova_neutron_puppet',
+    'nova_compute_puppet',
+
+    'glance_db',
+    'glance_db_user',
+    'glance_keystone_user',
+    'glance_keystone_role',
+    'glance_keystone_service_endpoint',
+    'glance_api_puppet',
+    'glance_registry_puppet',
+]
+
+
+
+@click.command()
+def deploy():
+    setup_resources()
+
     # run
-    actions.resource_action(rabbitmq_service1, 'run')
-    actions.resource_action(openstack_vhost, 'run')
-    actions.resource_action(openstack_rabbitmq_user, 'run')
+    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = {r.name: r for r in resources}
 
-    actions.resource_action(mariadb_service1, 'run')
-
-    actions.resource_action(keystone_db, 'run')
-    actions.resource_action(keystone_db_user, 'run')
-    actions.resource_action(keystone_puppet, 'run')
-    actions.resource_action(openrc, 'run')
-
-    actions.resource_action(admin_tenant, 'run')
-    actions.resource_action(admin_user, 'run')
-    actions.resource_action(admin_role, 'run')
-
-    actions.resource_action(keystone_service_endpoint, 'run')
-    actions.resource_action(services_tenant, 'run')
-
-    actions.resource_action(neutron_keystone_user, 'run')
-    actions.resource_action(neutron_keystone_role, 'run')
-    actions.resource_action(neutron_puppet, 'run')
-    actions.resource_action(neutron_keystone_service_endpoint, 'run')
-
-    actions.resource_action(cinder_db, 'run')
-    actions.resource_action(cinder_db_user, 'run')
-    actions.resource_action(cinder_keystone_user, 'run')
-    actions.resource_action(cinder_keystone_role, 'run')
-    actions.resource_action(cinder_puppet, 'run')
-    actions.resource_action(cinder_keystone_service_endpoint, 'run')
-    actions.resource_action(cinder_glance_puppet, 'run')
-    actions.resource_action(cinder_api_puppet, 'run')
-    actions.resource_action(cinder_scheduler_puppet, 'run')
-    actions.resource_action(cinder_volume_puppet, 'run')
-    
-    actions.resource_action(nova_db, 'run')
-    actions.resource_action(nova_db_user, 'run')
-    actions.resource_action(nova_keystone_user, 'run')
-    actions.resource_action(nova_keystone_role, 'run')
-    actions.resource_action(nova_puppet, 'run')
-    actions.resource_action(nova_keystone_service_endpoint, 'run')
-    actions.resource_action(nova_api_puppet, 'run')
-    actions.resource_action(nova_conductor_puppet, 'run')
-
-    actions.resource_action(nova_puppet2, 'run')
-    actions.resource_action(nova_compute_libvirt_puppet, 'run')
-    actions.resource_action(nova_neutron_puppet, 'run')
-    actions.resource_action(nova_compute_puppet, 'run')
-
-    actions.resource_action(glance_db, 'run')
-    actions.resource_action(glance_db_user, 'run')
-    actions.resource_action(glance_keystone_user, 'run')
-    actions.resource_action(glance_keystone_role, 'run')  
-    actions.resource_action(glance_keystone_service_endpoint, 'run')
-    actions.resource_action(glance_api_puppet, 'run')
-    actions.resource_action(glance_registry_puppet, 'run')
+    for name in resources_to_run:
+        try:
+            actions.resource_action(resources[name], 'run')
+        except errors.SolarError as e:
+            print 'WARNING: %s' % str(e)
+            raise
 
     time.sleep(10)
 
 
 @click.command()
 def undeploy():
-    db = get_db()
-
-    to_remove = [
-        'glance_registry_puppet',
-        'glance_api_puppet',
-        'glance_keystone_service_endpoint',
-        'glance_keystone_role',
-        'glance_keystone_user',
-        'glance_db_user',
-        'glance_db',
-        'nova_db',
-        'nova_db_user',
-        'nova_keystone_service_endpoint',
-        'nova_conductor_puppet',
-        'nova_api_puppet',
-        'nova_puppet',
-        'nova_compute_puppet',
-        'nova_neutron_puppet',
-        'nova_compute_libvirt_puppet',
-        'nova_puppet2',
-        'cinder_volume_puppet',
-        'cinder_scheduler_puppet',
-        'cinder_api_puppet',
-        'cinder_glance_puppet',
-        'cinder_keystone_service_endpoint',
-        'cinder_puppet',
-        'cinder_keystone_role',
-        'cinder_keystone_user',
-        'cinder_db_user',
-        'cinder_db',
-        'neutron_keystone_service_endpoint',
-        'neutron_puppet',
-        'neutron_keystone_role',
-        'neutron_keystone_user',
-        'services_tenant',
-        'keystone_service_endpoint',
-        'admin_role',
-        'admin_user',
-        'admin_tenant',
-        'openrc_file',
-        'keystone_puppet',
-        'keystone_db_user',
-        'keystone_db',
-        'mariadb_service1',
-        'openstack_rabbitmq_user',
-        'openstack_vhost',
-        'rabbitmq_service1',
-    ]
-
     resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
     resources = {r.name: r for r in resources}
 
-    for name in to_remove:
+    for name in reversed(resources_to_run):
         try:
             actions.resource_action(resources[name], 'remove')
         except errors.SolarError as e:
