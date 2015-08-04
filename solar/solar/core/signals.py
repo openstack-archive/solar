@@ -5,6 +5,8 @@ import networkx as nx
 
 from solar.core.log import log
 from solar.interfaces.db import get_db
+from solar.events.api import add_events
+from solar.events.control import Dependency
 
 db = get_db()
 
@@ -149,6 +151,11 @@ def connect(emitter, receiver, mapping=None):
 
         connect_single(emitter, src, receiver, dst)
 
+    events = [
+        Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
+        Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
+        ]
+    add_events(emitter.name, events)
     #receiver.save()
 
 

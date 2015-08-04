@@ -22,23 +22,48 @@ import re
 from solar.core.log import log
 
 
-EVENT = re.compile(r'\s+->\s+')
-
 
 class Event(object):
 
-    def __init__(self, event):
-        self.parent, self.dependent, self.state = EVENT.split(event)
-        self.parent_node, self.parent_action = self.parent.split(':')
-        self.dep_node, self.dep_action = self.dependent.split(':')
+    etype = None
+
+    def __init__(self, parent_node, parent_action,
+                 state, depend_node, depend_action):
+        self.parent_node = parent_node
+        self.parent_action = parent_action
+        self.state = state
+        self.depend_node = depend_node
+        self.depend_action = depend_action
+
+    @property
+    def parent(self):
+        return '{}:{}'.format(self.parent_node, self.parent_action)
+
+    @property
+    def dependent(self):
+        return '{}:{}'.format(self.depend_node, self.depend_action)
+
+    def to_dict(self):
+        rst = {'etype': self.etype}
+        rst.update(self.__dict__)
+        return rst
+
+    def __eq__(self, inst):
+        if inst.__class__ != self.__class__:
+            return False
+        return all((
+            self.parent == inst.parent,
+            self.state == inst.state,
+            self.dependent == inst.dependent))
 
     def __repr__(self):
-        return '{}({} -> {} -> {})'.format(
-            self.__class__.__name__,
-            self.parent, self.dependent, self.state)
+        return '{}: {} -> {} -> {}'.format(
+            self.etype, self.parent, self.state, self.dependent)
 
 
 class Dependency(Event):
+
+    etype = 'depends_on'
 
     def add(self, changed_resources, changes_graph):
         if self.parent in changes_graph:
@@ -47,6 +72,8 @@ class Dependency(Event):
 
 
 class React(Event):
+
+    etype = 'react_on'
 
     def add(self, changed_resources, changes_graph):
         changes_graph.add_edge(self.parent, self.dependent, state=self.state)
@@ -57,19 +84,18 @@ def build_edges(changed_resources, changes_graph, events):
     """
     :param changed_resources: list of resource names that were changed
     :param changes_graph: nx.DiGraph object with actions to be executed
-    :param events:
+    :param events: {node: [(event_type, event_expr)]}
     """
     stack = changed_resources[:]
     while stack:
         node = stack.pop()
         events_objects = []
 
-        if node in events:
+        for event_type, node in events[node].iteritems():
             log.debug('Events %s for resource %s', events[node], node)
-
-            for e in events[node].get('react_on', ()):
-                React(e).add(stack, changes_graph)
-            for e in events[node].get('depends_on', ()):
-                Dependency(e).add(stack, changes_graph)
+            if event_type == 'react_on':
+                create_event(e).add(stack, changes_graph)
+            elif event_type == 'depends_on':
+                create_event(e).add(stack, changes_graph)
 
     return changes_graph
