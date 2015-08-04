@@ -69,15 +69,19 @@ def _construct_jsonschema(schema, definition_base=''):
     :return:
     """
     if schema == 'str':
-        return {'type': 'string'}, {}
+        return {'anyOf': [{'type': 'string'}, {'type': 'null'}]}, {}
 
     if schema == 'str!':
         return {'type': 'string', 'minLength': 1}, {}
 
-    if schema == 'int' or schema == 'int!':
+    if schema == 'int':
+        return {'anyOf': [{'type': 'number'}, {'type': 'null'}]}, {}
+    if schema == 'int!':
         return {'type': 'number'}, {}
 
-    if schema == 'bool' or schema == 'bool!':
+    if schema == 'bool':
+        return {'anyOf': [{'type': 'boolean'}, {'type': 'null'}]}, {}
+    if schema == 'bool!':
         return {'type': 'boolean'}, {}
 
     if isinstance(schema, list):

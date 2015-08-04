@@ -38,6 +38,12 @@ input:
         errors = sv.validate_resource(r)
         self.assertListEqual(errors.keys(), ['value-required'])
 
+        r = self.create_resource(
+            'r4', sample_meta_dir, {'value': None, 'value-required': 'y'}
+        )
+        errors = sv.validate_resource(r)
+        self.assertEqual(errors, {})
+
     def test_input_int_type(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -69,6 +75,12 @@ input:
         )
         errors = sv.validate_resource(r)
         self.assertListEqual(errors.keys(), ['value-required'])
+
+        r = self.create_resource(
+            'r4', sample_meta_dir, {'value': None, 'value-required': 2}
+        )
+        errors = sv.validate_resource(r)
+        self.assertEqual(errors, {})
 
     def test_input_dict_type(self):
         sample_meta_dir = self.make_resource_meta("""
