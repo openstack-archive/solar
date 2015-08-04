@@ -158,7 +158,7 @@ def setup_resources():
     signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
     # NEUTRON
-    # Deploy chain neutron -> neutron_server -> ( agents & plugins )
+    # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {
@@ -170,6 +170,12 @@ def setup_resources():
         'password': 'rabbit_password'})
     signals.connect(openstack_vhost, neutron_puppet, {
         'vhost_name': 'rabbit_virtual_host'})
+
+    # NEUTRON OVS PLUGIN WITH GRE
+    neutron_plugins_ovs = vr.create('neutron_plugins_ovs_puppet', 'resources/neutron_plugins_ovs_puppet', {
+        'tenant_network_type': 'gre',
+    })[0]
+    signals.connect(node1, neutron_plugins_ovs)
 
     # NEUTRON API (SERVER)
     neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
@@ -537,6 +543,7 @@ resources_to_run = [
     'neutron_keystone_role',
     'neutron_puppet',
     'neutron_keystone_service_endpoint',
+    'neutron_plugins_ovs',
     'neutron_server_puppet',
 
     'cinder_db',

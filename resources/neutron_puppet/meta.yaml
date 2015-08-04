@@ -156,8 +156,8 @@ input:
     schema: int
     value: 0
   use_ssl:
-    schema: str
-    value: ''
+    schema: bool
+    value: false
   cert_file:
     schema: str
     value:
@@ -185,5 +185,5 @@ input:
     value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
 
 puppet_module: 'neutron'
-tags: []
+tags: [resource/neutron]
 version: 1.0.0
