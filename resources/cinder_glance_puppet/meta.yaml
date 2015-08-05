@@ -17,7 +17,7 @@ input:
       value: false
     glance_request_timeout:
       schema: str
-      value: ''
+      value:
 
     git:
       schema: {repository: str!, branch: str!}
