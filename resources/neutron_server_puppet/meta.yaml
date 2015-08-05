@@ -19,10 +19,10 @@ input:
     value:
   db_name:
     schema: str!
-    value: 
+    value:
   db_host:
     schema: str!
-    value: 
+    value:
 
   package_ensure:
     schema: str
@@ -54,9 +54,6 @@ input:
   auth_uri:
     schema: str
     value:
-  database_connection:
-    schema: str
-    value: 'sqlite:////var/lib/neutron/ovs.sqlite'
   database_max_retries:
     schema: int
     value: 10
@@ -106,12 +103,6 @@ input:
     schema: str
     value: '169.254.192.0/18'
   mysql_module:
-    schema: str
-    value:
-  sql_connection:
-    schema: str
-    value:
-  connection:
     schema: str
     value:
   sql_max_retries:
