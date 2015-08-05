@@ -14,9 +14,6 @@ input:
   package_ensure:
     schema: str
     value: 'present'
-  sql_connection:
-    schema: str
-    value:
   sql_max_retries:
     schema: str
     value:
@@ -38,6 +35,19 @@ input:
   vxlan_udp_port:
     schema: int
     value: 4789
+
+  db_user:
+    schema: str!
+    value:
+  db_password:
+    schema: str!
+    value:
+  db_name:
+    schema: str!
+    value:
+  db_host:
+    schema: str!
+    value:
 
   git:
     schema: {repository: str!, branch: str!}
