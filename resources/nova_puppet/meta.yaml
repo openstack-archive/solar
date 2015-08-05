@@ -8,10 +8,10 @@ input:
       value: 'present'
     database_connection:
       schema: str
-      value: ''
+      value:
     slave_connection:
       schema: str
-      value: ''
+      value:
     database_idle_timeout:
       schema: int
       value: 3600
@@ -26,13 +26,13 @@ input:
       value: 'localhost:9292'
     memcached_servers:
       schema: str
-      value: ''
+      value:
     rabbit_host:
       schema: str
       value: 'localhost'
     rabbit_hosts:
       schema: str
-      value: ''
+      value:
     rabbit_password:
       schema: str!
       value: 'guest'
@@ -50,16 +50,16 @@ input:
       value: false
     rabbit_ha_queues:
       schema: str
-      value: ''
+      value:
     kombu_ssl_ca_certs:
       schema: str
-      value: ''
+      value:
     kombu_ssl_certfile:
       schema: str
-      value: ''
+      value:
     kombu_ssl_keyfile:
       schema: str
-      value: ''
+      value:
     kombu_ssl_version:
       schema: str
       value: 'TLSv1'
@@ -128,25 +128,25 @@ input:
       value: ['ec2', 'metadata', 'osapi_compute']
     ca_file:
       schema: str
-      value: ''
+      value:
     cert_file:
       schema: str
-      value: ''
+      value:
     key_file:
       schema: str
-      value: ''
+      value:
     nova_user_id:
       schema: str
-      value: ''
+      value:
     nova_group_id:
       schema: str
-      value: ''
+      value:
     nova_public_key:
       schema: str
-      value: ''
+      value:
     nova_private_key:
       schema: str
-      value: ''
+      value:
     nova_shell:
       schema: str
       value: '/bin/false'
@@ -173,25 +173,25 @@ input:
       value: false
     notify_on_state_change:
       schema: str
-      value: ''
+      value:
     mysql_module:
       schema: str
-      value: ''
+      value:
     nova_cluster_id:
       schema: str
-      value: ''
+      value:
     sql_connection:
       schema: str
-      value: ''
+      value:
     sql_idle_timeout:
       schema: str
-      value: ''
+      value:
     logdir:
       schema: str
-      value: ''
+      value:
     os_region_name:
       schema: str
-      value: ''
+      value:
 
     db_user:
       schema: str!

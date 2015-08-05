@@ -3,13 +3,13 @@ id: 'rabbitmq'
 input:
   ip:
     schema: str!
-    value: ''
+    value:
   ssh_key:
     schema: str!
-    value: ''
+    value:
   ssh_user:
     schema: str!
-    value: ''
+    value:
 
   port:
     schema: int!

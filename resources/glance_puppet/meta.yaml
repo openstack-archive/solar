@@ -56,10 +56,10 @@ input:
       value: 35357
     auth_uri:
       schema: str
-      value: ''
+      value:
     auth_admin_prefix:
       schema: str
-      value: ''
+      value:
     auth_protocol:
       schema: str
       value: 'http'
@@ -86,16 +86,16 @@ input:
       value: false
     cert_file:
       schema: str
-      value: ''
+      value:
     key_file:
       schema: str
-      value: ''
+      value:
     ca_file:
       schema: str
-      value: ''
+      value:
     known_stores:
       schema: str
-      value: ''
+      value:
     database_connection:
       schema: str
       value: 'sqlite:///var/lib/glance/glance.sqlite'
@@ -116,13 +116,13 @@ input:
       value: {}
     mysql_module:
       schema: str
-      value: ''
+      value:
     sql_idle_timeout:
       schema: str
-      value: ''
+      value:
     sql_connection:
       schema: str
-      value: ''
+      value:
 
     git:
       schema: {repository: str!, branch: str!}
@@ -153,12 +153,12 @@ input:
 
     keystone_host:
       schema: str!
-      value: ''
+      value:
     keystone_port:
       schema: int!
-      value: ''
+      value:
     keystone_password:
       schema: str!
-      value: ''
+      value:
 
 tags: [resource/glance_service, resources/glance, resource/glance_api_service]

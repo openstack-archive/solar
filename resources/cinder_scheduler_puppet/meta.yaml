@@ -5,7 +5,7 @@ version: 1.0.0
 input:
     scheduler_driver:
       schema: str
-      value: ''
+      value:
     package_ensure:
       schema: str
       value: 'present'

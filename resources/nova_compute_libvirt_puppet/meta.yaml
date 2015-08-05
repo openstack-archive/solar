@@ -14,7 +14,7 @@ input:
       value: false
     libvirt_cpu_mode:
       schema: str
-      value: ''
+      value:
     libvirt_disk_cachemodes:
       schema: [str]
       value: []
@@ -29,16 +29,16 @@ input:
       value: '-2'
     remove_unused_base_images:
       schema: str
-      value: ''
+      value:
     remove_unused_kernels:
       schema: str
-      value: ''
+      value:
     remove_unused_resized_minimum_age_seconds:
       schema: str
-      value: ''
+      value:
     remove_unused_original_minimum_age_seconds:
       schema: str
-      value: ''
+      value:
     libvirt_service_name:
       schema: str
       value: 'libvirt-bin'
