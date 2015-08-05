@@ -61,12 +61,9 @@ source https://github.com/openstack/puppet-neutron/blob/5.1.0/manifests/server.p
  ``database_connection``
    (optional) Connection url for the neutron database.
    (Defaults to 'sqlite:////var/lib/neutron/ovs.sqlite')
-
- ``sql_connection``
-   DEPRECATED: Use database_connection instead.
-
- ``connection``
-   DEPRECATED: Use database_connection instead.
+   Note: for this resource it is decomposed to the
+   'db_host', 'db_port', 'db_user', 'db_password' inputs
+   due to implementation limitations
 
  ``database_max_retries``
    (optional) Maximum database connection retries during startup.

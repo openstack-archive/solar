@@ -8,7 +8,6 @@ $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
 
 $package_ensure       = $resource['input']['package_ensure']['value']
-$sql_connection       = $resource['input']['sql_connection']['value']
 $sql_max_retries      = $resource['input']['sql_max_retries']['value']
 $sql_idle_timeout     = $resource['input']['sql_idle_timeout']['value']
 $reconnect_interval   = $resource['input']['reconnect_interval']['value']
