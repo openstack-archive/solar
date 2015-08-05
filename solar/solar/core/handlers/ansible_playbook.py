@@ -6,17 +6,27 @@ from ansible.playbook import PlayBook
 from ansible import utils
 from ansible import callbacks
 import ansible.constants as C
+from fabric import api as fabric_api
 
 from solar.core.handlers import base
 from solar import errors
 from solar.core.provider import SVNProvider
 
 
+ROLES_PATH = '/etc/ansible/roles'
+
+
 class AnsiblePlaybook(base.BaseHandler):
 
     def download_roles(self, urls):
+        if not os.path.exists(ROLES_PATH):
+            os.makedirs(ROLES_PATH)
+
         for url in urls:
-            SVNProvider(url, '/etc/ansible/roles').run()
+            provider = SVNProvider(url)
+            provider.run()
+            fabric_api.local('cp -r {} {}'.format(
+                provider.repo_directory, ROLES_PATH))
 
     def action(self, resource, action):
         action_file = os.path.join(

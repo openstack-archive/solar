@@ -110,16 +110,22 @@ class SVNProvider(BaseProvider):
     but with svn you can
     """
 
-    def __init__(self, url, path='.'):
+    def __init__(self, url, path='.', base_path=None):
         self.url = url
         self.path = path
+        self.base_path = base_path or utils.read_config()['resources-directory']
+        if path != '.':
+            self.directory = os.path.join(self.base_path, path)
+        else:
+            self.directory = self.base_path
+        self.repo_directory = os.path.join(self.directory, self.url.rsplit('/', 1)[-1])
 
     def run(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-        full_path_role = os.path.join(self.path, self.url.rsplit('/', 1)[-1])
-        if not os.path.exists(full_path_role):
+        if not os.path.exists(self.directory):
+            os.makedirs(self.directory)
+
+        if not os.path.exists(self.repo_directory):
             fabric_api.local(
-                'cd {path} && svn checkout {url}'.format(
-                    path=self.path,
+                'cd {dir} && svn checkout {url}'.format(
+                    dir=self.directory,
                     url=self.url))
