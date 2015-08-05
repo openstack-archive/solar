@@ -33,12 +33,12 @@ from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
-from solar.core import testing
 from solar.core.resource import virtual_resource as vr
 from solar.interfaces.db import get_db
 from solar import errors
 from solar.core.log import log
 
+from solar.cli import executors
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
 
@@ -134,9 +134,14 @@ def init_actions():
     @main.command()
     @click.option('-t', '--tags')
     @click.option('-a', '--action')
-    def run(action, tags):
+    @click.option('-d', '--dry-run', default=False, is_flag=True)
+    @click.option('-m', '--dry-run-mapping', default='{}')
+    def run(dry_run_mapping, dry_run, action, tags):
         from solar.core import actions
         from solar.core import resource
+
+        if dry_run:
+            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         resources = filter(
             lambda r: Expression(tags, r.get('tags', [])).evaluate(),
@@ -145,6 +150,14 @@ def init_actions():
         for resource in resources:
             resource_obj = sresource.load(resource['id'])
             actions.resource_action(resource_obj, action)
+
+        if dry_run:
+            click.echo('EXECUTED:')
+            for key in dry_run_executor.executed:
+                click.echo('{}: {}'.format(
+                    click.style(dry_run_executor.compute_hash(key), fg='green'),
+                    str(key)
+                ))
 
 
 def init_cli_connect():
@@ -238,7 +251,12 @@ def init_cli_resource():
     @resource.command()
     @click.argument('action')
     @click.argument('resource')
-    def action(action, resource):
+    @click.option('-d', '--dry-run', default=False, is_flag=True)
+    @click.option('-m', '--dry-run-mapping', default='{}')
+    def action(dry_run_mapping, dry_run, action, resource):
+        if dry_run:
+            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
+
         click.echo(
             'action {} for resource {}'.format(action, resource)
         )
@@ -249,6 +267,14 @@ def init_cli_resource():
         except errors.SolarError as e:
             log.debug(e)
             sys.exit(1)
+
+        if dry_run:
+            click.echo('EXECUTED:')
+            for key in dry_run_executor.executed:
+                click.echo('{}: {}'.format(
+                    click.style(dry_run_executor.compute_hash(key), fg='green'),
+                    str(key)
+                ))
 
     @resource.command()
     def compile_all():
