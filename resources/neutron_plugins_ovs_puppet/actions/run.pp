@@ -34,3 +34,8 @@ package { 'neutron':
   ensure => $package_ensure,
   name   => $::neutron::params::package_name,
 }
+
+# Remove external class dependency
+Service <| title == 'neutron-plugin-ovs-service' |> {
+  require    => undef
+}

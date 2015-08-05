@@ -159,7 +159,9 @@ def setup_resources():
 
     # NEUTRON
     # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
-    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
+    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
+        'core_plugin': 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
+        })[0]
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {
         'ip': 'rabbit_host',
@@ -258,7 +260,8 @@ def setup_resources():
     signals.connect(neutron_puppet, neutron_puppet2, {
         'rabbit_host', 'rabbit_port',
         'rabbit_user', 'rabbit_password',
-        'rabbit_virtual_host', 'package_ensure',
+        'rabbit_virtual_host',
+        'package_ensure', 'core_plugin',
     })
 
     # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node2)

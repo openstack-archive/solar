@@ -31,3 +31,8 @@ class { 'neutron::agents::ovs':
   firewall_driver     => $firewall_driver,
   veth_mtu            => $veth_mtu,
 }
+
+# Remove external class dependency
+Service <| title == 'neutron-plugin-ovs-service' |> {
+  require    => undef
+}
