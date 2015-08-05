@@ -2,6 +2,11 @@ $resource = hiera($::resource_name)
 
 $ip = $resource['input']['ip']['value']
 
+$db_user = $resource['input']['db_user']['value']
+$db_host = $resource['input']['db_host']['value']
+$db_password = $resource['input']['db_password']['value']
+$db_name = $resource['input']['db_name']['value']
+
 $package_ensure       = $resource['input']['package_ensure']['value']
 $sql_connection       = $resource['input']['sql_connection']['value']
 $sql_max_retries      = $resource['input']['sql_max_retries']['value']
@@ -14,7 +19,7 @@ $vxlan_udp_port       = $resource['input']['vxlan_udp_port']['value']
 
 class { 'neutron::plugins::ovs':
   package_ensure       => $package_ensure,
-  sql_connection       => $sql_connection,
+  sql_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}",
   sql_max_retries      => $sql_max_retries,
   sql_idle_timeout     => $sql_idle_timeout,
   reconnect_interval   => $reconnect_interval,

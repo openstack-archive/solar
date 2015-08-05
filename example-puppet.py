@@ -39,7 +39,7 @@ def setup_resources():
     signals.Connections.clear()
 
     node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
-    
+
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
         'image': 'mariadb',
@@ -171,12 +171,6 @@ def setup_resources():
     signals.connect(openstack_vhost, neutron_puppet, {
         'vhost_name': 'rabbit_virtual_host'})
 
-    # NEUTRON OVS PLUGIN WITH GRE
-    neutron_plugins_ovs = vr.create('neutron_plugins_ovs_puppet', 'resources/neutron_plugins_ovs_puppet', {
-        'tenant_network_type': 'gre',
-    })[0]
-    signals.connect(node1, neutron_plugins_ovs)
-
     # NEUTRON API (SERVER)
     neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
         'sync_db': True,
@@ -239,6 +233,47 @@ def setup_resources():
         'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
 
+    # NEUTRON OVS PLUGIN & AGENT WITH GRE
+    neutron_plugins_ovs = vr.create('neutron_plugins_ovs', 'resources/neutron_plugins_ovs_puppet', {
+        'tenant_network_type': 'gre',
+    })[0]
+    signals.connect(node1, neutron_plugins_ovs)
+    signals.connect(neutron_db_user, neutron_plugins_ovs, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'
+    })
+    neutron_agents_ovs = vr.create('neutron_agents_ovs', 'resources/neutron_agents_ovs_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'enable_tunneling': True,
+        'local_ip': '10.1.0.13' # should be the IP addr of the br-mesh int.
+    })[0]
+    signals.connect(node1, neutron_agents_ovs)
+
+    # NEUTRON FOR COMPUTE (node2)
+    # Deploy chain neutron -> (plugins) -> ( agents )
+    neutron_puppet2 = vr.create('neutron_puppet2', 'resources/neutron_puppet', {})[0]
+    signals.connect(node2, neutron_puppet2)
+    signals.connect(neutron_puppet, neutron_puppet2, {
+        'rabbit_host', 'rabbit_port',
+        'rabbit_user', 'rabbit_password',
+        'rabbit_virtual_host', 'package_ensure',
+    })
+
+    # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node2)
+    neutron_plugins_ovs2 = vr.create('neutron_plugins_ovs2', 'resources/neutron_plugins_ovs_puppet', {})[0]
+    signals.connect(node2, neutron_plugins_ovs2)
+    signals.connect(neutron_plugins_ovs, neutron_plugins_ovs2, {
+        'db_host', 'db_name', 'db_password', 'db_user', 'tenant_network_type'
+    })
+    neutron_agents_ovs2 = vr.create('neutron_agents_ovs2', 'resources/neutron_agents_ovs_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'enable_tunneling': True,
+        'local_ip': '10.1.0.14' # Should be the IP addr of the br-mesh int.
+    })[0]
+    signals.connect(node2, neutron_agents_ovs2)
+
     # CINDER
     cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
     cinder_db = vr.create('cinder_db', 'resources/mariadb_db/', {
@@ -288,7 +323,7 @@ def setup_resources():
         'port': ['admin_port', 'internal_port', 'public_port'],})
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
-    
+
     # CINDER GLANCE
     # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
     cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
@@ -312,7 +347,7 @@ def setup_resources():
     cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
-    
+
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
@@ -545,6 +580,7 @@ resources_to_run = [
     'neutron_keystone_service_endpoint',
     'neutron_plugins_ovs',
     'neutron_server_puppet',
+    'neutron_agents_ovs',
 
     'cinder_db',
     'cinder_db_user',
@@ -570,6 +606,10 @@ resources_to_run = [
     'nova_compute_libvirt_puppet',
     'nova_neutron_puppet',
     'nova_compute_puppet',
+
+    'neutron_puppet2',
+    'neutron_plugins_ovs2',
+    'neutron_agents_ovs2',
 
     'glance_db',
     'glance_db_user',
