@@ -4,8 +4,9 @@ __all__ = ['add_event', 'remove_event', 'all_events', 'set_events']
 
 import networkx as nx
 
+from solar.core.log import log
 from solar.interfaces.db import get_db
-from solar.events.control import build_edges, Dependency, React
+from solar.events.controls import Dep, React
 
 db = get_db()
 
@@ -15,8 +16,8 @@ def create_event(event_dict):
     etype = event_dict.pop('etype')
     if etype == React.etype:
         return React(**event_dict)
-    elif etype == Dependency.etype:
-        return Dependency(**event_dict)
+    elif etype == Dep.etype:
+        return Dep(**event_dict)
     else:
         raise Exception('No support for type %s', etype)
 
@@ -39,6 +40,7 @@ def remove_event(ev):
         ev.parent_node,
         [i.to_dict() for i in rst],
         collection=db.COLLECTIONS.events)
+
 
 def set_events(resource, lst):
     db.save(
@@ -87,3 +89,24 @@ def bft_events_graph(start):
             stack.append(ev.depend_node)
         visited.add(ev.parent_node)
     return dg
+
+
+def build_edges(changed_resources, changes_graph, events):
+    """
+    :param changed_resources: list of resource names that were changed
+    :param changes_graph: nx.DiGraph object with actions to be executed
+    :param events: {res: [controls.Event objects]}
+    """
+    stack = changed_resources[:]
+    while stack:
+        node = stack.pop()
+
+        if node in events:
+            log.debug('Events %s for resource %s', events[node], node)
+        else:
+            log.debug('No dependencies based on %s', node)
+
+        for ev in events.get(node, ()):
+            ev.add_edge(stack, changes_graph)
+
+    return changes_graph
