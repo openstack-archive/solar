@@ -19,9 +19,6 @@ trigger action even if no changes noticed on dependent resource.
 
 import re
 
-from solar.core.log import log
-
-
 
 class Event(object):
 
@@ -37,11 +34,11 @@ class Event(object):
 
     @property
     def parent(self):
-        return '{}:{}'.format(self.parent_node, self.parent_action)
+        return (self.parent_node, self.parent_action)
 
     @property
     def dependent(self):
-        return '{}:{}'.format(self.depend_node, self.depend_action)
+        return (self.depend_node, self.depend_action)
 
     def to_dict(self):
         rst = {'etype': self.etype}
@@ -65,37 +62,18 @@ class Dependency(Event):
 
     etype = 'depends_on'
 
-    def add(self, changed_resources, changes_graph):
+    def add_edge(self, changed_resources, changes_graph):
         if self.parent in changes_graph:
             changes_graph.add_edge(
                 self.parent, self.dependent, state=self.state)
 
+Dep = Dependency
 
 class React(Event):
 
     etype = 'react_on'
 
-    def add(self, changed_resources, changes_graph):
-        changes_graph.add_edge(self.parent, self.dependent, state=self.state)
-        changed_resources.append(self.dep_node)
-
-
-def build_edges(changed_resources, changes_graph, events):
-    """
-    :param changed_resources: list of resource names that were changed
-    :param changes_graph: nx.DiGraph object with actions to be executed
-    :param events: {node: [(event_type, event_expr)]}
-    """
-    stack = changed_resources[:]
-    while stack:
-        node = stack.pop()
-        events_objects = []
-
-        for event_type, node in events[node].iteritems():
-            log.debug('Events %s for resource %s', events[node], node)
-            if event_type == 'react_on':
-                create_event(e).add(stack, changes_graph)
-            elif event_type == 'depends_on':
-                create_event(e).add(stack, changes_graph)
-
-    return changes_graph
+    def add_edge(self, changed_resources, changes_graph):
+        if self.parent in changes_graph:
+            changes_graph.add_edge(self.parent, self.dependent, state=self.state)
+            changed_resources.append(self.depend_node)
