@@ -20,7 +20,6 @@ On create "golden" resource should be moved to special place
 import click
 from fabric import api as fabric_api
 import json
-from hashlib import md5
 import networkx as nx
 import os
 import pprint
@@ -34,12 +33,12 @@ from solar.core import resource as sresource
 from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
-from solar.core import testing
 from solar.core.resource import virtual_resource as vr
 from solar.interfaces.db import get_db
 from solar import errors
 from solar.core.log import log
 
+from solar.cli import executors
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
 
@@ -49,60 +48,6 @@ from solar.extensions.modules.discovery import Discovery
 
 
 db = get_db()
-
-
-class DryRunExecutor(object):
-    def __init__(self, mapping=None):
-        from fabric import api as fabric_api
-        from fabric.contrib import project as fabric_project
-        import mock
-
-        from solar.core.handlers import puppet
-
-        self.executed = []
-
-        self.mapping = mapping or {}
-
-        def dry_run_executor(command_name):
-            def wrapper(*args, **kwargs):
-                key = (len(self.executed), command_name, args, kwargs)
-
-                self.executed.append(key)
-
-                return self.find_hash(self.compute_hash(key))
-
-            return wrapper
-
-        # Add your own mocks here, IO, whatever
-        fabric_api.local = mock.Mock(side_effect=dry_run_executor('LOCAL RUN'))
-        fabric_api.put = mock.Mock(side_effect=dry_run_executor('PUT'))
-        fabric_api.run = mock.Mock(side_effect=dry_run_executor('SSH RUN'))
-        fabric_api.sudo = mock.Mock(side_effect=dry_run_executor('SSH SUDO'))
-        fabric_project.rsync_project = mock.Mock(side_effect=dry_run_executor('RSYNC PROJECT'))
-
-    def compute_hash(self, key):
-        return md5(str(key)).hexdigest()
-
-    def find_hash(self, hash):
-        stripped_hashes = {k.replace('>', ''): k for k in self.mapping}
-
-        hashes = [k for k in stripped_hashes if hash.startswith(k)]
-
-        if len(hashes) == 0:
-            #raise Exception('Hash {} not found'.format(hash))
-            return ''
-        elif len(hashes) > 1:
-            raise Exception('Hash {} not unique in {}'.format(
-                hash, hashes
-            ))
-
-        hash = stripped_hashes[hashes[0]]
-
-        if hash.endswith('>'):
-            with open(self.mapping[hash]) as f:
-                return f.read()
-
-        return self.mapping[hash]
 
 
 # HELPERS
@@ -196,7 +141,7 @@ def init_actions():
         from solar.core import resource
 
         if dry_run:
-            dry_run_executor = DryRunExecutor(mapping=json.loads(dry_run_mapping))
+            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         resources = filter(
             lambda r: Expression(tags, r.get('tags', [])).evaluate(),
@@ -310,7 +255,7 @@ def init_cli_resource():
     @click.option('-m', '--dry-run-mapping', default='{}')
     def action(dry_run_mapping, dry_run, action, resource):
         if dry_run:
-            dry_run_executor = DryRunExecutor(mapping=json.loads(dry_run_mapping))
+            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         click.echo(
             'action {} for resource {}'.format(action, resource)
