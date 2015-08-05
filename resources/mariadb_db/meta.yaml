@@ -21,6 +21,12 @@ input:
     login_port:
       schema: int!
       value:
+    collation:
+      schema: str
+      value: 'utf8_general_ci'
+    encoding:
+      schema: str
+      value: 'utf8'
 
     ip:
       schema: str!

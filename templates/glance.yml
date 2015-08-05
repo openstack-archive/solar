@@ -1,0 +1,23 @@
+id: glance_{{idx}}
+
+resources:
+  - id: glance_base_{{ idx }}
+    from: templates/glance_db.yml
+    values:
+      idx: '{{ idx }}'
+
+      db_name: '{{ db_name }}'
+      db_user: '{{ db_user }}'
+      db_password: '{{ db_password }}'
+      db_host: '{{ db_host }}'
+      db_login_port: '{{ db_port }}'
+      db_login_user: '{{ db_login_user }}'
+      db_login_password: '{{ db_login_password }}'
+
+      ip: '{{ ip }}'
+      ssh_user: '{{ ssh_user }}'
+      ssh_key: '{{ ssh_key }}'
+
+
+tags: ['resources/glance', 'resource/glance_api', 'resource/glance_registry']
+

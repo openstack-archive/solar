@@ -11,8 +11,8 @@ package { 'cinder':
 } ->
 
 class {'cinder::scheduler':
-scheduler_driver  => $scheduler_driver,
-package_ensure    => $package_ensure,
-enabled           => true,
-manage_service    => true,
+  scheduler_driver  => $scheduler_driver,
+  package_ensure    => $package_ensure,
+  enabled           => true,
+  manage_service    => true,
 }

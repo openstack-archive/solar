@@ -1,0 +1,27 @@
+id: nova_conductor
+handler: puppet
+puppet_module: nova
+version: 1.0.0
+input:
+    ensure_package:
+      schema: str
+      value: 'present'
+    workers:
+      schema: int
+      value: 1
+
+    git:
+      schema: {repository: str!, branch: str!}
+      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
+
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+
+tags: [resource/nova_conductor_service, resources/nova_conductor, resources/nova]
