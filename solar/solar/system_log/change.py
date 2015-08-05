@@ -11,6 +11,7 @@ from solar.interfaces.db import get_db
 from solar.core import actions
 from solar.system_log import data
 from solar.orchestration import graph
+from solar.events import api as evapi
 
 db = get_db()
 
@@ -83,26 +84,30 @@ def stage_changes():
 
 
 def send_to_orchestration():
-    conn_graph = signals.detailed_connection_graph()
     dg = nx.DiGraph()
     staged = {r.name: r.args_show()
               for r in resource.load_all().values()}
     commited = data.CD()
+    events = {}
+    changed_nodes = []
 
-    for res_uid in nx.topological_sort(conn_graph):
+    for res_uid in staged.keys():
         commited_data = commited.get(res_uid, {})
         staged_data = staged.get(res_uid, {})
 
         df = create_diff(staged_data, commited_data)
 
         if df:
+            events[res_uid] = evapi.all_events(res_uid)
+            changed_nodes.append(res_uid)
+            action = guess_action(commited_data, staged_data)
+
             dg.add_node(
-                res_uid, status='PENDING',
+                '{}:{}'.format(res_uid, action), status='PENDING',
                 errmsg=None,
-                **parameters(res_uid, guess_action(commited_data, staged_data)))
-            for pred in conn_graph.predecessors(res_uid):
-                if pred in dg:
-                    dg.add_edge(pred, res_uid)
+                **parameters(res_uid, action))
+
+    evapi.build_edges(changed_nodes, dg, events)
 
     # what it should be?
     dg.graph['name'] = 'system_log'
