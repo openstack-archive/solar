@@ -34,11 +34,11 @@ class Event(object):
 
     @property
     def parent(self):
-        return (self.parent_node, self.parent_action)
+        return '{}:{}'.format(self.parent_node, self.parent_action)
 
     @property
     def dependent(self):
-        return (self.depend_node, self.depend_action)
+        return '{}:{}'.format(self.depend_node, self.depend_action)
 
     def to_dict(self):
         rst = {'etype': self.etype}
