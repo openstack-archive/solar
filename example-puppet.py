@@ -253,6 +253,13 @@ def setup_resources():
     })[0]
     signals.connect(node1, neutron_agents_ovs)
 
+    # NEUTRON DHCP, L3, metadata agents
+
+    neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {
+        'use_namespaces': False,
+    })[0]
+    signals.connect(node1, neutron_agents_dhcp)
+
     # NEUTRON FOR COMPUTE (node2)
     # Deploy chain neutron -> (plugins) -> ( agents )
     neutron_puppet2 = vr.create('neutron_puppet2', 'resources/neutron_puppet', {})[0]
