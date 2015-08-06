@@ -9,6 +9,7 @@
 
     # PIP
     - apt: name=python-pip state=absent
+    - apt: name=python-six state=absent
     - shell: easy_install pip
     - shell: pip install -U pip
     - shell: pip install -U setuptools
