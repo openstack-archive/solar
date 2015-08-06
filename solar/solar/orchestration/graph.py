@@ -21,7 +21,7 @@ def save_graph(name, graph):
 
 
 def get_graph(name):
-    dg = nx.DiGraph()
+    dg = nx.MultiDiGraph()
     nodes = json.loads(r.get('{}:nodes'.format(name)))
     edges = json.loads(r.get('{}:edges'.format(name)))
     dg.graph = json.loads(r.get('{}:attributes'.format(name)))
@@ -37,7 +37,7 @@ def parse_plan(plan_data):
     """ parses yaml definition and returns graph
     """
     plan = yaml.load(plan_data)
-    dg = nx.DiGraph()
+    dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
         dg.add_node(

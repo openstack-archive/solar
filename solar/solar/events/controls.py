@@ -34,11 +34,11 @@ class Event(object):
 
     @property
     def parent(self):
-        return '{}:{}'.format(self.parent_node, self.parent_action)
+        return '{}.{}'.format(self.parent_node, self.parent_action)
 
     @property
     def dependent(self):
-        return '{}:{}'.format(self.depend_node, self.depend_action)
+        return '{}.{}'.format(self.depend_node, self.depend_action)
 
     def to_dict(self):
         rst = {'etype': self.etype}
@@ -63,7 +63,8 @@ class Dependency(Event):
     etype = 'depends_on'
 
     def add_edge(self, changed_resources, changes_graph):
-        if self.parent in changes_graph:
+        if (self.parent in changes_graph and
+            self.dependent in changes_graph):
             changes_graph.add_edge(
                 self.parent, self.dependent, state=self.state)
 
@@ -74,6 +75,13 @@ class React(Event):
     etype = 'react_on'
 
     def add_edge(self, changed_resources, changes_graph):
+
         if self.parent in changes_graph:
+            if self.dependent not in changes_graph:
+                changes_graph.add_node(
+                    self.dependent, status='PENDING',
+                    errmsg=None, type='solar_resource',
+                    args=[self.depend_node, self.depend_action])
+
             changes_graph.add_edge(self.parent, self.dependent, state=self.state)
             changed_resources.append(self.depend_node)
