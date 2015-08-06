@@ -8,6 +8,7 @@ from solar.core import signals
 from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
+from solar import events as evapi
 
 from solar.interfaces.db import get_db
 
@@ -39,7 +40,7 @@ def setup_resources():
     signals.Connections.clear()
 
     node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
-    
+
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
         'image': 'mariadb',
@@ -71,6 +72,7 @@ def setup_resources():
 
     # KEYSTONE
     keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
+    evapi.add_dep(rabbitmq_service1.name, keystone_puppet.name, actions=('run', 'update'))
     keystone_db = vr.create('keystone_db', 'resources/mariadb_db/', {
         'db_name': 'keystone_db',
         'login_user': 'root'
@@ -259,7 +261,7 @@ def setup_resources():
         'port': ['admin_port', 'internal_port', 'public_port'],})
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
         'admin_port': 'keystone_admin_port', 'admin_token': 'admin_token'})
-    
+
     # CINDER GLANCE
     # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
     cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
@@ -273,17 +275,17 @@ def setup_resources():
     signals.connect(cinder_puppet, cinder_api_puppet, {
         'keystone_host': 'keystone_auth_host',
         'keystone_port': 'keystone_auth_port'})
-
+    evapi.add_react(cinder_puppet.name, cinder_api_puppet.name, actions=('update',))
     # CINDER SCHEDULER
     cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     signals.connect(node1, cinder_scheduler_puppet)
     signals.connect(cinder_puppet, cinder_scheduler_puppet)
-
+    evapi.add_react(cinder_puppet.name, cinder_scheduler_puppet.name, actions=('update',))
     # CINDER VOLUME
     cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
-    
+    evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
