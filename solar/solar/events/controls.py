@@ -25,7 +25,7 @@ class Event(object):
     etype = None
 
     def __init__(self, parent_node, parent_action,
-                 state, depend_node, depend_action):
+                 state='', depend_node='', depend_action=''):
         self.parent_node = parent_node
         self.parent_action = parent_action
         self.state = state
@@ -62,7 +62,7 @@ class Dependency(Event):
 
     etype = 'depends_on'
 
-    def add_edge(self, changed_resources, changes_graph):
+    def insert(self, changed_resources, changes_graph):
         if (self.parent in changes_graph and
             self.dependent in changes_graph):
             changes_graph.add_edge(
@@ -74,7 +74,7 @@ class React(Event):
 
     etype = 'react_on'
 
-    def add_edge(self, changed_resources, changes_graph):
+    def insert(self, changed_resources, changes_graph):
 
         if self.parent in changes_graph:
             if self.dependent not in changes_graph:
@@ -85,3 +85,15 @@ class React(Event):
 
             changes_graph.add_edge(self.parent, self.dependent, state=self.state)
             changed_resources.append(self.depend_node)
+
+
+class StateChange(Event):
+
+    etype = 'state_change'
+
+    def insert(self, changed_resources, changes_graph):
+        changed_resources.append(self.parent)
+        changes_graph.add_node(
+            self.parent, status='PENDING',
+            errmsg=None, type='solar_resource',
+            args=[self.parent_node, self.parent_action])

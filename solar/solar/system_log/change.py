@@ -86,10 +86,8 @@ def send_to_orchestration():
             changed_nodes.append(res_uid)
             action = guess_action(commited_data, staged_data)
 
-            dg.add_node(
-                '{}.{}'.format(res_uid, action), status='PENDING',
-                errmsg=None,
-                **parameters(res_uid, action))
+            state_change = evapi.StateChange(res_uid, action)
+            state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(changed_nodes, dg, events)
 
