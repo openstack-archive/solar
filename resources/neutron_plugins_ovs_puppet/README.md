@@ -5,6 +5,8 @@ This configures the plugin for the API server, but does nothing
 about configuring the agents that must also run and share a config
 file with the OVS plugin if both are on the same machine.
 
+Note, this plugin was deprecated, you may want to use the ML2 plugin instead.
+
 NB: don't need tunnel ID range when using VLANs,
 *but* you do need the network vlan range regardless of type,
 because the list of networks there is still important
