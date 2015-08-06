@@ -18,3 +18,8 @@ If Vagrant throws error about `vboxsf` try this:
 vagrant plugin install vagrant-vbguest
 ```
 (see https://github.com/shiguredo/packer-templates/issues/16).
+
+If you're rebuilding the same box, make sure Vagrant reimports it:
+```
+vagrant box remove solar-master
+```

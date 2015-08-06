@@ -9,13 +9,7 @@
   "provisioners": [
     {
       "type": "shell",
-      "inline": [
-        "sudo apt-get remove -f python-pip",
-        "sudo apt-get install -y python-setuptools",
-        "sudo easy_install pip",
-        "sudo pip install -U pip",
-        "sudo pip install ansible"
-      ]
+      "script": "playbooks/files/ubuntu-ansible.sh"
     }, {
       "type": "ansible-local",
       "playbook_dir": "playbooks",
