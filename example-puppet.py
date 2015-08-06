@@ -262,6 +262,14 @@ def setup_resources():
         'external_network_bridge': 'br-floating',
     })[0]
     signals.connect(node1, neutron_agents_l3)
+    neutron_agents_metadata = vr.create('neutron_agents_metadata', 'resources/neutron_agents_metadata_puppet', {
+        'shared_secret': 'secret',
+    })[0]
+    signals.connect(node1, neutron_agents_metadata)
+    signals.connect(neutron_server_puppet, neutron_agents_metadata, {
+        'auth_host', 'auth_port', 'auth_password',
+        'auth_tenant', 'auth_user',
+    })
 
     # NEUTRON FOR COMPUTE (node2)
     # Deploy chain neutron -> (plugins) -> ( agents )
@@ -437,6 +445,7 @@ def setup_resources():
         'keystone_password': 'admin_password',
         'keystone_host': 'auth_host',
         'keystone_port': 'auth_port'})
+    signals.connect(nova_api_puppet, neutron_agents_metadata, {'ip': 'metadata_ip'})
 
     # NOVA CONDUCTOR
     nova_conductor_puppet = vr.create('nova_conductor_puppet', 'resources/nova_conductor_puppet', {})[0]
