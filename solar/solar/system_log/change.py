@@ -27,22 +27,6 @@ def guess_action(from_, to):
         return 'update'
 
 
-def connections(res, graph):
-    result = []
-    for pred in graph.predecessors(res.name):
-        for num, edge in graph.get_edge_data(pred, res.name).items():
-            if 'label' in edge:
-                if ':' in edge['label']:
-                    parent, child = edge['label'].split(':')
-                    mapping = [parent, child]
-                else:
-                    mapping = [edge['label'], edge['label']]
-            else:
-                mapping = None
-            result.append([pred, res.name, mapping])
-    return result
-
-
 def create_diff(staged, commited):
     return list(diff(commited, staged))
 
@@ -84,7 +68,7 @@ def stage_changes():
 
 
 def send_to_orchestration():
-    dg = nx.DiGraph()
+    dg = nx.MultiDiGraph()
     staged = {r.name: r.args_show()
               for r in resource.load_all().values()}
     commited = data.CD()
@@ -103,7 +87,7 @@ def send_to_orchestration():
             action = guess_action(commited_data, staged_data)
 
             dg.add_node(
-                '{}:{}'.format(res_uid, action), status='PENDING',
+                '{}.{}'.format(res_uid, action), status='PENDING',
                 errmsg=None,
                 **parameters(res_uid, action))
 
