@@ -6,7 +6,7 @@ import networkx as nx
 
 from solar.core.log import log
 from solar.interfaces.db import get_db
-from solar.events.controls import Dep, React
+from solar.events.controls import Dep, React, StateChange
 
 db = get_db()
 
@@ -91,6 +91,7 @@ def bft_events_graph(start):
     return dg
 
 
+
 def build_edges(changed_resources, changes_graph, events):
     """
     :param changed_resources: list of resource names that were changed
@@ -107,6 +108,6 @@ def build_edges(changed_resources, changes_graph, events):
             log.debug('No dependencies based on %s', node)
 
         for ev in events.get(node, ()):
-            ev.add_edge(stack, changes_graph)
+            ev.insert(stack, changes_graph)
 
     return changes_graph
