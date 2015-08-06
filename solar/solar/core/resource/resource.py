@@ -58,9 +58,7 @@ class Resource(object):
 
         self.metadata = raw_resource
 
-        args = self.metadata['input']
-
-        return {k: v['value'] for k, v in args.items()}
+        return Resource.get_raw_resource_args(raw_resource)
 
     def set_args_from_dict(self, new_args):
         args = self.args_dict()
@@ -167,10 +165,14 @@ class Resource(object):
         else:
             raise Exception('Uuups, action is not available')
 
+    @staticmethod
+    def get_raw_resource_args(raw_resource):
+        return {k: v.get('value') for k, v in raw_resource['input'].items()}
+
 
 def wrap_resource(raw_resource):
     name = raw_resource['id']
-    args = {k: v['value'] for k, v in raw_resource['input'].items()}
+    args = Resource.get_raw_resource_args(raw_resource)
     tags = raw_resource.get('tags', [])
     virtual_resource = raw_resource.get('virtual_resource', [])
 
