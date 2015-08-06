@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    - lineinfile: line='slaveof {{ master_ip }} 6379' dest=/etc/redis/redis.conf
+    - service: name=redis-server state=restarted

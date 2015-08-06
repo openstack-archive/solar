@@ -1,0 +1,28 @@
+{
+  "builders": [{
+    "type": "virtualbox-ovf",
+    "source_path": "trusty64/box.ovf",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sudo apt-get remove -f python-pip",
+        "sudo apt-get install -y python-setuptools",
+        "sudo easy_install pip",
+        "sudo pip install -U pip",
+        "sudo pip install ansible"
+      ]
+    }, {
+      "type": "ansible-local",
+      "playbook_dir": "playbooks",
+      "playbook_file": "playbooks/build-main.yml"
+    }],
+  "post-processors": [{
+    "type": "vagrant",
+    "output": "solar-master.box"
+  }]
+}

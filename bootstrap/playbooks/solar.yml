@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    # Setup development env for solar
+    - shell: python setup.py develop chdir=/vagrant/solar

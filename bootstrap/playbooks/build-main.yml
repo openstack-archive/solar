@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  sudo: yes
+  tasks:
+    - include: base.yml
+    - include: puppet.yml
+    - include: docker.yml
+    #- include: celery.yml tags=['master'] celery_dir=/var/run/celery
+    - include: cinder.yml
