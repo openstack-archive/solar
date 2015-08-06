@@ -1,11 +1,10 @@
 # Neutron DHCP agent puppet resource
 
-Setups Neutron DHCP agent.
+Installs and configures the Neutron DHCP service
 
 # Parameters
 
 https://github.com/openstack/puppet-neutron/blob/5.1.0/manifests/agents/dhcp.pp
-
 
  ``package_ensure``
    (optional) Ensure state for package. Defaults to 'present'.

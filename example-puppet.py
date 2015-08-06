@@ -254,11 +254,19 @@ def setup_resources():
     signals.connect(node1, neutron_agents_ovs)
 
     # NEUTRON DHCP, L3, metadata agents
-
     neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {
         'use_namespaces': False,
     })[0]
     signals.connect(node1, neutron_agents_dhcp)
+    neutron_agents_l3 = vr.create('neutron_agents_l3', 'resources/neutron_agents_l3_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'use_namespaces': False,
+        'metadata_port': 8775,
+        'external_network_bridge': 'br-floating',
+        # The ID of the external router in neutron as 'router_id' input
+        # The ID of the external network in neutron as 'gateway_external_network_id'
+    })[0]
+    signals.connect(node1, neutron_agents_l3)
 
     # NEUTRON FOR COMPUTE (node2)
     # Deploy chain neutron -> (plugins) -> ( agents )
