@@ -55,7 +55,8 @@ resources:
               phy_interfaces:
               - eth1
           br-ex:
-            IP: 192.168.121.14
+            IP:
+            - 192.168.121.14/24
             vendor_specific:
               phy_interfaces:
               - eth0
@@ -119,7 +120,8 @@ resources:
               phy_interfaces:
               - eth1
           br-ex:
-            IP: 192.168.121.14
+            IP:
+            - 192.168.121.14/24
             vendor_specific:
               phy_interfaces:
               - eth0
