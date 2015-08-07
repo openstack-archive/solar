@@ -26,11 +26,11 @@ def validate():
 
 @changes.command()
 def stage():
-    log = change.stage_changes()
-    staged = list(log.reverse())
-    if not staged:
+    log = list(change.stage_changes().reverse())
+    for item in log:
+        click.echo(item)
+    if not log:
         click.echo('No changes')
-    click.echo(staged)
 
 
 @changes.command()
