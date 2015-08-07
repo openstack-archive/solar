@@ -3,7 +3,7 @@
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
-SLAVES_COUNT = 2
+SLAVES_COUNT = 3
 
 solar_script = <<SCRIPT
 ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/solar.yml
@@ -46,7 +46,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     index = i + 1
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
-      config.vm.box = "ubuntu/trusty64"
+      # Box solar-dev3 is for 'solar_bootstrap' resource demo
+      if index == 3 then
+        config.vm.box = "ubuntu/trusty64"
+      else
+        # standard box with all stuff preinstalled
+        config.vm.box = "solar-master.box"
+      end
 
       #config.vm.provision "shell", inline: slave_script, privileged: true
       #config.vm.provision "shell", inline: solar_script, privileged: true

@@ -38,13 +38,15 @@ def setup_resources():
 
     signals.Connections.clear()
 
-    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
+    node3 = vr.create('node3', 'resources/ro_node/', {
+        'ip': '10.0.0.5',
+        'ssh_key': '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key',
+        'ssh_user': 'vagrant'
+    })[0]
 
-    solar_bootstrap1 = vr.create('solar_bootstrap1', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
-    solar_bootstrap2 = vr.create('solar_bootstrap2', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
+    solar_bootstrap3 = vr.create('solar_bootstrap3', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
 
-    signals.connect(node1, solar_bootstrap1)
-    signals.connect(node2, solar_bootstrap2)
+    signals.connect(node3, solar_bootstrap3)
 
     has_errors = False
     for r in locals().values():
@@ -61,8 +63,7 @@ def setup_resources():
         sys.exit(1)
 
 resources_to_run = [
-    'solar_bootstrap1',
-    'solar_bootstrap2',
+    'solar_bootstrap3',
 ]
 
 
