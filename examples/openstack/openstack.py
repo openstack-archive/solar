@@ -57,7 +57,18 @@ def setup_resources():
     resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {"count": 2})
     nodes = [x for x in resources if x.name.startswith('node')]
     node1, node2 = nodes
+    resources = vr.create('nodes_network', 'templates/nodes_network.yml', {"count": 2})
+    nodes_sdn = [x for x in resources if x.name.startswith('node')]
+    node1_sdn, node2_sdn = nodes_sdn
 
+
+    # NETWORKING
+    node1_network_puppet =  vr.create('node1_network_puppet', 'resources/node_network_puppet', {})[0]
+    node2_network_puppet =  vr.create('node2_network_puppet', 'resources/node_network_puppet', {})[0]
+    signals.connect(node1, node1_sdn)
+    signals.connect(node1, node2_sdn)
+    signals.connect(node1_sdn, node1_network_puppet)
+    signals.connect(node2_sdn, node2_network_puppet)
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
@@ -617,6 +628,8 @@ def setup_resources():
 
 
 resources_to_run = [
+    'node1_network_puppet',
+
     'rabbitmq_service1',
     'openstack_vhost',
     'openstack_rabbitmq_user',
@@ -668,6 +681,8 @@ resources_to_run = [
     'nova_api_puppet',
     'nova_conductor_puppet',
     'nova_scheduler_puppet',
+
+    'node2_network_puppet',
 
     'glance_db',
     'glance_db_user',
