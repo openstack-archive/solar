@@ -48,7 +48,8 @@ resources:
           br-floating:
             IP: none
           br-mgmt:
-            IP: dhcp
+            IP:
+            - 10.0.0.3/24
             vendor_specific:
               phy_interfaces:
               - eth1
@@ -110,7 +111,8 @@ resources:
           br-floating:
             IP: none
           br-mgmt:
-            IP: dhcp
+            IP:
+            - 10.0.0.4/24
             vendor_specific:
               phy_interfaces:
               - eth1
