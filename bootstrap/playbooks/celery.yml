@@ -1,6 +1,7 @@
 ---
 
-- hosts: all
+- name: Solar Celery config
+  hosts: all
   sudo: yes
   vars:
     celery_dir: /var/run/celery

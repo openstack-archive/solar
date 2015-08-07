@@ -1,10 +1,11 @@
 ---
 
-- hosts: all
+- name: Main build script
+  hosts: all
   sudo: yes
   tasks:
-    - include: base.yml
-    - include: puppet.yml
-    - include: docker.yml
+    - include: tasks/base.yml
+    - include: tasks/puppet.yml
+    - include: tasks/docker.yml
     #- include: celery.yml tags=['master'] celery_dir=/var/run/celery
-    - include: cinder.yml
+    - include: tasks/cinder.yml

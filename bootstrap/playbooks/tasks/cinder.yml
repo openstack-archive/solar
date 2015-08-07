@@ -7,5 +7,9 @@
   ignore_errors: True
 - command: sudo losetup /dev/loop0 /root/cinder.img
   when: loop_created|failed
+#  retries: 5
+#  delay: 1
 - lvg: vg=cinder-volumes pvs=/dev/loop0
   when: loop_created|failed
+#  retries: 5
+#  delay: 1

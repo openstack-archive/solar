@@ -548,7 +548,6 @@ resources_to_run = [
 ]
 
 
-
 @click.command()
 def deploy():
     setup_resources()
