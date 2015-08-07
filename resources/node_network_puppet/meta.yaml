@@ -1,4 +1,4 @@
-id: l23network_puppet
+id: node_network_puppet
 handler: puppet
 puppet_module: l23network
 version: 1.0.0
@@ -44,7 +44,7 @@ input:
         version: str!,
         provider: str!,
         interfaces: {},
-        transformations: {},
+        transformations: [{}],
         endpoints: {},
         roles: {},
       }
@@ -63,4 +63,4 @@ input:
       schema: str!
       value:
 
-tags: [resources/l23network, resources/node_network]
+tags: [resources/node_network]

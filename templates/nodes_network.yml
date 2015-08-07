@@ -4,10 +4,10 @@ id: simple_multinode_gre
 # eth0 - ext 192.168.121.0/24
 resources:
   - id: node1_sdn
-    from: resources/node_network
+    from: resources/node_network_puppet
     values:
       network_scheme:
-        version: 1.1
+        version: '1.1'
         provider: lnx
         interfaces:
           eth0:
@@ -67,10 +67,10 @@ resources:
           fw-admin: br-fw-admin
 
   - id: node2_sdn
-    from: resources/node_network
+    from: resources/node_network_puppet
     values:
       network_scheme:
-        version: 1.1
+        version: '1.1'
         provider: lnx
         interfaces:
           eth0:

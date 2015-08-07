@@ -63,12 +63,9 @@ def setup_resources():
 
 
     # NETWORKING
-    node1_network_puppet =  vr.create('node1_network_puppet', 'resources/node_network_puppet', {})[0]
-    node2_network_puppet =  vr.create('node2_network_puppet', 'resources/node_network_puppet', {})[0]
+    # TODO(bogdando) node's IPs should be populated as br-mgmt IPs, but now are hardcoded in templates
     signals.connect(node1, node1_sdn)
     signals.connect(node1, node2_sdn)
-    signals.connect(node1_sdn, node1_network_puppet)
-    signals.connect(node2_sdn, node2_network_puppet)
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
@@ -628,7 +625,7 @@ def setup_resources():
 
 
 resources_to_run = [
-    'node1_network_puppet',
+    'node1_sdn',
 
     'rabbitmq_service1',
     'openstack_vhost',
@@ -682,7 +679,7 @@ resources_to_run = [
     'nova_conductor_puppet',
     'nova_scheduler_puppet',
 
-    'node2_network_puppet',
+    'node2_sdn',
 
     'glance_db',
     'glance_db_user',
