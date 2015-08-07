@@ -65,7 +65,7 @@ def setup_resources():
     # NETWORKING
     # TODO(bogdando) node's IPs should be populated as br-mgmt IPs, but now are hardcoded in templates
     signals.connect(node1, node1_sdn)
-    signals.connect(node1, node2_sdn)
+    signals.connect(node2, node2_sdn)
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
