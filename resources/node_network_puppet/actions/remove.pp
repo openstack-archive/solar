@@ -1,3 +1,3 @@
 class {'l23network':
-  package_ensure     => 'absent',
+  ensure_package     => 'absent',
 }

@@ -6,6 +6,7 @@ resources:
   - id: node1_sdn
     from: resources/node_network_puppet
     values:
+      use_ovs: true
       network_scheme:
         version: '1.1'
         provider: lnx
@@ -54,11 +55,11 @@ resources:
               phy_interfaces:
               - eth1
           br-ex:
-            IP: dhcp
+            IP: 192.168.121.14
             vendor_specific:
               phy_interfaces:
               - eth0
-            gateway: save
+            gateway: 192.168.121.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
@@ -69,6 +70,7 @@ resources:
   - id: node2_sdn
     from: resources/node_network_puppet
     values:
+      use_ovs: true
       network_scheme:
         version: '1.1'
         provider: lnx
@@ -117,11 +119,11 @@ resources:
               phy_interfaces:
               - eth1
           br-ex:
-            IP: dhcp
+            IP: 192.168.121.14
             vendor_specific:
               phy_interfaces:
               - eth0
-            gateway: save
+            gateway: 192.168.121.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
