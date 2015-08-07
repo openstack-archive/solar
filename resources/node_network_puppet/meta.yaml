@@ -3,14 +3,55 @@ handler: puppet
 puppet_module: l23network
 version: 1.0.0
 input:
-    #TODO
     package_ensure:
       schema: str
       value: 'present'
+    ensure_package:
+      schema: str
+      value: 'present'
+    use_lnx:
+      schema: bool
+      value: true
+    use_ovs:
+      schema: bool
+      value: false
+    install_ovs:
+      schema: bool
+      value: true
+    install_brtool:
+      schema: bool
+      value: true
+    install_ethtool:
+      schema: bool
+      value: true
+    install_bondtool:
+      schema: bool
+      value: true
+    install_vlantool:
+      schema: bool
+      value: true
+    ovs_modname:
+      schema: str
+      value: 'openvswitch'
+    ovs_datapath_package_name:
+      schema: str
+      value: 'openvswitch-datapath-dkms'
+    ovs_common_package_name:
+      schema: str
+      value: 'openvswitch-switch'
+    network_scheme:
+      schema: {
+        version: str!,
+        provider: str!,
+        interfaces: {},
+        transformations: {},
+        endpoints: {},
+        roles: {},
+      }
 
     git:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+      value: {repository: 'https://github.com/xenolog/l23network', branch: 'master'}
 
     ip:
       schema: str!
@@ -22,4 +63,4 @@ input:
       schema: str!
       value:
 
-tags: [resource/l23network_service, resources/l23network, resources/cinder]
+tags: [resources/l23network, resources/node_network]
