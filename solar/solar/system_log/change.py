@@ -63,11 +63,12 @@ def _stage_changes(staged_resources, conn_graph,
         df = create_diff(staged_data, commited_data)
 
         if df:
+            action = guess_action(commited_data, staged_data)
             log_item = data.LogItem(
                 utils.generate_uuid(),
                 res_uid,
-                df,
-                guess_action(commited_data, staged_data))
+                '{}.{}'.format(res_uid, action),
+                df)
             staged_log.append(log_item)
     return staged_log
 
