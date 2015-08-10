@@ -624,6 +624,14 @@ resources_to_run = [
     'nova_api_puppet',
     'nova_conductor_puppet',
 
+    'glance_db',
+    'glance_db_user',
+    'glance_keystone_user',
+    'glance_keystone_role',
+    'glance_keystone_service_endpoint',
+    'glance_api_puppet',
+    'glance_registry_puppet',
+
     'nova_puppet2',
     'nova_compute_libvirt_puppet',
     'nova_neutron_puppet',
@@ -632,16 +640,7 @@ resources_to_run = [
     'neutron_puppet2',
     'neutron_plugins_ovs2',
     'neutron_agents_ovs2',
-
-    'glance_db',
-    'glance_db_user',
-    'glance_keystone_user',
-    'glance_keystone_role',
-    'glance_keystone_service_endpoint',
-    'glance_api_puppet',
-    'glance_registry_puppet',
 ]
-
 
 
 @click.command()
