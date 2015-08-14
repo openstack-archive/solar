@@ -39,23 +39,8 @@ def setup_riak():
     for i, riak in enumerate(riak_services):
         signals.connect(nodes[i], riak)
 
-    joiners = []
-    for i in xrange(2):
-        num = i + 1
-        join = vr.create('riak_join_single%d' % num,
-                         'resources/riak_join_single', {})[0]
-        joiners.append(join)
-
-    for i, riak in enumerate(riak_services[:-1]):
-        signals.connect(nodes[i+1], joiners[i])
-        signals.connect(riak, joiners[i], {'riak_name': 'join_to'})
-        # signals.connect(riak, riak_joiner_service, {'riak_name': 'join_to'})
-        # signals.connect(riak, riak_joiner_service, {'ip': 'join_from'})
-
-    commiter = vr.create('riak_commit1', 'resources/riak_commit', {})[0]
-    # for joiner in joiners:
-    #     signals.connect(joiner, commiter, {'join_to': 'riak_names'})
-    signals.connect(node1, commiter)
+    for i, riak in enumerate(riak_services[1:]):
+        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
 
     has_errors = False
     for r in locals().values():
@@ -75,27 +60,24 @@ def setup_riak():
         sys.exit(1)
 
     events = [
-        React('riak_service2', 'run', 'success', 'riak_join_single1', 'join'),
-        React('riak_service3', 'run', 'success', 'riak_join_single2', 'join'),
-        React('riak_join_single1', 'join', 'success', 'riak_commit1', 'commit'),
-        React('riak_join_single2', 'join', 'success', 'riak_commit1', 'commit')
+        Dep('riak_service2', 'run', 'success', 'riak_service3', 'join'),
+        Dep('riak_service3', 'run', 'success', 'riak_service2', 'join'),
+
+        React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
+        React('riak_service1', 'run', 'success', 'riak_service3', 'join'),
+
+        React('riak_service2', 'run', 'status', 'riak_service2', 'join'),
+        React('riak_service3', 'run', 'status', 'riak_service3', 'join'),
+
+        React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
+        React('riak_service2', 'join', 'success', 'riak_service1', 'commit')
     ]
 
     for event in events:
         add_event(event)
 
-    print 'Use orch'
+    print 'Use solar changes process & orch'
     sys.exit(1)
-
-
-resources_to_run = [
-    'riak_service1',
-    'riak_service2',
-    'riak_service3',
-    # 'riak_join_single1',
-    # 'riak_join_single2',
-    # 'riak_commit1'
-]
 
 
 
@@ -108,33 +90,10 @@ def main():
 def deploy():
     setup_riak()
 
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
-    resources = {r.name: r for r in resources}
-
-    for name in resources_to_run:
-        try:
-            actions.resource_action(resources[name], 'run')
-        except errors.SolarError as e:
-            print 'WARNING: %s' % str(e)
-            raise
-
-    time.sleep(10)
-
 
 @click.command()
 def undeploy():
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
-    resources = {r.name: r for r in resources}
-
-    for name in reversed(resources_to_run):
-        try:
-            actions.resource_action(resources[name], 'remove')
-        except errors.SolarError as e:
-            print 'WARNING: %s' % str(e)
-
-    db.clear()
-
-    signals.Connections.clear()
+    raise NotImplemented("Not yet")
 
 
 

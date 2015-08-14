@@ -1,4 +1,5 @@
 - hosts: [{{ip}}]
   sudo: yes
   tasks:
+    - shell: sleep 120
     - shell: riak-admin cluster commit

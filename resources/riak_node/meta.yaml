@@ -2,6 +2,9 @@ id: riak_node
 handler: ansible
 version: 1.0.0
 actions:
+  commit: actions/commit.yml
+  run: actions/run.yml
+  join: actions/join.yml
 input:
     ip:
       schema: str!
@@ -14,4 +17,7 @@ input:
       value:
     riak_name:
       schema: str!
+      value:
+    join_to:
+      schema: str
       value:
