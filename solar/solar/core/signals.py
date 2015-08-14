@@ -6,7 +6,7 @@ import networkx as nx
 from solar.core.log import log
 from solar.interfaces.db import get_db
 from solar.events.api import add_events
-from solar.events.control import Dependency
+from solar.events.controls import Dependency
 
 db = get_db()
 
