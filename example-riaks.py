@@ -66,8 +66,8 @@ def setup_riak():
         React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
         React('riak_service1', 'run', 'success', 'riak_service3', 'join'),
 
-        React('riak_service2', 'run', 'status', 'riak_service2', 'join'),
-        React('riak_service3', 'run', 'status', 'riak_service3', 'join'),
+        React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+        React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
 
         React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
         React('riak_service2', 'join', 'success', 'riak_service1', 'commit')
