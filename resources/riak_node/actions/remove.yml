@@ -1,0 +1,6 @@
+- hosts: [{{ip}}]
+  sudo: yes
+  tasks:
+    - apt:
+        name: riak
+        state: absent
