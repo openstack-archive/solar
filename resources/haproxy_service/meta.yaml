@@ -5,17 +5,8 @@ input:
     ip:
       schema: str!
       value:
-    image:
-      schema: str!
-      value: tutum/haproxy
     ports:
       schema: [{value: [{value: int}]}]
-      value: []
-    host_binds:
-      schema: [{value: {src: str, dst: str}}]
-      value: []
-    volume_binds:
-      schema: [{src: str, dst: str}]
       value: []
     ssh_user:
       schema: str!

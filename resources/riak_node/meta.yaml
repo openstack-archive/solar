@@ -18,6 +18,15 @@ input:
     riak_name:
       schema: str!
       value:
+    riak_port_http:
+      schema: int!
+      value: 18098
+    riak_port_pb:
+      schema: int!
+      value: 18087
+    riak_port_solr:
+      schema: int!
+      value: 8985
     join_to:
       schema: str
       value:

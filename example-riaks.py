@@ -50,8 +50,8 @@ def setup_riak():
             continue
 
         # print 'Validating {}'.format(r.name)
-        errors = validation.validate_resource(r)
-        if errors:
+        local_errors = validation.validate_resource(r)
+        if local_errors:
             has_errors = True
             print 'ERROR: %s: %s' % (r.name, errors)
 
@@ -77,7 +77,108 @@ def setup_riak():
         add_event(event)
 
     print 'Use solar changes process & orch'
-    sys.exit(1)
+    sys.exit(0)
+
+
+def setup_haproxies():
+    hps = []
+    hpc = []
+    hpsc_http = []
+    hpsc_pb = []
+    for i in xrange(3):
+        num = i + 1
+        hps.append(vr.create('haproxy_service%d' % num,
+                             'resources/haproxy_service',
+                             {})[0])
+        hpc.append(vr.create('haproxy_config%d' % num,
+                             'resources/haproxy_config',
+                             {})[0])
+        hpsc_http.append(vr.create('haproxy_service_config_http%d' % num,
+                                   'resources/haproxy_service_config',
+                                   {'listen_port': 8098,
+                                    'protocol': 'http',
+                                    'name': 'riak_haproxy_http%d' % num})[0])
+        hpsc_pb.append(vr.create('haproxy_service_config_pb%d' % num,
+                                 'resources/haproxy_service_config',
+                                 {'listen_port': 8087,
+                                  'protocol': 'tcp',
+                                  'name': 'riak_haproxy_pb%d' % num})[0])
+
+    riak1 = resource.load('riak_service1')
+    riak2 = resource.load('riak_service2')
+    riak3 = resource.load('riak_service3')
+    riaks = [riak1, riak2, riak3]
+
+    for single_hpsc in hpsc_http:
+        for riak in riaks:
+            signals.connect(riak, single_hpsc, {'ip': 'servers',
+                                                'riak_port_http': 'ports'})
+
+    for single_hpsc in hpsc_pb:
+        for riak in riaks:
+            signals.connect(riak, single_hpsc, {'ip': 'servers',
+                                                'riak_port_pb': 'ports'})
+
+    # haproxy config to haproxy service
+
+    for single_hpc, single_hpsc in zip(hpc, hpsc_http):
+        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
+                                                  'listen_port': 'listen_ports',
+                                                  'name': 'configs_names',
+                                                  'servers': 'configs',
+                                                  'ports': 'configs_ports'})
+
+    for single_hpc, single_hpsc in zip(hpc, hpsc_pb):
+        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
+                                                  'listen_port': 'listen_ports',
+                                                  'name': 'configs_names',
+                                                  'servers': 'configs',
+                                                  'ports': 'configs_ports'})
+
+    for single_hps, single_hpc in zip(hps, hpc):
+        signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'})
+
+    # assign haproxy services to each node
+
+    node1 = resource.load('node1')
+    node2 = resource.load('node2')
+    node3 = resource.load('node3')
+    nodes = [node1, node2, node3]
+
+    for single_node, single_hps in zip(nodes, hps):
+        signals.connect(single_node, single_hps)
+
+    for single_node, single_hpc in zip(nodes, hpc):
+        signals.connect(single_node, single_hpc)
+
+    has_errors = False
+    for r in locals().values():
+
+        # TODO: handle list
+        if not isinstance(r, resource.Resource):
+            continue
+
+        # print 'Validating {}'.format(r.name)
+        local_errors = validation.validate_resource(r)
+        if local_errors:
+            has_errors = True
+            print 'ERROR: %s: %s' % (r.name, errors)
+
+    if has_errors:
+        print "ERRORS"
+        sys.exit(1)
+
+    events = []
+    for node, single_hps, single_hpc in zip(nodes, hps, hpc):
+        r = React(node.name, 'run', 'success', single_hps.name, 'install')
+        d = Dep(single_hps.name, 'install', 'success', single_hpc.name, 'run')
+        events.extend([r, d])
+
+    for event in events:
+        add_event(event)
+
+
+
 
 
 
@@ -92,6 +193,11 @@ def deploy():
 
 
 @click.command()
+def add_haproxies():
+    setup_haproxies()
+
+
+@click.command()
 def undeploy():
     raise NotImplemented("Not yet")
 
@@ -99,6 +205,7 @@ def undeploy():
 
 main.add_command(deploy)
 main.add_command(undeploy)
+main.add_command(add_haproxies)
 
 
 if __name__ == '__main__':
