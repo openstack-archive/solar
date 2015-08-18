@@ -33,7 +33,9 @@ def setup_riak():
         ip = ips % (num + 2)  # XXX: da rade inaczej ?
         r = vr.create('riak_service%d' % num,
                       'resources/riak_node',
-                      {'riak_name': 'riak%d@%s' % (num, ip)})[0]
+                      {'riak_self_name': 'riak%d' % num,
+                       'riak_hostname': 'riak_server%d.solar' % num,
+                       'riak_name': 'riak%d@riak_server%d.solar' % (num, num)})[0]
         riak_services.append(r)
 
     for i, riak in enumerate(riak_services):
@@ -41,6 +43,18 @@ def setup_riak():
 
     for i, riak in enumerate(riak_services[1:]):
         signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
+
+    hosts_services = []
+    for i, riak in enumerate(riak_services):
+        num = i + 1
+        hosts_file = vr.create('hosts_file%d' % num,
+                               'resources/hosts_file', {})[0]
+        hosts_services.append(hosts_file)
+        signals.connect(nodes[i], hosts_file)
+
+    for riak in riak_services:
+        for hosts_file in hosts_services:
+            signals.connect(riak, hosts_file, {'riak_hostname': 'hosts_names', 'ip': 'hosts_ips'}, events=False)
 
     has_errors = False
     for r in locals().values():
@@ -60,14 +74,18 @@ def setup_riak():
         sys.exit(1)
 
     events = [
-        Dep('riak_service2', 'run', 'success', 'riak_service3', 'join'),
-        Dep('riak_service3', 'run', 'success', 'riak_service2', 'join'),
+        Dep('hosts_file1', 'run', 'success', 'riak_service1', 'run'),
+        Dep('hosts_file2', 'run', 'success', 'riak_service2', 'run'),
+        Dep('hosts_file3', 'run', 'success', 'riak_service3', 'run'),
+
+        Dep('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+        Dep('riak_service3', 'run', 'success', 'riak_service3', 'join'),
 
         React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
         React('riak_service1', 'run', 'success', 'riak_service3', 'join'),
 
-        React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
-        React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
+        # React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+        # React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
 
         React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
         React('riak_service2', 'join', 'success', 'riak_service1', 'commit')
@@ -111,12 +129,12 @@ def setup_haproxies():
 
     for single_hpsc in hpsc_http:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'ip': 'servers',
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
                                                 'riak_port_http': 'ports'})
 
     for single_hpsc in hpsc_pb:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'ip': 'servers',
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
                                                 'riak_port_pb': 'ports'})
 
     # haproxy config to haproxy service

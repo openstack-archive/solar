@@ -15,9 +15,16 @@ input:
     ssh_user:
       schema: str!
       value:
-    riak_name:
+    riak_self_name:
       schema: str!
       value:
+    riak_hostname:
+      schema: str!
+      value: 
+    riak_name:
+      schema: str!
+      # value: "{{riak_self_name}}@{{riak_hostname}}"
+      value: "{{riak_self_name}}@{{ip}}"
     riak_port_http:
       schema: int!
       value: 18098

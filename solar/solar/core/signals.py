@@ -8,6 +8,7 @@ from solar.interfaces.db import get_db
 from solar.events.api import add_events
 from solar.events.controls import Dependency
 
+
 db = get_db()
 
 
@@ -135,7 +136,14 @@ def connect_single(emitter, src, receiver, dst):
     emitter.args[src].subscribe(receiver.args[dst])
 
 
-def connect(emitter, receiver, mapping=None):
+def connect(emitter, receiver, mapping=None, events=None):
+    # convert if needed
+    # TODO: handle invalid resource
+    # if isinstance(emitter, basestring):
+    #     emitter = resource.load(emitter)
+    # if isinstance(receiver, basestring):
+    #     receiver = resource.load(receiver)
+
     mapping = mapping or guess_mapping(emitter, receiver)
 
     if isinstance(mapping, set):
@@ -151,15 +159,24 @@ def connect(emitter, receiver, mapping=None):
 
         connect_single(emitter, src, receiver, dst)
 
-    events = [
-        Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
-        Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
+    # possibility to set events, when False it will NOT add events at all
+    if events is not False:
+        events = [
+            Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
+            Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
         ]
-    add_events(emitter.name, events)
-    #receiver.save()
+        add_events(emitter.name, events)
+    # receiver.save()
 
 
 def disconnect(emitter, receiver):
+    # convert if needed
+    # TODO: handle invalid resource
+    # if isinstance(emitter, basestring):
+    #     emitter = resource.load(emitter)
+    # if isinstance(receiver, basestring):
+    #     receiver = resource.load(receiver)
+
     clients = Connections.read_clients()
 
     for src, destinations in clients[emitter.name].items():
