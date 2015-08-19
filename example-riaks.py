@@ -54,7 +54,9 @@ def setup_riak():
 
     for riak in riak_services:
         for hosts_file in hosts_services:
-            signals.connect(riak, hosts_file, {'riak_hostname': 'hosts_names', 'ip': 'hosts_ips'}, events=False)
+            signals.connect(riak, hosts_file,
+                            {'riak_hostname': 'hosts_names', 'ip': 'hosts_ips'},
+                            events=False)
 
     has_errors = False
     for r in locals().values():
@@ -78,11 +80,11 @@ def setup_riak():
         Dep('hosts_file2', 'run', 'success', 'riak_service2', 'run'),
         Dep('hosts_file3', 'run', 'success', 'riak_service3', 'run'),
 
-        Dep('riak_service2', 'run', 'success', 'riak_service2', 'join'),
-        Dep('riak_service3', 'run', 'success', 'riak_service3', 'join'),
-
         React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
         React('riak_service1', 'run', 'success', 'riak_service3', 'join'),
+
+        Dep('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+        Dep('riak_service3', 'run', 'success', 'riak_service3', 'join'),
 
         # React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
         # React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
@@ -194,10 +196,6 @@ def setup_haproxies():
 
     for event in events:
         add_event(event)
-
-
-
-
 
 
 @click.group()
