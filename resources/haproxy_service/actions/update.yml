@@ -1,0 +1,7 @@
+
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - service:
+        name: haproxy
+        state: reloaded
