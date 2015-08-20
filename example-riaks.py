@@ -156,7 +156,8 @@ def setup_haproxies():
                                                   'ports': 'configs_ports'})
 
     for single_hps, single_hpc in zip(hps, hpc):
-        signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'})
+        signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'},
+                        events=None)
 
     # assign haproxy services to each node
 
@@ -192,7 +193,9 @@ def setup_haproxies():
     for node, single_hps, single_hpc in zip(nodes, hps, hpc):
         r = React(node.name, 'run', 'success', single_hps.name, 'install')
         d = Dep(single_hps.name, 'install', 'success', single_hpc.name, 'run')
-        events.extend([r, d])
+        e1 = React(single_hpc.name, 'run', 'success', single_hps.name, 'run')
+        e2 = React(single_hpc.name, 'update', 'success', single_hps.name, 'update')
+        events.extend([r, d, e1, e2])
 
     for event in events:
         add_event(event)
@@ -216,7 +219,6 @@ def add_haproxies():
 @click.command()
 def undeploy():
     raise NotImplemented("Not yet")
-
 
 
 main.add_command(deploy)
