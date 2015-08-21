@@ -86,6 +86,18 @@ def setup_riak():
         # Dep('riak_service1', 'run', 'success', 'riak_service2', 'join'),
         # Dep('riak_service1', 'run', 'success', 'riak_service3', 'join'),
 
+        # React('riak_service2', 'join', 'error', 'riak_service2', 'leave'),
+        # React('riak_service3', 'join', 'error', 'riak_service3', 'leave'),
+
+        React('riak_service2', 'leave', 'success', 'riak_service2', 'join'),
+        React('riak_service3', 'leave', 'success', 'riak_service3', 'join'),
+
+        # React('riak_service2', 'leave', 'success', 'riak_service1', 'commit_leave'),
+        # React('riak_service3', 'leave', 'success', 'riak_service1', 'commit_leave'),
+
+        # Dep('riak_service1', 'commit_leave', 'success', 'riak_service2', 'join'),
+        # Dep('riak_service1', 'commit_leave', 'success', 'riak_service3', 'join'),
+
         React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
         React('riak_service2', 'join', 'success', 'riak_service1', 'commit')
     ]
