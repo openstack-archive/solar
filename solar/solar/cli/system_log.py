@@ -8,6 +8,7 @@ from solar.core import resource
 from solar.system_log import change
 from solar.system_log import operations
 from solar.system_log import data
+from solar.cli.uids_history import get_uid, remember_uid, SOLARUID
 
 
 @click.group()
@@ -35,11 +36,13 @@ def stage():
 
 @changes.command()
 def process():
-    click.echo(change.send_to_orchestration())
+    uid = change.send_to_orchestration()
+    remember_uid(uid)
+    click.echo(uid)
 
 
 @changes.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def commit(uid):
     operations.commit(uid)
 
