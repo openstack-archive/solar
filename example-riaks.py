@@ -42,7 +42,7 @@ def setup_riak():
         signals.connect(nodes[i], riak)
 
     for i, riak in enumerate(riak_services[1:]):
-        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
+        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'}, events=None)
 
     hosts_services = []
     for i, riak in enumerate(riak_services):
@@ -80,14 +80,11 @@ def setup_riak():
         Dep('hosts_file2', 'run', 'success', 'riak_service2', 'run'),
         Dep('hosts_file3', 'run', 'success', 'riak_service3', 'run'),
 
-        React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
-        React('riak_service1', 'run', 'success', 'riak_service3', 'join'),
+        React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+        React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
 
-        Dep('riak_service2', 'run', 'success', 'riak_service2', 'join'),
-        Dep('riak_service3', 'run', 'success', 'riak_service3', 'join'),
-
-        # React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
-        # React('riak_service3', 'run', 'success', 'riak_service3', 'join'),
+        # Dep('riak_service1', 'run', 'success', 'riak_service2', 'join'),
+        # Dep('riak_service1', 'run', 'success', 'riak_service3', 'join'),
 
         React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
         React('riak_service2', 'join', 'success', 'riak_service1', 'commit')
