@@ -42,6 +42,7 @@ include neutron::params
 package { 'neutron':
   ensure => $package_ensure,
   name   => $::neutron::params::package_name,
+  before => Exec['neutron-db-sync']
 }
 
 # Remove external class dependency
