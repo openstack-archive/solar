@@ -453,7 +453,7 @@ def setup_resources():
     #   come from https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/params.pp
     nova_scheduler_puppet = vr.create('nova_scheduler_puppet', 'resources/nova_generic_service_puppet', {
         'title' : 'scheduler', 'package_name': 'nova-scheduler', 'service_name': 'nova-scheduler',
-    }[0]
+    })[0]
     signals.connect(node1, nova_scheduler_puppet)
 
     # NOVA COMPUTE

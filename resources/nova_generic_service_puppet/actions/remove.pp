@@ -1,4 +1,4 @@
-$title           = $resource['input']['title']['value']
+$service_title           = $resource['input']['title']['value']
 $package_name    = $resource['input']['package_name']['value']
 $service_name    = $resource['input']['service_name']['value']
 
@@ -6,7 +6,7 @@ exec { 'post-nova_config':
   command     => '/bin/echo "Nova config has changed"',
 }
 
-nova::generic_service { $title:
+nova::generic_service { $service_title:
   ensure_package => 'absent',
   enabled        => false,
   package_name   => $package_name,

@@ -1,6 +1,6 @@
 $resource = hiera($::resource_name)
 
-$title           = $resource['input']['title']['value']
+$service_title           = $resource['input']['title']['value']
 $package_name    = $resource['input']['package_name']['value']
 $service_name    = $resource['input']['service_name']['value']
 $ensure_package  = $resource['input']['ensure_package']['value']
@@ -16,7 +16,7 @@ package { 'nova-common':
   ensure => $ensure_package,
 }
 
-nova::generic_service { $title:
+nova::generic_service { $service_title:
   enabled         => true,
   manage_service  => true,
   package_name    => $package_name,
