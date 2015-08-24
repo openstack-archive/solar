@@ -30,7 +30,6 @@ def setup_riak():
     ips = '10.0.0.%d'
     for i in xrange(3):
         num = i + 1
-        ip = ips % (num + 2)  # XXX: da rade inaczej ?
         r = vr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
