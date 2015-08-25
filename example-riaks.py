@@ -3,7 +3,7 @@
 # python example-riaks.py add_haproxies
 # solar changes stage
 # solar changes process
-# solar run-once last
+# solar orch run-once last
 
 
 import click
