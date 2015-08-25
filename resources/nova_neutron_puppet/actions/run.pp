@@ -1,16 +1,21 @@
 $resource = hiera($::resource_name)
 
+$auth_host                 = $resource['input']['auth_host']['value']
+$auth_port                 = $resource['input']['auth_port']['value']
+$auth_protocol             = $resource['input']['auth_protocol']['value']
+$neutron_endpoint_host     = $resource['input']['neutron_endpoint_host']['value']
+$neutron_endpoint_port     = $resource['input']['neutron_endpoint_port']['value']
+$neutron_endpoint_protocol = $resource['input']['neutron_endpoint_protocol']['value']
+
 $libvirt_vif_driver               = $resource['input']['libvirt_vif_driver']['value']
 $force_snat_range                 = $resource['input']['force_snat_range']['value']
 $neutron_admin_password           = $resource['input']['neutron_admin_password']['value']
 $neutron_auth_strategy            = $resource['input']['neutron_auth_strategy']['value']
-$neutron_url                      = $resource['input']['neutron_url']['value']
 $neutron_url_timeout              = $resource['input']['neutron_url_timeout']['value']
 $neutron_admin_tenant_name        = $resource['input']['neutron_admin_tenant_name']['value']
 $neutron_default_tenant_id        = $resource['input']['neutron_default_tenant_id']['value']
 $neutron_region_name              = $resource['input']['neutron_region_name']['value']
 $neutron_admin_username           = $resource['input']['neutron_admin_username']['value']
-$neutron_admin_auth_url           = $resource['input']['neutron_admin_auth_url']['value']
 $neutron_ovs_bridge               = $resource['input']['neutron_ovs_bridge']['value']
 $neutron_extension_sync_interval  = $resource['input']['neutron_extension_sync_interval']['value']
 $neutron_ca_certificates_file     = $resource['input']['neutron_ca_certificates_file']['value']
@@ -30,13 +35,13 @@ class { 'nova::compute::neutron':
 class { 'nova::network::neutron':
   neutron_admin_password           => $neutron_admin_password,
   neutron_auth_strategy            => $neutron_auth_strategy,
-  neutron_url                      => $neutron_url,
+  neutron_url                      => "${neutron_endpoint_protocol}://${neutron_endpoint_host}:${neutron_endpoint_port}",
   neutron_url_timeout              => $neutron_url_timeout,
   neutron_admin_tenant_name        => $neutron_admin_tenant_name,
   neutron_default_tenant_id        => $neutron_default_tenant_id,
   neutron_region_name              => $neutron_region_name,
   neutron_admin_username           => $neutron_admin_username,
-  neutron_admin_auth_url           => $neutron_admin_auth_url,
+  neutron_admin_auth_url           => "${auth_protocol}://${auth_host}:${auth_port}/v2.0",
   neutron_ovs_bridge               => $neutron_ovs_bridge,
   neutron_extension_sync_interval  => $neutron_extension_sync_interval,
   neutron_ca_certificates_file     => $neutron_ca_certificates_file,

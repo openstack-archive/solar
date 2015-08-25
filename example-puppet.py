@@ -475,8 +475,20 @@ def setup_resources():
     # NOTE(bogdando): changes nova config, so should notify nova compute service
     nova_compute_libvirt_puppet = vr.create('nova_compute_libvirt_puppet', 'resources/nova_compute_libvirt_puppet', {})[0]
     signals.connect(node2, nova_compute_libvirt_puppet)
+    # compute configuration for neutron, use http auth/endpoint protocols, keystone v2 auth hardcoded for the resource
     nova_neutron_puppet = vr.create('nova_neutron_puppet', 'resources/nova_neutron_puppet', {})[0]
     signals.connect(node2, nova_neutron_puppet)
+    signals.connect(neutron_server_puppet, nova_neutron_puppet, {
+        'auth_password': 'neutron_admin_password',
+        'auth_user': 'neutron_admin_username',
+        'auth_type': 'neutron_auth_strategy',
+        'auth_host': 'auth_host', 'auth_port': 'auth_port',
+        'auth_protocol': 'auth_protocol',
+    })
+    signals.connect(neutron_keystone_service_endpoint, nova_neutron_puppet, {
+        'internal_ip':'neutron_endpoint_host',
+        'internal_port':'neutron_endpoint_port',
+    })
 
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
