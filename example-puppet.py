@@ -615,6 +615,9 @@ resources_to_run = [
     'neutron_plugins_ovs',
     'neutron_server_puppet',
     'neutron_agents_ovs',
+    'neutron_agents_dhcp',
+    'neutron_agents_l3',
+    'neutron_agents_metadata',
 
     'cinder_db',
     'cinder_db_user',
