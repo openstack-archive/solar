@@ -1,6 +1,6 @@
-id: cinder_scheduler_puppet
+id: apache_puppet
 handler: puppet
-puppet_module: cinder_scheduler
+puppet_module: apache
 version: 1.0.0
 input:
     apache_name:
