@@ -1,8 +1,14 @@
+# To run:
+# python example-riaks.py deploy
+# python example-riaks.py add_haproxies
+# solar changes stage
+# solar changes process
+# solar run-once last
+
+
 import click
 import sys
-import time
 
-from solar.core import actions
 from solar.core import resource
 from solar.core import signals
 from solar.core import validation
@@ -11,7 +17,6 @@ from solar import errors
 
 from solar.interfaces.db import get_db
 
-from solar import events as evapi
 from solar.events.controls import React, Dep
 from solar.events.api import add_event
 
