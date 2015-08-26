@@ -1,6 +1,12 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 import handlers
 
+from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
+
+_default_transports = {
+    'sync': SSHSyncTransport,
+    'run': SSHRunTransport
+}
 
 def resource_action(resource, action):
     handler = resource.metadata.get('handler', 'none')

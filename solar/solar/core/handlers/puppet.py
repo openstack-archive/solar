@@ -12,74 +12,76 @@ from solar.core.provider import GitProvider
 from solar import errors
 
 
-class ResourceSSHMixin(object):
-    @staticmethod
-    def _ssh_command(resource, *args, **kwargs):
-        log.debug('SSH: %s', args)
+# class ResourceSSHMixin(object):
+#     @staticmethod
+#     def _ssh_command(resource, *args, **kwargs):
+#         log.debug('SSH: %s', args)
 
-        executor = fabric_api.run
-        if kwargs.get('use_sudo', False):
-            executor = fabric_api.sudo
+#         executor = fabric_api.run
+#         if kwargs.get('use_sudo', False):
+#             executor = fabric_api.sudo
 
-        managers = [
-            fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)),
-        ]
+#         managers = [
+#             fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)),
+#         ]
 
-        if 'cwd' in kwargs:
-            managers.append(
-                fabric_api.cd(kwargs['cwd'])
-            )
+#         if 'cwd' in kwargs:
+#             managers.append(
+#                 fabric_api.cd(kwargs['cwd'])
+#             )
 
-        if 'env' in kwargs:
-            managers.append(
-                fabric_api.shell_env(**kwargs['env'])
-            )
+#         if 'env' in kwargs:
+#             managers.append(
+#                 fabric_api.shell_env(**kwargs['env'])
+#             )
 
-        if 'warn_only' in kwargs:
-            managers.append(
-                fabric_api.warn_only())
+#         if 'warn_only' in kwargs:
+#             managers.append(
+#                 fabric_api.warn_only())
 
-        with nested(*managers):
-            return executor(' '.join(args))
+#         with nested(*managers):
+#             return executor(' '.join(args))
 
-    @staticmethod
-    def _scp_command(resource, _from, _to, use_sudo=False):
-        log.debug('SCP: %s -> %s', _from, _to)
+#     @staticmethod
+#     def _scp_command(resource, _from, _to, use_sudo=False):
+#         log.debug('SCP: %s -> %s', _from, _to)
 
-        executor = partial(
-            fabric_project.upload_project,
-            remote_dir=_to,
-            local_dir=_from,
-            use_sudo=use_sudo
-        )
-        if os.path.isfile(_from):
-            executor = partial(
-                fabric_project.put,
-                remote_path=_to,
-                local_path=_from,
-                use_sudo=use_sudo
-            )
+#         executor = partial(
+#             fabric_project.upload_project,
+#             remote_dir=_to,
+#             local_dir=_from,
+#             use_sudo=use_sudo
+#         )
+#         if os.path.isfile(_from):
+#             executor = partial(
+#                 fabric_project.put,
+#                 remote_path=_to,
+#                 local_path=_from,
+#                 use_sudo=use_sudo
+#             )
 
-        with fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)):
-            return executor()
+#         with fabric_api.settings(**ResourceSSHMixin._fabric_settings(resource)):
+#             return executor()
 
-    @staticmethod
-    def _fabric_settings(resource):
-        return {
-            'host_string': ResourceSSHMixin._ssh_command_host(resource),
-            'key_filename': resource.args['ssh_key'].value,
-        }
+#     @staticmethod
+#     def _fabric_settings(resource):
+#         return {
+#             'host_string': ResourceSSHMixin._ssh_command_host(resource),
+#             'key_filename': resource.args['ssh_key'].value,
+#         }
 
-    @staticmethod
-    def _ssh_command_host(resource):
-        return '{}@{}'.format(resource.args['ssh_user'].value,
-                              resource.args['ip'].value)
+#     @staticmethod
+#     def _ssh_command_host(resource):
+#         return '{}@{}'.format(resource.args['ssh_user'].value,
+#                               resource.args['ip'].value)
 
 
-class LibrarianPuppet(ResourceSSHMixin):
-    def __init__(self, resource, organization='openstack'):
+class LibrarianPuppet(object):
+    def __init__(self, resource, organization='openstack', handler_sync=None, handler_run=None):
         self.resource = resource
         self.organization = organization
+        self.handler_sync = handler_sync
+        self.handler_run = handler_run
 
     def install(self):
         puppet_module = '{}-{}'.format(
@@ -87,7 +89,7 @@ class LibrarianPuppet(ResourceSSHMixin):
             self.resource.metadata['puppet_module']
         )
 
-        puppetlabs = self._ssh_command(
+        puppetlabs = self.handler_run.run(
             self.resource,
             'sudo', 'cat', '/var/tmp/puppet/Puppetfile'
         )
@@ -123,14 +125,16 @@ class LibrarianPuppet(ResourceSSHMixin):
             f.write('\n'.join(modules))
             f.write('\n')
 
-        self._scp_command(
+        self.handler_sync.copy(
             self.resource,
             '/tmp/Puppetfile',
             '/var/tmp/puppet/Puppetfile',
             use_sudo=True
         )
 
-        self._ssh_command(
+        self.handler_sync.sync_all()
+
+        self.handler_run.run(
             self.resource,
             'sudo', 'librarian-puppet', 'install',
             cwd='/var/tmp/puppet'
@@ -142,7 +146,7 @@ class LibrarianPuppet(ResourceSSHMixin):
 # - hiera-redis is installed with the 2.0 fix (https://github.com/GGenie/hiera-redis)
 # - redis is installed and cluster set up with master (on slaves set up 'slaveof 10.0.0.2 6379')
 # - redis keys are separated by colon (same as in hiera-redis backend)
-class Puppet(ResourceSSHMixin, TempFileHandler):
+class Puppet(TempFileHandler):
     def action(self, resource, action_name):
         log.debug('Executing Puppet manifest %s %s', action_name, resource)
 
@@ -151,9 +155,10 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
 
         self.upload_manifests(resource)
 
-        self._scp_command(resource, action_file, '/tmp/action.pp')
+        self.handler_sync.copy(resource, action_file, '/tmp/action.pp')
+        self.handler_sync.sync_all()
 
-        cmd = self._ssh_command(
+        cmd = self.handler_run.run(
             resource,
             'puppet', 'apply', '-vd', '/tmp/action.pp', '--detailed-exitcodes',
             env={
@@ -185,7 +190,7 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
         forge = resource.args['forge'].value
 
         # Check if module already installed
-        modules = self._ssh_command(
+        modules = self.handler_run.run(
             resource,
             'sudo', 'puppet', 'module', 'list'
         )
@@ -197,7 +202,7 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
                 break
 
         if not module_installed:
-            self._ssh_command(
+            self.handler_run.run(
                 resource,
                 'sudo', 'puppet', 'module', 'install', forge
             )
@@ -205,7 +210,9 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
             log.debug('Skipping module installation, already installed')
 
     def upload_manifests_librarian(self, resource):
-        librarian = LibrarianPuppet(resource)
+        librarian = LibrarianPuppet(resource,
+                                    handler_run=self.handler_run,
+                                    handler_sync=self.handler_sync)
         librarian.install()
 
     def upload_manifests_git(self, resource):
@@ -214,16 +221,18 @@ class Puppet(ResourceSSHMixin, TempFileHandler):
         module_directory = '/etc/puppet/modules/{}'.format(
             resource.metadata['puppet_module']
         )
-        self._ssh_command(
+        self.handler_run.run(
             resource,
             'sudo', 'rm', '-Rf', module_directory
         )
-        self._ssh_command(
+        self.handler_run.run(
             resource, 'sudo', 'mkdir', '-p', module_directory
         )
 
-        self._scp_command(resource, manifests_path, '/tmp')
-        self._ssh_command(
+        self.handler_sync.copy(resource, manifests_path, '/tmp')
+        self.handler_sync.sync_all()
+
+        self.handler_run.run(
             resource,
             'sudo', 'mv',
             '/tmp/{}/*'.format(os.path.split(manifests_path)[1]),

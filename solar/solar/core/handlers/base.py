@@ -6,12 +6,16 @@ import tempfile
 from jinja2 import Template
 
 from solar.core.log import log
+from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 
 
 class BaseHandler(object):
 
-    def __init__(self, resources):
+    def __init__(self, resources, handlers=None):
         self.resources = resources
+        if handlers is None:
+            self.handler_sync = SSHSyncTransport()
+            self.handler_run = SSHRunTransport()
 
     def __enter__(self):
         return self
@@ -21,9 +25,9 @@ class BaseHandler(object):
 
 
 class TempFileHandler(BaseHandler):
-    def __init__(self, resources):
+    def __init__(self, resources, handlers=None):
+        super(TempFileHandler, self).__init__(resources, handlers)
         self.dst = tempfile.mkdtemp()
-        self.resources = resources
 
     def __enter__(self):
         self.dirs = {}
