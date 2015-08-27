@@ -14,10 +14,10 @@ class BaseHandler(object):
     def __init__(self, resources, handlers=None):
         self.resources = resources
         if handlers is None:
-            self.handler_sync = SSHSyncTransport()
-            self.handler_run = SSHRunTransport()
-        self.handler_sync.bind_with(self.handler_run)
-        self.handler_run.bind_with(self.handler_sync)
+            self.transport_sync = SSHSyncTransport()
+            self.transport_run = SSHRunTransport()
+        self.transport_sync.bind_with(self.transport_run)
+        self.transport_run.bind_with(self.transport_sync)
 
     def __enter__(self):
         return self

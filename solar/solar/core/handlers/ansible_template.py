@@ -21,15 +21,15 @@ class AnsibleTemplate(TempFileHandler):
         log.debug('inventory_file: %s', inventory_file)
         log.debug('playbook_file: %s', playbook_file)
 
-        # self.handler_sync.copy(resource, self.dirs[resource.name], self.dirs[resource.name])
-        self.handler_sync.copy(resource, self.dst, '/tmp')
-        self.handler_sync.copy(resource, '/vagrant/library', '/tmp')
-        self.handler_sync.sync_all()
+        # self.transport_sync.copy(resource, self.dirs[resource.name], self.dirs[resource.name])
+        self.transport_sync.copy(resource, self.dst, '/tmp')
+        self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
+        self.transport_sync.sync_all()
 
         call_args = ['ansible-playbook', '--module-path', '/tmp/solar_library/library', '-i', inventory_file, playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
-        out = self.handler_run.run(resource, *call_args)
+        out = self.transport_run.run(resource, *call_args)
         log.debug(out)
         if out.failed:
             raise errors.SolarError(out)

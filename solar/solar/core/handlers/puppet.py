@@ -77,11 +77,11 @@ from solar import errors
 
 
 class LibrarianPuppet(object):
-    def __init__(self, resource, organization='openstack', handler_sync=None, handler_run=None):
+    def __init__(self, resource, organization='openstack', transport_sync=None, transport_run=None):
         self.resource = resource
         self.organization = organization
-        self.handler_sync = handler_sync
-        self.handler_run = handler_run
+        self.transport_sync = transport_sync
+        self.transport_run = transport_run
 
     def install(self):
         puppet_module = '{}-{}'.format(
@@ -89,7 +89,7 @@ class LibrarianPuppet(object):
             self.resource.metadata['puppet_module']
         )
 
-        puppetlabs = self.handler_run.run(
+        puppetlabs = self.transport_run.run(
             self.resource,
             'sudo', 'cat', '/var/tmp/puppet/Puppetfile'
         )
@@ -125,16 +125,16 @@ class LibrarianPuppet(object):
             f.write('\n'.join(modules))
             f.write('\n')
 
-        self.handler_sync.copy(
+        self.transport_sync.copy(
             self.resource,
             '/tmp/Puppetfile',
             '/var/tmp/puppet/Puppetfile',
             use_sudo=True
         )
 
-        self.handler_sync.sync_all()
+        self.transport_sync.sync_all()
 
-        self.handler_run.run(
+        self.transport_run.run(
             self.resource,
             'sudo', 'librarian-puppet', 'install',
             cwd='/var/tmp/puppet'
@@ -155,10 +155,10 @@ class Puppet(TempFileHandler):
 
         self.upload_manifests(resource)
 
-        self.handler_sync.copy(resource, action_file, '/tmp/action.pp')
-        self.handler_sync.sync_all()
+        self.transport_sync.copy(resource, action_file, '/tmp/action.pp')
+        self.transport_sync.sync_all()
 
-        cmd = self.handler_run.run(
+        cmd = self.transport_run.run(
             resource,
             'puppet', 'apply', '-vd', '/tmp/action.pp', '--detailed-exitcodes',
             env={
@@ -190,7 +190,7 @@ class Puppet(TempFileHandler):
         forge = resource.args['forge'].value
 
         # Check if module already installed
-        modules = self.handler_run.run(
+        modules = self.transport_run.run(
             resource,
             'sudo', 'puppet', 'module', 'list'
         )
@@ -202,7 +202,7 @@ class Puppet(TempFileHandler):
                 break
 
         if not module_installed:
-            self.handler_run.run(
+            self.transport_run.run(
                 resource,
                 'sudo', 'puppet', 'module', 'install', forge
             )
@@ -211,8 +211,8 @@ class Puppet(TempFileHandler):
 
     def upload_manifests_librarian(self, resource):
         librarian = LibrarianPuppet(resource,
-                                    handler_run=self.handler_run,
-                                    handler_sync=self.handler_sync)
+                                    transport_run=self.transport_run,
+                                    transport_sync=self.transport_sync)
         librarian.install()
 
     def upload_manifests_git(self, resource):
@@ -221,18 +221,18 @@ class Puppet(TempFileHandler):
         module_directory = '/etc/puppet/modules/{}'.format(
             resource.metadata['puppet_module']
         )
-        self.handler_run.run(
+        self.transport_run.run(
             resource,
             'sudo', 'rm', '-Rf', module_directory
         )
-        self.handler_run.run(
+        self.transport_run.run(
             resource, 'sudo', 'mkdir', '-p', module_directory
         )
 
-        self.handler_sync.copy(resource, manifests_path, '/tmp')
-        self.handler_sync.sync_all()
+        self.transport_sync.copy(resource, manifests_path, '/tmp')
+        self.transport_sync.sync_all()
 
-        self.handler_run.run(
+        self.transport_run.run(
             resource,
             'sudo', 'mv',
             '/tmp/{}/*'.format(os.path.split(manifests_path)[1]),
