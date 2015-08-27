@@ -3,6 +3,8 @@ from copy import deepcopy
 from enum import Enum
 import py2neo
 
+from solar.core import log
+
 
 class Neo4jDB(object):
     COLLECTIONS = Enum(
@@ -72,6 +74,8 @@ class Neo4jDB(object):
         self._r.delete([r.n for r in self.all(collection=collection)])
 
     def create(self, name, args={}, collection=DEFAULT_COLLECTION):
+        log.log.debug('Neo4j Creating %s with args %s', name, args)
+
         properties = deepcopy(args)
         properties['name'] = name
 

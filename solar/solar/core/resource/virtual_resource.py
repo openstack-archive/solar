@@ -1,12 +1,11 @@
 import os
 from StringIO import StringIO
+import yaml
 
 from jinja2 import Template, Environment, meta
 
 from solar.core import provider
 from solar.core.resource.resource import Resource
-
-from solar import utils
 
 
 def create(name, base_path, kwargs, virtual_resource=None):
@@ -20,7 +19,7 @@ def create(name, base_path, kwargs, virtual_resource=None):
 
     if is_virtual(base_path):
         template = _compile_file(name, base_path, kwargs)
-        yaml_template = utils.yaml_load(StringIO(template))
+        yaml_template = yaml.load(StringIO(template))
         raise Exception('Virtual resource not implemented')
         #resources = create_virtual_resource(name, yaml_template)
     else:

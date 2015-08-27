@@ -1,4 +1,5 @@
 from copy import deepcopy
+import json
 from multipledispatch import dispatch
 import os
 
@@ -101,7 +102,7 @@ class Resource(object):
                 k,
                 args={
                     'is_list': isinstance(v.get('schema'), list),
-                    'value': value,
+                    'value': json.dumps(value),
                 },
                 collection=db.COLLECTIONS.input
             )
@@ -115,7 +116,7 @@ class Resource(object):
     @property
     def args(self):
         return {
-            k: n.properties['value']
+            k: json.loads(n.properties['value'])
             for k, n in self.resource_inputs().items()
         }
 
@@ -126,7 +127,7 @@ class Resource(object):
 
         for k, v in args.items():
             i = resource_inputs[k]
-            i.properties['value'] = v
+            i.properties['value'] = json.dumps(v)
             i.push()
 
     def resource_inputs(self):
