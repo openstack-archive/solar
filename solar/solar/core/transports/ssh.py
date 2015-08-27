@@ -30,8 +30,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
         SyncTransport.__init__(self)
 
     def _copy_file(self, resource, _from, _to, use_sudo=False):
-        executor = partial(
-            fabric_project.put,
+        executor = lambda transport: fabric_project.put(
             remote_path=_to,
             local_path=_from,
             use_sudo=use_sudo
@@ -39,8 +38,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
         return executor
 
     def _copy_directory(self, resource, _from, _to, use_sudo=False):
-        executor = partial(
-            fabric_project.upload_project,
+        executor = lambda transport: fabric_project.upload_project(
             remote_dir=_to,
             local_dir=_from,
             use_sudo=use_sudo
