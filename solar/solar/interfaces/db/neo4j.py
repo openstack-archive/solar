@@ -68,13 +68,22 @@ class Neo4jDB(object):
         ]
 
     def clear(self):
+        log.log.debug('Clearing whole DB')
+
         self._r.delete_all()
 
     def clear_collection(self, collection=DEFAULT_COLLECTION):
+        log.log.debug('Clearing collection %s', collection.name)
+
         self._r.delete([r.n for r in self.all(collection=collection)])
 
     def create(self, name, args={}, collection=DEFAULT_COLLECTION):
-        log.log.debug('Neo4j Creating %s with args %s', name, args)
+        log.log.debug(
+            'Creating %s, name %s with args %s',
+            collection.name,
+            name,
+            args
+        )
 
         properties = deepcopy(args)
         properties['name'] = name
@@ -85,6 +94,13 @@ class Neo4jDB(object):
         return n
 
     def create_relation(self, source, dest, args={}, type_=DEFAULT_RELATION):
+        log.log.debug(
+            'Creating %s from %s to %s with args %s',
+            type_.name,
+            source.properties['name'],
+            dest.properties['name'],
+            args
+        )
         r = py2neo.Relationship(source, type_.name, dest, **args)
         self._r.create(r)
 
@@ -106,8 +122,9 @@ class Neo4jDB(object):
         n = self.get(name, collection=collection)
 
         if n:
-            n.properties.update(args)
-            n.push()
+            if args != n.properties:
+                n.properties.update(args)
+                n.push()
             return n
 
         return self.create(name, args=args, collection=collection)
@@ -145,13 +162,13 @@ class Neo4jDB(object):
                                dest,
                                args={},
                                type_=DEFAULT_RELATION):
-        # TODO: remove relation if dest node is an input of simple type
         rel = self.get_relations(source=source, dest=dest, type_=type_)
 
         if rel:
             r = rel[0]
-            r.properties.update(args)
-            r.push()
+            if args != r.properties:
+                r.properties.update(args)
+                r.push()
             return r
 
         return self.create_relation(source, dest, args=args, type_=type_)

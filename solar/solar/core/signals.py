@@ -68,3 +68,13 @@ def connect_single(emitter, src, receiver, dst):
         args={},
         type_=db.RELATION_TYPES.input_to_input
     )
+
+
+def disconnect_receiver_by_input(receiver, input_name):
+    input_node = receiver.resource_inputs()[input_name]
+
+    for r in db.get_relations(
+            dest=input_node,
+            type_=db.RELATION_TYPES.input_to_input
+        ):
+        r.delete()

@@ -5,7 +5,8 @@ import yaml
 from jinja2 import Template, Environment, meta
 
 from solar.core import provider
-from solar.core.resource.resource import Resource
+from solar.core import resource
+from solar.core import signals
 
 
 def create(name, base_path, kwargs, virtual_resource=None):
@@ -20,23 +21,49 @@ def create(name, base_path, kwargs, virtual_resource=None):
     if is_virtual(base_path):
         template = _compile_file(name, base_path, kwargs)
         yaml_template = yaml.load(StringIO(template))
-        raise Exception('Virtual resource not implemented')
-        #resources = create_virtual_resource(name, yaml_template)
+        rs = create_virtual_resource(name, yaml_template)
     else:
-        resource = create_resource(name, base_path, kwargs, virtual_resource)
-        resources = [resource]
+        r = create_resource(name, base_path, kwargs, virtual_resource)
+        rs = [r]
 
-    return resources
+    return rs
 
 
 def create_resource(name, base_path, args, virtual_resource=None):
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
-    resource = Resource(
+    r = resource.Resource(
         name, base_path, args, tags=[], virtual_resource=virtual_resource
     )
-    return resource
+    return r
+
+
+def create_virtual_resource(vr_name, template):
+    resources = template['resources']
+    connections = []
+    created_resources = []
+
+    cwd = os.getcwd()
+    for resource in resources:
+        name = resource['id']
+        base_path = os.path.join(cwd, resource['from'])
+        args = resource['values']
+        new_resources = create(name, base_path, args, vr_name)
+        created_resources += new_resources
+
+        if not is_virtual(base_path):
+            for key, arg in args.items():
+                if isinstance(arg, basestring) and '::' in arg:
+                    emitter, src = arg.split('::')
+                    connections.append((emitter, name, {src: key}))
+
+        for emitter, reciver, mapping in connections:
+            emitter = resource.load(emitter)
+            reciver = resource.load(reciver)
+            signals.connect(emitter, reciver, mapping)
+
+    return created_resources
 
 
 def _compile_file(name, path, kwargs):
