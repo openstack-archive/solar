@@ -21,11 +21,11 @@ input:
         sample1 = self.create_resource(
             'sample1', sample_meta_dir, {'value': 1}
         )
-        self.assertEqual(sample1.args['value'].value, 1)
+        self.assertEqual(sample1.args['value'], 1)
 
         # test default value
         sample2 = self.create_resource('sample2', sample_meta_dir, {})
-        self.assertEqual(sample2.args['value'].value, 0)
+        self.assertEqual(sample2.args['value'], 0)
 
     def test_connections_recreated_after_load(self):
         """
