@@ -16,6 +16,8 @@ class BaseHandler(object):
         if handlers is None:
             self.handler_sync = SSHSyncTransport()
             self.handler_run = SSHRunTransport()
+        self.handler_sync.bind_with(self.handler_run)
+        self.handler_run.bind_with(self.handler_sync)
 
     def __enter__(self):
         return self

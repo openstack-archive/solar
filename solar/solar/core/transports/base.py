@@ -32,6 +32,11 @@ class SyncTransport(object):
     def __init__(self):
         self.executors = []
 
+    def bind_with(self, other):
+        # we migth add there something later
+        # like compat checking etc
+        self.other = other
+
     def copy(self, resource, *args, **kwargs):
         pass
 
