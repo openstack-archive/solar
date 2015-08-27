@@ -12,3 +12,6 @@ input:
     ssh_user:
       schema: str!
       value:
+    name:
+      schema: str
+      value: a node

@@ -1,4 +1,4 @@
-- hosts: {{ip}}
+- hosts: [{{host}}]
   sudo: yes
   tasks:
     {% for ip, host in zip(hosts_ips.value, hosts_names.value) %}
