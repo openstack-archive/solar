@@ -17,7 +17,7 @@ def _read_input_value(input_node):
                            type_=db.RELATION_TYPES.resource_input)
 
     if not rel:
-        return input_node.properties.get('value')
+        return input_node.properties['value']
 
     if input_node.properties['is_list']:
         return [_read_input_value(r.start_node) for r in rel]
@@ -131,14 +131,18 @@ class Resource(object):
             i.push()
 
     def resource_inputs(self):
-        inputs =  [
-            r.end_node for r in
-            db.get_relations(source=self.node,
-                             type_=db.RELATION_TYPES.resource_input)
-        ]
+        if not hasattr(self, '__resource_inputs'):
+            self.__resource_inputs = [
+                r.end_node for r in
+                db.get_relations(source=self.node,
+                                 type_=db.RELATION_TYPES.resource_input)
+            ]
+
+        for r in self.__resource_inputs:
+            r.pull()
 
         return {
-            i.properties['name']: i for i in inputs
+            i.properties['name']: i for i in self.__resource_inputs
         }
 
 

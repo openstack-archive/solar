@@ -54,13 +54,11 @@ def connect_single(emitter, src, receiver, dst):
     receiver_input = receiver.resource_inputs()[dst]
 
     if not receiver_input.properties['is_list']:
-        rel = db.get_relations(
+        db.delete_relations(
             source=emitter_input,
             dest=receiver_input,
             type_=db.RELATION_TYPES.input_to_input
         )
-        for r in rel:
-            r.delete()
 
     db.get_or_create_relation(
         emitter_input,
@@ -73,8 +71,7 @@ def connect_single(emitter, src, receiver, dst):
 def disconnect_receiver_by_input(receiver, input_name):
     input_node = receiver.resource_inputs()[input_name]
 
-    for r in db.get_relations(
-            dest=input_node,
-            type_=db.RELATION_TYPES.input_to_input
-        ):
-        r.delete()
+    db.delete_relations(
+        dest=input_node,
+        type_=db.RELATION_TYPES.input_to_input
+    )

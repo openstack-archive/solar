@@ -61,9 +61,9 @@ class Neo4jDB(object):
     def all_relations(self, type_=DEFAULT_RELATION):
         return [
             r.r for r in self._r.cypher.execute(
-                'MATCH (n)-[r:%(type_)s]->(m) RETURN r' % {
-                    'type_': type_.name,
-                }
+                *self._relations_query(
+                    source=None, dest=None, type_=type_
+                )
             )
         ]
 
@@ -75,6 +75,7 @@ class Neo4jDB(object):
     def clear_collection(self, collection=DEFAULT_COLLECTION):
         log.log.debug('Clearing collection %s', collection.name)
 
+        # TODO: make single DELETE query
         self._r.delete([r.n for r in self.all(collection=collection)])
 
     def create(self, name, args={}, collection=DEFAULT_COLLECTION):
@@ -129,7 +130,11 @@ class Neo4jDB(object):
 
         return self.create(name, args=args, collection=collection)
 
-    def get_relations(self, source=None, dest=None, type_=DEFAULT_RELATION):
+    def _relations_query(self,
+                         source=None,
+                         dest=None,
+                         type_=DEFAULT_RELATION,
+                         query_type='RETURN'):
         kwargs = {}
         source_query = '(n)'
         if source:
@@ -142,20 +147,30 @@ class Neo4jDB(object):
         rel_query = '[r:%(type_)s]' % {'type_': type_.name}
 
         query = ('MATCH %(source_query)s-%(rel_query)s->'
-                 '%(dest_query)s RETURN r' % {
-                    'dest_query': dest_query,
-                    'rel_query': rel_query,
-                    'source_query': source_query,
-                 })
+                 '%(dest_query)s %(query_type)s r' % {
+                     'dest_query': dest_query,
+                     'query_type': query_type,
+                     'rel_query': rel_query,
+                     'source_query': source_query,
+                     })
+
+        return query, kwargs
+
+    def delete_relations(self, source=None, dest=None, type_=DEFAULT_RELATION):
+        query, kwargs = self._relations_query(
+            source=source, dest=dest, type_=type_, query_type='DELETE'
+        )
+
+        self._r.cypher.execute(query, kwargs)
+
+    def get_relations(self, source=None, dest=None, type_=DEFAULT_RELATION):
+        query, kwargs = self._relations_query(
+            source=source, dest=dest, type_=type_
+        )
 
         res = self._r.cypher.execute(query, kwargs)
 
-        relations = [r.r for r in res]
-        for r in relations:
-            r.start_node.pull()
-            r.end_node.pull()
-
-        return relations
+        return [r.r for r in res]
 
     def get_or_create_relation(self,
                                source,
