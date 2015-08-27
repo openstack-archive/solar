@@ -1,0 +1,142 @@
+handler: puppet
+id: 'neutron_server_puppet'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  db_user:
+    schema: str!
+    value:
+  db_password:
+    schema: str!
+    value:
+  db_name:
+    schema: str!
+    value:
+  db_host:
+    schema: str!
+    value:
+
+  package_ensure:
+    schema: str
+    value: 'present'
+  auth_password:
+    schema: str!
+    value:
+  auth_type:
+    schema: str
+    value: 'keystone'
+  auth_host:
+    schema: str
+    value: 'localhost'
+  auth_port:
+    schema: int
+    value: 35357
+  auth_admin_prefix:
+    schema: str
+    value:
+  auth_tenant:
+    schema: str
+    value: 'services'
+  auth_user:
+    schema: str
+    value: 'neutron'
+  auth_protocol:
+    schema: str
+    value: 'http'
+  auth_uri:
+    schema: str
+    value:
+  database_max_retries:
+    schema: int
+    value: 10
+  database_idle_timeout:
+    schema: int
+    value: 3600
+  database_retry_interval:
+    schema: int
+    value: 10
+  database_min_pool_size:
+    schema: int
+    value: 1
+  database_max_pool_size:
+    schema: int
+    value: 10
+  database_max_overflow:
+    schema: int
+    value: 20
+  sync_db:
+    schema: bool
+    value: false
+  api_workers:
+    schema: int
+    value: 1
+  rpc_workers:
+    schema: int
+    value: 1
+  agent_down_time:
+    schema: int
+    value: 75
+  router_scheduler_driver:
+    schema: str
+    value: 'neutron.scheduler.l3_agent_scheduler.ChanceScheduler'
+  router_distributed:
+    schema: bool
+    value: false
+  l3_ha:
+    schema: bool
+    value: false
+  max_l3_agents_per_router:
+    schema: int
+    value: 3
+  min_l3_agents_per_router:
+    schema: int
+    value: 2
+  l3_ha_net_cidr:
+    schema: str
+    value: '169.254.192.0/18'
+  mysql_module:
+    schema: str
+    value:
+  sql_max_retries:
+    schema: str
+    value:
+  max_retries:
+    schema: str
+    value:
+  sql_idle_timeout:
+    schema: str
+    value:
+  idle_timeout:
+    schema: str
+    value:
+  sql_reconnect_interval:
+    schema: str
+    value:
+  retry_interval:
+    schema: str
+    value:
+  log_dir:
+    schema: str
+    value:
+  log_file:
+    schema: str
+    value:
+  report_interval:
+    schema: str
+    value:
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
+
+puppet_module: 'neutron'
+tags: [resource/neutron, resource/neutron_service, resource/neutron_server, resource/neutron_api]
+version: 1.0.0

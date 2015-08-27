@@ -1,0 +1,84 @@
+handler: puppet
+id: 'neutron_agents_l3_puppet'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  package_ensure:
+    schema: str
+    value: 'present'
+  debug:
+    schema: bool
+    value: false
+  external_network_bridge:
+    schema: str
+    value: 'br-ex'
+  use_namespaces:
+    schema: bool
+    value: true
+  interface_driver:
+    schema: str
+    value: 'neutron.agent.linux.interface.OVSInterfaceDriver'
+  router_id:
+    schema: str
+    value:
+  gateway_external_network_id:
+    schema: str
+    value:
+  handle_internal_only_routers:
+    schema: bool
+    value: true
+  metadata_port:
+    schema: int
+    value: 9697
+  send_arp_for_ha:
+    schema: int
+    value: 3
+  periodic_interval:
+    schema: int
+    value: 40
+  periodic_fuzzy_delay:
+    schema: int
+    value: 5
+  enable_metadata_proxy:
+    schema: bool
+    value: true
+  network_device_mtu:
+    schema: str
+    value:
+  router_delete_namespaces:
+    schema: bool
+    value: false
+  ha_enabled:
+    schema: bool
+    value: false
+  ha_vrrp_auth_type:
+    schema: str
+    value: 'PASS'
+  ha_vrrp_auth_password:
+    schema: str
+    value:
+  ha_vrrp_advert_int:
+    schema: int
+    value: 3
+  agent_mode:
+    schema: str
+    value: 'legacy'
+  allow_automatic_l3agent_failover:
+    schema: bool
+    value: false
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
+
+puppet_module: 'neutron'
+tags: [resource/neutron, resource/neutron_agents_l3]
+version: 1.0.0
