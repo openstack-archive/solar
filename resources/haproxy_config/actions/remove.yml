@@ -1,5 +1,5 @@
 # TODO
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]]
   sudo: yes
   tasks:
     - file: path={{ config_dir.value['src'] }} state=absent

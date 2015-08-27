@@ -1,5 +1,5 @@
 # TODO
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]]
   sudo: yes
   vars:
     config_dir: {src: {{ config_dir.value['src'] }}, dst: {{ config_dir.value['dst'] }}}

@@ -1,4 +1,4 @@
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]]
   sudo: yes
   vars:
     admin_user: {{admin_user}}
