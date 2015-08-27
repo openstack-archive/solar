@@ -27,10 +27,6 @@ def create_resource(name, base_path, args, virtual_resource=None):
 
     prepare_meta(metadata)
 
-    if os.path.exists(actions_path):
-        for f in os.listdir(actions_path):
-            metadata['actions'][os.path.splitext(f)[0]] = f
-
     tags = metadata.get('tags', [])
 
     resource = Resource(name, metadata, args, tags, virtual_resource)
