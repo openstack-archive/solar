@@ -36,10 +36,18 @@ def main():
 def setup_resources():
     db.clear()
 
-    signals.Connections.clear()
+    #node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
+    node1 = vr.create('node1', 'resources/ro_node', {
+        'ip': '10.0.0.3',
+        'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
+        'ssh_user': 'vagrant',
+    })[0]
+    node2 = vr.create('node2', 'resources/ro_node', {
+        'ip': '10.0.0.4',
+        'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key',
+        'ssh_user': 'vagrant',
+    })[0]
 
-    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
-    
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
         'image': 'mariadb',
