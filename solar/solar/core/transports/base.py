@@ -20,8 +20,9 @@ class Executor(object):
     def valid(self, value):
         self._valid = value
 
-    def run(self):
-        self._executor()
+    def run(self, transport):
+        if self.valid:
+            self._executor(transport)
 
 
 class SyncTransport(object):
@@ -40,23 +41,23 @@ class SyncTransport(object):
     def copy(self, resource, *args, **kwargs):
         pass
 
-    def check(self, executor):
+    def preprocess(self, executor):
         # we can check there if we need to run sync executor or not
         # ideally would be to do so on other side
         # it may set executor.valid to False then executor will be skipped
         pass
 
-    def _check_all(self):
+    def preprocess_all(self):
         # we cat use there md5 for big files to check if we need to sync it
         #   or if remote is still valid
         # we can run that in parallell also
+        # can be also used to prepare files for further transfer
         for executor in self.executors:
-            self.check(executor)
+            self.preprocess(executor)
 
-    def _run_all(self):
+    def run_all(self):
         for executor in self.executors:
-            if executor.valid:
-                executor.run()
+            executor.run(self)
 
     def sync_all(self):
         """
@@ -64,8 +65,8 @@ class SyncTransport(object):
         then runs all sequentially.
         Could be someday changed to parallel thing.
         """
-        self._check_all()
-        self._run_all()
+        self.preprocess_all()
+        self.run_all()
         self.executors = []  # clear after all
 
 
@@ -76,6 +77,11 @@ class RunTransport(object):
 
     def __init__(self):
         pass
+
+    def bind_with(self, other):
+        # we migth add there something later
+        # like compat checking etc
+        self.other = other
 
     def run(self, resource, *args, **kwargs):
         pass

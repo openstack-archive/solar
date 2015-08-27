@@ -62,11 +62,11 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
                             params=(_from, _to, use_sudo))
         self.executors.append(executor)
 
-    def sync_all(self):
+    def run_all(self):
         for executor in self.executors:
             resource = executor.resource
             with fabric_api.settings(**self._fabric_settings(resource)):
-                executor.run()
+                executor.run(self)
 
 
 class SSHRunTransport(RunTransport, _SSHTransport):
