@@ -1,4 +1,4 @@
-- hosts: [{{host}}]]
+- hosts: [{{host}}]
   sudo: yes
   vars:
     admin_token: {{admin_token}}

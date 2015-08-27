@@ -1,4 +1,4 @@
-- hosts: [{{host}}]]
+- hosts: [{{host}}]
   sudo: yes
   vars:
     ip: {{ ip }}
