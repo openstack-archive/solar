@@ -12,6 +12,17 @@ from solar import errors
 from solar.interfaces.db import get_db
 
 
+PROFILE = False
+
+
+if PROFILE:
+    import StringIO
+    import cProfile
+    import pstats
+
+    pr = cProfile.Profile()
+
+
 GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
 
 
@@ -35,6 +46,9 @@ def main():
 
 def setup_resources():
     db.clear()
+
+    if PROFILE:
+        pr.enable()
 
     node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
 
@@ -232,6 +246,7 @@ def setup_resources():
         'ip': ['admin_ip', 'internal_ip', 'public_ip'],
         'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
+
 
     # NEUTRON OVS PLUGIN & AGENT WITH GRE
     neutron_plugins_ovs = vr.create('neutron_plugins_ovs', 'resources/neutron_plugins_ovs_puppet', {
@@ -569,6 +584,15 @@ def setup_resources():
         'ip': 'glance_api_servers_host',
         'bind_port': 'glance_api_servers_port'
     })
+
+    if PROFILE:
+        pr.disable()
+        s = StringIO.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print s.getvalue()
+        sys.exit(0)
 
     has_errors = False
     for r in locals().values():
