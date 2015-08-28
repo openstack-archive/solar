@@ -241,7 +241,7 @@ def setup_resources():
     neutron_agents_ml2 = vr.create('neutron_agents_ml2_ovs', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
-        'tunnel_types': 'gre',
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.13' # should be the IP addr of the br-mesh int.
     })[0]
     signals.connect(node1, neutron_agents_ml2)
@@ -281,7 +281,7 @@ def setup_resources():
     neutron_agents_ml22 = vr.create('neutron_agents_ml22', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
-        'tunnel_types': 'gre',
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.14' # Should be the IP addr of the br-mesh int.
     })[0]
     signals.connect(node2, neutron_agents_ml22)

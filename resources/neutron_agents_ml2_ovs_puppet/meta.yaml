@@ -33,8 +33,8 @@ input:
     schema: [str]
     value: []
   local_ip:
-    schema: bool
-    value: false
+    schema: str
+    value: ''
   tunnel_bridge:
     schema: str
     value: 'br-tun'
