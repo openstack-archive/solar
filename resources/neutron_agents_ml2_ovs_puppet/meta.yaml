@@ -1,0 +1,66 @@
+handler: puppet
+id: 'neutron_agents_ml2_ovs_puppet'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  package_ensure:
+    schema: str
+    value: 'present'
+  enabled:
+    schema: bool
+    value: true
+  bridge_uplinks:
+    schema: [str]
+    value: []
+  bridge_mappings:
+    schema: [str]
+    value: []
+  integration_bridge:
+    schema: str
+    value: 'br-int'
+  enable_tunneling:
+    schema: bool
+    value: false
+  tunnel_types:
+    schema: [str]
+    value: []
+  local_ip:
+    schema: bool
+    value: false
+  tunnel_bridge:
+    schema: str
+    value: 'br-tun'
+  vxlan_udp_port:
+    schema: int
+    value: 4789
+  polling_interval:
+    schema: int
+    value: 2
+  l2_population:
+    schema: bool
+    value: false
+  arp_responder:
+    schema: bool
+    value: false
+  firewall_driver:
+    schema: str
+    value: 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
+  enable_distributed_routing:
+    schema: bool
+    value: false
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
+
+puppet_module: 'neutron'
+tags: [resource/neutron, resource/neutron_agents_ml2_ovs]
+version: 1.0.0
