@@ -1,0 +1,101 @@
+id: riak_node
+
+resources:
+{% for i in range(idx|int) %}
+  - id: riak_service_{{i}}
+    from: resources/riak_node
+    values:
+      riak_self_name: 'riak{{i}}'
+      riak_hostname: 'riak_server{{i}}.solar'
+      riak_name: 'riak{{i}}@riak_server{{i}}.solar'
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: hosts_file{{i}}
+    from: resources/hosts_file
+    values:
+      hosts_names: 
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::riak_hostname 
+        {% endfor %}
+      hosts_ips:
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::ip
+        {% endfor %}
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service_config_http{{i}}
+    from: resources/haproxy_service_config
+    values:
+      listen_port: 8098
+      protocol: 'http'
+      name: 'riak_haproxy_http{{i}}'
+      servers:
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::riak_hostname 
+        {% endfor %}
+      ports:
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::riak_port_http
+        {% endfor %}
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service_config_pb{{i}}
+    from: resources/haproxy_service_config
+    values:
+      listen_port: 8087
+      protocol: 'tcp'
+      name: 'riak_haproxy_pb{{i}}'
+      servers:
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::riak_hostname 
+        {% endfor %}
+      ports:
+        {% for j in range(idx|int) %}
+        - riak_service_{{j}}::riak_port_pb
+        {% endfor %}
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_config{{i}}
+    from: resources/haproxy_config
+    values:
+      configs_protocols:
+        - haproxy_service_config_http{{i}}::protocol
+        - haproxy_service_config_pb{{i}}::protocol
+      listen_ports:
+        - haproxy_service_config_http{{i}}::listen_port
+        - haproxy_service_config_pb{{i}}::listen_port
+      configs_names:
+        - haproxy_service_config_http{{i}}::name
+        - haproxy_service_config_pb{{i}}::name
+      configs:
+        - haproxy_service_config_http{{i}}::servers
+        - haproxy_service_config_pb{{i}}::servers
+      configs_ports:
+        - haproxy_service_config_http{{i}}::ports
+        - haproxy_service_config_pb{{i}}::ports
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service{{i}}
+    from: resources/haproxy_service
+    values:
+      ports: 
+        - haproxy_config{{i}}::listen_ports
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
