@@ -1,0 +1,5 @@
+---
+
+- shell: add-apt-repository -y cloud-archive:juno
+
+- shell: apt-get update || apt-get update --fix-missing
