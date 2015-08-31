@@ -13,6 +13,7 @@ from solar.interfaces.db import get_db
 
 
 PROFILE = False
+#PROFILE = True
 
 
 if PROFILE:

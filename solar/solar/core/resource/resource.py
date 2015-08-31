@@ -92,6 +92,7 @@ class Resource(object):
     def actions(self):
         return self.metadata.get('actions') or []
 
+    # TODO: json.dumps/loads should be probably moved to neo4j.py
     def set_args_from_dict(self, args):
         self.node.pull()
 
@@ -116,7 +117,7 @@ class Resource(object):
     @property
     def args(self):
         return {
-            k: json.loads(n.properties['value'])
+            k: json.loads(n.properties['value'] or 'null')
             for k, n in self.resource_inputs().items()
         }
 

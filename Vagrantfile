@@ -41,6 +41,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.network "private_network", ip: "10.0.0.2"
+    config.vm.network "forwarded_port", guest: 7474, host: 17474
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
