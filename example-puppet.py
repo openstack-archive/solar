@@ -238,7 +238,7 @@ def setup_resources():
     # NEUTRON ML2 PLUGIN & ML2-OVS AGENT WITH GRE
     neutron_plugins_ml2 = vr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
     signals.connect(node1, neutron_plugins_ml2)
-    neutron_agents_ml2 = vr.create('neutron_agents_ml2_ovs', 'resources/neutron_agents_ml2_ovs_puppet', {
+    neutron_agents_ml2 = vr.create('neutron_agents_ml2', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
         'tunnel_types': ['gre'],

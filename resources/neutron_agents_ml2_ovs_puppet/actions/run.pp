@@ -41,5 +41,5 @@ Service <| title == 'neutron-ovs-agent-service' |> {
   require    => undef
 }
 Neutron_plugin_ml2<||> ~> Service['neutron-ovs-agent-service']
-File['/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini'] ~>
+File <| title == '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini' |> ~>
 Service<| title == 'neutron-ovs-agent-service' |>
