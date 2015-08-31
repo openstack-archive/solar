@@ -26,7 +26,7 @@ class AnsibleTemplate(TempFileHandler):
         self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
         self.transport_sync.sync_all()
 
-        call_args = ['ansible-playbook', '--module-path', '/tmp/solar_library/library', '-i', inventory_file, playbook_file]
+        call_args = ['ansible-playbook', '--module-path', '/tmp/library', '-i', inventory_file, playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         out = self.transport_run.run(resource, *call_args)
