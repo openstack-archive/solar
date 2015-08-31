@@ -3,7 +3,7 @@
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
-SLAVES_COUNT = 3
+SLAVES_COUNT = 2
 
 solar_script = <<SCRIPT
 ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/solar.yml
@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       #config.vm.box = "deb/jessie-amd64"
       #config.vm.box = "rustyrobot/deb-jessie-amd64"
       #config.vm.box = "ubuntu/trusty64"
-      config.vm.box = "solar-master.box"
+      config.vm.box = "cgenie/solar-master"
 
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_celery, privileged: true
@@ -51,7 +51,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.box = "ubuntu/trusty64"
       else
         # standard box with all stuff preinstalled
-        config.vm.box = "solar-master.box"
+        config.vm.box = "cgenie/solar-master"
       end
 
       #config.vm.provision "shell", inline: slave_script, privileged: true
