@@ -16,6 +16,14 @@ $supported_pci_vendor_devs  = $resource['input']['supported_pci_vendor_devs']['v
 $sriov_agent_required       = $resource['input']['sriov_agent_required']['value']
 $package_ensure             = $resource['input']['package_ensure']['value']
 
+# LP1490438
+file {'/etc/default/neutron-server':
+    ensure   => present,
+    owner    => 'root',
+    group    => 'root',
+    mode     => 644
+} ->
+
 class { 'neutron::plugins::ml2':
   type_drivers               => $type_drivers,
   tenant_network_types       => $tenant_network_types,
