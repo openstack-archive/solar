@@ -37,7 +37,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize [
+        "modifyvm", :id,
+        "--memory", 1024,
+        "--paravirtprovider", "kvm" # for linux guest
+      ]
       v.name = "solar-dev"
     end
   end
@@ -61,7 +65,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.host_name = "solar-dev#{index}"
 
       config.vm.provider :virtualbox do |v|
-        v.customize ["modifyvm", :id, "--memory", 1024]
+        v.customize [
+            "modifyvm", :id,
+            "--memory", 1024,
+            "--paravirtprovider", "kvm" # for linux guest
+        ]
         v.name = "solar-dev#{index}"
       end
     end
