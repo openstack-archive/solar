@@ -58,9 +58,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.box = "cgenie/solar-master"
       end
 
-      #config.vm.provision "shell", inline: slave_script, privileged: true
-      #config.vm.provision "shell", inline: solar_script, privileged: true
-      #config.vm.provision "shell", inline: slave_celery, privileged: true
+      config.vm.provision "shell", inline: slave_script, privileged: true
+      config.vm.provision "shell", inline: solar_script, privileged: true
+      config.vm.provision "shell", inline: slave_celery, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 
