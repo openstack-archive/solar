@@ -14,7 +14,6 @@ $enable_security_group      = $resource['input']['enable_security_group']['value
 $package_ensure             = $resource['input']['package_ensure']['value']
 $supported_pci_vendor_devs  = $resource['input']['supported_pci_vendor_devs']['value']
 $sriov_agent_required       = $resource['input']['sriov_agent_required']['value']
-$package_ensure             = $resource['input']['package_ensure']['value']
 
 # LP1490438
 file {'/etc/default/neutron-server':
