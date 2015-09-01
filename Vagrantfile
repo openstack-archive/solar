@@ -6,7 +6,7 @@ VAGRANTFILE_API_VERSION = "2"
 SLAVES_COUNT = 2
 
 def ansible_playbook_command(filename, args=[])
-  "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/palybooks/${filename} ${args.join ' '}"
+  "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/palybooks/#{filename} #{args.join ' '}"
 end
 
 solar_script = ansible_playbook_command("solar.yml")
