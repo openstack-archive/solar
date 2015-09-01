@@ -32,6 +32,9 @@ source https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/network/neu
  ``neutron_url``
    (optional) URL for connecting to the Neutron networking service.
    Defaults to 'http://127.0.0.1:9696'
+   Note: for this resource it is decomposed to the
+   'neutron_endpoint_host', 'neutron_endpoint_port', 'neutron_endpoint_protocol' inputs
+   due to implementation limitations
 
  ``neutron_url_timeout``
    (optional) Timeout value for connecting to neutron in seconds.
@@ -73,6 +76,9 @@ source https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/network/neu
    This is the Identity (keystone) admin API server IP and port value,
    and not the Identity service API IP and port.
    Defaults to 'http://127.0.0.1:35357/v2.0'
+   Note: for this resource it is decomposed to the
+   'auth_host', 'auth_port', 'auth_protocol' inputs
+   due to implementation limitations
 
  ``network_api_class``
    (optional) The full class name of the network API class.

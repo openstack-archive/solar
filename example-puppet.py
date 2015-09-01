@@ -160,9 +160,29 @@ def setup_resources():
     signals.connect(admin_user, openrc, {'user_name': 'user_name','user_password':'password', 'tenant_name': 'tenant'})
 
     # NEUTRON
-    # TODO: vhost cannot be specified in neutron Puppet manifests so this user has to be admin anyways
-    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {})[0]
+    # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
+    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
+        'core_plugin': 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
+        })[0]
+    signals.connect(node1, neutron_puppet)
+    signals.connect(rabbitmq_service1, neutron_puppet, {
+        'ip': 'rabbit_host',
+        'port': 'rabbit_port'
+    })
+    signals.connect(openstack_rabbitmq_user, neutron_puppet, {
+        'user_name': 'rabbit_user',
+        'password': 'rabbit_password'})
+    signals.connect(openstack_vhost, neutron_puppet, {
+        'vhost_name': 'rabbit_virtual_host'})
 
+    # NEUTRON API (SERVER)
+    neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
+        'sync_db': True,
+    })[0]
+    neutron_db = vr.create('neutron_db', 'resources/mariadb_db/', {
+        'db_name': 'neutron_db', 'login_user': 'root'})[0]
+    neutron_db_user = vr.create('neutron_db_user', 'resources/mariadb_user/', {
+        'user_name': 'neutron', 'user_password': 'neutron', 'login_user': 'root'})[0]
     neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {
         'user_name': 'neutron',
         'user_password': 'neutron'
@@ -179,24 +199,29 @@ def setup_resources():
         'type': 'network'
     })[0]
 
-    signals.connect(node1, neutron_puppet)
-    signals.connect(rabbitmq_service1, neutron_puppet, {
-        'ip': 'rabbitmq_host',
-        'port': 'rabbitmq_port'
+    signals.connect(node1, neutron_db)
+    signals.connect(node1, neutron_db_user)
+    signals.connect(mariadb_service1, neutron_db, {
+        'port': 'login_port',
+        'root_password': 'login_password',
+        'root_user': 'login_user',
+        'ip' : 'db_host'})
+    signals.connect(mariadb_service1, neutron_db_user, {'port': 'login_port', 'root_password': 'login_password'})
+    signals.connect(neutron_db, neutron_db_user, {'db_name', 'db_host'})
+    signals.connect(neutron_db_user, neutron_server_puppet, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'})
+    signals.connect(node1, neutron_server_puppet)
+    signals.connect(admin_user, neutron_server_puppet, {
+        'user_name': 'auth_user',
+        'user_password': 'auth_password',
+        'tenant_name': 'auth_tenant'
     })
-    signals.connect(openstack_rabbitmq_user, neutron_puppet, {
-        'user_name': 'rabbitmq_user',
-        'password': 'rabbitmq_password'})
-    signals.connect(openstack_vhost, neutron_puppet, {
-        'vhost_name': 'rabbitmq_virtual_host'})
-    signals.connect(admin_user, neutron_puppet, {
-        'user_name': 'keystone_user',
-        'user_password': 'keystone_password',
-        'tenant_name': 'keystone_tenant'
-    })
-    signals.connect(keystone_puppet, neutron_puppet, {
-        'ip': 'keystone_host',
-        'port': 'keystone_port'
+    signals.connect(keystone_puppet, neutron_server_puppet, {
+        'ip': 'auth_host',
+        'port': 'auth_port'
     })
     signals.connect(services_tenant, neutron_keystone_user)
     signals.connect(neutron_keystone_user, neutron_keystone_role)
@@ -209,8 +234,68 @@ def setup_resources():
     })
     signals.connect(neutron_puppet, neutron_keystone_service_endpoint, {
         'ip': ['admin_ip', 'internal_ip', 'public_ip'],
-        'port': ['admin_port', 'internal_port', 'public_port'],
+        'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
+
+    # NEUTRON OVS PLUGIN & AGENT WITH GRE
+    neutron_plugins_ovs = vr.create('neutron_plugins_ovs', 'resources/neutron_plugins_ovs_puppet', {
+        'tenant_network_type': 'gre',
+    })[0]
+    signals.connect(node1, neutron_plugins_ovs)
+    signals.connect(neutron_db_user, neutron_plugins_ovs, {
+        'user_name':'db_user',
+        'db_name':'db_name',
+        'user_password':'db_password',
+        'db_host' : 'db_host'
+    })
+    neutron_agents_ovs = vr.create('neutron_agents_ovs', 'resources/neutron_agents_ovs_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'enable_tunneling': True,
+        'local_ip': '10.1.0.13' # should be the IP addr of the br-mesh int.
+    })[0]
+    signals.connect(node1, neutron_agents_ovs)
+
+    # NEUTRON DHCP, L3, metadata agents
+    neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {})[0]
+    signals.connect(node1, neutron_agents_dhcp)
+    neutron_agents_l3 = vr.create('neutron_agents_l3', 'resources/neutron_agents_l3_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'metadata_port': 8775,
+        'external_network_bridge': 'br-floating',
+    })[0]
+    signals.connect(node1, neutron_agents_l3)
+    neutron_agents_metadata = vr.create('neutron_agents_metadata', 'resources/neutron_agents_metadata_puppet', {
+        'shared_secret': 'secret',
+    })[0]
+    signals.connect(node1, neutron_agents_metadata)
+    signals.connect(neutron_server_puppet, neutron_agents_metadata, {
+        'auth_host', 'auth_port', 'auth_password',
+        'auth_tenant', 'auth_user',
+    })
+
+    # NEUTRON FOR COMPUTE (node2)
+    # Deploy chain neutron -> (plugins) -> ( agents )
+    neutron_puppet2 = vr.create('neutron_puppet2', 'resources/neutron_puppet', {})[0]
+    signals.connect(node2, neutron_puppet2)
+    signals.connect(neutron_puppet, neutron_puppet2, {
+        'rabbit_host', 'rabbit_port',
+        'rabbit_user', 'rabbit_password',
+        'rabbit_virtual_host',
+        'package_ensure', 'core_plugin',
+    })
+
+    # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node2)
+    neutron_plugins_ovs2 = vr.create('neutron_plugins_ovs2', 'resources/neutron_plugins_ovs_puppet', {})[0]
+    signals.connect(node2, neutron_plugins_ovs2)
+    signals.connect(neutron_plugins_ovs, neutron_plugins_ovs2, {
+        'db_host', 'db_name', 'db_password', 'db_user', 'tenant_network_type'
+    })
+    neutron_agents_ovs2 = vr.create('neutron_agents_ovs2', 'resources/neutron_agents_ovs_puppet', {
+        # TODO(bogdando) these should come from the node network resource
+        'enable_tunneling': True,
+        'local_ip': '10.1.0.14' # Should be the IP addr of the br-mesh int.
+    })[0]
+    signals.connect(node2, neutron_agents_ovs2)
 
     # CINDER
     cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
@@ -286,6 +371,7 @@ def setup_resources():
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
     evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
+
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
@@ -362,6 +448,7 @@ def setup_resources():
         'keystone_password': 'admin_password',
         'keystone_host': 'auth_host',
         'keystone_port': 'auth_port'})
+    signals.connect(nova_api_puppet, neutron_agents_metadata, {'ip': 'metadata_ip'})
 
     # NOVA CONDUCTOR
     nova_conductor_puppet = vr.create('nova_conductor_puppet', 'resources/nova_conductor_puppet', {})[0]
@@ -391,8 +478,20 @@ def setup_resources():
     # NOTE(bogdando): changes nova config, so should notify nova compute service
     nova_compute_libvirt_puppet = vr.create('nova_compute_libvirt_puppet', 'resources/nova_compute_libvirt_puppet', {})[0]
     signals.connect(node2, nova_compute_libvirt_puppet)
+    # compute configuration for neutron, use http auth/endpoint protocols, keystone v2 auth hardcoded for the resource
     nova_neutron_puppet = vr.create('nova_neutron_puppet', 'resources/nova_neutron_puppet', {})[0]
     signals.connect(node2, nova_neutron_puppet)
+    signals.connect(neutron_server_puppet, nova_neutron_puppet, {
+        'auth_password': 'neutron_admin_password',
+        'auth_user': 'neutron_admin_username',
+        'auth_type': 'neutron_auth_strategy',
+        'auth_host': 'auth_host', 'auth_port': 'auth_port',
+        'auth_protocol': 'auth_protocol',
+    })
+    signals.connect(neutron_keystone_service_endpoint, nova_neutron_puppet, {
+        'internal_ip':'neutron_endpoint_host',
+        'internal_port':'neutron_endpoint_port',
+    })
 
     # signals.connect(keystone_puppet, nova_network_puppet, {'ip': 'keystone_host', 'port': 'keystone_port'})
     # signals.connect(keystone_puppet, nova_keystone_service_endpoint, {'ip': 'keystone_host', 'admin_port': 'keystone_port', 'admin_token': 'admin_token'})
@@ -510,10 +609,18 @@ resources_to_run = [
     'keystone_service_endpoint',
     'services_tenant',
 
+    'neutron_db',
+    'neutron_db_user',
     'neutron_keystone_user',
     'neutron_keystone_role',
     'neutron_puppet',
     'neutron_keystone_service_endpoint',
+    'neutron_plugins_ovs',
+    'neutron_server_puppet',
+    'neutron_agents_ovs',
+    'neutron_agents_dhcp',
+    'neutron_agents_l3',
+    'neutron_agents_metadata',
 
     'cinder_db',
     'cinder_db_user',
@@ -535,11 +642,6 @@ resources_to_run = [
     'nova_api_puppet',
     'nova_conductor_puppet',
 
-    'nova_puppet2',
-    'nova_compute_libvirt_puppet',
-    'nova_neutron_puppet',
-    'nova_compute_puppet',
-
     'glance_db',
     'glance_db_user',
     'glance_keystone_user',
@@ -547,8 +649,16 @@ resources_to_run = [
     'glance_keystone_service_endpoint',
     'glance_api_puppet',
     'glance_registry_puppet',
-]
 
+    'nova_puppet2',
+    'nova_compute_libvirt_puppet',
+    'nova_neutron_puppet',
+    'nova_compute_puppet',
+
+    'neutron_puppet2',
+    'neutron_plugins_ovs2',
+    'neutron_agents_ovs2',
+]
 
 
 @click.command()

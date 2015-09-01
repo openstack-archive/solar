@@ -63,6 +63,20 @@ class LogItem(object):
     def compact(self):
         return 'log task={} uid={}'.format(self.log_action, self.uid)
 
+    @property
+    def details(self):
+        rst = []
+        for type_, val, change in self.diff:
+            if type_ == 'add':
+                for it in change:
+                    if isinstance(it, dict):
+                        rst.append('++ {}: {}'.format(it[0], it[1]['value']))
+                    else:
+                        rst.append('++ {}: {}'.format(it[0], str(it[1])))
+            elif type_ == 'change':
+                rst.append('-+ {}: {} >> {}'.format(val, change[0], change[1]))
+        return rst
+
 
 class Log(object):
 
