@@ -1,0 +1,18 @@
+handler: ansible
+id: 'solar_bootstrap'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  master_ip:
+    schema: str!
+    value:
+tags: []
+version: 1.0.0

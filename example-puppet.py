@@ -657,7 +657,6 @@ resources_to_run = [
     'neutron_agents_ovs2',
 ]
 
-
 @click.command()
 def deploy():
     setup_resources()
