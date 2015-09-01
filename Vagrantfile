@@ -5,21 +5,17 @@
 VAGRANTFILE_API_VERSION = "2"
 SLAVES_COUNT = 2
 
-solar_script = <<SCRIPT
-ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/solar.yml
-SCRIPT
+def ansible_playbook_command(filename, args=[])
+  "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/palybooks/${filename} ${args.join ' '}"
+end
 
-slave_script = <<SCRIPT
-ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/custom-configs.yml -e master_ip=10.0.0.2
-SCRIPT
+solar_script = ansible_playbook_command("solar.yml")
 
-master_celery = <<SCRIPT
-ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/celery.yml --skip-tags slave
-SCRIPT
+slave_script = ansible_playbook_command("custom-configs.yml", ["-e", "master_ip=10.0.0.2"])
 
-slave_celery = <<SCRIPT
-ansible-playbook -i "localhost," -c local /vagrant/bootstrap/playbooks/celery.yml --skip-tags master
-SCRIPT
+master_celery = ansible_playbook_command("celery.yml", ["--skip-tags", "slave"])
+
+slave_celery = ansible_playbook_command("celery.yml", ["--skip-tags", "master"])
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
