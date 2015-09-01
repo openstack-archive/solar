@@ -69,13 +69,21 @@ class LogItem(object):
         for type_, val, change in self.diff:
             if type_ == 'add':
                 for it in change:
-                    if isinstance(it, dict):
-                        rst.append('++ {}: {}'.format(it[0], it[1]['value']))
-                    else:
-                        rst.append('++ {}: {}'.format(it[0], str(it[1])))
+                    rst.append('++ {}: {}'.format(it[0], unwrap_val(it[1])))
             elif type_ == 'change':
                 rst.append('-+ {}: {} >> {}'.format(val, change[0], change[1]))
         return rst
+
+
+def unwrap_val(it):
+    if isinstance(it, dict):
+        if it['emitter']:
+            return '{}::{}'.format(it['emitter'], it['value'])
+        return it['value']
+    elif isinstance(it, list):
+        return [unwrap_val(i) for i in it]
+    else:
+        return it[1]
 
 
 class Log(object):
