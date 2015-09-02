@@ -71,9 +71,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-    MASTER_IPS.each do |ip|
-      config.vm.network "private_network", ip: "#{ip}"
-    end
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
@@ -85,10 +82,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--cpus", MASTER_CPUS,
         "--ioapic", "on",
       ]
+
       if PARAVIRT_PROVIDER
         v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
       end
-      v.name = "solar-dev"
     end
 
     config.vm.provider :libvirt do |libvirt|
@@ -147,10 +144,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             "--cpus", SLAVES_CPUS,
             "--ioapic", "on",
         ]
+
         if PARAVIRT_PROVIDER
           v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
         end
-        v.name = "solar-dev#{index}"
       end
 
       config.vm.provider :libvirt do |libvirt|

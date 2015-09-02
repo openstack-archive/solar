@@ -29,6 +29,8 @@ cd solar
 ```
 * 1. Configure vagrant-settings.yml, for example:
 ```
+vagrant_provider: virtualbox
+vagrant_box: cgenie/solar-master
 slaves_count: 2
 slaves_ram: 2048
 slaves_cpu: 2
