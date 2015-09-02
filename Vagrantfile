@@ -32,8 +32,10 @@ end
 
 SLAVES_COUNT = cfg["slaves_count"]
 SLAVES_RAM = cfg["slaves_ram"]
+SLAVES_IPS = cfg["slaves_ips"]
 SLAVES_IMAGE = cfg["slaves_image"]
 MASTER_RAM = cfg["master_ram"]
+MASTER_IPS = cfg["master_ips"]
 MASTER_IMAGE = cfg["master_image"]
 SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
@@ -69,7 +71,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-    config.vm.network "private_network", ip: "10.0.0.2"
+    MASTER_IPS.each do |ip|
+      config.vm.network "private_network", ip: "#{ip}"
+    end
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
@@ -130,6 +134,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.network "private_network", adapter: 1, ip: "10.0.0.#{ip_index}"
         config.vbguest.no_install = true
         config.vbguest.auto_update = false
+      end
+      SLAVES_IPS.each do |ip|
+        config.vm.network "private_network", ip: "#{ip}#{ip_index}"
       end
 
       config.vm.provider :virtualbox do |v|
