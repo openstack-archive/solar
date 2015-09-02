@@ -36,9 +36,9 @@ def take(n):
         n = 'solar-%d' % time.time()
     vms = get_vagrant_vms()
     for vm in vms:
-        print "Taking", vm
+        click.echo("Taking", vm)
         snap = vboxmanage('snapshot', vm, 'take', n, '--live')
-        print snap
+        click.echo(snap)
 
 
 @click.option('-n')
@@ -46,9 +46,9 @@ def take(n):
 def restore(n):
     vms = get_vagrant_vms()
     for vm in vms:
-        print "Restoring", vm
+        click.echo("Restoring", vm)
         snap = vboxmanage('snapshot', vm, 'restore', n)
-        print snap
+        click.echo(snap)
 
 
 # wanted to use list but it would
@@ -56,10 +56,10 @@ def restore(n):
 def show():
     vms = get_vagrant_vms()
     for vm in vms:
-        print "VM: %s" % vm
+        click.echo("VM: %s" % vm)
         snap = vboxmanage('snapshot', vm, 'list')
-        print snap
-        print '-' * 10
+        click.echo(snap)
+        click.echo('-' * 10)
 
 
 @click.option('-n')
@@ -67,9 +67,9 @@ def show():
 def delete(n):
     vms = get_vagrant_vms()
     for vm in vms:
-        print 'Removing %s from %s' % (n, vm)
+        click.echo('Removing %s from %s' % (n, vm))
         snap = vboxmanage('snapshot', vm, 'delete', n)
-        print snap
+        click.echo(snap)
 
 
 if __name__ == '__main__':
