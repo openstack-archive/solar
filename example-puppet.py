@@ -364,6 +364,7 @@ def setup_resources():
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
     evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
+
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {

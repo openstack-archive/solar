@@ -26,13 +26,28 @@ def validate():
 
 
 @changes.command()
-def stage():
+@click.option('-d', default=False, is_flag=True)
+def stage(d):
     log = list(change.stage_changes().reverse())
     for item in log:
         click.echo(item)
+        if d:
+            for line in item.details:
+                click.echo(' '*4+line)
     if not log:
         click.echo('No changes')
 
+@changes.command(name='staged-item')
+@click.argument('log_action')
+@click.option('-d', default=True, is_flag=True)
+def staged_item(log_action, d):
+    item = data.SL().get(log_action)
+    if not item:
+        click.echo('No staged changes for {}'.format(log_action))
+    else:
+        click.echo(item)
+        for line in item.details:
+            click.echo(' '*4+line)
 
 @changes.command()
 def process():

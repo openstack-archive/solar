@@ -1,0 +1,15 @@
+- hosts: [{{ip}}]
+  sudo: yes
+  tasks:
+    - shell: riak-admin cluster join {{join_to}}
+      ignore_errors: true
+      register: join_output
+    # those below are hacky solution for "this node is already member of a cluster
+    # solar for now lacks logic that would allow to avoid it
+    - shell: /bin/true
+      when: join_output|failed and join_output.stdout.find("This node is already a member of a cluster") != -1
+    - shell: /bin/false
+      when: join_output|failed and join_output.stdout.find("This node is already a member of a cluster") == -1
+    - shell: /bin/true
+      when: join_output|success
+        

@@ -1,27 +1,10 @@
-
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-    - docker:
-       name: {{ resource_name }}
-       image: {{ image }}
-       state: running
-       net: host
-       {% if ports.value %}
-       ports:
-         {% for port in ports.value %}
-         {% for p in port['value'] %}
-         - {{ p['value'] }}:{{ p['value'] }}
-         {% endfor %}
-         {% endfor %}
-       {% endif %}
-       {% if host_binds.value %}
-       volumes:
-         # TODO: host_binds might need more work
-         # Currently it's not that trivial to pass custom src: dst here
-         # (when a config variable is passed here from other resource)
-         # so we mount it to the same directory as on host
-         {% for bind in host_binds.value %}
-         - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
-         {% endfor %}
-       {% endif %}
+    - apt:
+        name: haproxy
+        state: present
+    - replace:
+        dest: '/etc/default/haproxy'
+        regexp: ENABLED=0
+        replace: ENABLED=1

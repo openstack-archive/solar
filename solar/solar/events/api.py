@@ -114,6 +114,7 @@ def build_edges(changed_resources, changes_graph, events):
     :param events: {res: [controls.Event objects]}
     """
     stack = changed_resources[:]
+    visited = []
     while stack:
         node = stack.pop()
 
@@ -122,7 +123,9 @@ def build_edges(changed_resources, changes_graph, events):
         else:
             log.debug('No dependencies based on %s', node)
 
-        for ev in events.get(node, ()):
-            ev.insert(stack, changes_graph)
+        if node not in visited:
+            for ev in events.get(node, ()):
+                ev.insert(stack, changes_graph)
 
+        visited.append(node)
     return changes_graph
