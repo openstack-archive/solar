@@ -104,6 +104,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
         rsync__args: ["--verbose", "--archive", "--delete", "-z"]
     end
+
+    index = 0
+    MASTER_IPS.each do |ip|
+      begin
+        # try to configure libvirt network
+        config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{index}", :mode => 'nat'
+      rescue
+        # fallback to vbox network on error
+        config.vm.network "private_network", ip: "#{ip}"
+      end
+      index = index + 1
+    end
   end
 
   SLAVES_COUNT.times do |i|
@@ -169,6 +181,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         end
       end
 
+      index = 0
+      SLAVE_IPS.each do |ip|
+        begin
+          # try to configure libvirt network
+          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{index}", :mode => 'nat'
+        rescue
+           # fallback to vbox network on error
+           config.vm.network "private_network", ip: "#{ip}#{ip_index}"
+        end
+        index = index + 1
+      end
     end
   end
 
