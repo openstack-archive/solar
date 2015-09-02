@@ -20,6 +20,9 @@ input:
     configs_ports:
       schema: [{value: [{value: int}]}]
       value: []
+    configs_protocols:
+      schema: [{value: str}]
+      value: []
     ssh_user:
       schema: str!
       value:

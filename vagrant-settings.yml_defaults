@@ -1,0 +1,6 @@
+# rename it to vagrant-settings.yml then Vagrantfile
+# will use values from this file
+
+slaves_count: 2
+slaves_ram: 1024
+master_ram: 1024

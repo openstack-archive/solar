@@ -164,7 +164,7 @@ def setup_resources():
     # NEUTRON
     # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
-        'core_plugin': 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
+        'core_plugin': 'neutron.plugins.ml2.plugin.Ml2Plugin'
         })[0]
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {
@@ -239,23 +239,16 @@ def setup_resources():
         'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
 
-    # NEUTRON OVS PLUGIN & AGENT WITH GRE
-    neutron_plugins_ovs = vr.create('neutron_plugins_ovs', 'resources/neutron_plugins_ovs_puppet', {
-        'tenant_network_type': 'gre',
-    })[0]
-    signals.connect(node1, neutron_plugins_ovs)
-    signals.connect(neutron_db_user, neutron_plugins_ovs, {
-        'user_name':'db_user',
-        'db_name':'db_name',
-        'user_password':'db_password',
-        'db_host' : 'db_host'
-    })
-    neutron_agents_ovs = vr.create('neutron_agents_ovs', 'resources/neutron_agents_ovs_puppet', {
+    # NEUTRON ML2 PLUGIN & ML2-OVS AGENT WITH GRE
+    neutron_plugins_ml2 = vr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
+    signals.connect(node1, neutron_plugins_ml2)
+    neutron_agents_ml2 = vr.create('neutron_agents_ml2', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.13' # should be the IP addr of the br-mesh int.
     })[0]
-    signals.connect(node1, neutron_agents_ovs)
+    signals.connect(node1, neutron_agents_ml2)
 
     # NEUTRON DHCP, L3, metadata agents
     neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {})[0]
@@ -287,17 +280,15 @@ def setup_resources():
     })
 
     # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node2)
-    neutron_plugins_ovs2 = vr.create('neutron_plugins_ovs2', 'resources/neutron_plugins_ovs_puppet', {})[0]
-    signals.connect(node2, neutron_plugins_ovs2)
-    signals.connect(neutron_plugins_ovs, neutron_plugins_ovs2, {
-        'db_host', 'db_name', 'db_password', 'db_user', 'tenant_network_type'
-    })
-    neutron_agents_ovs2 = vr.create('neutron_agents_ovs2', 'resources/neutron_agents_ovs_puppet', {
+    neutron_plugins_ml22 = vr.create('neutron_plugins_ml22', 'resources/neutron_plugins_ml2_puppet', {})[0]
+    signals.connect(node2, neutron_plugins_ml22)
+    neutron_agents_ml22 = vr.create('neutron_agents_ml22', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.14' # Should be the IP addr of the br-mesh int.
     })[0]
-    signals.connect(node2, neutron_agents_ovs2)
+    signals.connect(node2, neutron_agents_ml22)
 
     # CINDER
     cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
@@ -373,6 +364,7 @@ def setup_resources():
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
     evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
+
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
     nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
@@ -616,9 +608,9 @@ resources_to_run = [
     'neutron_keystone_role',
     'neutron_puppet',
     'neutron_keystone_service_endpoint',
-    'neutron_plugins_ovs',
+    'neutron_plugins_ml2',
     'neutron_server_puppet',
-    'neutron_agents_ovs',
+    'neutron_agents_ml2',
     'neutron_agents_dhcp',
     'neutron_agents_l3',
     'neutron_agents_metadata',
@@ -657,8 +649,8 @@ resources_to_run = [
     'nova_compute_puppet',
 
     'neutron_puppet2',
-    'neutron_plugins_ovs2',
-    'neutron_agents_ovs2',
+    'neutron_plugins_ml22',
+    'neutron_agents_ml22',
 ]
 
 @click.command()
