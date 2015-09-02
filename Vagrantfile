@@ -5,15 +5,19 @@ require 'yaml'
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
+
+# configs, custom updates _defaults
+defaults_cfg = YAML.load_file('vagrant-settings.yml_defaults')
 if File.exist?('vagrant-settings.yml')
-  cfg = YAML.load_file('vagrant-settings.yml')
+  custom_cfg = YAML.load_file('vagrant-settings.yml')
+  cfg = defaults_cfg.merge(custom_cfg)
 else
-  cfg = {}
+  cfg = defaults_cfg
 end
 
-SLAVES_COUNT = cfg.fetch("slaves_count", 2)
-SLAVES_RAM = cfg.fetch("slaves_ram", 1024)
-MASTER_RAM = cfg.fetch("master_ram", 1024)
+SLAVES_COUNT = cfg["slaves_count"]
+SLAVES_RAM = cfg["slaves_ram"]
+MASTER_RAM = cfg["master_ram"]
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
