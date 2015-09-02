@@ -39,8 +39,7 @@ def stage(d):
 
 @changes.command(name='staged-item')
 @click.argument('log_action')
-@click.option('-d', default=True, is_flag=True)
-def staged_item(log_action, d):
+def staged_item(log_action):
     item = data.SL().get(log_action)
     if not item:
         click.echo('No staged changes for {}'.format(log_action))
