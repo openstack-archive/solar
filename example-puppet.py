@@ -307,7 +307,7 @@ def setup_resources():
             'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2/%(tenant_id)s',
             'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
             'publicurl': 'http://{{public_ip}}:{{public_port}}/v2/%(tenant_id)s',
-            'description': 'OpenStack Block Storage Service', 'type': 'volume'})[0]
+            'description': 'OpenStack Block Storage Service', 'type': 'volumev2'})[0]
 
     signals.connect(node1, cinder_puppet)
     signals.connect(node1, cinder_db)
@@ -507,7 +507,7 @@ def setup_resources():
             'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
             'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
             'publicurl': 'http://{{public_ip}}:{{public_port}}',
-            'description': 'OpenStack Image Service', 'type': 'volume'})[0]
+            'description': 'OpenStack Image Service', 'type': 'image'})[0]
 
     signals.connect(node1, glance_api_puppet)
     signals.connect(node1, glance_db)
