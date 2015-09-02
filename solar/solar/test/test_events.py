@@ -83,3 +83,4 @@ def test_riak():
     evapi.build_edges(changed, changes_graph, events)
     assert nx.topological_sort(changes_graph) == [
         'riak_service1.run', 'riak_service2.join', 'riak_service3.join', 'riak_service1.commit']
+
