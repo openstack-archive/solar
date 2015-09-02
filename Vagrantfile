@@ -1,9 +1,23 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+require 'yaml'
+
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
-SLAVES_COUNT = 2
+
+# configs, custom updates _defaults
+defaults_cfg = YAML.load_file('vagrant-settings.yml_defaults')
+if File.exist?('vagrant-settings.yml')
+  custom_cfg = YAML.load_file('vagrant-settings.yml')
+  cfg = defaults_cfg.merge(custom_cfg)
+else
+  cfg = defaults_cfg
+end
+
+SLAVES_COUNT = cfg["slaves_count"]
+SLAVES_RAM = cfg["slaves_ram"]
+MASTER_RAM = cfg["master_ram"]
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
@@ -35,7 +49,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provider :virtualbox do |v|
       v.customize [
         "modifyvm", :id,
-        "--memory", 1024,
+        "--memory", MASTER_RAM,
         "--paravirtprovider", "kvm" # for linux guest
       ]
       v.name = "solar-dev"
@@ -46,13 +60,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     index = i + 1
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
-      # Box solar-dev3 is for 'solar_bootstrap' resource demo
-      if index == 3 then
-        config.vm.box = "ubuntu/trusty64"
-      else
-        # standard box with all stuff preinstalled
-        config.vm.box = "cgenie/solar-master"
-      end
+      # standard box with all stuff preinstalled
+      config.vm.box = "cgenie/solar-master"
 
       config.vm.provision "shell", inline: slave_script, privileged: true
       config.vm.provision "shell", inline: solar_script, privileged: true
@@ -63,7 +72,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.provider :virtualbox do |v|
         v.customize [
             "modifyvm", :id,
-            "--memory", 1024,
+            "--memory", SLAVES_RAM,
             "--paravirtprovider", "kvm" # for linux guest
         ]
         v.name = "solar-dev#{index}"
