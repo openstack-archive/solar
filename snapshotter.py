@@ -32,12 +32,13 @@ def cli():
 @cli.command()
 @click.option('-n', default=None)
 def take(n):
+    now = time.time()
     if n is None:
-        n = 'solar-%d' % time.time()
+        n = 'solar-%d' % now
     vms = get_vagrant_vms()
     for vm in vms:
-        click.echo("Taking", vm)
-        snap = vboxmanage('snapshot', vm, 'take', n, '--live')
+        click.echo("Taking %s" % vm)
+        snap = vboxmanage('snapshot', vm, 'take', n, '--live', '--description', 'solar: %d' % now)
         click.echo(snap)
 
 
@@ -46,7 +47,7 @@ def take(n):
 def restore(n):
     vms = get_vagrant_vms()
     for vm in vms:
-        click.echo("Restoring", vm)
+        click.echo("Restoring %s" % vm)
         snap = vboxmanage('snapshot', vm, 'restore', n)
         click.echo(snap)
 
