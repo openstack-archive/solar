@@ -38,9 +38,11 @@ from solar.interfaces.db import get_db
 from solar import errors
 from solar.core.log import log
 
+from solar.cli import base
 from solar.cli import executors
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
+from solar.cli.events import events
 
 # NOTE: these are extensions, they shouldn't be imported here
 # Maybe each extension can also extend the CLI with parsers
@@ -75,7 +77,7 @@ def show_emitter_connections(emitter_name, destinations):
         )
 
 
-@click.group()
+@click.group(cls=base.AliasedGroup)
 def main():
     pass
 
@@ -417,6 +419,7 @@ def run():
 
     main.add_command(orchestration)
     main.add_command(changes)
+    main.add_command(events)
     main()
 
 

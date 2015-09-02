@@ -11,6 +11,7 @@ from solar.interfaces.db import get_db
 from solar.core import actions
 from solar.system_log import data
 from solar.orchestration import graph
+from solar.events import api as evapi
 
 db = get_db()
 
@@ -24,22 +25,6 @@ def guess_action(from_, to):
         return 'remove'
     else:
         return 'update'
-
-
-def connections(res, graph):
-    result = []
-    for pred in graph.predecessors(res.name):
-        for num, edge in graph.get_edge_data(pred, res.name).items():
-            if 'label' in edge:
-                if ':' in edge['label']:
-                    parent, child = edge['label'].split(':')
-                    mapping = [parent, child]
-                else:
-                    mapping = [edge['label'], edge['label']]
-            else:
-                mapping = None
-            result.append([pred, res.name, mapping])
-    return result
 
 
 def create_diff(staged, commited):
@@ -63,11 +48,12 @@ def _stage_changes(staged_resources, conn_graph,
         df = create_diff(staged_data, commited_data)
 
         if df:
+            action = guess_action(commited_data, staged_data)
             log_item = data.LogItem(
                 utils.generate_uuid(),
                 res_uid,
-                df,
-                guess_action(commited_data, staged_data))
+                '{}.{}'.format(res_uid, action),
+                df)
             staged_log.append(log_item)
     return staged_log
 
@@ -83,26 +69,28 @@ def stage_changes():
 
 
 def send_to_orchestration():
-    conn_graph = signals.detailed_connection_graph()
-    dg = nx.DiGraph()
+    dg = nx.MultiDiGraph()
     staged = {r.name: r.args_show()
               for r in resource.load_all().values()}
     commited = data.CD()
+    events = {}
+    changed_nodes = []
 
-    for res_uid in nx.topological_sort(conn_graph):
+    for res_uid in staged.keys():
         commited_data = commited.get(res_uid, {})
         staged_data = staged.get(res_uid, {})
 
         df = create_diff(staged_data, commited_data)
 
         if df:
-            dg.add_node(
-                res_uid, status='PENDING',
-                errmsg=None,
-                **parameters(res_uid, guess_action(commited_data, staged_data)))
-            for pred in conn_graph.predecessors(res_uid):
-                if pred in dg:
-                    dg.add_edge(pred, res_uid)
+            events[res_uid] = evapi.all_events(res_uid)
+            changed_nodes.append(res_uid)
+            action = guess_action(commited_data, staged_data)
+
+            state_change = evapi.StateChange(res_uid, action)
+            state_change.insert(changed_nodes, dg)
+
+    evapi.build_edges(changed_nodes, dg, events)
 
     # what it should be?
     dg.graph['name'] = 'system_log'
