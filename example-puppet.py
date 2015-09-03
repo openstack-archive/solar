@@ -142,7 +142,6 @@ def setup_resources():
     signals.connect(admin_tenant, admin_user)
     signals.connect(admin_user, admin_role)
     signals.connect(admin_user, admin_role_services)
-    signals.disconnect_receiver_by_input(admin_role_services, 'tenant_name')
     signals.connect(services_tenant, admin_role_services, { 'tenant_name' })
 
     signals.connect(keystone_puppet, services_tenant)
