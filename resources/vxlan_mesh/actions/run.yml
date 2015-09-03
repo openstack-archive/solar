@@ -1,0 +1,16 @@
+- hosts: '*'
+  sudo: yes
+  vars:
+    id: 42
+    group: 239.1.10.2
+    parent: eth1
+    master: br-test0
+  tasks:
+    - name: add vxlan mesh
+      shell: ip l add vxlan{{id}} type vxlan id {{id}}
+             group {{group}} dev {{parent}}
+      ignore_errors: true
+    - name: set vxlan master
+      shell: ip l set vxlan{{id}} master {{master}}
+    - name: set vxlan tunnel up
+      shell: ip l set vxlan{{id}} up

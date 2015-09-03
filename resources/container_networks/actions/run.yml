@@ -1,0 +1,22 @@
+- hosts: '*'
+  sudo: yes
+  gather_facts: false
+  # this is default variables, they will be overwritten by resource one
+  vars:
+    networks:
+        mgmt:
+            address: 172.18.10.6
+            bridge: br-test0
+            bridge_address: 172.18.10.252/24
+            interface: eth1
+            netmask: 255.255.255.0
+            type: veth
+  tasks:
+    - shell: ip l add {{item.value.bridge}} type bridge
+      with_dict: networks
+      ignore_errors: true
+    - shell: ip l set {{item.value.bridge}} up
+      with_dict: networks
+    - shell: ip a add dev {{item.value.bridge}} {{item.value.bridge_address}}
+      with_dict: networks
+      ignore_errors: true

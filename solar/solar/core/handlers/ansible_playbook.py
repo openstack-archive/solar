@@ -6,12 +6,26 @@ from ansible.playbook import PlayBook
 from ansible import utils
 from ansible import callbacks
 import ansible.constants as C
+from fabric import api as fabric_api
 
 from solar.core.handlers import base
 from solar import errors
+from solar.core.provider import SVNProvider
+
+
+ROLES_PATH = '/etc/ansible/roles'
 
 
 class AnsiblePlaybook(base.BaseHandler):
+
+    def download_roles(self, urls):
+        if not os.path.exists(ROLES_PATH):
+            os.makedirs(ROLES_PATH)
+        for url in urls:
+            provider = SVNProvider(url)
+            provider.run()
+            fabric_api.local('cp -r {} {}'.format(
+                provider.directory, ROLES_PATH))
 
     def action(self, resource, action):
         action_file = os.path.join(
@@ -22,6 +36,9 @@ class AnsiblePlaybook(base.BaseHandler):
         runner_cb = callbacks.PlaybookRunnerCallbacks(stats, verbose=utils.VERBOSITY)
 
         variables = resource.args_dict()
+        if 'roles' in variables:
+            self.download_roles(variables['roles'])
+
         remote_user = variables.get('ssh_user') or C.DEFAULT_REMOTE_USER
         private_key_file = variables.get('ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
         if variables.get('ip'):
@@ -30,7 +47,7 @@ class AnsiblePlaybook(base.BaseHandler):
         else:
             host = 'localhost'
             transport = 'local'
-
+        C.HOST_KEY_CHECKING = False
         play = PlayBook(
             playbook=action_file,
             remote_user=remote_user,

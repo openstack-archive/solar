@@ -1,0 +1,55 @@
+id: lxc_container
+handler: ansible_playbook
+version: 1.0.0
+actions:
+input:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+    ansible_ssh_host:
+      schema: str!
+      value:
+    user:
+      schema: str!
+      value:
+    user_key:
+      schema: str!
+      value:
+    mgmt_ip:
+      schema: str!
+      value:
+    physical_host:
+      schema: str!
+      value:
+    container_address:
+      schema: str!
+      value:
+    container_name:
+      schema: str!
+      value:
+    inventory_hostname:
+      schema: str!
+      value:
+    container_networks:
+      schema: {}
+      value:
+    properties:
+      schema: {}
+      value:
+    pub_key:
+      schema: str!
+      value:
+    requires:
+        schema: str
+        value:
+    roles:
+      schema: [{value: str}]
+      value:
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/lxc_container_create
+        - https://github.com/stackforge/os-ansible-deployment/trunk/playbooks/roles/lxc_container_destroy
