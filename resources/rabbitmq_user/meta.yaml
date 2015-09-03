@@ -11,6 +11,9 @@ input:
     vhost_name:
       schema: str!
       value:
+    tags:
+      schema: str
+      value: 'management'
     ip:
       schema: str!
       value:
