@@ -37,7 +37,7 @@ def test_all():
             results[name] = {
                 'status': 'ok',
             }
-        except:
+        except Exception:
             results[name] = {
                 'status': 'error',
                 'message': traceback.format_exc(),
