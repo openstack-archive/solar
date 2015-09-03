@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+# To run:
+# example-lxc.py deploy
+# solar changes stage
+# solar changes process
+# solar orch run-once last
+# watch 'solar orch report last'
+
 import click
 
 from solar.core import signals
