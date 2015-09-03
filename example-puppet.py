@@ -105,6 +105,9 @@ def setup_resources():
     services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {
         'tenant_name': 'services'
     })[0]
+    admin_role_services = vr.create('admin_role_services', 'resources/keystone_role', {
+        'role_name': 'admin'
+    })[0]
 
     signals.connect(node1, keystone_db)
     signals.connect(node1, keystone_db_user)
@@ -138,6 +141,8 @@ def setup_resources():
     })
     signals.connect(admin_tenant, admin_user)
     signals.connect(admin_user, admin_role)
+    signals.connect(admin_user, admin_role_services)
+    signals.connect(services_tenant, admin_role_services, { 'tenant_name' })
 
     signals.connect(keystone_puppet, services_tenant)
     signals.connect(keystone_puppet, services_tenant, {
