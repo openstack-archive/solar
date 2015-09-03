@@ -16,8 +16,15 @@ def get_vagrant_vms():
 
 def vboxmanage(*args):
     args = ('VBoxManage', ) + args
+    if args[1] in ('list', 'showvminfo'):
+        args = args + ('--machinereadable',)
     p = check_output(args, shell=False)
-    return p
+    elements = [line.split('=') for line in p.split('\n') if line]
+
+    return {
+        el[0]: el[1].strip('""')
+        for el in elements if el
+    }
 
 
 def vagrant(*args):
@@ -66,7 +73,7 @@ def show():
         }
         try:
             snap = vboxmanage('snapshot', vm, 'list')
-            kwargs['snap'] = snap.split('\n')[0].replace('Name:', '').strip()
+            kwargs['snap'] = '{SnapshotName} (UUID: {SnapshotUUID})'.format(**snap)
         except Exception:
             kwargs['snap'] = click.style(
                 'This machine does not have any snapshots',
