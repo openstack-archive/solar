@@ -448,6 +448,14 @@ def setup_resources():
     signals.connect(node1, nova_conductor_puppet)
     signals.connect(nova_puppet, nova_conductor_puppet)
 
+    # NOVA SCHEDULER
+    # NOTE(bogdando) Generic service is used. Package and service names for Ubuntu case
+    #   come from https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/params.pp
+    nova_scheduler_puppet = vr.create('nova_scheduler_puppet', 'resources/nova_generic_service_puppet', {
+        'title' : 'scheduler', 'package_name': 'nova-scheduler', 'service_name': 'nova-scheduler',
+    })[0]
+    signals.connect(node1, nova_scheduler_puppet)
+
     # NOVA COMPUTE
     # Deploy chain (nova, node_networking(TODO)) -> (nova_compute_libvirt, nova_neutron) -> nova_compute
     nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
@@ -634,6 +642,7 @@ resources_to_run = [
     'nova_keystone_service_endpoint',
     'nova_api_puppet',
     'nova_conductor_puppet',
+    'nova_scheduler_puppet',
 
     'glance_db',
     'glance_db_user',
