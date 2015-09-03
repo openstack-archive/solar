@@ -75,7 +75,23 @@ def history(n):
 
 @changes.command()
 def test():
-    testing.test_all()
+    results = testing.test_all()
+
+    for name, result in results.items():
+        msg = '[{status}] {name} {message}'
+        kwargs = {
+            'name': name,
+            'message': '',
+            'status': 'OK',
+        }
+
+        if result['status'] == 'ok':
+            kwargs['status'] = click.style('OK', fg='green')
+        else:
+            kwargs['status'] = click.style('ERROR', fg='red')
+            kwargs['message'] = result['message']
+
+        click.echo(msg.format(**kwargs))
 
 
 @changes.command(name='clean-history')
