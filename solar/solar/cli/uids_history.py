@@ -2,7 +2,7 @@ import click
 import os
 import re
 
-uids_history = os.path.join(os.getcwd(), '.solar_cli_uids')
+UIDS_HISTORY = os.path.join(os.getcwd(), '.solar_cli_uids')
 
 
 def remember_uid(uid):
@@ -11,14 +11,14 @@ def remember_uid(uid):
     Can be used then as `last`, `last1`, `last2` anywhere
     """
     try:
-        with open(uids_history, 'rb') as f:
+        with open(UIDS_HISTORY, 'rb') as f:
             hist = [x.strip() for x in f.readlines()]
     except IOError:
         hist = []
     hist.insert(0, uid)
     if len(hist) > 3:
         hist = hist[:3]
-    with open(uids_history, 'wb') as f:
+    with open(UIDS_HISTORY, 'wb') as f:
         f.write('\n'.join(hist))
 
 
@@ -32,7 +32,7 @@ def get_uid(given_uid):
             position = int(matched.group(1))
         except ValueError:
             position = 0
-        with open(uids_history, 'rb') as f:
+        with open(UIDS_HISTORY, 'rb') as f:
             uids = [x.strip() for x in f.readlines()]
         try:
             return uids[position]

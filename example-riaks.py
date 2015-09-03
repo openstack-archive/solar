@@ -170,7 +170,7 @@ def setup_haproxies():
 
     for single_hps, single_hpc in zip(hps, hpc):
         signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'},
-                        events=None)
+                        events=False)
 
     # assign haproxy services to each node
 
@@ -204,11 +204,12 @@ def setup_haproxies():
 
     events = []
     for node, single_hps, single_hpc in zip(nodes, hps, hpc):
-        r = React(node.name, 'run', 'success', single_hps.name, 'install')
-        d = Dep(single_hps.name, 'install', 'success', single_hpc.name, 'run')
-        e1 = React(single_hpc.name, 'run', 'success', single_hps.name, 'run')
-        e2 = React(single_hpc.name, 'update', 'success', single_hps.name, 'update')
-        events.extend([r, d, e1, e2])
+        # r = React(node.name, 'run', 'success', single_hps.name, 'install')
+        d = Dep(single_hps.name, 'run', 'success', single_hpc.name, 'run')
+        e1 = React(single_hpc.name, 'run', 'success', single_hps.name, 'apply_config')
+        e2 = React(single_hpc.name, 'update', 'success', single_hps.name, 'apply_config')
+        # events.extend([r, d, e1, e2])
+        events.extend([d, e1, e2])
 
     for event in events:
         add_event(event)
@@ -222,7 +223,6 @@ def main():
 @click.command()
 def deploy():
     setup_riak()
-
 
 @click.command()
 def add_haproxies():

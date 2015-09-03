@@ -1,0 +1,47 @@
+{
+  "variables": {
+    "ansible_config_path": "/etc/ansible",
+    "ansible_config_file": "ansible.cfg",
+    "ansible_log_file": "/tmp/ansible.log"
+  },
+  "builders": [{
+    "type": "virtualbox-ovf",
+    "source_path": "trusty64/box.ovf",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["sudo mkdir -p {{ user `ansible_config_path` }}"]
+    },
+    {
+      "type": "file",
+      "source": "ansible.cfg",
+      "destination": "/tmp/ansible.cfg"
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo mv /tmp/ansible.cfg {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}"]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "playbooks/files/ubuntu-ansible.sh"
+    }, {
+      "type": "ansible-local",
+      "playbook_dir": "playbooks",
+      "playbook_file": "playbooks/build-main.yml",
+      "extra_arguments": ["--verbose"]
+    }],
+  "post-processors": [{
+    "type": "vagrant",
+    "output": "solar-master.box"
+  }]
+}

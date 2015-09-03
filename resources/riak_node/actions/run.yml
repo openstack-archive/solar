@@ -5,7 +5,11 @@
     - shell: killall -u riak
       ignore_errors: yes
     # remove above when non tests
+
+    # we install ubuntu repo there,
+    # NOT recommended on production
     - shell: curl -s https://packagecloud.io/install/repositories/basho/riak/script.deb.sh | sudo bash
+
     - apt:
         name: riak
         state: present

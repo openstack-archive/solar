@@ -1,0 +1,57 @@
+handler: puppet
+id: 'neutron_plugins_ml2_puppet'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  type_drivers:
+    schema: [str]
+    value: ['local', 'flat', 'vlan', 'gre', 'vxlan']
+  tenant_network_types:
+    schema: [str]
+    value: ['local', 'flat', 'vlan', 'gre', 'vxlan']
+  mechanism_drivers:
+    schema: [str]
+    value: ['openvswitch', 'linuxbridge']
+  flat_networks:
+    schema: [str]
+    value: ['*']
+  network_vlan_ranges:
+    schema: [str]
+    value: ['physnet1:1000:2999']
+  tunnel_id_ranges:
+    schema: [str]
+    value: ['20:100']
+  vxlan_group:
+    schema: str
+    value: '224.0.0.1'
+  vni_ranges:
+    schema: [str]
+    value: ['10:100']
+  enable_security_group:
+    schema: bool
+    value: true
+  package_ensure:
+    schema: str
+    value: 'present'
+  supported_pci_vendor_devs:
+    schema: [str]
+    value: ['15b3:1004', '8086:10ca']
+  sriov_agent_required:
+    schema: bool
+    value: false
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
+
+puppet_module: 'neutron'
+tags: [resource/neutron, resource/neutron_plugins_ml2]
+version: 1.0.0

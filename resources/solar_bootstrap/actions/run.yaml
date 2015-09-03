@@ -1,0 +1,12 @@
+---
+
+# TODO: this shouldn't be outside of the resource directory
+- hosts: all
+  sudo: yes
+  tasks:
+    - script: /vagrant/bootstrap/playbooks/files/ubuntu-ansible.sh
+    - include: /vagrant/bootstrap/playbooks/tasks/cinder.yml
+#- include: celery.yml tags=['master'] celery_dir=/var/run/celery
+- include: /vagrant/bootstrap/playbooks/build-main.yml
+- include: /vagrant/bootstrap/playbooks/custom-configs.yml master_ip={{ master_ip }}
+- include: /vagrant/bootstrap/playbooks/celery.yml tags=slave

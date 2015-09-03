@@ -8,7 +8,6 @@ from solar.interfaces.db import get_db
 from solar.events.api import add_events
 from solar.events.controls import Dependency
 
-
 db = get_db()
 
 
@@ -175,7 +174,6 @@ def connect(emitter, receiver, mapping=None, events=None):
         add_events(emitter.name, events_to_add)
 
     # receiver.save()
-
 
 def disconnect(emitter, receiver):
     # convert if needed

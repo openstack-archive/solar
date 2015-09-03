@@ -26,3 +26,8 @@ celery*.log
 *.dot
 *.png
 resources_compiled.py
+
+# bootstrap
+bootstrap/trusty64
+bootstrap/solar-master.box
+vagrant-settings.yml

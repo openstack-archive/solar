@@ -1,7 +1,10 @@
-
 - hosts: [{{host}}]
   sudo: yes
   tasks:
-    - service:
+    - apt:
         name: haproxy
-        state: reloaded
+        state: present
+    - replace:
+        dest: '/etc/default/haproxy'
+        regexp: ENABLED=0
+        replace: ENABLED=1

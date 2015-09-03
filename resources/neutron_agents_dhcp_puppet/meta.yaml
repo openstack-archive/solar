@@ -1,0 +1,57 @@
+handler: puppet
+id: 'neutron_agents_dhcp_puppet'
+input:
+  ip:
+    schema: str!
+    value:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+
+  package_ensure:
+    schema: str
+    value: present
+  debug:
+    schema: bool
+    value: false
+  state_path:
+    schema: str
+    value: '/var/lib/neutron'
+  resync_interval:
+    schema: int
+    value: 30
+  interface_driver:
+    schema: str
+    value: 'neutron.agent.linux.interface.OVSInterfaceDriver'
+  dhcp_driver:
+    schema: str
+    value: 'neutron.agent.linux.dhcp.Dnsmasq'
+  root_helper:
+    schema: str
+    value: 'sudo neutron-rootwrap /etc/neutron/rootwrap.conf'
+  use_namespaces:
+    schema: bool
+    value: true
+  dnsmasq_config_file:
+    schema: str
+    value:
+  dhcp_delete_namespaces:
+    schema: bool
+    value: false
+  enable_isolated_metadata:
+    schema: bool
+    value: false
+  enable_metadata_network:
+    schema: bool
+    value: false
+
+  git:
+    schema: {repository: str!, branch: str!}
+    value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
+
+puppet_module: 'neutron'
+tags: [resource/neutron, resource/neutron_agents_dhcp]
+version: 1.0.0
