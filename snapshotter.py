@@ -57,9 +57,20 @@ def restore(n):
 def show():
     vms = get_vagrant_vms()
     for vm in vms:
-        click.echo("VM: %s" % vm)
-        snap = vboxmanage('snapshot', vm, 'list')
-        click.echo(snap)
+        msg = "[{vm}] {snap}"
+        kwargs = {
+            'vm': click.style(vm, fg='green'),
+            'snap': '',
+        }
+        try:
+            snap = vboxmanage('snapshot', vm, 'list')
+            kwargs['snap'] = snap.split('\n')[0].replace('Name:', '').strip()
+        except Exception:
+            kwargs['snap'] = click.style(
+                'This machine does not have any snapshots',
+                fg='red'
+            )
+        click.echo(msg.format(**kwargs))
         click.echo('-' * 10)
 
 
