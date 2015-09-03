@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+# WARNING: this might not be most up-to-date script and not all things might
+# work here, for most up-to-date version see example-riaks.py
+# This is just a demo of the template language of Solar
+
 from solar.interfaces.db import get_db
 from solar.core import signals
 
