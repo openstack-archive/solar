@@ -3,7 +3,7 @@
 import click
 import time
 from itertools import takewhile
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 
 def get_vagrant_vms():
@@ -14,11 +14,14 @@ def get_vagrant_vms():
     return vms
 
 
-def vboxmanage(*args):
-    args = ('VBoxManage', ) + args
-    if args[1] in ('list', 'showvminfo'):
-        args = args + ('--machinereadable',)
+def vboxmanage(args, output_dict=False):
+    args = ['VBoxManage'] + args
+    if output_dict:
+        args = args + ['--machinereadable']
     p = check_output(args, shell=False)
+    if not output_dict:
+        return p
+
     elements = [line.split('=') for line in p.split('\n') if line]
 
     return {
@@ -47,7 +50,7 @@ def take(n):
     vms = get_vagrant_vms()
     for vm in vms:
         click.echo("Taking %s" % vm)
-        snap = vboxmanage('snapshot', vm, 'take', n, '--live', '--description', 'solar: %d' % now)
+        snap = vboxmanage(['snapshot', vm, 'take', n, '--live', '--description', 'solar: %d' % now])
         click.echo(snap)
 
 
@@ -56,8 +59,16 @@ def take(n):
 def restore(n):
     vms = get_vagrant_vms()
     for vm in vms:
+        vminfo = vboxmanage(['showvminfo', vm], output_dict=True)
+        was_running = False
+        if vminfo['VMState'] == 'running':
+            click.echo('[{vm}] Running, stopping'.format(vm=vm))
+            vagrant('suspend', vm)
+            was_running = True
         click.echo("Restoring %s" % vm)
-        snap = vboxmanage('snapshot', vm, 'restore', n)
+        snap = vboxmanage(['snapshot', vm, 'restore', n])
+        if was_running:
+            vagrant('up', vm)
         click.echo(snap)
 
 
@@ -72,9 +83,9 @@ def show():
             'snap': '',
         }
         try:
-            snap = vboxmanage('snapshot', vm, 'list')
+            snap = vboxmanage(['snapshot', vm, 'list'], output_dict=True)
             kwargs['snap'] = '{SnapshotName} (UUID: {SnapshotUUID})'.format(**snap)
-        except Exception:
+        except CalledProcessError:
             kwargs['snap'] = click.style(
                 'This machine does not have any snapshots',
                 fg='red'
@@ -89,7 +100,7 @@ def delete(n):
     vms = get_vagrant_vms()
     for vm in vms:
         click.echo('Removing %s from %s' % (n, vm))
-        snap = vboxmanage('snapshot', vm, 'delete', n)
+        snap = vboxmanage(['snapshot', vm, 'delete', n])
         click.echo(snap)
 
 
