@@ -42,7 +42,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_celery, privileged: true
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
-    config.vm.provision "file", source: "ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
+    config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.network "private_network", ip: "10.0.0.2"
     config.vm.host_name = "solar-dev"
 
@@ -63,6 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # standard box with all stuff preinstalled
       config.vm.box = "cgenie/solar-master"
 
+      config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
       config.vm.provision "shell", inline: slave_script, privileged: true
       config.vm.provision "shell", inline: solar_script, privileged: true
       config.vm.provision "shell", inline: slave_celery, privileged: true
