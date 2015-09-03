@@ -1,0 +1,18 @@
+id: riak_join_single
+handler: ansible
+version: 1.0.0
+actions:
+  join: actions/join.yml
+input:
+    join_to:
+      schema: str!
+      value:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:

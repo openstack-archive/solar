@@ -1,13 +1,16 @@
-id: haproxy_keystone_config
+id: haproxy_general_config
 handler: none
 version: 1.0.0
 input:
     name:
       schema: str!
-      value: keystone-admin
+      value: general_haproxy
     listen_port:
       schema: int!
       value: 9999
+    protocol:
+      schema: str!
+      value: http
     ports:
       schema: [{value: int}]
       value: []
@@ -15,4 +18,4 @@ input:
       schema: [{value: str}]
       value: []
 
-tags: [resources/haproxy, resource/haproxy_keystone_config]
+tags: [resources/haproxy, resource/haproxy_general_config]

@@ -20,7 +20,8 @@ class AnsibleTemplate(TempFileHandler):
         call_args = ['ansible-playbook', '--module-path', '/vagrant/library', '-i', inventory_file, playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
-        out = fabric_api.local(' '.join(call_args), capture=True)
+        with fabric_api.shell_env(ANSIBLE_HOST_KEY_CHECKING='False'):
+            out = fabric_api.local(' '.join(call_args), capture=True)
         if out.failed:
             raise errors.SolarError(out)
 

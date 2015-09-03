@@ -7,6 +7,7 @@ import networkx as nx
 
 from solar.orchestration import graph
 from solar.orchestration import tasks
+from solar.cli.uids_history import SOLARUID
 
 
 @click.group(name='orch')
@@ -29,14 +30,14 @@ def create(plan):
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 @click.argument('plan', type=click.File('rb'))
 def update(uid, plan):
     graph.update_plan(uid, plan.read())
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def report(uid):
     colors = {
         'PENDING': 'cyan',
@@ -53,7 +54,7 @@ def report(uid):
         click.echo(click.style(msg, fg=colors[item[1]]))
 
 @orchestration.command(name='run-once')
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 @click.option('--start', default=None)
 @click.option('--end', default=None)
 def run_once(uid, start, end):
@@ -63,20 +64,20 @@ def run_once(uid, start, end):
         queue='scheduler')
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def restart(uid):
     graph.reset(uid)
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def reset(uid):
     graph.reset(uid)
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def stop(uid):
     # TODO(dshulyak) how to do "hard" stop?
     # using revoke(terminate=True) will lead to inability to restart execution
@@ -86,21 +87,21 @@ def stop(uid):
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def resume(uid):
     graph.reset(uid, ['SKIPPED'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def retry(uid):
     graph.reset(uid, ['ERROR'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def dg(uid):
     plan = graph.get_graph(uid)
 
@@ -122,6 +123,6 @@ def dg(uid):
 
 
 @orchestration.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def show(uid):
     click.echo(graph.show(uid))

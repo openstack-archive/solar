@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import click
 import sys
 import time
@@ -8,6 +10,7 @@ from solar.core import signals
 from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
+from solar import events as evapi
 
 from solar.interfaces.db import get_db
 
@@ -71,6 +74,7 @@ def setup_resources():
 
     # KEYSTONE
     keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
+    evapi.add_dep(rabbitmq_service1.name, keystone_puppet.name, actions=('run', 'update'))
     keystone_db = vr.create('keystone_db', 'resources/mariadb_db/', {
         'db_name': 'keystone_db',
         'login_user': 'root'
@@ -100,6 +104,9 @@ def setup_resources():
     })[0]
     services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {
         'tenant_name': 'services'
+    })[0]
+    admin_role_services = vr.create('admin_role_services', 'resources/keystone_role', {
+        'role_name': 'admin'
     })[0]
 
     signals.connect(node1, keystone_db)
@@ -134,6 +141,8 @@ def setup_resources():
     })
     signals.connect(admin_tenant, admin_user)
     signals.connect(admin_user, admin_role)
+    signals.connect(admin_user, admin_role_services)
+    signals.connect(services_tenant, admin_role_services, { 'tenant_name' })
 
     signals.connect(keystone_puppet, services_tenant)
     signals.connect(keystone_puppet, services_tenant, {
@@ -160,7 +169,7 @@ def setup_resources():
     # NEUTRON
     # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
     neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
-        'core_plugin': 'neutron.plugins.openvswitch.ovs_neutron_plugin.OVSNeutronPluginV2'
+        'core_plugin': 'neutron.plugins.ml2.plugin.Ml2Plugin'
         })[0]
     signals.connect(node1, neutron_puppet)
     signals.connect(rabbitmq_service1, neutron_puppet, {
@@ -235,23 +244,16 @@ def setup_resources():
         'bind_port': ['admin_port', 'internal_port', 'public_port'],
     })
 
-    # NEUTRON OVS PLUGIN & AGENT WITH GRE
-    neutron_plugins_ovs = vr.create('neutron_plugins_ovs', 'resources/neutron_plugins_ovs_puppet', {
-        'tenant_network_type': 'gre',
-    })[0]
-    signals.connect(node1, neutron_plugins_ovs)
-    signals.connect(neutron_db_user, neutron_plugins_ovs, {
-        'user_name':'db_user',
-        'db_name':'db_name',
-        'user_password':'db_password',
-        'db_host' : 'db_host'
-    })
-    neutron_agents_ovs = vr.create('neutron_agents_ovs', 'resources/neutron_agents_ovs_puppet', {
+    # NEUTRON ML2 PLUGIN & ML2-OVS AGENT WITH GRE
+    neutron_plugins_ml2 = vr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
+    signals.connect(node1, neutron_plugins_ml2)
+    neutron_agents_ml2 = vr.create('neutron_agents_ml2', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.13' # should be the IP addr of the br-mesh int.
     })[0]
-    signals.connect(node1, neutron_agents_ovs)
+    signals.connect(node1, neutron_agents_ml2)
 
     # NEUTRON DHCP, L3, metadata agents
     neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {})[0]
@@ -283,17 +285,15 @@ def setup_resources():
     })
 
     # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node2)
-    neutron_plugins_ovs2 = vr.create('neutron_plugins_ovs2', 'resources/neutron_plugins_ovs_puppet', {})[0]
-    signals.connect(node2, neutron_plugins_ovs2)
-    signals.connect(neutron_plugins_ovs, neutron_plugins_ovs2, {
-        'db_host', 'db_name', 'db_password', 'db_user', 'tenant_network_type'
-    })
-    neutron_agents_ovs2 = vr.create('neutron_agents_ovs2', 'resources/neutron_agents_ovs_puppet', {
+    neutron_plugins_ml22 = vr.create('neutron_plugins_ml22', 'resources/neutron_plugins_ml2_puppet', {})[0]
+    signals.connect(node2, neutron_plugins_ml22)
+    neutron_agents_ml22 = vr.create('neutron_agents_ml22', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
+        'tunnel_types': ['gre'],
         'local_ip': '10.1.0.14' # Should be the IP addr of the br-mesh int.
     })[0]
-    signals.connect(node2, neutron_agents_ovs2)
+    signals.connect(node2, neutron_agents_ml22)
 
     # CINDER
     cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
@@ -312,7 +312,7 @@ def setup_resources():
             'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2/%(tenant_id)s',
             'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
             'publicurl': 'http://{{public_ip}}:{{public_port}}/v2/%(tenant_id)s',
-            'description': 'OpenStack Block Storage Service', 'type': 'volume'})[0]
+            'description': 'OpenStack Block Storage Service', 'type': 'volumev2'})[0]
 
     signals.connect(node1, cinder_puppet)
     signals.connect(node1, cinder_db)
@@ -358,16 +358,17 @@ def setup_resources():
     signals.connect(cinder_puppet, cinder_api_puppet, {
         'keystone_host': 'keystone_auth_host',
         'keystone_port': 'keystone_auth_port'})
-
+    evapi.add_react(cinder_puppet.name, cinder_api_puppet.name, actions=('update',))
     # CINDER SCHEDULER
     cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     signals.connect(node1, cinder_scheduler_puppet)
     signals.connect(cinder_puppet, cinder_scheduler_puppet)
-
+    evapi.add_react(cinder_puppet.name, cinder_scheduler_puppet.name, actions=('update',))
     # CINDER VOLUME
     cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
     signals.connect(node1, cinder_volume_puppet)
     signals.connect(cinder_puppet, cinder_volume_puppet)
+    evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
 
     # NOVA
     nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
@@ -452,6 +453,14 @@ def setup_resources():
     signals.connect(node1, nova_conductor_puppet)
     signals.connect(nova_puppet, nova_conductor_puppet)
 
+    # NOVA SCHEDULER
+    # NOTE(bogdando) Generic service is used. Package and service names for Ubuntu case
+    #   come from https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/params.pp
+    nova_scheduler_puppet = vr.create('nova_scheduler_puppet', 'resources/nova_generic_service_puppet', {
+        'title' : 'scheduler', 'package_name': 'nova-scheduler', 'service_name': 'nova-scheduler',
+    })[0]
+    signals.connect(node1, nova_scheduler_puppet)
+
     # NOVA COMPUTE
     # Deploy chain (nova, node_networking(TODO)) -> (nova_compute_libvirt, nova_neutron) -> nova_compute
     nova_compute_puppet = vr.create('nova_compute_puppet', 'resources/nova_compute_puppet', {})[0]
@@ -511,7 +520,7 @@ def setup_resources():
             'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
             'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
             'publicurl': 'http://{{public_ip}}:{{public_port}}',
-            'description': 'OpenStack Image Service', 'type': 'volume'})[0]
+            'description': 'OpenStack Image Service', 'type': 'image'})[0]
 
     signals.connect(node1, glance_api_puppet)
     signals.connect(node1, glance_db)
@@ -612,9 +621,9 @@ resources_to_run = [
     'neutron_keystone_role',
     'neutron_puppet',
     'neutron_keystone_service_endpoint',
-    'neutron_plugins_ovs',
+    'neutron_plugins_ml2',
     'neutron_server_puppet',
-    'neutron_agents_ovs',
+    'neutron_agents_ml2',
     'neutron_agents_dhcp',
     'neutron_agents_l3',
     'neutron_agents_metadata',
@@ -638,6 +647,7 @@ resources_to_run = [
     'nova_keystone_service_endpoint',
     'nova_api_puppet',
     'nova_conductor_puppet',
+    'nova_scheduler_puppet',
 
     'glance_db',
     'glance_db_user',
@@ -653,10 +663,9 @@ resources_to_run = [
     'nova_compute_puppet',
 
     'neutron_puppet2',
-    'neutron_plugins_ovs2',
-    'neutron_agents_ovs2',
+    'neutron_plugins_ml22',
+    'neutron_agents_ml22',
 ]
-
 
 @click.command()
 def deploy():

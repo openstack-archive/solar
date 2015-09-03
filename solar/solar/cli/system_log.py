@@ -8,6 +8,7 @@ from solar.core import resource
 from solar.system_log import change
 from solar.system_log import operations
 from solar.system_log import data
+from solar.cli.uids_history import get_uid, remember_uid, SOLARUID
 
 
 @click.group()
@@ -25,21 +26,38 @@ def validate():
 
 
 @changes.command()
-def stage():
-    log = change.stage_changes()
-    staged = list(log.reverse())
-    if not staged:
+@click.option('-d', default=False, is_flag=True)
+def stage(d):
+    log = list(change.stage_changes().reverse())
+    for item in log:
+        click.echo(item)
+        if d:
+            for line in item.details:
+                click.echo(' '*4+line)
+    if not log:
         click.echo('No changes')
-    click.echo(staged)
 
+@changes.command(name='staged-item')
+@click.argument('log_action')
+@click.option('-d', default=True, is_flag=True)
+def staged_item(log_action, d):
+    item = data.SL().get(log_action)
+    if not item:
+        click.echo('No staged changes for {}'.format(log_action))
+    else:
+        click.echo(item)
+        for line in item.details:
+            click.echo(' '*4+line)
 
 @changes.command()
 def process():
-    click.echo(change.send_to_orchestration())
+    uid = change.send_to_orchestration()
+    remember_uid(uid)
+    click.echo(uid)
 
 
 @changes.command()
-@click.argument('uid')
+@click.argument('uid', type=SOLARUID)
 def commit(uid):
     operations.commit(uid)
 
@@ -57,7 +75,23 @@ def history(n):
 
 @changes.command()
 def test():
-    testing.test_all()
+    results = testing.test_all()
+
+    for name, result in results.items():
+        msg = '[{status}] {name} {message}'
+        kwargs = {
+            'name': name,
+            'message': '',
+            'status': 'OK',
+        }
+
+        if result['status'] == 'ok':
+            kwargs['status'] = click.style('OK', fg='green')
+        else:
+            kwargs['status'] = click.style('ERROR', fg='red')
+            kwargs['message'] = result['message']
+
+        click.echo(msg.format(**kwargs))
 
 
 @changes.command(name='clean-history')

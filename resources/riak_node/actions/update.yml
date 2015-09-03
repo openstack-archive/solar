@@ -1,0 +1,12 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - service:
+        name: riak
+        state: stopped
+    - template:
+        src: {{ resource_dir }}/templates/riak.conf
+        dest: /etc/riak/riak.conf
+    - service:
+        name: riak
+        state: reloaded
