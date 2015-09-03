@@ -28,6 +28,7 @@ celery*.log
 resources_compiled.py
 
 # bootstrap
+bootstrap/packer_cache
 bootstrap/trusty64
 bootstrap/solar-master.box
 vagrant-settings.yml
