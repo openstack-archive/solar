@@ -21,12 +21,11 @@ class AnsiblePlaybook(base.BaseHandler):
     def download_roles(self, urls):
         if not os.path.exists(ROLES_PATH):
             os.makedirs(ROLES_PATH)
-
         for url in urls:
             provider = SVNProvider(url)
             provider.run()
             fabric_api.local('cp -r {} {}'.format(
-                provider.repo_directory, ROLES_PATH))
+                provider.directory, ROLES_PATH))
 
     def action(self, resource, action):
         action_file = os.path.join(
@@ -48,7 +47,7 @@ class AnsiblePlaybook(base.BaseHandler):
         else:
             host = 'localhost'
             transport = 'local'
-
+        C.HOST_KEY_CHECKING = False
         play = PlayBook(
             playbook=action_file,
             remote_user=remote_user,

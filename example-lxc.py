@@ -42,8 +42,9 @@ def deploy():
     seed = vr.create('nodes', 'templates/seed_node.yml', {})[0]
 
     ssh_key = vr.create('ssh_key1', 'resources/ssh_key', {
-        'path': '/vagrant/.ssh/id_rsa',
-        'pub_path': '/vagrant/.ssh/id_rsa.pub',
+        'keys_dir': '/vagrant/.ssh',
+        'private_key': '/vagrant/.ssh/id_rsa',
+        'public_key': '/vagrant/.ssh/id_rsa.pub',
         'passphrase': '',
     })[0]
     signals.connect(seed, ssh_key)
@@ -100,8 +101,8 @@ def deploy():
         signals.connect(lxc_infra1, lxc_host_idx, {'provides': 'requires'})
         signals.connect(cnets2, lxc_host_idx)
         signals.connect(ssh_key, lxc_host_idx, {
-            'pub_path': 'pub_key',
-            'path': 'user_key'})
+            'public_key': 'pub_key',
+            'private_key': 'user_key'})
 
     # RABBIT
     rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
@@ -134,5 +135,3 @@ main.add_command(deploy)
 
 if __name__ == '__main__':
     main()
-
-ansible-playbook --module-path /vagrant/library -i /tmp/tmp8bTQzi/tmpGUYX4Bdocker20/inventory /tmp/tmp8bTQzi/tmpGUYX4Bdocker20/runIMUDej

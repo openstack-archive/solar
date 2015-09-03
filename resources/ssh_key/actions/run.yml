@@ -3,10 +3,12 @@
   gather_facts: false
   # this is default variables, they will be overwritten by resource one
   vars:
-    path: /vagrant/.ssh/id_rsa
+    keys_dir: /vagrant/.ssh
+    private_key: /vagrant/.ssh/id_rsa
     passphrase: ''
   tasks:
-    - stat: path={{path}}
+    - shell: mkdir -p {{keys_dir}}
+    - stat: path={{private_key}}
       register: key
-    - shell: ssh-keygen -t rsa -f {{path}} -N ""
+    - shell: ssh-keygen -t rsa -f {{private_key}} -N ""
       when: key.stat.exists == False

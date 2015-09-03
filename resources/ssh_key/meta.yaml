@@ -12,10 +12,13 @@ input:
     ssh_user:
       schema: str!
       value:
-    path:
+    keys_dir:
       schema: str!
       value:
-    pub_path:
+    private_key:
+      schema: str!
+      value:
+    public_key:
       schema: str!
       value:
     passphrase:
