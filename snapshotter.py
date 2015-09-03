@@ -63,12 +63,12 @@ def restore(n):
         was_running = False
         if vminfo['VMState'] == 'running':
             click.echo('[{vm}] Running, stopping'.format(vm=vm))
-            vagrant('suspend', vm)
+            vboxmanage(['controlvm', vm, 'poweroff'])
             was_running = True
         click.echo("Restoring %s" % vm)
         snap = vboxmanage(['snapshot', vm, 'restore', n])
         if was_running:
-            vagrant('up', vm)
+            vboxmanage(['startvm', vm, '--type', 'headless'])
         click.echo(snap)
 
 
