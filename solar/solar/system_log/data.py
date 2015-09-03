@@ -65,15 +65,19 @@ class LogItem(object):
 
     @property
     def details(self):
-        rst = []
-        for type_, val, change in self.diff:
-            if type_ == 'add':
-                for it in change:
-                    rst.append('++ {}: {}'.format(it[0], unwrap_add(it[1])))
-            elif type_ == 'change':
-                rst.append('-+ {}: {} >> {}'.format(
-                    unwrap_change_val(val), change[0], change[1]))
-        return rst
+        return details(self.diff)
+
+
+def details(diff):
+    rst = []
+    for type_, val, change in diff:
+        if type_ == 'add':
+            for it in change:
+                rst.append('++ {}: {}'.format(it[0], unwrap_add(it[1])))
+        elif type_ == 'change':
+            rst.append('-+ {}: {} >> {}'.format(
+                unwrap_change_val(val), change[0], change[1]))
+    return rst
 
 
 def unwrap_add(it):
