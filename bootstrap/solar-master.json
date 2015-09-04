@@ -29,8 +29,8 @@
       "type": "shell",
       "inline": [
         "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
-        "touch `ansible_log_file`",
-        "chmod 666 `ansible_log_file`"
+        "touch {{ user `ansible_log_file` }}",
+        "chmod 666 {{ user `ansible_log_file` }}"
       ]
     },
     {
