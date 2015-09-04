@@ -26,12 +26,12 @@
     - file: path={{ config_dir.value['src'] }}/policy.json state=touch
     - file: path={{ config_dir.value['src'] }}/schema-image.json state=touch
     - file: path={{ config_dir.value['src'] }}/exports state=touch
-    - template: src={{ resource_dir }}/templates/glance-api.conf dest={{ config_dir.value['src'] }}/glance-api.conf
-    - template: src={{ resource_dir }}/templates/glance-api-paste.ini dest={{ config_dir.value['src'] }}/glance-api-paste.ini
-    - template: src={{ resource_dir }}/templates/glance-cache.conf dest={{ config_dir.value['src'] }}/glance-cache.conf
-    - template: src={{ resource_dir }}/templates/glance-registry.conf dest={{ config_dir.value['src'] }}/glance-registry.conf
-    - template: src={{ resource_dir }}/templates/glance-registry-paste.ini dest={{ config_dir.value['src'] }}/glance-registry-paste.ini
-    - template: src={{ resource_dir }}/templates/glance-scrubber.conf dest={{ config_dir.value['src'] }}/glance-scrubber.conf
-    - template: src={{ resource_dir }}/templates/policy.json dest={{ config_dir.value['src'] }}/policy.json
-    - template: src={{ resource_dir }}/templates/schema-image.json dest={{ config_dir.value['src'] }}/schema-image.json
-    - template: src={{ resource_dir }}/templates/exports dest={{ config_dir.value['src'] }}/glance-export
+    - template: src={{templates_dir}}/glance-api.conf dest={{ config_dir.value['src'] }}/glance-api.conf
+    - template: src={{templates_dir}}/glance-api-paste.ini dest={{ config_dir.value['src'] }}/glance-api-paste.ini
+    - template: src={{templates_dir}}/glance-cache.conf dest={{ config_dir.value['src'] }}/glance-cache.conf
+    - template: src={{templates_dir}}/glance-registry.conf dest={{ config_dir.value['src'] }}/glance-registry.conf
+    - template: src={{templates_dir}}/glance-registry-paste.ini dest={{ config_dir.value['src'] }}/glance-registry-paste.ini
+    - template: src={{templates_dir}}/glance-scrubber.conf dest={{ config_dir.value['src'] }}/glance-scrubber.conf
+    - template: src={{templates_dir}}/policy.json dest={{ config_dir.value['src'] }}/policy.json
+    - template: src={{templates_dir}}/schema-image.json dest={{ config_dir.value['src'] }}/schema-image.json
+    - template: src={{templates_dir}}/exports dest={{ config_dir.value['src'] }}/glance-export

@@ -22,6 +22,7 @@ class AnsibleTemplate(TempFileHandler):
         log.debug('playbook_file: %s', playbook_file)
 
         # self.transport_sync.copy(resource, self.dirs[resource.name], self.dirs[resource.name])
+        self._copy_templates_and_scripts(resource, action_name)
         self.transport_sync.copy(resource, self.dst, '/tmp')
         self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
         self.transport_sync.sync_all()

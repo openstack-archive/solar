@@ -155,6 +155,7 @@ class Puppet(TempFileHandler):
 
         self.upload_manifests(resource)
 
+        self.prepare_templates_and_scripts(resource, action_file, '')
         self.transport_sync.copy(resource, action_file, '/tmp/action.pp')
         self.transport_sync.sync_all()
 

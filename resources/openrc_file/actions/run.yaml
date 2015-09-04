@@ -7,4 +7,4 @@
     keystone_host: {{keystone_host}}
     keystone_port: {{keystone_port}}
   tasks:
-    - template: src={{resource_dir}}/templates/openrc.template dest=/root/openrc
+    - template: src={{templates_dir}}/openrc.template dest=/root/openrc
