@@ -1,6 +1,0 @@
-
-- hosts: [service/containers]
-  sudo: yes
-  tasks:
-    - file: state=directory path=/var/lib/solar/
-    - shell: echo -n "" > /var/lib/solar/containers_list

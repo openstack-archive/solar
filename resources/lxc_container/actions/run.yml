@@ -1,0 +1,25 @@
+- hosts: '*'
+  sudo: yes
+  gather_facts: false
+  # this is default variables, they will be overwritten by resource one
+  vars:
+    ansible_ssh_host: 10.0.0.3
+    physical_host: 10.0.0.3
+    container_name: test3
+    inventory_hostname: test3
+    properties:
+        container_release: trusty
+    container_networks:
+        mgmt:
+            address: 172.18.10.6
+            bridge: br-test0
+            bridge_address: 172.18.10.252/24
+            interface: eth1
+            netmask: 255.255.255.0
+            type: veth
+    pub_key: ''
+  pre_tasks:
+    - set_fact:
+        lxc_container_ssh_key: "{{ lookup('file', pub_key) }}"
+  roles:
+   - { role: "lxc_container_create", tags: [ "lxc-container-create" ] }

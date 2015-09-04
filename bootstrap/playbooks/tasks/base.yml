@@ -6,6 +6,7 @@
   apt: name={{ item }} state=present
   with_items:
   - git
+  - subversion
   - python-mock
   - python-keystoneclient
   - python-mysqldb

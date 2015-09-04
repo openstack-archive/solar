@@ -39,8 +39,7 @@ def stage(d):
 
 @changes.command(name='staged-item')
 @click.argument('log_action')
-@click.option('-d', default=True, is_flag=True)
-def staged_item(log_action, d):
+def staged_item(log_action):
     item = data.SL().get(log_action)
     if not item:
         click.echo('No staged changes for {}'.format(log_action))
@@ -75,7 +74,23 @@ def history(n):
 
 @changes.command()
 def test():
-    testing.test_all()
+    results = testing.test_all()
+
+    for name, result in results.items():
+        msg = '[{status}] {name} {message}'
+        kwargs = {
+            'name': name,
+            'message': '',
+            'status': 'OK',
+        }
+
+        if result['status'] == 'ok':
+            kwargs['status'] = click.style('OK', fg='green')
+        else:
+            kwargs['status'] = click.style('ERROR', fg='red')
+            kwargs['message'] = result['message']
+
+        click.echo(msg.format(**kwargs))
 
 
 @changes.command(name='clean-history')

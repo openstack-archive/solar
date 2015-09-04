@@ -1,0 +1,20 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: install dependencies 
+      apt: name=lvm2 state=present
+    - name: preapara file
+      command: truncate -s 10G {{path}} creates={{path}}
+    - name: check if loop for file is already created
+      shell: losetup -a|grep {{path}}
+      register: loop_created
+      ignore_errors: True
+    - name: if loop is not created, create it
+      command: losetup -f {{path}}
+      when: loop_created|failed
+    - name: find loop device
+      shell: losetup -a|grep '{{path}}'|awk -F':' '{print $1}'
+      register: loop_device
+    - name: create Volume Group on loop device
+      lvg: vg={{volume_name}} pvs={% raw %}{{item}}{% endraw %} state=present
+      with_items: loop_device.stdout_lines
