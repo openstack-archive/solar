@@ -15,6 +15,7 @@ solar changes run-once last
 watch -n 1 solar changes report last
 ```
 
+Wait until all actions have state `SUCCESS`
 After that you can add HAProxy on each node:
 
 `python examples/riak/riaks.py add_haproxies`
@@ -28,6 +29,8 @@ solar changes run-once last
 watch -n 1 solar changes report last
 ```
 
+
+Wait until all actions have state `SUCCESS`
 After that you have basic 3 node riak cluster running.
 
 You can also modify riak http port by:
