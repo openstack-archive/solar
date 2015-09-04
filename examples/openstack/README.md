@@ -2,8 +2,8 @@ Deploying simple OpenStack env. In this example `orchestration` engine is NOT us
 
 You need to run it from main solar directory. To deploy run:
 
-`python examples/openstack/example-puppet.py deploy`
+`python examples/openstack/openstack.py deploy`
 
 To clean nodes, run:
 
-`python examples/openstack/example-puppet undeploy`
+`python examples/openstack/openstack.py undeploy`
