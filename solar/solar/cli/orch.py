@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-import subprocess
-
 import click
-import networkx as nx
 
 from solar.orchestration import graph
 from solar.orchestration import tasks
 from solar.orchestration import filters
+from solar.orchestration import utils
 from solar.cli.uids_history import SOLARUID
 
 
@@ -54,24 +52,21 @@ def report(uid):
             msg += ' :: {}'.format(item[2])
         click.echo(click.style(msg, fg=colors[item[1]]))
 
-@orchestration.command(name='run-once')
-@click.argument('uid', type=SOLARUID)
-@click.option('--start', default=None)
-@click.option('--end', default=None)
-def run_once(uid, start, end):
-    tasks.schedule_start.apply_async(
-        args=[uid],
-        queue='scheduler')
-
-
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
-def filter(uid, start, end):
-    dg = graph.get_graph(uid)
-    subpath = filters.traverse(dg, start=start, end=end)
-    click.echo(subpath.nodes())
+@click.option('--tasks', '-t', multiple=True)
+def filter(uid, start, end, tasks):
+    click.echo(filters.traverse(start=start, end=end, tasks=tasks))
+
+
+@orchestration.command(name='run-once')
+@click.argument('uid', type=SOLARUID)
+def run_once(uid):
+    tasks.schedule_start.apply_async(
+        args=[uid],
+        queue='scheduler')
 
 
 @orchestration.command()
@@ -113,24 +108,12 @@ def retry(uid):
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
-def dg(uid):
-    plan = graph.get_graph(uid)
-
-    colors = {
-        'PENDING': 'cyan',
-        'ERROR': 'red',
-        'SUCCESS': 'green',
-        'INPROGRESS': 'yellow',
-        'SKIPPED': 'blue'}
-
-    for n in plan:
-        color = colors[plan.node[n]['status']]
-        plan.node[n]['color'] = color
-
-    nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
-    subprocess.call(
-        'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),
-        shell=True)
+@click.option('--start', '-s', multiple=True)
+@click.option('--end', '-e', multiple=True)
+@click.option('--tasks', '-t', multiple=True)
+def dg(uid, start, end, tasks):
+    plan = filters.traverse(graph.get_graph(uid), start=start, end=end, tasks=tasks)
+    utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 
 
