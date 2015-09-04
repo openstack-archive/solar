@@ -1,5 +1,5 @@
 - hosts: [{{ ip }}]
   sudo: yes
   tasks:
-      - new_rabbitmq_vhost: name={{vhost_name}}
-                            state=present
+      - rabbitmq_vhost: name={{vhost_name}}
+                        state=present
