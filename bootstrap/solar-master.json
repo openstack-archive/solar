@@ -33,6 +33,13 @@
     },
     {
       "type": "shell",
+      "inline": [
+        "touch /tmp/ansible.log",
+        "chmod 666 /tmp/ansible.log"
+      ]
+    },
+    {
+      "type": "shell",
       "script": "playbooks/files/ubuntu-ansible.sh"
     }, {
       "type": "ansible-local",
