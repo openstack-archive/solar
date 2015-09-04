@@ -2,7 +2,7 @@
   "variables": {
     "ansible_config_path": "/etc/ansible",
     "ansible_config_file": "ansible.cfg",
-    "ansible_log_file": "/tmp/ansible.log"
+    "ansible_log_file": "/var/tmp/ansible.log"
   },
   "builders": [{
     "type": "virtualbox-ovf",
