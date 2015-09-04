@@ -16,4 +16,3 @@ Fabric==1.10.2
 tabulate==0.7.5
 ansible
 celery
-mock
