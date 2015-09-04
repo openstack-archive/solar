@@ -58,7 +58,9 @@ def report(uid):
 @click.option('--end', '-e', multiple=True)
 @click.option('--tasks', '-t', multiple=True)
 def filter(uid, start, end, tasks):
-    click.echo(filters.traverse(start=start, end=end, tasks=tasks))
+    filtered_plan = filters.traverse(
+        graph.get_graph(uid), start=start, end=end, tasks=tasks)
+    graph.save_graph(uid, filtered_plan)
 
 
 @orchestration.command(name='run-once')
