@@ -1,5 +1,0 @@
-
-- hosts: [service/haproxy]
-  sudo: yes
-  tasks:
-    - shell: docker rm -f {{ name }} || true
