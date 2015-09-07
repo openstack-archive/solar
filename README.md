@@ -35,6 +35,7 @@ with the `snapshotter.py` script:
 # Solar usage
 
 Basic flow is:
+
 1. Create some resources (look at `examples/openstack/openstack.py`) and connect
    them between each other, and place them on nodes.
 1. Run `solar changes stage` (this stages the changes)
