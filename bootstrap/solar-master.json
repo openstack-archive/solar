@@ -2,7 +2,7 @@
   "variables": {
     "ansible_config_path": "/etc/ansible",
     "ansible_config_file": "ansible.cfg",
-    "ansible_log_file": "/tmp/ansible.log"
+    "ansible_log_file": "/var/tmp/ansible.log"
   },
   "builders": [{
     "type": "virtualbox-ovf",
@@ -28,7 +28,9 @@
     {
       "type": "shell",
       "inline": [
-        "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}"
+        "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
+        "touch {{ user `ansible_log_file` }}",
+        "chmod 666 {{ user `ansible_log_file` }}"
       ]
     },
     {
