@@ -2,6 +2,7 @@ from copy import deepcopy
 import json
 from multipledispatch import dispatch
 import os
+import uuid
 
 from solar.interfaces.db import get_db
 from solar import utils
@@ -14,10 +15,11 @@ db = get_db()
 # TODO: write this as a Cypher query? Move to DB?
 def _read_input_value(input_node):
     rel = db.get_relations(dest=input_node,
-                           type_=db.RELATION_TYPES.resource_input)
+                           type_=db.RELATION_TYPES.input_to_input)
 
     if not rel:
-        return input_node.properties['value']
+        v = input_node.properties['value'] or 'null'
+        return json.loads(v)
 
     if input_node.properties['is_list']:
         return [_read_input_value(r.start_node) for r in rel]
@@ -99,10 +101,13 @@ class Resource(object):
         for k, v in self.metadata['input'].items():
             value = args.get(k, v.get('value'))
 
+            uid = '{}-{}'.format(k, uuid.uuid4())
+
             i = db.get_or_create(
-                k,
+                uid,
                 args={
                     'is_list': isinstance(v.get('schema'), list),
+                    'input_name': k,
                     'value': json.dumps(value),
                 },
                 collection=db.COLLECTIONS.input
@@ -116,10 +121,10 @@ class Resource(object):
 
     @property
     def args(self):
-        return {
-            k: json.loads(n.properties['value'] or 'null')
-            for k, n in self.resource_inputs().items()
-        }
+        ret = {}
+        for k, n in self.resource_inputs().items():
+            ret[k] = _read_input_value(n)
+        return ret
 
     def update(self, args):
         # TODO: disconnect input when it is updated and and end_node
@@ -132,18 +137,14 @@ class Resource(object):
             i.push()
 
     def resource_inputs(self):
-        if not hasattr(self, '__resource_inputs'):
-            self.__resource_inputs = [
-                r.end_node for r in
-                db.get_relations(source=self.node,
-                                 type_=db.RELATION_TYPES.resource_input)
-            ]
-
-        for r in self.__resource_inputs:
-            r.pull()
+        resource_inputs = [
+            r.end_node for r in
+            db.get_relations(source=self.node,
+                             type_=db.RELATION_TYPES.resource_input)
+        ]
 
         return {
-            i.properties['name']: i for i in self.__resource_inputs
+            i.properties['input_name']: i for i in resource_inputs
         }
 
 
@@ -158,4 +159,3 @@ def load(name):
 
 def wrap_resource(resource_node):
     return Resource(resource_node)
-

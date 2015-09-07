@@ -62,6 +62,16 @@ def connect_single(emitter, src, receiver, dst):
             type_=db.RELATION_TYPES.input_to_input
         )
 
+    # Check for cycles
+    r = db.get_relations(
+        receiver_input,
+        emitter_input,
+        type_=db.RELATION_TYPES.input_to_input
+    )
+
+    if r:
+        raise Exception('Prevented creating a cycle')
+
     db.get_or_create_relation(
         emitter_input,
         receiver_input,
@@ -77,3 +87,13 @@ def disconnect_receiver_by_input(receiver, input_name):
         dest=input_node,
         type_=db.RELATION_TYPES.input_to_input
     )
+
+
+def disconnect(emitter, receiver):
+    for emitter_input in emitter.resource_inputs().values():
+        for receiver_input in receiver.resource_inputs().values():
+            db.delete_relations(
+                source=emitter_input,
+                dest=receiver_input,
+                type_=db.RELATION_TYPES.input_to_input
+            )

@@ -1,22 +1,13 @@
 import json
 from copy import deepcopy
-from enum import Enum
 import py2neo
 
 from solar.core import log
 
+from .base import BaseGraphDB
 
-class Neo4jDB(object):
-    COLLECTIONS = Enum(
-        'Collections',
-        'input resource state_data state_log'
-    )
-    DEFAULT_COLLECTION=COLLECTIONS.resource
-    RELATION_TYPES = Enum(
-        'RelationTypes',
-        'input_to_input resource_input'
-    )
-    DEFAULT_RELATION=RELATION_TYPES.resource_input
+
+class Neo4jDB(BaseGraphDB):
     DB = {
         'host': 'localhost',
         'port': 7474,
@@ -49,7 +40,7 @@ class Neo4jDB(object):
     def obj_from_db(o):
         o.properties = Neo4jDB._args_from_db(o.properties)
 
-    def all(self, collection=DEFAULT_COLLECTION):
+    def all(self, collection=BaseGraphDB.DEFAULT_COLLECTION):
         return [
             r.n for r in self._r.cypher.execute(
                 'MATCH (n:%(collection)s) RETURN n' % {
@@ -58,7 +49,7 @@ class Neo4jDB(object):
             )
         ]
 
-    def all_relations(self, type_=DEFAULT_RELATION):
+    def all_relations(self, type_=BaseGraphDB.DEFAULT_RELATION):
         return [
             r.r for r in self._r.cypher.execute(
                 *self._relations_query(
@@ -72,13 +63,13 @@ class Neo4jDB(object):
 
         self._r.delete_all()
 
-    def clear_collection(self, collection=DEFAULT_COLLECTION):
+    def clear_collection(self, collection=BaseGraphDB.DEFAULT_COLLECTION):
         log.log.debug('Clearing collection %s', collection.name)
 
         # TODO: make single DELETE query
         self._r.delete([r.n for r in self.all(collection=collection)])
 
-    def create(self, name, args={}, collection=DEFAULT_COLLECTION):
+    def create(self, name, args={}, collection=BaseGraphDB.DEFAULT_COLLECTION):
         log.log.debug(
             'Creating %s, name %s with args %s',
             collection.name,
@@ -94,7 +85,11 @@ class Neo4jDB(object):
 
         return n
 
-    def create_relation(self, source, dest, args={}, type_=DEFAULT_RELATION):
+    def create_relation(self,
+                        source,
+                        dest,
+                        args={},
+                        type_=BaseGraphDB.DEFAULT_RELATION):
         log.log.debug(
             'Creating %s from %s to %s with args %s',
             type_.name,
@@ -107,7 +102,7 @@ class Neo4jDB(object):
 
         return r
 
-    def get(self, name, collection=DEFAULT_COLLECTION):
+    def get(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
         res = self._r.cypher.execute(
             'MATCH (n:%(collection)s {name:{name}}) RETURN n' % {
                 'collection': collection.name,
@@ -119,7 +114,10 @@ class Neo4jDB(object):
         if res:
             return res[0].n
 
-    def get_or_create(self, name, args={}, collection=DEFAULT_COLLECTION):
+    def get_or_create(self,
+                      name,
+                      args={},
+                      collection=BaseGraphDB.DEFAULT_COLLECTION):
         n = self.get(name, collection=collection)
 
         if n:
@@ -133,7 +131,7 @@ class Neo4jDB(object):
     def _relations_query(self,
                          source=None,
                          dest=None,
-                         type_=DEFAULT_RELATION,
+                         type_=BaseGraphDB.DEFAULT_RELATION,
                          query_type='RETURN'):
         kwargs = {}
         source_query = '(n)'
@@ -156,14 +154,20 @@ class Neo4jDB(object):
 
         return query, kwargs
 
-    def delete_relations(self, source=None, dest=None, type_=DEFAULT_RELATION):
+    def delete_relations(self,
+                         source=None,
+                         dest=None,
+                         type_=BaseGraphDB.DEFAULT_RELATION):
         query, kwargs = self._relations_query(
             source=source, dest=dest, type_=type_, query_type='DELETE'
         )
 
         self._r.cypher.execute(query, kwargs)
 
-    def get_relations(self, source=None, dest=None, type_=DEFAULT_RELATION):
+    def get_relations(self,
+                      source=None,
+                      dest=None,
+                      type_=BaseGraphDB.DEFAULT_RELATION):
         query, kwargs = self._relations_query(
             source=source, dest=dest, type_=type_
         )
@@ -172,11 +176,17 @@ class Neo4jDB(object):
 
         return [r.r for r in res]
 
+    def get_relation(source, dest, type_=BaseGraphDB.DEFAULT_RELATION):
+        rel = self.get_relations(source=source, dest=dest, type_=type_)
+
+        if rel:
+            return rel[0]
+
     def get_or_create_relation(self,
                                source,
                                dest,
                                args={},
-                               type_=DEFAULT_RELATION):
+                               type_=BaseGraphDB.DEFAULT_RELATION):
         rel = self.get_relations(source=source, dest=dest, type_=type_)
 
         if rel:
