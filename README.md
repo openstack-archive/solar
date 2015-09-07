@@ -235,4 +235,34 @@ node1.ssh_user = 'vagrant'
 
 # Higher-level API
 
-TODO
+There's also a higher-level API that allows to write resource instances in more
+functional way, and in particular avoid `for` loops. Here's an example:
+
+```python
+from solar import template
+
+nodes = template.nodes_from('templates/riak_nodes.yml')
+
+riak_services = nodes.on_each(
+    'resources/riak_node',
+    {
+        'riak_self_name': 'riak{num}',
+        'riak_hostname': 'riak_server{num}.solar',
+        'riak_name': 'riak{num}@riak_server{num}.solar',
+    }
+)
+
+riak_master_service = riak_services.take(0)
+riak_slave_services = riak_services.tail()
+
+riak_master_service.connect_list(
+    riak_slave_services,
+    {
+        'riak_name': 'join_to',
+    }
+)
+```
+
+For full Riak example, please look at `examples/riak/riaks-template.py`.
+
+Full documentation of individual functions is found in the `solar/template.py` file.
