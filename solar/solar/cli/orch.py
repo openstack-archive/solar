@@ -25,7 +25,7 @@ def orchestration():
 @orchestration.command()
 @click.argument('plan', type=click.File('rb'))
 def create(plan):
-    click.echo(graph.create_plan(plan.read()))
+    click.echo(graph.create_plan(plan.read()).graph['uid'])
 
 
 @orchestration.command()
@@ -58,9 +58,11 @@ def report(uid):
 @click.option('--end', '-e', multiple=True)
 @click.option('--tasks', '-t', multiple=True)
 def filter(uid, start, end, tasks):
-    filtered_plan = filters.traverse(
+    plan = filters.filter(
         graph.get_graph(uid), start=start, end=end, tasks=tasks)
-    graph.save_graph(uid, filtered_plan)
+    graph.save_graph(uid, plan)
+    utils.write_graph(plan)
+    click.echo('Created {name}.png'.format(name=plan.graph['name']))
 
 
 @orchestration.command(name='run-once')
@@ -114,7 +116,9 @@ def retry(uid):
 @click.option('--end', '-e', multiple=True)
 @click.option('--tasks', '-t', multiple=True)
 def dg(uid, start, end, tasks):
-    plan = filters.traverse(graph.get_graph(uid), start=start, end=end, tasks=tasks)
+    plan = graph.get_graph(uid)
+    if start or end or tasks:
+        plan = filters.filter(plan, start=start, end=end, tasks=tasks)
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 

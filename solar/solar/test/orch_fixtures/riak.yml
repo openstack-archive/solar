@@ -1,0 +1,154 @@
+name: system_log
+tasks:
+- after: []
+  before:
+  - riak_service3.run
+  - hosts_file3.run
+  parameters:
+    args:
+    - node3
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: node3.run
+- after:
+  - node3.run
+  before:
+  - riak_service3.run
+  parameters:
+    args:
+    - hosts_file3
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: hosts_file3.run
+- after: []
+  before:
+  - riak_service2.run
+  - hosts_file2.run
+  parameters:
+    args:
+    - node2
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: node2.run
+- after: []
+  before:
+  - hosts_file1.run
+  - riak_service1.run
+  parameters:
+    args:
+    - node1
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: node1.run
+- after:
+  - node2.run
+  before:
+  - riak_service2.run
+  parameters:
+    args:
+    - hosts_file2
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: hosts_file2.run
+- after:
+  - node1.run
+  before:
+  - riak_service1.run
+  parameters:
+    args:
+    - hosts_file1
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: hosts_file1.run
+- after:
+  - hosts_file1.run
+  - node1.run
+  before:
+  - riak_service3.run
+  - riak_service2.run
+  parameters:
+    args:
+    - riak_service1
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service1.run
+- after:
+  - node3.run
+  - riak_service1.run
+  - hosts_file3.run
+  before:
+  - riak_service3.join
+  parameters:
+    args:
+    - riak_service3
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service3.run
+- after:
+  - riak_service3.run
+  before:
+  - riak_service1.commit
+  parameters:
+    args:
+    - riak_service3
+    - join
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service3.join
+- after:
+  - node2.run
+  - riak_service1.run
+  - hosts_file2.run
+  before:
+  - riak_service2.join
+  parameters:
+    args:
+    - riak_service2
+    - run
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service2.run
+- after:
+  - riak_service2.run
+  before:
+  - riak_service1.commit
+  parameters:
+    args:
+    - riak_service2
+    - join
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service2.join
+- after:
+  - riak_service2.join
+  - riak_service3.join
+  before: []
+  parameters:
+    args:
+    - riak_service1
+    - commit
+    errmsg: null
+    status: PENDING
+    type: solar_resource
+  uid: riak_service1.commit
+uid: system_log:565581a1-80a0-425d-bb5c-d1cc4f48ffda
+

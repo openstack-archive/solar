@@ -50,7 +50,7 @@ def staged_item(log_action):
 
 @changes.command()
 def process():
-    uid = change.send_to_orchestration()
+    uid = change.send_to_orchestration().graph['uid']
     remember_uid(uid)
     click.echo(uid)
 

@@ -5,7 +5,6 @@ import uuid
 
 import networkx as nx
 import redis
-import yaml
 
 from solar import utils
 
@@ -36,12 +35,17 @@ get_plan = get_graph
 def parse_plan(plan_data):
     """ parses yaml definition and returns graph
     """
-    plan = yaml.load(plan_data)
+    plan = utils.yaml_load(plan_data)
     dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
+        defaults = {
+            'status': 'PENDING',
+            'errmsg': None,
+            }
+        defaults.update(task['parameters'])
         dg.add_node(
-            task['uid'], status='PENDING', errmsg=None, **task['parameters'])
+            task['uid'], **defaults)
         for v in task.get('before', ()):
             dg.add_edge(task['uid'], v)
         for u in task.get('after', ()):
@@ -49,10 +53,11 @@ def parse_plan(plan_data):
     return dg
 
 
-def create_plan_from_graph(dg):
+def create_plan_from_graph(dg, save=True):
     dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
-    save_graph(dg.graph['uid'], dg)
-    return dg.graph['uid']
+    if save:
+        save_graph(dg.graph['uid'], dg)
+    return dg
 
 
 def show(uid):
@@ -73,11 +78,11 @@ def show(uid):
     return utils.yaml_dump(result)
 
 
-def create_plan(plan_data):
+def create_plan(plan_data, save=True):
     """
     """
     dg = parse_plan(plan_data)
-    return create_plan_from_graph(dg)
+    return create_plan_from_graph(dg, save=save)
 
 
 def update_plan(uid, plan_data):
