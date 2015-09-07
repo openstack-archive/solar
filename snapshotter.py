@@ -54,7 +54,7 @@ def take(n):
         click.echo(snap)
 
 
-@click.option('-n')
+@click.option('-n', required=True)
 @cli.command()
 def restore(n):
     vms = get_vagrant_vms()
