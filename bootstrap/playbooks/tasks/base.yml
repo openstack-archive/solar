@@ -25,6 +25,8 @@
   # Dev
   - ipython
   - python-pudb
+  - python-dev
+  - python-virtualenv
   # Required by packer
   - build-essential
 
