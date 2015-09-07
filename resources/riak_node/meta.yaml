@@ -1,0 +1,39 @@
+id: riak_node
+handler: ansible
+version: 1.0.0
+actions:
+  commit: actions/commit.yml
+  run: actions/run.yml
+  join: actions/join.yml
+input:
+    ip:
+      schema: str!
+      value:
+    ssh_key:
+      schema: str!
+      value:
+    ssh_user:
+      schema: str!
+      value:
+    riak_self_name:
+      schema: str!
+      value:
+    riak_hostname:
+      schema: str!
+      value: 
+    riak_name:
+      schema: str!
+      # value: "{{riak_self_name}}@{{riak_hostname}}"
+      value: "{{riak_self_name}}@{{ip}}"
+    riak_port_http:
+      schema: int!
+      value: 18098
+    riak_port_pb:
+      schema: int!
+      value: 18087
+    riak_port_solr:
+      schema: int!
+      value: 8985
+    join_to:
+      schema: str
+      value:

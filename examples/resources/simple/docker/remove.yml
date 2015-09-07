@@ -1,4 +1,0 @@
-- hosts: [service/docker]
-  sudo: yes
-  tasks:
-    - shell: apt-get remove -y lxc-docker

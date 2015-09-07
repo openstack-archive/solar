@@ -1,5 +1,0 @@
-
-- hosts: [service/mariadb]
-  sudo: yes
-  tasks:
-    - shell: docker rm -f {{ name }} || true

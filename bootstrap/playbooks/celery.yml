@@ -1,0 +1,21 @@
+---
+
+- name: Solar Celery config
+  hosts: all
+  sudo: yes
+  vars:
+    celery_dir: /var/run/celery
+  tasks:
+    - shell: mkdir -p {{ celery_dir }}
+    - shell: pip install celery
+    - shell: hostname
+      register: hostname
+    - shell: celery multi kill 2
+             chdir={{ celery_dir }}
+      tags: [stop]
+    - shell: celery multi start 2 -A solar.orchestration.runner -Q:1 scheduler,system_log -Q:2 celery,{{ hostname.stdout }}
+             chdir={{ celery_dir }}
+      tags: [master]
+    - shell: celery multi start 1 -A solar.orchestration.runner -Q:1  {{ hostname.stdout }}
+             chdir={{ celery_dir }}
+      tags: [slave]

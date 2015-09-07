@@ -30,12 +30,12 @@ CL = partial(state_file, 'commit_log')
 
 class LogItem(object):
 
-    def __init__(self, uid, res, diff, action, state=None):
+    def __init__(self, uid, res, log_action, diff, state=None):
         self.uid = uid
         self.res = res
+        self.log_action = log_action
         self.diff = diff
         self.state = state or STATES.pending
-        self.action = action
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
@@ -43,9 +43,9 @@ class LogItem(object):
     def to_dict(self):
         return {'uid': self.uid,
                 'res': self.res,
+                'log_action': self.log_action,
                 'diff': self.diff,
-                'state': self.state.name,
-                'action': self.action}
+                'state': self.state.name}
 
     @classmethod
     def from_dict(cls, **kwargs):
@@ -54,10 +54,48 @@ class LogItem(object):
         return cls(**kwargs)
 
     def __str__(self):
-        return self.to_yaml()
+        return self.compact
 
     def __repr__(self):
-        return self.to_yaml()
+        return self.compact
+
+    @property
+    def compact(self):
+        return 'log task={} uid={}'.format(self.log_action, self.uid)
+
+    @property
+    def details(self):
+        return details(self.diff)
+
+
+def details(diff):
+    rst = []
+    for type_, val, change in diff:
+        if type_ == 'add':
+            for it in change:
+                rst.append('++ {}: {}'.format(it[0], unwrap_add(it[1])))
+        elif type_ == 'change':
+            rst.append('-+ {}: {} >> {}'.format(
+                unwrap_change_val(val), change[0], change[1]))
+    return rst
+
+
+def unwrap_add(it):
+    if isinstance(it, dict):
+        if it['emitter']:
+            return '{}::{}'.format(it['emitter'], it['value'])
+        return it['value']
+    elif isinstance(it, list):
+        return [unwrap_add(i) for i in it]
+    else:
+        return it[1]
+
+
+def unwrap_change_val(val):
+    if isinstance(val, list):
+        return '{}:[{}] '.format(val[0], val[1])
+    else:
+        return val
 
 
 class Log(object):
@@ -66,7 +104,7 @@ class Log(object):
         self.ordered_log = db.get_set(path)
 
     def append(self, logitem):
-        self.ordered_log.add([(logitem.res, logitem.to_dict())])
+        self.ordered_log.add([(logitem.log_action, logitem.to_dict())])
 
     def pop(self, uid):
         item = self.get(uid)
@@ -76,7 +114,7 @@ class Log(object):
         return item
 
     def update(self, logitem):
-        self.ordered_log.update(logitem.res, logitem.to_dict())
+        self.ordered_log.update(logitem.log_action, logitem.to_dict())
 
     def clean(self):
         self.ordered_log.clean()

@@ -5,9 +5,10 @@
     config_dir: {src: {{ config_dir.value['src'] }}, dst: {{ config_dir.value['dst'] }}}
     haproxy_ip: {{ ip }}
     haproxy_services:
-      {% for service, ports, listen_port in zip(configs.value, configs_ports.value, listen_ports.value) %}
+      {% for service, ports, listen_port, protocol in zip(configs.value, configs_ports.value, listen_ports.value, configs_protocols.value) %}
       - name: {{ service['emitter_attached_to'] }}
         listen_port: {{ listen_port['value'] }}
+        protocol: {{ protocol['value'] }}
         servers:
           {% for server_ip, server_port in zip(service['value'], ports['value']) %}
           - name: {{ server_ip['emitter_attached_to'] }}
@@ -18,4 +19,4 @@
   tasks:
     - file: path={{ config_dir.value['src'] }}/ state=directory
     - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
-    - template: src={{ resource_dir }}/templates/haproxy.cfg dest={{ config_dir.value['src'] }}/haproxy.cfg
+    - template: src={{ resource_dir }}/templates/haproxy.cfg dest=/etc/haproxy/haproxy.cfg

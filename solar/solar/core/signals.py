@@ -1,4 +1,6 @@
 from solar.interfaces.db import get_db
+from solar.events.api import add_events
+from solar.events.controls import Dependency
 
 
 db = get_db()
@@ -30,7 +32,7 @@ def guess_mapping(emitter, receiver):
     return guessed
 
 
-def connect(emitter, receiver, mapping={}):
+def connect(emitter, receiver, mapping={}, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
     if isinstance(mapping, set):

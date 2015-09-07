@@ -1,0 +1,16 @@
+- hosts: [{{ ip }}]
+  sudo: yes
+  tasks:
+    - name: remove VG
+      lvg: vg={{name}} state=absent force=yes
+    - name: find loop device
+      shell: losetup -a|grep "{{path}}"|awk -F':' '{print $1}'
+      register: loop_device
+    - name: if loop device exists, delete it
+      command: sudo losetup -d {% raw %}{{item}}{% endraw %}
+      when: loop_device|success
+      with_items: loop_device.stdout_lines
+    - name: remove file
+      file: path={{path}} state=absent
+        
+

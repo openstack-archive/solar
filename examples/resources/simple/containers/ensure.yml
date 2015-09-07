@@ -1,9 +1,0 @@
-
-- hosts: [service/containers]
-  sudo: yes
-  tasks:
-    - shell: docker ps -a | egrep -v "CONTAINER ID|$(cat /var/lib/solar/containers_list | tr '\n' '|' | sed 's/|$//')"  | egrep 'solar\.' | awk '{print $1}'
-      register: containers
-
-    - shell: docker rm -f {{item}}
-      with_items: containers.stdout_lines
