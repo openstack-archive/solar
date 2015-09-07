@@ -29,7 +29,7 @@ class AnsiblePlaybook(base.BaseHandler):
 
     def action(self, resource, action):
         # This would require to put this file to remote and execute it (mostly)
-        raise Exception("Not ported to pluggable transports")
+        log.debug("Ansible playbook is not ported to pluggable transports")
         action_file = os.path.join(
             resource.metadata['actions_path'],
             resource.metadata['actions'][action])
