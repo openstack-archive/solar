@@ -15,7 +15,7 @@ solar --help
 
 Launch standard deployment:
 ```bash
-python example-puppet.py
+python examples/openstack/openstack.py
 ```
 
 Get ssh details for running slave nodes (vagrant/vagrant):
@@ -23,20 +23,20 @@ Get ssh details for running slave nodes (vagrant/vagrant):
 vagrant ssh-config
 ```
 
-Get list of docker containers and attach to the foo container
-```bash
-sudo docker ps -a
-sudo docker exec -it foo
-```
-
 You can make/restore snapshots of boxes (this is way faster than reprovisioning them)
-ith the `snapshotter.py` script.
+with the `snapshotter.py` script:
+
+```bash
+./snapshotter.py take -n my-snapshot
+./snapshotter.py show
+./snapshotter.py restore -n my-snapshot
+```
 
 # Solar usage
 
 Basic flow is:
-1. Create some resources (look at `example-puppet.py`) and connect them between
-   each other, and place them on nodes.
+1. Create some resources (look at `examples/openstack/openstack.py`) and connect
+   them between each other, and place them on nodes.
 1. Run `solar changes stage` (this stages the changes)
 1. Run `solar changes process` (this prepares orchestrator graph, returning
    change UUID)
@@ -127,17 +127,17 @@ solar resource tag node1 test-tag --delete
 Creating resources:
 
 ```python
-from x import resource
-node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
+from solar.core.resource import virtual_resource as vr
+node1 = vr.create('node1', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})[0]
 
-node2 = resource.create('node2', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
+node2 = vr.create('node2', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})[0]
 
-keystone_db_data = resource.create('mariadb_keystone_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})
+keystone_db_data = vr.create('mariadb_keystone_data', 'resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})[0]
 
-nova_db_data = resource.create('mariadb_nova_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})
+nova_db_data = vr.create('mariadb_nova_data', 'resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})[0]
 ```
 
-to make connection after resource is created use `signal.connect`
+To make connection after resource is created use `signal.connect`.
 
 To test notifications:
 
@@ -152,23 +152,21 @@ keystone_db_data.args   # updated IP
 If you close the Python shell you can load the resources like this:
 
 ```python
-from x import resource
+from solar.core import resource
 node1 = resource.load('rs/node1')
 
 node2 = resource.load('rs/node2')
 
-keystone_db_data = resource.load('rs/mariadn_keystone_data')
+keystone_db_data = resource.load('rs/mariadb_keystone_data')
 
 nova_db_data = resource.load('rs/mariadb_nova_data')
 ```
-
 Connections are loaded automatically.
-
 
 You can also load all resources at once:
 
 ```python
-from x import resource
+from solar.core import resource
 all_resources = resource.load_all('rs')
 ```
 
