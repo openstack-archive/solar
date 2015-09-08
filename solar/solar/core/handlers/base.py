@@ -6,12 +6,21 @@ import tempfile
 from jinja2 import Template
 
 from solar.core.log import log
+from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 
 
 class BaseHandler(object):
 
-    def __init__(self, resources):
+    def __init__(self, resources, handlers=None):
         self.resources = resources
+        if handlers is None:
+            self.transport_sync = SSHSyncTransport()
+            self.transport_run = SSHRunTransport()
+        else:
+            self.transport_run = handlers['run']()
+            self.transport_sync = handlers['sync']()
+        self.transport_sync.bind_with(self.transport_run)
+        self.transport_run.bind_with(self.transport_sync)
 
     def __enter__(self):
         return self
@@ -21,9 +30,9 @@ class BaseHandler(object):
 
 
 class TempFileHandler(BaseHandler):
-    def __init__(self, resources):
+    def __init__(self, resources, handlers=None):
+        super(TempFileHandler, self).__init__(resources, handlers)
         self.dst = tempfile.mkdtemp()
-        self.resources = resources
 
     def __enter__(self):
         self.dirs = {}
@@ -58,9 +67,39 @@ class TempFileHandler(BaseHandler):
             tpl = Template(f.read())
         return tpl.render(str=str, zip=zip, **args)
 
+    def _copy_templates_and_scripts(self, resource, action):
+        # TODO: we might need to optimize it later, like provide list
+        # templates/scripts per action
+        log.debug("Adding templates for %s %s", resource.name, action)
+        trg_templates_dir = None
+        trg_scripts_dir = None
+
+        base_path = resource.metadata['base_path']
+        src_templates_dir = os.path.join(base_path, 'templates')
+        if os.path.exists(src_templates_dir):
+            trg_templates_dir = os.path.join(self.dirs[resource.name], 'templates')
+            shutil.copytree(src_templates_dir, trg_templates_dir)
+
+        src_scripts_dir = os.path.join(base_path, 'scripts')
+        if os.path.exists(src_scripts_dir):
+            trg_scripts_dir = os.path.join(self.dirs[resource.name], 'scripts')
+            shutil.copytree(src_scripts_dir, trg_scripts_dir)
+
+        return (trg_templates_dir, trg_scripts_dir)
+
+    def prepare_templates_and_scripts(self, resource, action, target_dir=None):
+        target_dir = target_dir or self.dirs[resource.name]
+        templates, scripts = self._copy_templates_and_scripts(resource, action)
+        if templates:
+            self.transport_sync.copy(resource, templates, target_dir)
+        if scripts:
+            self.transport_sync.copy(resource, scripts, target_dir)
+
     def _make_args(self, resource):
         args = {'resource_name': resource.name}
         args['resource_dir'] = resource.metadata['base_path']
+        args['templates_dir'] = 'templates/'
+        args['scripts_dir'] = 'scripts/'
         args.update(resource.args)
         return args
 

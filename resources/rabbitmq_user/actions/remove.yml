@@ -1,4 +1,4 @@
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]
   sudo: yes
   tasks:
     - rabbitmq_user: user={{user_name}}

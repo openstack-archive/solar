@@ -1,4 +1,4 @@
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]
   sudo: yes
   vars:
     admin_token: {{admin_token}}
@@ -10,8 +10,8 @@
     db_name: {{db_name}}
   tasks:
     - file: path={{config_dir}} state=directory
-    - template: src={{resource_dir}}/templates/keystone.conf dest={{config_dir}}/keystone.conf
-    - template: src={{resource_dir}}/templates/default_catalog.templates dest={{config_dir}}/default_catalog.templates
-    - template: src={{resource_dir}}/templates/logging.conf dest={{config_dir}}/logging.conf
-    - template: src={{resource_dir}}/templates/policy.json dest={{config_dir}}/policy.json
-    - template: src={{resource_dir}}/templates/exports dest={{ config_dir }}/keystone-exports
+    - template: src={{templates_dir}}/keystone.conf dest={{config_dir}}/keystone.conf
+    - template: src={{templates_dir}}/default_catalog.templates dest={{config_dir}}/default_catalog.templates
+    - template: src={{templates_dir}}/logging.conf dest={{config_dir}}/logging.conf
+    - template: src={{templates_dir}}/policy.json dest={{config_dir}}/policy.json
+    - template: src={{templates_dir}}/exports dest={{ config_dir }}/keystone-exports

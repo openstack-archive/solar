@@ -1,4 +1,4 @@
-- hosts: [{{ip}}]
+- hosts: [{{host}}]
   sudo: yes
   tasks:
     # those below are mostly for tests
@@ -18,7 +18,7 @@
         state: stopped
     - file: path=/etc/riak/riak.conf state=touch
     - template:
-        src: {{ resource_dir }}/templates/riak.conf
+        src: {{templates_dir}}/riak.conf
         dest: /etc/riak/riak.conf
     - shell: rm -fr /var/lib/riak/kv_vnode/*
     - shell: rm -fr /var/lib/riak/ring/*

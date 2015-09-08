@@ -19,4 +19,4 @@
   tasks:
     - file: path={{ config_dir.value['src'] }}/ state=directory
     - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
-    - template: src={{ resource_dir }}/templates/haproxy.cfg dest=/etc/haproxy/haproxy.cfg
+    - template: src={{templates_dir}}/haproxy.cfg dest=/etc/haproxy/haproxy.cfg

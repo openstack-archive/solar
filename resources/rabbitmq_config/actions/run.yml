@@ -1,8 +1,8 @@
-- hosts: [{{ ip }}]
+- hosts: [{{host}}]
   sudo: yes
   vars:
     admin_user: {{admin_user}}
     admin_password: {{admin_password}}
   tasks:
     - file: path={{config_dir}} state=directory
-    - template: src={{resource_dir}}/templates/rabbitmq.conf dest={{config_dir}}/rabbitmq.conf
+    - template: src={{templates_dir}}/rabbitmq.conf dest={{config_dir}}/rabbitmq.conf
