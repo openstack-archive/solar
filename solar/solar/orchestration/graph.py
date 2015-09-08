@@ -45,10 +45,10 @@ def get_graph(name):
 get_plan = get_graph
 
 
-def parse_plan(plan_data):
+def parse_plan(plan_path):
     """ parses yaml definition and returns graph
     """
-    plan = utils.yaml_load(plan_data)
+    plan = utils.yaml_load(plan_path)
     dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
@@ -91,17 +91,17 @@ def show(uid):
     return utils.yaml_dump(result)
 
 
-def create_plan(plan_data, save=True):
+def create_plan(plan_path, save=True):
     """
     """
-    dg = parse_plan(plan_data)
+    dg = parse_plan(plan_path)
     return create_plan_from_graph(dg, save=save)
 
 
-def update_plan(uid, plan_data):
+def update_plan(uid, plan_path):
     """update preserves old status of tasks if they werent removed
     """
-    dg = parse_plan(plan_data)
+    dg = parse_plan(plan_path)
     old_dg = get_graph(uid)
     dg.graph = old_dg.graph
     for n in dg:
@@ -130,6 +130,12 @@ def report_topo(uid):
     report = []
 
     for task in nx.topological_sort(dg):
-        report.append([task, dg.node[task]['status'], dg.node[task]['errmsg']])
+        data = dg.node[task]
+        report.append([
+            task,
+            data['status'],
+            data['errmsg'],
+            data.get('start_time'),
+            data.get('end_time')])
 
     return report

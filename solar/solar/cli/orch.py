@@ -19,7 +19,7 @@ from solar.orchestration import graph
 from solar.orchestration import tasks
 from solar.orchestration import filters
 from solar.orchestration import utils
-from solar.cli.uids_history import SOLARUID
+from solar.cli.uids_history import SOLARUID, remember_uid
 
 
 @click.group(name='orch')
@@ -36,16 +36,18 @@ def orchestration():
 
 
 @orchestration.command()
-@click.argument('plan', type=click.File('rb'))
+@click.argument('plan')
 def create(plan):
-    click.echo(graph.create_plan(plan.read()).graph['uid'])
+    uid = graph.create_plan(plan).graph['uid']
+    remember_uid(uid)
+    click.echo(uid)
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
-@click.argument('plan', type=click.File('rb'))
+@click.argument('plan')
 def update(uid, plan):
-    graph.update_plan(uid, plan.read())
+    graph.update_plan(uid, plan)
 
 
 @orchestration.command()
@@ -63,6 +65,7 @@ def report(uid):
         msg = '{} -> {}'.format(item[0], item[1])
         if item[2]:
             msg += ' :: {}'.format(item[2])
+        msg += ' S: {} E: {}'.format(item[3], item[4])
         click.echo(click.style(msg, fg=colors[item[1]]))
 
 @orchestration.command()
