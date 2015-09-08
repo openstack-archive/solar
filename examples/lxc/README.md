@@ -18,8 +18,8 @@ To deploy everything use usual solar commands.
 ```
 solar changes stage -d
 solar changes process
-solar changes run-once last
-watch -n 1 solar changes report last
+solar orch run-once last
+watch -n 1 solar orch report last
 ```
 
 Wait until all actions have state `SUCCESS`
