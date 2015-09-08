@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from datetime import datetime
+import time
 
 from solar.orchestration.runner import app
 from celery import group
@@ -30,7 +30,7 @@ def celery_executor(dg, tasks, control_tasks=()):
 
         if all_success(dg, dg.predecessors(task_name)) or task_name in control_tasks:
             dg.node[task_name]['status'] = 'INPROGRESS'
-            dg.node[task_name]['start_time'] = str(datetime.now())
+            dg.node[task_name]['start_time'] = time.time()
             for t in generate_task(task, dg.node[task_name], task_id):
                 to_execute.append(t)
     return group(to_execute)

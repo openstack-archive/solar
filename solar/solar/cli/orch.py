@@ -60,13 +60,18 @@ def report(uid):
         'INPROGRESS': 'yellow',
         'SKIPPED': 'blue'}
 
+    total = 0.0
     report = graph.report_topo(uid)
     for item in report:
         msg = '{} -> {}'.format(item[0], item[1])
         if item[2]:
             msg += ' :: {}'.format(item[2])
-        msg += ' S: {} E: {}'.format(item[3], item[4])
+        if item[4] and item[3]:
+            delta = float(item[4])-float(item[3])
+            total += delta
+            msg += ' D: {}'.format(delta)
         click.echo(click.style(msg, fg=colors[item[1]]))
+    click.echo('Delta SUM: {}'.format(total))
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)

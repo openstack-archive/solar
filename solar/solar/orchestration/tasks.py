@@ -15,7 +15,6 @@
 from functools import partial
 import subprocess
 import time
-from datetime import datetime
 
 from celery.app import task
 import redis
@@ -157,6 +156,6 @@ def schedule_next(task_id, status, errmsg=None):
     dg = graph.get_graph(plan_uid)
     dg.node[task_name]['status'] = status
     dg.node[task_name]['errmsg'] = errmsg
-    dg.node[task_name]['end_time'] = str(datetime.now())
+    dg.node[task_name]['end_time'] = time.time()
 
     schedule(plan_uid, dg)
