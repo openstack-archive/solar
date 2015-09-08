@@ -1,52 +1,53 @@
 # Setup development env
 
-* Install [Vagrant](http://www.vagrantup.com/downloads.html)
-* Setup environment:
-```
+Install [Vagrant](http://www.vagrantup.com/downloads.html)
+Setup environment:
+```bash
 cd solar
 vagrant up
 ```
 
-* Login into vm, the code is available in /vagrant directory
-```
+Login into vm, the code is available in /vagrant directory
+```bash
 vagrant ssh
 solar --help
 ```
 
-* Launch standard deployment:
-```
-python example.py
+Launch standard deployment:
+```bash
+python examples/openstack/openstack.py
 ```
 
-* Get ssh details for running slave nodes (vagrant/vagrant):
-```
+Get ssh details for running slave nodes (vagrant/vagrant):
+```bash
 vagrant ssh-config
 ```
 
-* Get list of docker containers and attach to the foo container
-```
-sudo docker ps -a
-sudo docker exec -it foo
+You can make/restore snapshots of boxes (this is way faster than reprovisioning them)
+with the `snapshotter.py` script:
+
+```bash
+./snapshotter.py take -n my-snapshot
+./snapshotter.py show
+./snapshotter.py restore -n my-snapshot
 ```
 
-## Solar usage
+# Solar usage
 
-* To get data for the resource bar (raw and pretty-JSON):
-```
-solar resource show --tag 'resources/bar'
-solar resource show --json --tag 'resources/bar' | jq .
-solar resource show --name 'resource_name'
-solar resource show --name 'resource_name' --json | jq .
-```
+Basic flow is:
 
-* To clear all resources/connections:
-```
-solar resource clear_all
-solar connections clear_all
-```
+1. Create some resources (look at `examples/openstack/openstack.py`) and connect
+   them between each other, and place them on nodes.
+1. Run `solar changes stage` (this stages the changes)
+1. Run `solar changes process` (this prepares orchestrator graph, returning
+   change UUID)
+1. Run `solar orch run-once <change-uuid>` (or `solar orch run-once last`
+   to run the lastly created graph)
+1. Observe progress of orch with `watch 'solar orch report <change-uuid>'`
+   (or `watch 'solar orch report last'`).
 
-* Some very simple cluster setup:
-```
+Some very simple cluster setup:
+```bash
 cd /vagrant
 
 solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
@@ -62,12 +63,13 @@ solar connect keystone_db keystone_db_user
 
 solar changes stage
 solar changes proccess
-<uid>
-solar orch run-once <uid>
+# <uid>
+solar orch run-once <uid> # or solar orch run-once last
+watch 'solar orch report <uid>' # or solar orch report last
 ```
 
 You can fiddle with the above configuration like this:
-```
+```bash
 solar resource update keystone_db_user '{"user_password": "new_keystone_password"}'
 solar resource update keystone_db_user user_password=new_keystone_password   # another valid format
 
@@ -77,30 +79,44 @@ solar changes proccess
 solar orch run-once <uid>
 ```
 
-* Show the connections/graph:
+To get data for the resource `bar` (raw and pretty-JSON):
+```bash
+solar resource show --tag 'resources/bar'
+solar resource show --json --tag 'resources/bar' | jq .
+solar resource show --name 'resource_name'
+solar resource show --name 'resource_name' --json | jq .
 ```
+
+To clear all resources/connections:
+```bash
+solar resource clear_all
+solar connections clear_all
+```
+
+Show the connections/graph:
+```bash
 solar connections show
 solar connections graph
 ```
 
 You can also limit graph to show only specific resources:
 
-```
+```bash
 solar connections graph --start-with mariadb_service --end-with keystone_db
 ```
 
-* You can make sure that all input values are correct and mapped without duplicating your values with this command:
-```
+You can make sure that all input values are correct and mapped without duplicating your values with this command:
+```bash
 solar resource validate
 ```
 
-* Disconnect
-```
+Disconnect
+```bash
 solar disconnect mariadb_service node1
 ```
 
-* Tag a resource:
-```
+Tag a resource:
+```bash
 solar resource tag node1 test-tags # Remove tags
 solar resource tag node1 test-tag --delete
 ```
@@ -111,22 +127,22 @@ solar resource tag node1 test-tag --delete
 
 Creating resources:
 
+```python
+from solar.core.resource import virtual_resource as vr
+node1 = vr.create('node1', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})[0]
+
+node2 = vr.create('node2', 'resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})[0]
+
+keystone_db_data = vr.create('mariadb_keystone_data', 'resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})[0]
+
+nova_db_data = vr.create('mariadb_nova_data', 'resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})[0]
 ```
-from x import resource
-node1 = resource.create('node1', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.3', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
 
-node2 = resource.create('node2', 'x/resources/ro_node/', 'rs/', {'ip':'10.0.0.4', 'ssh_key' : '/vagrant/tmp/keys/ssh_private', 'ssh_user':'vagrant'})
-
-keystone_db_data = resource.create('mariadb_keystone_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node2.ip', 'ssh_key':'node2.ssh_key', 'ssh_user':'node2.ssh_user'})
-
-nova_db_data = resource.create('mariadb_nova_data', 'x/resources/data_container/', 'rs/', {'image' : 'mariadb', 'export_volumes' : ['/var/lib/mysql'], 'ip': '', 'ssh_user': '', 'ssh_key': ''}, connections={'ip' : 'node1.ip', 'ssh_key':'node1.ssh_key', 'ssh_user':'node1.ssh_user'})
-```
-
-to make connection after resource is created use `signal.connect`
+To make connection after resource is created use `signal.connect`.
 
 To test notifications:
 
-```
+```python
 keystone_db_data.args    # displays node2 IP
 
 node2.update({'ip': '10.0.0.5'})
@@ -136,24 +152,22 @@ keystone_db_data.args   # updated IP
 
 If you close the Python shell you can load the resources like this:
 
-```
-from x import resource
+```python
+from solar.core import resource
 node1 = resource.load('rs/node1')
 
 node2 = resource.load('rs/node2')
 
-keystone_db_data = resource.load('rs/mariadn_keystone_data')
+keystone_db_data = resource.load('rs/mariadb_keystone_data')
 
 nova_db_data = resource.load('rs/mariadb_nova_data')
 ```
-
 Connections are loaded automatically.
-
 
 You can also load all resources at once:
 
-```
-from x import resource
+```python
+from solar.core import resource
 all_resources = resource.load_all('rs')
 ```
 
@@ -162,13 +176,13 @@ all_resources = resource.load_all('rs')
 Solar CLI has possibility to show dry run of actions to be performed.
 To see what will happen when you run Puppet action, for example, try this:
 
-```
+```bash
 solar resource action keystone_puppet run -d
 ```
 
 This should print out something like this:
 
-```
+```bash
 EXECUTED:
 73c6cb1cf7f6cdd38d04dd2d0a0729f8: (0, 'SSH RUN', ('sudo cat /tmp/puppet-modules/Puppetfile',), {})
 3dd4d7773ce74187d5108ace0717ef29: (1, 'SSH SUDO', ('mv "1038cb062449340bdc4832138dca18cba75caaf8" "/tmp/puppet-modules/Puppetfile"',), {})
@@ -180,7 +194,7 @@ By default every mocked command returns an empty string. If you want it to retur
 something else (to check how would dry run behave in different situation) you provide
 a mapping (in JSON format), something along the lines of:
 
-```
+```bash
 solar resource action keystone_puppet run -d -m "{\"73c\": \"mod 'openstack-keystone'\n\"}"
 ```
 
@@ -190,16 +204,16 @@ whole hash, just it's unique beginning. Also, you don't have to specify the whol
 return string in mapping. Dry run executor can read file and return it's contents
 instead, just use the `>` operator when specifying hash:
 
-```
+```bash
 solar resource action keystone_puppet run -d -m "{\"73c>\": \"./Puppetlabs-file\"}"
 ```
 
-## Resource compiling
+# Resource compiling
 
 You can compile all `meta.yaml` definitions into Python code with classes that
 derive from `Resource`. To do this run
 
-```
+```bash
 solar resource compile_all
 ```
 
@@ -209,7 +223,7 @@ their instances and assign values just like these were normal properties.
 If your editor supports Python static checking, you will have autocompletion
 there too. An example on how to create a node with this:
 
-```
+```python
 import resources_compiled
 
 node1 = resources_compiled.RoNodeResource('node1', None, {})
@@ -218,18 +232,36 @@ node1.ssh_key = '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
 node1.ssh_user = 'vagrant'
 ```
 
-## HAProxy deployment (not maintained)
+# Higher-level API
 
+There's also a higher-level API that allows to write resource instances in more
+functional way, and in particular avoid `for` loops. Here's an example:
+
+```python
+from solar import template
+
+nodes = template.nodes_from('templates/riak_nodes.yml')
+
+riak_services = nodes.on_each(
+    'resources/riak_node',
+    {
+        'riak_self_name': 'riak{num}',
+        'riak_hostname': 'riak_server{num}.solar',
+        'riak_name': 'riak{num}@riak_server{num}.solar',
+    }
+)
+
+riak_master_service = riak_services.take(0)
+riak_slave_services = riak_services.tail()
+
+riak_master_service.connect_list(
+    riak_slave_services,
+    {
+        'riak_name': 'join_to',
+    }
+)
 ```
-cd /vagrant
-solar deploy haproxy_deployment/haproxy-deployment.yaml
-```
 
-or from Python shell:
+For full Riak example, please look at `examples/riak/riaks-template.py`.
 
-```
-from solar.core import deployment
-
-deployment.deploy('/vagrant/haproxy_deployment/haproxy-deployment.yaml')
-```
-
+Full documentation of individual functions is found in the `solar/template.py` file.

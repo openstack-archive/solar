@@ -1,61 +1,19 @@
 #!/bin/bash
 set -eux
 
-function clean_local {
-    rm -rf /tmp/tmp*
-    rm /tmp/storage/* || true
-    rm /tmp/connections.yaml || true
+function deploy {
+    # this two commands will clean db
+    solar resource clear_all
+    solar connections clear_all
 
-    mkdir -p /tmp/state
+    solar resource create node1 /vagrant/resources/ro_node ip=10.0.0.3 ssh_user=vagrant ssh_key='/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
+    solar resource create mariadb1 /vagrant/resources/mariadb_service image=mariadb port=3306
+    solar connect node1 mariadb1
 
-    echo > /tmp/state/commit_log || true
-    echo > /tmp/state/commited_data || true
-    echo > /tmp/state/stage_log || true
-    find /vagrant/solar/solar -name '*.pyc' -delete || true
-
-    sudo docker stop $(sudo docker ps -q) || true
-    sudo docker rm $(sudo docker ps -qa) || true
+    solar changes stage
+    solar changes process
+    solar orch run-once last
+    solar orch report last
 }
 
-
-function start {
-    solar profile -c -t env/test_env -i prf1
-    solar discover
-
-    solar assign -n 'node/node_2 | node/node_1' -r 'resources/docker'
-    solar assign -n 'node/node_1' -r 'resources/mariadb'
-    solar assign -n 'node/node_1' -r 'resources/keystone'
-    solar assign -n 'node/node_1' -r 'resources/haproxy'
-    solar assign -n 'node/node_1' -r 'resources/rabbitmq'
-
-    solar connect --profile prf1
-
-    ./cli.py changes stage
-    ./cli.py changes commit
-}
-
-
-function scaleup {
-    solar assign -n 'node/node_2' -r 'resource/keystone_config'
-    solar assign -n 'node/node_2' -r 'resource/keystone_service'
-
-    solar connect --profile prf1
-
-    ./cli.py changes stage
-    ./cli.py changes commit
-}
-
-
-function clean {
-    solar run -a remove -t 'resource/mariadb_service' || true
-    solar run -a remove -t 'resource/keystone_service' || true
-    solar run -a remove -t 'resource/haproxy_service' || true
-    solar run -a remove -t 'resource/rabbitmq_service' || true
-}
-
-function clean_all {
-    clean
-    clean_local
-}
-
-$1
+deploy
