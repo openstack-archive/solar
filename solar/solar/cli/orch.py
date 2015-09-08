@@ -58,8 +58,10 @@ def report(uid):
 @click.option('--end', '-e', multiple=True)
 def filter(uid, start, end):
     graph.reset_filtered(uid)
-    plan = filters.filter(
-        graph.get_graph(uid), start=start, end=end)
+    plan = graph.get_graph(uid)
+    errors = filters.filter(plan, start=start, end=end)
+    if errors:
+        raise click.ClickException('\n'.join(errors))
     graph.save_graph(uid, plan)
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
@@ -117,7 +119,9 @@ def retry(uid):
 def dg(uid, start, end):
     plan = graph.get_graph(uid)
     if start or end:
-        plan = filters.filter(plan, start=start, end=end)
+        errors = filters.filter(plan, start=start, end=end)
+        if errors:
+            raise click.ClickException('\n'.join(errors))
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 

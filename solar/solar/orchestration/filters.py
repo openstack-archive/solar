@@ -2,6 +2,7 @@
 import networkx as nx
 
 from .traversal import VISITED, states
+from solar import errors
 
 
 def get_dfs_postorder_subgraph(dg, nodes):
@@ -41,6 +42,21 @@ def start_from(dg, start_nodes):
     return visited
 
 
+def validate(dg, start_nodes, end_nodes, err_msgs):
+    error_msgs = err_msgs[:]
+    not_in_the_graph_msg = 'Node {} is not present in graph {}'
+    for n in start_nodes:
+        if n not in dg:
+            error_msgs.append(not_in_the_graph_msg.format(n, dg.graph['uid']))
+    for n in end_nodes:
+        if n not in dg:
+            if start_nodes:
+                error_msgs.append('No path from {} to {}'.format(start_nodes, n))
+            else:
+                error_msgs.append(not_in_the_graph_msg.format(n, dg.graph['uid']))
+    return error_msgs
+
+
 def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
     """
     TODO(dshulyak) skip_with should also support NOOP, which will instead
@@ -48,6 +64,7 @@ def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
 
     :param skip_with: SKIPPED or NOOP
     """
+    error_msgs = []
     subpath = dg.nodes()
     if tasks:
         subpath = tasks
@@ -55,12 +72,20 @@ def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
 
         subgraph = dg
         if start:
+            error_msgs = validate(subgraph, start, [], error_msgs)
+            if error_msgs:
+                return error_msgs
+
             subpath = start_from(subgraph, start)
             subgraph = dg.subgraph(subpath)
         if end:
+            error_msgs = validate(subgraph, start, end, error_msgs)
+            if error_msgs:
+                return error_msgs
+
             subpath = end_at(subgraph, end)
 
     for node in dg:
         if node not in subpath:
             dg.node[node]['status'] = skip_with
-    return dg
+    return None
