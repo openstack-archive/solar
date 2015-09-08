@@ -56,10 +56,9 @@ def report(uid):
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
-@click.option('--tasks', '-t', multiple=True)
-def filter(uid, start, end, tasks):
+def filter(uid, start, end):
     plan = filters.filter(
-        graph.get_graph(uid), start=start, end=end, tasks=tasks)
+        graph.get_graph(uid), start=start, end=end)
     graph.save_graph(uid, plan)
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
@@ -114,11 +113,10 @@ def retry(uid):
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
-@click.option('--tasks', '-t', multiple=True)
-def dg(uid, start, end, tasks):
+def dg(uid, start, end):
     plan = graph.get_graph(uid)
-    if start or end or tasks:
-        plan = filters.filter(plan, start=start, end=end, tasks=tasks)
+    if start or end:
+        plan = filters.filter(plan, start=start, end=end)
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 

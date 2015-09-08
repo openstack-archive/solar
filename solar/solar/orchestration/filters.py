@@ -24,6 +24,8 @@ def start_from(dg, start_nodes):
     """
     visited = {n for n in dg if dg.node[n].get('status') in VISITED}
 
+    # sorting nodes in topological order will guarantee that all predecessors
+    # of current node were already walked, when current going to be considered
     for node in nx.topological_sort(dg):
         preds = dg.predecessors(node)
         if not preds and node in start_nodes:
