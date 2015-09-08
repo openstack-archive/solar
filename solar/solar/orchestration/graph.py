@@ -7,6 +7,7 @@ import networkx as nx
 import redis
 
 from solar import utils
+from .traversal import states
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
@@ -99,12 +100,16 @@ def update_plan(uid, plan_data):
     return uid
 
 
-def reset(uid, states=None):
+def reset(uid, state_list=None):
     dg = get_graph(uid)
     for n in dg:
-        if states is None or dg.node[n]['status'] in states:
-            dg.node[n]['status'] = 'PENDING'
+        if state_list is None or dg.node[n]['status'] in state_list:
+            dg.node[n]['status'] = states.PENDING.name
     save_graph(uid, dg)
+
+
+def reset_filtered(uid):
+    reset(uid, state_list=[states.SKIPPED.name, states.NOOP.name])
 
 
 def report_topo(uid):

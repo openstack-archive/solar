@@ -57,6 +57,7 @@ def report(uid):
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
 def filter(uid, start, end):
+    graph.reset_filtered(uid)
     plan = filters.filter(
         graph.get_graph(uid), start=start, end=end)
     graph.save_graph(uid, plan)

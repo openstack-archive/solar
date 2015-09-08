@@ -117,7 +117,7 @@ def schedule(plan_uid, dg):
 
 
 @app.task(name='schedule_start')
-def schedule_start(plan_uid, path=[]):
+def schedule_start(plan_uid):
     """On receive finished task should update storage with task result:
 
     - find successors that should be executed
