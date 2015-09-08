@@ -6,6 +6,9 @@ input:
     ip:
       schema: str!
       value:
+    name:
+      schema: str
+      value:
     ssh_key:
       schema: str!
       value:
