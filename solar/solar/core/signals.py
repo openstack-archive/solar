@@ -57,7 +57,6 @@ def connect_single(emitter, src, receiver, dst):
 
     if not receiver_input.properties['is_list']:
         db.delete_relations(
-            source=emitter_input,
             dest=receiver_input,
             type_=db.RELATION_TYPES.input_to_input
         )
@@ -75,7 +74,7 @@ def connect_single(emitter, src, receiver, dst):
     db.get_or_create_relation(
         emitter_input,
         receiver_input,
-        args={},
+        properties={},
         type_=db.RELATION_TYPES.input_to_input
     )
 

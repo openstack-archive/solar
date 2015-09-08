@@ -67,7 +67,7 @@ class Resource(object):
 
         self.node = db.get_or_create(
             name,
-            args={
+            properties={
                 'actions_path': self.metadata.get('actions_path', ''),
                 'base_name': self.metadata.get('base_name', ''),
                 'base_path': self.metadata.get('base_path', ''),
@@ -105,7 +105,7 @@ class Resource(object):
 
             i = db.get_or_create(
                 uid,
-                args={
+                properties={
                     'is_list': isinstance(v.get('schema'), list),
                     'input_name': k,
                     'value': json.dumps(value),
@@ -115,7 +115,7 @@ class Resource(object):
             db.get_or_create_relation(
                 self.node,
                 i,
-                args={},
+                properties={},
                 type_=db.RELATION_TYPES.resource_input
             )
 

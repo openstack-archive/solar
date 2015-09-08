@@ -5,7 +5,7 @@ import fakeredis
 from solar import utils
 from solar import errors
 
-from .base import BaseGraphDB
+from .base import BaseGraphDB, Node, Relation
 
 
 class RedisGraphDB(BaseGraphDB):
@@ -19,6 +19,19 @@ class RedisGraphDB(BaseGraphDB):
     def __init__(self):
         self._r = self.REDIS_CLIENT(**self.DB)
         self.entities = {}
+
+    def node_db_to_object(node_db):
+        return Node(
+            node_db['name'],
+            node_db
+        )
+
+    def relation_db_to_object(relation_db):
+        return Relation(
+            None,
+            None,
+            relation_db
+        )
 
     def all(self, collection=BaseGraphDB.DEFAULT_COLLECTION):
         """Return all elements (nodes) of type `collection`."""

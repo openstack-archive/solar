@@ -4,7 +4,7 @@ import py2neo
 
 from solar.core import log
 
-from .base import BaseGraphDB
+from .base import BaseGraphDB, Node, Relation
 
 
 class Neo4jDB(BaseGraphDB):
@@ -18,27 +18,23 @@ class Neo4jDB(BaseGraphDB):
         self._r = self.NEO4J_CLIENT('http://{host}:{port}/db/data/'.format(
             **self.DB
         ))
-        self.entities = {}
 
-    @staticmethod
-    def _args_to_db(args):
-        return {
-            k: json.dumps(v) for k, v in args.items()
-        }
+    def node_db_to_object(self, node_db):
+        return Node(
+            self,
+            node_db.properties['name'],
+            node_db.labels,
+            # Neo4j Node.properties is some strange PropertySet, use dict instead
+            dict(**node_db.properties)
+        )
 
-    @staticmethod
-    def _args_from_db(db_args):
-        return {
-            k: json.loads(v) for k, v in db_args.items()
-        }
-
-    @staticmethod
-    def obj_to_db(o):
-        o.properties = Neo4jDB._args_to_db(o.properties)
-
-    @staticmethod
-    def obj_from_db(o):
-        o.properties = Neo4jDB._args_from_db(o.properties)
+    def relation_db_to_object(self, relation_db):
+        return Relation(
+            self,
+            self.node_db_to_object(relation_db.start_node),
+            self.node_db_to_object(relation_db.end_node),
+            relation_db.properties
+        )
 
     def all(self, collection=BaseGraphDB.DEFAULT_COLLECTION):
         return [
@@ -69,64 +65,83 @@ class Neo4jDB(BaseGraphDB):
         # TODO: make single DELETE query
         self._r.delete([r.n for r in self.all(collection=collection)])
 
-    def create(self, name, args={}, collection=BaseGraphDB.DEFAULT_COLLECTION):
+    def create(self, name, properties={}, collection=BaseGraphDB.DEFAULT_COLLECTION):
         log.log.debug(
-            'Creating %s, name %s with args %s',
+            'Creating %s, name %s with properties %s',
             collection.name,
             name,
-            args
+            properties
         )
 
-        properties = deepcopy(args)
+        properties = deepcopy(properties)
         properties['name'] = name
 
         n = py2neo.Node(collection.name, **properties)
-        self._r.create(n)
-
-        return n
+        return self._r.create(n)[0]
 
     def create_relation(self,
                         source,
                         dest,
-                        args={},
+                        properties={},
                         type_=BaseGraphDB.DEFAULT_RELATION):
         log.log.debug(
-            'Creating %s from %s to %s with args %s',
+            'Creating %s from %s to %s with properties %s',
             type_.name,
             source.properties['name'],
             dest.properties['name'],
-            args
+            properties
         )
-        r = py2neo.Relationship(source, type_.name, dest, **args)
+        s = self.get(
+            source.properties['name'],
+            collection=source.collection,
+            db_convert=False
+        )
+        d = self.get(
+            dest.properties['name'],
+            collection=dest.collection,
+            db_convert=False
+        )
+        r = py2neo.Relationship(s, type_.name, d, **properties)
         self._r.create(r)
 
         return r
 
+    def _get_query(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
+        return 'MATCH (n:%(collection)s {name:{name}}) RETURN n' % {
+            'collection': collection.name,
+        }, {
+            'name': name,
+        }
+
     def get(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
-        res = self._r.cypher.execute(
-            'MATCH (n:%(collection)s {name:{name}}) RETURN n' % {
-                'collection': collection.name,
-            }, {
-                'name': name,
-            }
-        )
+        query, kwargs = self._get_query(name, collection=collection)
+        res = self._r.cypher.execute(query, kwargs)
 
         if res:
             return res[0].n
 
     def get_or_create(self,
                       name,
-                      args={},
+                      properties={},
                       collection=BaseGraphDB.DEFAULT_COLLECTION):
-        n = self.get(name, collection=collection)
+        n = self.get(name, collection=collection, db_convert=False)
 
         if n:
-            if args != n.properties:
-                n.properties.update(args)
+            if properties != n.properties:
+                n.properties.update(properties)
                 n.push()
             return n
 
-        return self.create(name, args=args, collection=collection)
+        return self.create(name, properties=properties, collection=collection)
+
+    def push_node(self, node):
+        collection = getattr(BaseGraphDB.COLLECTIONS, list(node.labels)[0])
+        query, kwargs = self._get_query(node.uid, collection=collection)
+        n = self._r.cypher.execute(query, kwargs)[0].n
+        n.properties.update(node.properties)
+        n.push()
+
+        return n
 
     def _relations_query(self,
                          source=None,
@@ -176,7 +191,7 @@ class Neo4jDB(BaseGraphDB):
 
         return [r.r for r in res]
 
-    def get_relation(source, dest, type_=BaseGraphDB.DEFAULT_RELATION):
+    def get_relation(self, source, dest, type_=BaseGraphDB.DEFAULT_RELATION):
         rel = self.get_relations(source=source, dest=dest, type_=type_)
 
         if rel:
@@ -185,15 +200,15 @@ class Neo4jDB(BaseGraphDB):
     def get_or_create_relation(self,
                                source,
                                dest,
-                               args={},
+                               properties={},
                                type_=BaseGraphDB.DEFAULT_RELATION):
         rel = self.get_relations(source=source, dest=dest, type_=type_)
 
         if rel:
             r = rel[0]
-            if args != r.properties:
-                r.properties.update(args)
+            if properties != r.properties:
+                r.properties.update(properties)
                 r.push()
             return r
 
-        return self.create_relation(source, dest, args=args, type_=type_)
+        return self.create_relation(source, dest, properties=properties, type_=type_)
