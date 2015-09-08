@@ -1,6 +1,8 @@
 # Setup development env
 
-Install [Vagrant](http://www.vagrantup.com/downloads.html)
+Install [Vagrant](http://www.vagrantup.com/downloads.html).
+For automatically installation of VirtualBox Guest Additions you could install
+[vagrant plugin](https://github.com/dotless-de/vagrant-vbguest).
 Setup environment:
 ```bash
 cd solar
