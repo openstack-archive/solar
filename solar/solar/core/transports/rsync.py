@@ -7,6 +7,11 @@ from fabric import api as fabric_api
 from solar.core.log import log
 from solar.core.transports.base import SyncTransport, Executor
 
+# XXX:
+# currently we don't support key verification or acceptation
+# so if you want to play with RsyncTransport you need to verify the keys before
+# just ssh from root on traget nodes
+
 
 class RsyncSyncTransport(SyncTransport):
 
