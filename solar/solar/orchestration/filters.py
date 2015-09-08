@@ -48,7 +48,7 @@ def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
 
     :param skip_with: SKIPPED or NOOP
     """
-
+    subpath = dg.nodes()
     if tasks:
         subpath = tasks
     else:
