@@ -30,7 +30,6 @@ import yaml
 from solar import utils
 from solar.core import actions
 from solar.core import resource as sresource
-from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr
@@ -43,10 +42,6 @@ from solar.cli import executors
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
 from solar.cli.events import events
-
-# NOTE: these are extensions, they shouldn't be imported here
-# Maybe each extension can also extend the CLI with parsers
-from solar.extensions.modules.discovery import Discovery
 
 
 db = get_db()
@@ -80,56 +75,6 @@ def show_emitter_connections(emitter_name, destinations):
 @click.group(cls=base.AliasedGroup)
 def main():
     pass
-
-
-@main.command()
-@click.option('-n', '--nodes')
-@click.option('-r', '--resources')
-def assign(resources, nodes):
-    def _get_resources_list():
-        result = []
-        for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
-            resource = utils.yaml_load(path)
-            resource['path'] = path
-            resource['dir_path'] = os.path.dirname(path)
-            result.append(resource)
-
-        return result
-
-    nodes = filter(
-        lambda n: Expression(nodes, n.get('tags', [])).evaluate(),
-        db.get_list('nodes'))
-
-    resources = filter(
-        lambda r: Expression(resources, r.get('tags', [])).evaluate(),
-        _get_resources_list())
-
-    click.echo(
-        "For {0} nodes assign {1} resources".format(len(nodes), len(resources))
-    )
-    assign_resources_to_nodes(resources, nodes)
-
-
-@main.command()
-def discover():
-    Discovery({'id': 'discovery'}).discover()
-
-
-@main.command()
-@click.option('-c', '--create', default=False, is_flag=True)
-@click.option('-t', '--tags', multiple=True)
-@click.option('-i', '--id')
-def profile(id, tags, create):
-    if not id:
-        id = utils.generate_uuid()
-    if create:
-        params = {'tags': tags, 'id': id}
-        profile_template_path = os.path.join(
-            utils.read_config()['template-dir'], 'profile.yml')
-        data = yaml.load(utils.render_template(profile_template_path, params))
-        db.store('profiles', data)
-    else:
-        pprint.pprint(db.get_list('profiles'))
 
 
 def init_actions():

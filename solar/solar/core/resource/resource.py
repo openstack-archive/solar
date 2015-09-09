@@ -10,7 +10,6 @@ from solar.core import observer
 from solar.core import signals
 from solar.core import validation
 
-from solar.core.connections import ResourcesConnectionGraph
 from solar.interfaces.db import get_db
 
 db = get_db()
@@ -207,31 +206,3 @@ def load_all():
         ret[resource.name] = resource
 
     return ret
-
-
-def assign_resources_to_nodes(resources, nodes):
-    for node in nodes:
-        for resource in resources:
-            res = deepcopy(resource)
-            res['tags'] = list(set(node.get('tags', [])) |
-                               set(resource.get('tags', [])))
-            resource_uuid = '{0}-{1}'.format(res['id'], solar.utils.generate_uuid())
-            # We should not generate here any uuid's, because
-            # a single node should be represented with a single
-            # resource
-            node_uuid = node['id']
-
-            node_resource_template = solar.utils.read_config()['node_resource_template']
-            args = {k: v['value'] for k, v in res['input'].items()}
-            created_resource = create(resource_uuid, resource['dir_path'], args, tags=res['tags'])
-            created_node = create(node_uuid, node_resource_template, node, tags=node.get('tags', []))
-
-            signals.connect(created_node, created_resource)
-
-
-def connect_resources(profile):
-    connections = profile.get('connections', [])
-    graph = ResourcesConnectionGraph(connections, load_all().values())
-
-    for connection in graph.iter_connections():
-        signals.connect(connection['from'], connection['to'], connection['mapping'])
