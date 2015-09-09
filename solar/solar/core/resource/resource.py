@@ -84,7 +84,7 @@ class Resource(object):
     @dispatch(object)
     def __init__(self, resource_node):
         self.node = resource_node
-        self.name = resource_node.properties['name']
+        self.name = resource_node.uid
         self.metadata = read_meta(resource_node.properties['base_path'])
         self.metadata.update(resource_node.properties)
         self.tags = []

@@ -6,6 +6,54 @@ from solar.core import signals as xs
 
 
 class TestBaseInput(base.BaseResourceTest):
+    def test_no_self_connection(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'value': 'x'}
+        )
+
+        with self.assertRaisesRegexp(
+                Exception,
+                'Trying to connect value-.* to itself'):
+            xs.connect(sample, sample, {'value'})
+
+    def test_no_cycles(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'y'}
+        )
+
+        xs.connect(sample1, sample2)
+
+        with self.assertRaisesRegexp(
+                Exception,
+                'Prevented creating a cycle'):
+            xs.connect(sample2, sample1)
+
+        # TODO: more complex cycles
+
     def test_input_dict_type(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -94,6 +142,10 @@ input:
         )
         sample_port = self.create_resource(
             'sample-port', sample_port_meta_dir, {'port': '8000'}
+        )
+        self.assertNotEqual(
+            sample.resource_inputs()['ip'].uid,
+            sample_ip.resource_inputs()['ip'].uid,
         )
         xs.connect(sample_ip, sample)
         xs.connect(sample_port, sample)

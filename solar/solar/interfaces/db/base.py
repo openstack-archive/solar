@@ -23,7 +23,7 @@ class Node(object):
 
         warnings.warn('pull used', DeprecationWarning)
 
-        n = self.db.get(self.uid)
+        n = self.db.get(self.uid, collection=self.collection)
         self._update_self_with_new_node(n)
 
     def push(self):
@@ -224,7 +224,13 @@ class BaseGraphDB(object):
                       source=None,
                       dest=None,
                       type_=DEFAULT_RELATION):
-        """Fetch all relations of type `type_` from source to dest."""
+        """Fetch all relations of type `type_` from source to dest.
+
+        NOTE that this function must return only direct relations (edges)
+        between vertices `source` and `dest` of type `type_`.
+
+        If you want all PATHS between `source` and `dest`, write another
+        method for this (`get_paths`)."""
 
     @abc.abstractmethod
     def get_relation(self, source, dest, type_=DEFAULT_RELATION):

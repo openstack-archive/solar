@@ -55,6 +55,12 @@ def connect_single(emitter, src, receiver, dst):
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[dst]
 
+    if emitter_input.uid == receiver_input.uid:
+        raise Exception(
+            'Trying to connect {} to itself, this is not possible'.format(
+                emitter_input.uid)
+        )
+
     if not receiver_input.properties['is_list']:
         db.delete_relations(
             dest=receiver_input,
@@ -62,6 +68,7 @@ def connect_single(emitter, src, receiver, dst):
         )
 
     # Check for cycles
+    # TODO: change to get_paths after it is implemented in drivers
     r = db.get_relations(
         receiver_input,
         emitter_input,

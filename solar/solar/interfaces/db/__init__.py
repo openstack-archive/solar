@@ -14,7 +14,7 @@ mapping = {
 }
 
 CURRENT_DB = 'redis_graph_db'
-CURRENT_DB = 'neo4j_db'
+#CURRENT_DB = 'neo4j_db'
 
 DB = None
 
