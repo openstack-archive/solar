@@ -33,7 +33,7 @@ def save_graph(name, graph):
 
 
 def get_graph(name):
-    dg = nx.MultiDiGraph()
+    dg = nx.OrderedMultiDiGraph()
     nodes = json.loads(r.get('{}:nodes'.format(name)))
     edges = json.loads(r.get('{}:edges'.format(name)))
     dg.graph = json.loads(r.get('{}:attributes'.format(name)))
