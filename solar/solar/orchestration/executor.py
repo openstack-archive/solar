@@ -43,8 +43,10 @@ def generate_task(task, data, task_id):
         time_limit=data.get('time_limit', None),
         soft_time_limit=data.get('soft_time_limit', None))
 
-    if data.get('target', None):
-        subtask.set(queue=data['target'])
+    # NOTE(dshulyak) it seems that we agreed that celery wont be installed
+    # on every slave and transport will be chosen in handler
+    # if data.get('target', None):
+    #     subtask.set(queue=data['target'])
 
     yield subtask
 
