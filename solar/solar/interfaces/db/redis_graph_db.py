@@ -181,8 +181,10 @@ class RedisGraphDB(BaseGraphDB):
         """Delete all relations of type `type_` from source to dest."""
 
         glob = self._relations_glob(source=source, dest=dest, type_=type_)
+        keys = self._r.keys(glob)
 
-        self._r.delete(*self._r.keys(glob))
+        if keys:
+            self._r.delete(*keys)
 
     def get_relations(self,
                       source=None,

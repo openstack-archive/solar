@@ -62,6 +62,26 @@ input:
         sample1.update({'value': 2})
         self.assertEqual(sample1.args['value'], sample2.args['value'])
 
+    def test_load(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'value': 1}
+        )
+
+        sample_l = resource.load('sample')
+
+        self.assertDictEqual(sample.args, sample_l.args)
+        self.assertListEqual(sample.tags, sample_l.tags)
+
 
 if __name__ == '__main__':
     unittest.main()
