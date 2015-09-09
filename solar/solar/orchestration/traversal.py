@@ -14,9 +14,12 @@ SKIPPED - not visited, and should be skipped from execution
 NOOP - task wont be executed, but should be treated as visited
 """
 
+from enum import Enum
 
-VISITED = ('SUCCESS', 'ERROR', 'NOOP')
-BLOCKED = ('INPROGRESS', 'SKIPPED')
+states = Enum('States', 'SUCCESS ERROR NOOP INPROGRESS SKIPPED PENDING')
+
+VISITED = (states.SUCCESS.name, states.ERROR.name, states.NOOP.name)
+BLOCKED = (states.INPROGRESS.name, states.SKIPPED.name)
 
 
 def traverse(dg):

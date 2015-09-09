@@ -5,9 +5,9 @@ import uuid
 
 import networkx as nx
 import redis
-import yaml
 
 from solar import utils
+from .traversal import states
 
 
 r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
@@ -36,12 +36,17 @@ get_plan = get_graph
 def parse_plan(plan_data):
     """ parses yaml definition and returns graph
     """
-    plan = yaml.load(plan_data)
+    plan = utils.yaml_load(plan_data)
     dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
+        defaults = {
+            'status': 'PENDING',
+            'errmsg': None,
+            }
+        defaults.update(task['parameters'])
         dg.add_node(
-            task['uid'], status='PENDING', errmsg=None, **task['parameters'])
+            task['uid'], **defaults)
         for v in task.get('before', ()):
             dg.add_edge(task['uid'], v)
         for u in task.get('after', ()):
@@ -49,10 +54,11 @@ def parse_plan(plan_data):
     return dg
 
 
-def create_plan_from_graph(dg):
+def create_plan_from_graph(dg, save=True):
     dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
-    save_graph(dg.graph['uid'], dg)
-    return dg.graph['uid']
+    if save:
+        save_graph(dg.graph['uid'], dg)
+    return dg
 
 
 def show(uid):
@@ -73,11 +79,11 @@ def show(uid):
     return utils.yaml_dump(result)
 
 
-def create_plan(plan_data):
+def create_plan(plan_data, save=True):
     """
     """
     dg = parse_plan(plan_data)
-    return create_plan_from_graph(dg)
+    return create_plan_from_graph(dg, save=save)
 
 
 def update_plan(uid, plan_data):
@@ -94,12 +100,16 @@ def update_plan(uid, plan_data):
     return uid
 
 
-def reset(uid, states=None):
+def reset(uid, state_list=None):
     dg = get_graph(uid)
     for n in dg:
-        if states is None or dg.node[n]['status'] in states:
-            dg.node[n]['status'] = 'PENDING'
+        if state_list is None or dg.node[n]['status'] in state_list:
+            dg.node[n]['status'] = states.PENDING.name
     save_graph(uid, dg)
+
+
+def reset_filtered(uid):
+    reset(uid, state_list=[states.SKIPPED.name, states.NOOP.name])
 
 
 def report_topo(uid):
