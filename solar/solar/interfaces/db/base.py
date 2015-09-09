@@ -142,7 +142,7 @@ class BaseGraphDB(object):
 
     COLLECTIONS = Enum(
         'Collections',
-        'input resource state_data state_log plan_node plan_graph'
+        'input resource state_data state_log plan_node plan_graph events'
     )
     DEFAULT_COLLECTION=COLLECTIONS.resource
     RELATION_TYPES = Enum(
