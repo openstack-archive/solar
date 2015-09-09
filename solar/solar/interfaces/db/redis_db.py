@@ -122,7 +122,7 @@ class OrderedSet(object):
         self.rem(self.r.zrange(self.order, 0, -1))
 
     def rem_left(self, n=1):
-        self.rem(r.zrevrange(self.order, 0, n-1))
+        self.rem(self.r.zrevrange(self.order, 0, n-1))
 
     def reverse(self, n=1):
         result = []
