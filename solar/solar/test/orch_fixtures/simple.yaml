@@ -4,6 +4,7 @@ tasks:
       parameters:
           type: echo
           args: [10]
+      before: [just_fail]
     - uid: just_fail
       parameters:
         type: error

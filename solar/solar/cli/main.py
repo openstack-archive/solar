@@ -30,7 +30,6 @@ import yaml
 from solar import utils
 from solar.core import actions
 from solar.core import resource as sresource
-from solar.core.resource import assign_resources_to_nodes
 from solar.core import signals
 from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr

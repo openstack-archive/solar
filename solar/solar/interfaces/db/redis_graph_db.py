@@ -62,9 +62,7 @@ class RedisGraphDB(BaseGraphDB):
 
     def all_relations(self, type_=BaseGraphDB.DEFAULT_RELATION):
         """Return all relations of type `type_`."""
-
         key_glob = self._make_relation_key(type_, '*')
-
         for result in self._all(key_glob):
             yield result
 
@@ -96,10 +94,13 @@ class RedisGraphDB(BaseGraphDB):
     def create(self, name, properties={}, collection=BaseGraphDB.DEFAULT_COLLECTION):
         """Create element (node) with given name, properties, of type `collection`."""
 
+        if isinstance(collection, self.COLLECTIONS):
+            collection = collection.name
+
         properties = {
             'name': name,
             'properties': properties,
-            'collection': collection.name,
+            'collection': collection,
         }
 
         self._r.set(
@@ -118,14 +119,21 @@ class RedisGraphDB(BaseGraphDB):
         Create relation (connection) of type `type_` from source to dest with
         given properties.
         """
+        return self.create_relation_str(
+            source.uid, dest.uid, properties, type_=type_)
 
-        uid = self._make_relation_uid(source.uid, dest.uid)
+    def create_relation_str(self, source, dest,
+                            properties={}, type_=BaseGraphDB.DEFAULT_RELATION):
+        if isinstance(type_, self.RELATION_TYPES):
+            type_ = type_.name
+
+        uid = self._make_relation_uid(source, dest)
 
         properties = {
-            'source': source.uid,
-            'dest': dest.uid,
+            'source': source,
+            'dest': dest,
             'properties': properties,
-            'type_': type_.name,
+            'type_': type_,
         }
 
         self._r.set(
