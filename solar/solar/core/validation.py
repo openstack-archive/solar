@@ -158,7 +158,7 @@ def validate_resource(r):
     ret = {}
 
     input_schemas = r.metadata['input']
-    args = r.args_dict()
+    args = r.args
 
     for input_name, input_definition in input_schemas.items():
         errors = validate_input(

@@ -15,6 +15,18 @@ from solar import events as evapi
 from solar.interfaces.db import get_db
 
 
+PROFILE = False
+#PROFILE = True
+
+
+if PROFILE:
+    import StringIO
+    import cProfile
+    import pstats
+
+    pr = cProfile.Profile()
+
+
 GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
 
 
@@ -39,7 +51,8 @@ def main():
 def setup_resources():
     db.clear()
 
-    signals.Connections.clear()
+    if PROFILE:
+        pr.enable()
 
     node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
 
@@ -580,6 +593,15 @@ def setup_resources():
         'ip': 'glance_api_servers_host',
         'bind_port': 'glance_api_servers_port'
     })
+
+    if PROFILE:
+        pr.disable()
+        s = StringIO.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print s.getvalue()
+        sys.exit(0)
 
     has_errors = False
     for r in locals().values():
