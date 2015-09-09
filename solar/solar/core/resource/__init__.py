@@ -1,7 +1,5 @@
 __all__ = [
     'Resource',
-    'assign_resources_to_nodes',
-    'connect_resources',
     'create',
     'load',
     'load_all',
@@ -12,8 +10,6 @@ __all__ = [
 
 
 from solar.core.resource.resource import Resource
-from solar.core.resource.resource import assign_resources_to_nodes
-from solar.core.resource.resource import connect_resources
 from solar.core.resource.resource import load
 from solar.core.resource.resource import load_all
 from solar.core.resource.resource import wrap_resource
