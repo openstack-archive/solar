@@ -182,14 +182,6 @@ def init_cli_connections():
         #plt.savefig('graph.png')
 
 
-def init_cli_deployment_config():
-    @main.command()
-    @click.argument('filepath')
-    def deploy(filepath):
-        click.echo('Deploying from file {}'.format(filepath))
-        xd.deploy(filepath)
-
-
 def init_cli_resource():
     @main.group()
     def resource():
@@ -296,7 +288,6 @@ def init_cli_resource():
         if output:
             echo(output)
 
-
     @resource.command()
     @click.argument('resource_name')
     @click.argument('tag_name')
@@ -308,7 +299,7 @@ def init_cli_resource():
             r.add_tag(tag_name)
         else:
             r.remove_tag(tag_name)
-        r.save()
+        # TODO: the above functions should save resource automatically to the DB
 
     @resource.command()
     @click.argument('name')

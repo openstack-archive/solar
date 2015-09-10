@@ -24,5 +24,9 @@ class CannotFindExtension(SolarError):
     pass
 
 
+class LexError(SolarError):
+    pass
+
+
 class ParseError(SolarError):
     pass
