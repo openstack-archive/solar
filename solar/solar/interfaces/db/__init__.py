@@ -12,18 +12,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.interfaces.db.neo4j import Neo4jDB
-from solar.interfaces.db.redis_db import RedisDB
-from solar.interfaces.db.redis_db import FakeRedisDB
-from solar.interfaces.db.redis_graph_db import RedisGraphDB
-from solar.interfaces.db.redis_graph_db import FakeRedisGraphDB
+import importlib
 
-mapping = {
-    'neo4j_db': Neo4jDB,
-    'fakeredis_db': FakeRedisDB,
-    'redis_db': RedisDB,
-    'fakeredis_graph_db': FakeRedisGraphDB,
-    'redis_graph_db': RedisGraphDB,
+db_backends = {
+    'neo4j_db': ('solar.interfaces.db.neo4j', 'Neo4jDB'),
+    'redis_db': ('solar.interfaces.db.redis_db', 'RedisDB'),
+    'fakeredis_db': ('solar.interfaces.db.redis_db', 'FakeRedisDB'),
+    'redis_graph_db': ('solar.interfaces.db.redis_graph_db', 'RedisGraphDB'),
+    'fakeredis_graph_db': ('solar.interfaces.db.redis_graph_db', 'FakeRedisGraphDB'),
 }
 
 CURRENT_DB = 'redis_graph_db'
@@ -36,5 +32,7 @@ def get_db():
     # Should be retrieved from config
     global DB
     if DB is None:
-        DB = mapping[CURRENT_DB]()
+        backend, klass = db_backends[CURRENT_DB]
+        module = importlib.import_module(backend)
+        DB = getattr(module, klass)()
     return DB
