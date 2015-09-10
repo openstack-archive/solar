@@ -4,6 +4,32 @@ from pytest import fixture
 
 from solar.events import api as evapi
 
+from .base import BaseResourceTest
+
+
+class EventAPITest(BaseResourceTest):
+    def test_events_load(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 1}
+        )
+
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 1}
+        )
+
+        evapi.Dep('sample1', 'run', 'success', 'sample2', 'run'),
+        loaded = evapi.all_events(sample1)
+
 @fixture
 def nova_deps():
     rst = [
@@ -83,4 +109,3 @@ def test_riak():
     evapi.build_edges(changed, changes_graph, events)
     assert nx.topological_sort(changes_graph) == [
         'riak_service1.run', 'riak_service2.join', 'riak_service3.join', 'riak_service1.commit']
-
