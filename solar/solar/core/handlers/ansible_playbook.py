@@ -8,10 +8,10 @@ from ansible import callbacks
 import ansible.constants as C
 from fabric import api as fabric_api
 
+from solar.core.log import log
 from solar.core.handlers import base
 from solar import errors
 from solar.core.provider import SVNProvider
-
 
 ROLES_PATH = '/etc/ansible/roles'
 
@@ -53,7 +53,7 @@ class AnsiblePlaybook(base.BaseHandler):
         play = PlayBook(
             playbook=action_file,
             remote_user=remote_user,
-            host_list = [host],
+            host_list=[host],
             private_key_file=private_key_file,
             extra_vars=variables,
             callbacks=playbook_cb,
