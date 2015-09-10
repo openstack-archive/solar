@@ -7,8 +7,6 @@ class DryRunExecutor(object):
         from fabric.contrib import project as fabric_project
         import mock
 
-        from solar.core.handlers import puppet
-
         self.executed = []
 
         self.mapping = mapping or {}

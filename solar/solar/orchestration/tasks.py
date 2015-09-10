@@ -1,6 +1,18 @@
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
-from functools import partial, wraps
-from itertools import islice
+from functools import partial
 import subprocess
 import time
 
@@ -8,7 +20,6 @@ from celery.app import task
 import redis
 
 from solar.orchestration import graph
-from solar.orchestration import filters
 from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
@@ -23,6 +34,7 @@ r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
+
 
 # NOTE(dshulyak) i am not using celery.signals because it is not possible
 # to extract task_id from *task_success* signal
