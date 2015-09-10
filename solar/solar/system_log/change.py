@@ -31,17 +31,9 @@ def create_diff(staged, commited):
     return list(diff(commited, staged))
 
 
-def _stage_changes(staged_resources, conn_graph,
-                   commited_resources, staged_log):
+def _stage_changes(staged_resources, commited_resources, staged_log):
 
-    try:
-        srt = nx.topological_sort(conn_graph)
-    except:
-        for cycle in nx.simple_cycles(conn_graph):
-            log.debug('CYCLE: %s', cycle)
-        raise
-
-    for res_uid in srt:
+    for res_uid in staged_resources.keys():
         commited_data = commited_resources.get(res_uid, {})
         staged_data = staged_resources.get(res_uid, {})
 
@@ -61,17 +53,14 @@ def _stage_changes(staged_resources, conn_graph,
 def stage_changes():
     log = data.SL()
     log.clean()
-    conn_graph = signals.detailed_connection_graph()
-    staged = {r.name: r.args_show()
-              for r in resource.load_all().values()}
+    staged = {r.name: r.args for r in resource.load_all()}
     commited = data.CD()
-    return _stage_changes(staged, conn_graph, commited, log)
+    return _stage_changes(staged, commited, log)
 
 
 def send_to_orchestration():
     dg = nx.MultiDiGraph()
-    staged = {r.name: r.args_show()
-              for r in resource.load_all().values()}
+    staged = {r.name: r.args for r in resource.load_all()}
     commited = data.CD()
     events = {}
     changed_nodes = []

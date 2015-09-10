@@ -1,1 +1,1 @@
-from .resource import Resource, load, wrap_resource
+from .resource import Resource, load, wrap_resource, load_all

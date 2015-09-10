@@ -35,7 +35,7 @@ def get_graph(uid):
     type_= db.RELATION_TYPES.plan_edge.name + ':' + uid
     dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
     dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
-    dg.add_edges_from([(i['dest'], i['source'], i['properties']) for
+    dg.add_edges_from([(i['source'], i['dest'], i['properties']) for
                        i in db.all_relations(type_=type_, db_convert=False)])
     return dg
 

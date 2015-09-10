@@ -72,8 +72,8 @@ def details(diff):
     rst = []
     for type_, val, change in diff:
         if type_ == 'add':
-            for it in change:
-                rst.append('++ {}: {}'.format(it[0], unwrap_add(it[1])))
+            for key, val in change:
+                rst.append('++ {}: {}'.format(key ,val))
         elif type_ == 'change':
             rst.append('-+ {}: {} >> {}'.format(
                 unwrap_change_val(val), change[0], change[1]))
@@ -142,7 +142,8 @@ class Data(collections.MutableMapping):
     def __init__(self, path):
         self.path = path
         self.store = {}
-        r = db.get(path, collection=db.COLLECTIONS.state_data)
+        r = db.get(path, collection=db.COLLECTIONS.state_data,
+                   return_empty=True, db_convert=False)
         if r:
             self.store = r or self.store
 

@@ -159,3 +159,8 @@ def load(name):
 
 def wrap_resource(resource_node):
     return Resource(resource_node)
+
+
+def load_all():
+    return [wrap_resource(r) for r
+            in db.all(collection=db.COLLECTIONS.resource)]
