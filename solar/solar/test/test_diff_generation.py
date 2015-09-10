@@ -84,21 +84,10 @@ def resources():
               'tags': []}}
     return r
 
-@fixture
-def conn_graph():
-    edges = [
-        ('n.1', 'r.1', {'label': 'ip:ip'}),
-        ('n.1', 'h.1', {'label': 'ip:ip'}),
-        ('r.1', 'h.1', {'label': 'ip:ips'})
-    ]
-    mdg = nx.MultiDiGraph()
-    mdg.add_edges_from(edges)
-    return mdg
 
-
-def test_stage_changes(resources, conn_graph):
+def test_stage_changes(resources):
     commited = {}
-    log = change._stage_changes(resources, conn_graph, commited, [])
+    log = change._stage_changes(resources, commited, [])
 
     assert len(log) == 3
-    assert [l.res for l in log] == ['n.1', 'r.1', 'h.1']
+    assert {l.res for l in log} == {'n.1', 'r.1', 'h.1'}
