@@ -252,7 +252,7 @@ def notify(source, key, value):
             resource = load(client)
             log.debug('Resource found: %s', client)
             if resource:
-                resource.update({r_key: value}, emitter=source)
+                resource.update({r_key: value})
             else:
                 log.debug('Resource %s deleted?', client)
                 pass
