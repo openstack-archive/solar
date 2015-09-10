@@ -6,6 +6,7 @@ from solar import utils
 from solar import errors
 
 from .base import BaseGraphDB, Node, Relation
+from .redis_db import OrderedHash
 
 
 class RedisGraphDB(BaseGraphDB):
@@ -265,6 +266,9 @@ class RedisGraphDB(BaseGraphDB):
 
         # NOTE: hiera-redis backend depends on this!
         return '{0}:{1}'.format(type_, _id)
+
+    def get_ordered_hash(self, collection):
+        return OrderedHash(self._r, collection)
 
 
 class FakeRedisGraphDB(RedisGraphDB):

@@ -67,8 +67,8 @@ class RedisDB(object):
     def clear(self):
         self._r.flushdb()
 
-    def get_set(self, collection):
-        return OrderedSet(self._r, collection)
+    def get_ordered_hash(self, collection):
+        return OrderedHash(self._r, collection)
 
     def clear_collection(self, collection=COLLECTIONS.resource):
         key_glob = self._make_key(collection, '*')
@@ -86,7 +86,7 @@ class RedisDB(object):
         return '{0}:{1}'.format(collection, _id)
 
 
-class OrderedSet(object):
+class OrderedHash(object):
 
     def __init__(self, client, collection):
         self.r = client

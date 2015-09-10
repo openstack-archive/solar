@@ -102,7 +102,3 @@ def test_stage_changes(resources, conn_graph):
 
     assert len(log) == 3
     assert [l.res for l in log] == ['n.1', 'r.1', 'h.1']
-
-
-def test_resource_fixture(staged):
-    res = wrap_resource(staged)
