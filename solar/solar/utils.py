@@ -39,7 +39,7 @@ def yaml_dump_to(data, file_path):
 
 
 def find_by_mask(mask):
-    for file_path in  glob.glob(mask):
+    for file_path in glob.glob(mask):
         yield os.path.abspath(file_path)
 
 

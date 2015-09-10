@@ -38,7 +38,7 @@ def type_based_rule(dg, inprogress, item):
         type_limit: 2
     """
     _type = dg.node[item].get('resource_type')
-    if not 'type_limit' in dg.node[item]: return True
+    if 'type_limit' not in dg.node[item]: return True
     if not _type: return True
 
     type_count = 0

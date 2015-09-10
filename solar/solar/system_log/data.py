@@ -1,7 +1,4 @@
-
-import os
 import collections
-from collections import deque
 from functools import partial
 
 from solar import utils

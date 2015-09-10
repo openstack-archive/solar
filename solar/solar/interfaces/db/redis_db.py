@@ -3,9 +3,6 @@ import json
 import redis
 import fakeredis
 
-from solar import utils
-from solar import errors
-
 
 class RedisDB(object):
     COLLECTIONS = Enum(
@@ -17,7 +14,6 @@ class RedisDB(object):
         'port': 6379,
     }
     REDIS_CLIENT = redis.StrictRedis
-
 
     def __init__(self):
         self._r = self.REDIS_CLIENT(**self.DB)

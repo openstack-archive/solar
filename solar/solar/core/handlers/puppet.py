@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-from contextlib import nested
-from functools import partial
-
-from fabric import api as fabric_api
-from fabric.contrib import project as fabric_project
 import os
 
 from solar.core.log import log

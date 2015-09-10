@@ -1,6 +1,5 @@
 
-from functools import partial, wraps
-from itertools import islice
+from functools import partial
 import subprocess
 import time
 
@@ -8,7 +7,6 @@ from celery.app import task
 import redis
 
 from solar.orchestration import graph
-from solar.orchestration import filters
 from solar.core import actions
 from solar.core import resource
 from solar.system_log.tasks import commit_logitem, error_logitem
@@ -23,6 +21,7 @@ r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
+
 
 # NOTE(dshulyak) i am not using celery.signals because it is not possible
 # to extract task_id from *task_success* signal

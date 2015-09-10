@@ -1,7 +1,3 @@
-import os
-from functools import partial
-from contextlib import nested
-
 from fabric import api as fabric_api
 
 from solar.core.log import log

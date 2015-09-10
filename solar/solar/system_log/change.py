@@ -1,6 +1,4 @@
-
-
-from dictdiffer import diff, patch, revert
+from dictdiffer import diff
 import networkx as nx
 
 from solar.core.log import log
@@ -8,7 +6,6 @@ from solar.core import signals
 from solar.core import resource
 from solar import utils
 from solar.interfaces.db import get_db
-from solar.core import actions
 from solar.system_log import data
 from solar.orchestration import graph
 from solar.events import api as evapi

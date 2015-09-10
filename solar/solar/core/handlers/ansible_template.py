@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from fabric import api as fabric_api
 from fabric.state import env
 import os
 
@@ -10,6 +9,7 @@ from solar import errors
 
 # otherwise fabric will sys.exit(1) in case of errors
 env.warn_only = True
+
 
 # if we would have something like solard that would render this then
 # we would not need to render it there
@@ -40,7 +40,6 @@ class AnsibleTemplate(TempFileHandler):
         # if out.failed:
         #     raise errors.SolarError(out)
 
-
     def _create_inventory(self, r):
         directory = self.dirs[r.name]
         inventory_path = os.path.join(directory, 'inventory')
@@ -70,4 +69,3 @@ class AnsibleTemplate(TempFileHandler):
         args = super(AnsibleTemplate, self)._make_args(resource)
         args['host'] = 'localhost'
         return args
-

@@ -16,6 +16,7 @@ import os
 from setuptools import find_packages
 from setuptools import setup
 
+
 def find_requires():
     prj_root = os.path.dirname(os.path.realpath(__file__))
     requirements = []

@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
-import os
-
 from copy import deepcopy
-
-import solar
 
 from solar.core import actions
 from solar.core import observer
-from solar.core import signals
 from solar.core import validation
 
 from solar.interfaces.db import get_db

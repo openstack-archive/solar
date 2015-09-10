@@ -17,8 +17,6 @@ trigger action even if no changes noticed on dependent resource.
         - parent:update -> ok -> dependent:update
 """
 
-import re
-
 
 class Event(object):
 

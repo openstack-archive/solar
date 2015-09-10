@@ -2,7 +2,6 @@
 import networkx as nx
 
 from .traversal import VISITED, states
-from solar import errors
 
 
 def get_dfs_postorder_subgraph(dg, nodes):
