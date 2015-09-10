@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 class SolarError(Exception):
     pass
 
@@ -21,6 +22,10 @@ class CannotFindID(SolarError):
 
 
 class CannotFindExtension(SolarError):
+    pass
+
+
+class LexError(SolarError):
     pass
 
 

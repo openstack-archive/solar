@@ -72,7 +72,7 @@ def setup_riak():
         local_errors = validation.validate_resource(r)
         if local_errors:
             has_errors = True
-            print 'ERROR: %s: %s' % (r.name, errors)
+            print 'ERROR: %s: %s' % (r.name, local_errors)
 
     if has_errors:
         print "ERRORS"
