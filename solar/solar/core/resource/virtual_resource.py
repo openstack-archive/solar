@@ -1,3 +1,18 @@
+# -*- coding: UTF-8 -*-
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
 import os
 from StringIO import StringIO
 import yaml
@@ -45,10 +60,10 @@ def create_virtual_resource(vr_name, template):
     created_resources = []
 
     cwd = os.getcwd()
-    for resource in resources:
-        name = resource['id']
-        base_path = os.path.join(cwd, resource['from'])
-        args = resource['values']
+    for r in resources:
+        name = r['id']
+        base_path = os.path.join(cwd, r['from'])
+        args = r['values']
         new_resources = create(name, base_path, args, vr_name)
         created_resources += new_resources
 
@@ -59,8 +74,8 @@ def create_virtual_resource(vr_name, template):
                     connections.append((emitter, name, {src: key}))
 
         for emitter, reciver, mapping in connections:
-            emitter = resource.load(emitter)
-            reciver = resource.load(reciver)
+            emitter = r.load(emitter)
+            reciver = r.load(reciver)
             signals.connect(emitter, reciver, mapping)
 
     return created_resources

@@ -1,5 +1,18 @@
 # -*- coding: utf-8 -*-
-from fabric import api as fabric_api
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
 from fabric.state import env
 import os
 
@@ -10,6 +23,7 @@ from solar import errors
 
 # otherwise fabric will sys.exit(1) in case of errors
 env.warn_only = True
+
 
 # if we would have something like solard that would render this then
 # we would not need to render it there
@@ -40,7 +54,6 @@ class AnsibleTemplate(TempFileHandler):
         # if out.failed:
         #     raise errors.SolarError(out)
 
-
     def _create_inventory(self, r):
         directory = self.dirs[r.name]
         inventory_path = os.path.join(directory, 'inventory')
@@ -70,4 +83,3 @@ class AnsibleTemplate(TempFileHandler):
         args = super(AnsibleTemplate, self)._make_args(resource)
         args['host'] = 'localhost'
         return args
-

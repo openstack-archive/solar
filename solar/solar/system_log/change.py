@@ -1,6 +1,18 @@
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
-
-from dictdiffer import diff, patch, revert
+from dictdiffer import diff
 import networkx as nx
 
 from solar.core.log import log
@@ -8,7 +20,6 @@ from solar.core import signals
 from solar.core import resource
 from solar import utils
 from solar.interfaces.db import get_db
-from solar.core import actions
 from solar.system_log import data
 from solar.orchestration import graph
 from solar.events import api as evapi

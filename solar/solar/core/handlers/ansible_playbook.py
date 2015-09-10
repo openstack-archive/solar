@@ -1,4 +1,17 @@
 # -*- coding: utf-8 -*-
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
 import os
 
@@ -8,10 +21,10 @@ from ansible import callbacks
 import ansible.constants as C
 from fabric import api as fabric_api
 
+from solar.core.log import log
 from solar.core.handlers import base
 from solar import errors
 from solar.core.provider import SVNProvider
-
 
 ROLES_PATH = '/etc/ansible/roles'
 
@@ -53,7 +66,7 @@ class AnsiblePlaybook(base.BaseHandler):
         play = PlayBook(
             playbook=action_file,
             remote_user=remote_user,
-            host_list = [host],
+            host_list=[host],
             private_key_file=private_key_file,
             extra_vars=variables,
             callbacks=playbook_cb,
