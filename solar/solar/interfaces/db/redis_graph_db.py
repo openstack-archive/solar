@@ -223,7 +223,6 @@ class RedisGraphDB(BaseGraphDB):
         try:
             return self.get_relation(source, dest, type_=type_)
         except KeyError:
-            uid = self._make_relation_key(source.uid, dest.uid)
             return self.create_relation(source, dest, properties=properties, type_=type_)
 
     def push_node(self, node):

@@ -37,6 +37,7 @@ class Node(object):
     def _update_self_with_new_node(self, n):
         self.labels = n.labels
         self.properties = n.properties
+        
 
 class Relation(object):
     def __init__(self, db, start_node, end_node, properties):

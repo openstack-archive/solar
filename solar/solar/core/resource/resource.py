@@ -20,6 +20,7 @@ import os
 import uuid
 
 from solar.interfaces.db import get_db
+from solar.interfaces import orm
 from solar import utils
 
 
@@ -97,16 +98,16 @@ class Resource(object):
 
     # Load
     @dispatch(object)
-    def __init__(self, resource_node):
-        self.node = resource_node
-        self.name = resource_node.uid
-        self.metadata = resource_node.properties
+    def __init__(self, resource_db):
+        self.db_obj = resource_db
+        self.name = resource_db.name
+        # TODO:
         self.tags = []
         self.virtual_resource = None
 
     @property
     def actions(self):
-        return self.metadata.get('actions') or []
+        return self.resource_db.actions or []
 
     # TODO: json.dumps/loads should be probably moved to neo4j.py
     def set_args_from_dict(self, args):
@@ -141,7 +142,7 @@ class Resource(object):
         return ret
 
     def update(self, args):
-        # TODO: disconnect input when it is updated and and end_node
+        # TODO: disconnect input when it is updated and end_node
         #       for some input_to_input relation
         resource_inputs = self.resource_inputs()
 
@@ -163,7 +164,7 @@ class Resource(object):
 
 
 def load(name):
-    r = db.get(name, collection=db.COLLECTIONS.resource)
+    r = orm.DBResource.load(name)
 
     if not r:
         raise Exception('Resource {} does not exist in DB'.format(name))
@@ -171,5 +172,5 @@ def load(name):
     return wrap_resource(r)
 
 
-def wrap_resource(resource_node):
-    return Resource(resource_node)
+def wrap_resource(resource_db):
+    return Resource(resource_db)
