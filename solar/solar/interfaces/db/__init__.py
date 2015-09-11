@@ -28,11 +28,11 @@ CURRENT_DB = 'redis_graph_db'
 DB = None
 
 
-def get_db():
+def get_db(backend=CURRENT_DB):
     # Should be retrieved from config
     global DB
     if DB is None:
-        backend, klass = db_backends[CURRENT_DB]
-        module = importlib.import_module(backend)
+        import_path, klass = db_backends[backend]
+        module = importlib.import_module(import_path)
         DB = getattr(module, klass)()
     return DB

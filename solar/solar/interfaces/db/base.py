@@ -63,7 +63,7 @@ class DBObjectMeta(abc.ABCMeta):
         ('get_or_create_relation', False),
     ]
 
-    def __new__(cls, name, parents, dict):
+    def __new__(cls, name, parents, dct):
         def from_db_list_decorator(converting_func, method):
             def wrapper(self, *args, **kwargs):
                 db_convert = kwargs.pop('db_convert', True)
@@ -94,31 +94,31 @@ class DBObjectMeta(abc.ABCMeta):
             return wrapper
 
         node_db_to_object = cls.find_method(
-            'node_db_to_object', name, parents, dict
+            'node_db_to_object', name, parents, dct
         )
         relation_db_to_object = cls.find_method(
-            'relation_db_to_object', name, parents, dict
+            'relation_db_to_object', name, parents, dct
         )
 
         # Node conversions
         for method_name, is_list in cls.node_db_read_methods:
-            method = cls.find_method(method_name, name, parents, dict)
+            method = cls.find_method(method_name, name, parents, dct)
             if is_list:
                 func = from_db_list_decorator
             else:
                 func = from_db_decorator
-            dict[method_name] = func(node_db_to_object, method)
+            dct[method_name] = func(node_db_to_object, method)
 
         # Relation conversions
         for method_name, is_list in cls.relation_db_read_methods:
-            method = cls.find_method(method_name, name, parents, dict)
+            method = cls.find_method(method_name, name, parents, dct)
             if is_list:
                 func = from_db_list_decorator
             else:
                 func = from_db_decorator
-            dict[method_name] = func(relation_db_to_object, method)
+            dct[method_name] = func(relation_db_to_object, method)
 
-        return super(DBObjectMeta, cls).__new__(cls, name, parents, dict)
+        return super(DBObjectMeta, cls).__new__(cls, name, parents, dct)
 
     @classmethod
     def find_method(cls, method_name, class_name, parents, dict):

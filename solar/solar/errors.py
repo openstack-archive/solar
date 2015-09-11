@@ -25,6 +25,10 @@ class CannotFindExtension(SolarError):
     pass
 
 
+class ValidationError(SolarError):
+    pass
+
+
 class LexError(SolarError):
     pass
 

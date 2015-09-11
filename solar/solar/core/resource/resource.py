@@ -80,7 +80,7 @@ class Resource(object):
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 
-        self.node = db.get_or_create(
+        self.node = db.create(
             name,
             properties={
                 'actions_path': self.metadata.get('actions_path', ''),
@@ -100,8 +100,7 @@ class Resource(object):
     def __init__(self, resource_node):
         self.node = resource_node
         self.name = resource_node.uid
-        self.metadata = read_meta(resource_node.properties['base_path'])
-        self.metadata.update(resource_node.properties)
+        self.metadata = resource_node.properties
         self.tags = []
         self.virtual_resource = None
 
