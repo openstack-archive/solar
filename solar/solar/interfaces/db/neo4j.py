@@ -134,15 +134,6 @@ class Neo4jDB(BaseGraphDB):
 
         return self.create(name, properties=properties, collection=collection)
 
-    def push_node(self, node):
-        collection = getattr(BaseGraphDB.COLLECTIONS, list(node.labels)[0])
-        query, kwargs = self._get_query(node.uid, collection=collection)
-        n = self._r.cypher.execute(query, kwargs)[0].n
-        n.properties.update(node.properties)
-        n.push()
-
-        return n
-
     def _relations_query(self,
                          source=None,
                          dest=None,

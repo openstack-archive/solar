@@ -150,8 +150,8 @@ class RedisGraphDB(BaseGraphDB):
                       properties={},
                       collection=BaseGraphDB.DEFAULT_COLLECTION):
         """
-        Fetch or create element (if not exists) with given name, properties of type
-        `collection`.
+        Fetch or create element (if not exists) with given name, properties of
+        type `collection`.
         """
 
         try:
@@ -224,14 +224,6 @@ class RedisGraphDB(BaseGraphDB):
             return self.get_relation(source, dest, type_=type_)
         except KeyError:
             return self.create_relation(source, dest, properties=properties, type_=type_)
-
-    def push_node(self, node):
-        return self.create(
-            node.uid,
-            properties=node.properties,
-            collection=node.collection,
-            db_convert=False
-        )
 
     def _make_collection_key(self, collection, _id):
         if isinstance(collection, self.COLLECTIONS):

@@ -32,7 +32,9 @@ class DBField(object):
 
     def __init__(self, name, value=None):
         self.name = name
-        self.value = value or self.default_value
+        self.value = value
+        if value is None:
+            self.value = self.default_value
 
     def __eq__(self, inst):
         return self.name == inst.name and self.value == inst.value
@@ -88,6 +90,13 @@ class DBRelatedField(object):
 
     def add(self, *destination_db_objects):
         for dest in destination_db_objects:
+            if not isinstance(dest, self.destination_db_class):
+                raise errors.SolarError(
+                    'Object {} is of incompatible type {}.'.format(
+                        dest, self.destination_db_class
+                    )
+                )
+
             db.get_or_create_relation(
                 self.source_db_object._db_node,
                 dest._db_node,
@@ -165,7 +174,14 @@ class DBObjectMeta(type):
         if not has_primary:
             raise errors.SolarError('Object needs to have a primary field.')
 
-        return super(DBObjectMeta, cls).__new__(cls, name, parents, dct)
+        klass = super(DBObjectMeta, cls).__new__(cls, name, parents, dct)
+
+        # Support for self-references in relations
+        for field_name, field_klass in klass._meta['related_to'].items():
+            if field_klass.destination_db_class == klass.__name__:
+                field_klass.destination_db_class = klass
+
+        return klass
 
 
 class DBObject(object):
@@ -279,6 +295,10 @@ class DBResourceInput(DBObject):
     name = db_field(schema='str!')
     schema = db_field()
     value = db_field(schema_in_field='schema')
+    is_list = db_field(schema='bool')
+
+    receivers = db_related_field(base.BaseGraphDB.RELATION_TYPES.input_to_input,
+                                 'DBResourceInput')
 
 
 class DBResource(DBObject):
@@ -294,6 +314,7 @@ class DBResource(DBObject):
     handler = db_field(schema='str')  # one of: {'ansible_playbook', 'ansible_template', 'puppet', etc}
     version = db_field(schema='str')
     tags = db_field(schema=[], default_value=[])
+    meta_inputs = db_field(schema={}, default_value={})
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
@@ -302,7 +323,11 @@ class DBResource(DBObject):
         # NOTE: Inputs need to have uuid added because there can be many
         #       inputs with the same name
         uid = '{}-{}'.format(name, uuid.uuid4())
-        input = DBResourceInput(id=uid, name=name, schema=schema, value=value)
+        input = DBResourceInput(id=uid,
+                                name=name,
+                                schema=schema,
+                                value=value,
+                                is_list=isinstance(schema, list))
         input.validate()
         input.save()
 

@@ -68,35 +68,33 @@ def connect_single(emitter, src, receiver, dst):
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[dst]
 
-    if emitter_input.uid == receiver_input.uid:
+    if emitter_input.id == receiver_input.id:
         raise Exception(
             'Trying to connect {} to itself, this is not possible'.format(
-                emitter_input.uid)
+                emitter_input.id)
         )
 
-    if not receiver_input.properties['is_list']:
+    # TODO: in ORM this has to be something like 'delete all incoming'
+    #       so we would have to trace the backwards relation for
+    #       db_related_field
+    if not receiver_input.is_list:
         db.delete_relations(
-            dest=receiver_input,
+            dest=receiver_input._db_node,
             type_=db.RELATION_TYPES.input_to_input
         )
 
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
     r = db.get_relations(
-        receiver_input,
-        emitter_input,
+        receiver_input._db_node,
+        emitter_input._db_node,
         type_=db.RELATION_TYPES.input_to_input
     )
 
     if r:
         raise Exception('Prevented creating a cycle')
 
-    db.get_or_create_relation(
-        emitter_input,
-        receiver_input,
-        properties={},
-        type_=db.RELATION_TYPES.input_to_input
-    )
+    emitter_input.receivers.add(receiver_input)
 
 
 def disconnect_receiver_by_input(receiver, input_name):
@@ -111,8 +109,4 @@ def disconnect_receiver_by_input(receiver, input_name):
 def disconnect(emitter, receiver):
     for emitter_input in emitter.resource_inputs().values():
         for receiver_input in receiver.resource_inputs().values():
-            db.delete_relations(
-                source=emitter_input,
-                dest=receiver_input,
-                type_=db.RELATION_TYPES.input_to_input
-            )
+            emitter_input.receivers.remove(receiver_input)

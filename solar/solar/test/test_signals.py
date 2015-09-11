@@ -83,7 +83,7 @@ input:
             'sample1', sample_meta_dir, {'values': {'a': 1, 'b': 2}}
         )
         sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'values': None}
+            'sample2', sample_meta_dir
         )
         xs.connect(sample1, sample2)
         self.assertEqual(
@@ -123,7 +123,7 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
-    schema: string
+    schema: str
     value:
   port:
     schema: int
@@ -135,7 +135,7 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
-    schema: string
+    schema: str
     value:
         """)
         sample_port_meta_dir = self.make_resource_meta("""
@@ -155,11 +155,11 @@ input:
             'sample-ip', sample_ip_meta_dir, {'ip': '10.0.0.1'}
         )
         sample_port = self.create_resource(
-            'sample-port', sample_port_meta_dir, {'port': '8000'}
+            'sample-port', sample_port_meta_dir, {'port': 8000}
         )
         self.assertNotEqual(
-            sample.resource_inputs()['ip'].uid,
-            sample_ip.resource_inputs()['ip'].uid,
+            sample.resource_inputs()['ip'],
+            sample_ip.resource_inputs()['ip'],
         )
         xs.connect(sample_ip, sample)
         xs.connect(sample_port, sample)
@@ -181,7 +181,7 @@ handler: ansible
 version: 1.0.0
 input:
   ip:
-    schema: string
+    schema: str
     value:
         """)
 
@@ -347,13 +347,13 @@ input:
         """)
 
         sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': '1000'}
+            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': 1000}
         )
         sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': '1001'}
+            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': 1001}
         )
         list_input_multi = self.create_resource(
-            'list-input-multi', list_input_multi_meta_dir, {'ips': [], 'ports': []}
+            'list-input-multi', list_input_multi_meta_dir, args={'ips': [], 'ports': []}
         )
 
         xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
@@ -453,10 +453,10 @@ input:
         """)
 
         sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': '1000'}
+            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': 1000}
         )
         sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': '1001'}
+            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': 1001}
         )
         list_input = self.create_resource(
             'list-input', list_input_meta_dir, {}

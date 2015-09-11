@@ -184,6 +184,33 @@ class TestORMRelation(BaseResourceTest):
         o.related.add(r1, r2)
         self.assertSetEqual(o.related.value, {r1, r2})
 
+        with self.assertRaisesRegexp(errors.SolarError, '.*incompatible type.*'):
+            o.related.add(o)
+
+    def test_relation_to_self(self):
+        class TestDBObject(orm.DBObject):
+            _collection = base.BaseGraphDB.COLLECTIONS.input
+            __metaclass__ = orm.DBObjectMeta
+
+            id = orm.db_field(schema='str', is_primary=True)
+            related = orm.db_related_field(
+                base.BaseGraphDB.RELATION_TYPES.input_to_input,
+                'TestDBObject'
+            )
+
+        o1 = TestDBObject(id='1')
+        o1.save()
+        o2 = TestDBObject(id='2')
+        o2.save()
+        o3 = TestDBObject(id='2')
+        o3.save()
+
+        o1.related.add(o2)
+        o2.related.add(o3)
+
+        self.assertEqual(o1.related.value, {o2})
+        self.assertEqual(o2.related.value, {o3})
+
 
 class TestResourceORM(BaseResourceTest):
     def test_save(self):

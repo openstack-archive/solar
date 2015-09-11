@@ -24,7 +24,7 @@ from solar.core import resource
 from solar.core import signals
 
 
-def create(name, base_path, kwargs, virtual_resource=None):
+def create(name, base_path, args={}, virtual_resource=None):
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
@@ -34,17 +34,20 @@ def create(name, base_path, kwargs, virtual_resource=None):
         )
 
     if is_virtual(base_path):
-        template = _compile_file(name, base_path, kwargs)
+        template = _compile_file(name, base_path, args)
         yaml_template = yaml.load(StringIO(template))
         rs = create_virtual_resource(name, yaml_template)
     else:
-        r = create_resource(name, base_path, kwargs, virtual_resource)
+        r = create_resource(name,
+                            base_path,
+                            args=args,
+                            virtual_resource=virtual_resource)
         rs = [r]
 
     return rs
 
 
-def create_resource(name, base_path, args, virtual_resource=None):
+def create_resource(name, base_path, args={}, virtual_resource=None):
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 

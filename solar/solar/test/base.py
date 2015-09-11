@@ -42,5 +42,5 @@ class BaseResourceTest(unittest.TestCase):
 
         return path
 
-    def create_resource(self, name, src, args):
-        return vr.create(name, src, args)[0]
+    def create_resource(self, name, src, args={}):
+        return vr.create(name, src, args=args)[0]

@@ -27,6 +27,8 @@ from solar import utils
 db = get_db()
 
 
+# TODO: this is actually just fetching head element in linked list
+#       so this whole algorithm can be moved to the db backend probably
 # TODO: cycle detection?
 # TODO: write this as a Cypher query? Move to DB?
 def _read_input_value(input_node):
@@ -34,8 +36,7 @@ def _read_input_value(input_node):
                            type_=db.RELATION_TYPES.input_to_input)
 
     if not rel:
-        v = input_node.properties['value'] or 'null'
-        return json.loads(v)
+        return input_node.properties['value']
 
     if input_node.properties['is_list']:
         return [_read_input_value(r.start_node) for r in rel]
@@ -76,28 +77,25 @@ class Resource(object):
         else:
             self.metadata = deepcopy(self._metadata)
 
-        self.metadata['id'] = name
-
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 
-        self.node = db.create(
-            name,
-            properties={
-                'actions_path': self.metadata.get('actions_path', ''),
-                'base_name': self.metadata.get('base_name', ''),
-                'base_path': self.metadata.get('base_path', ''),
-                'handler': self.metadata.get('handler', ''),
-                'id': self.metadata['id'],
-                'version': self.metadata.get('version', ''),
-            },
-            collection=db.COLLECTIONS.resource
-        )
+        self.db_obj = orm.DBResource(**{
+            'id': name,
+            'name': name,
+            'actions_path': self.metadata.get('actions_path', ''),
+            'base_name': self.metadata.get('base_name', ''),
+            'base_path': self.metadata.get('base_path', ''),
+            'handler': self.metadata.get('handler', ''),
+            'version': self.metadata.get('version', ''),
+            'meta_inputs': self.metadata.get('input', {})
+        })
+        self.db_obj.save()
 
-        self.set_args_from_dict(args)
+        self.create_inputs(args)
 
     # Load
-    @dispatch(object)
+    @dispatch(orm.DBResource)
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
@@ -110,35 +108,17 @@ class Resource(object):
         return self.resource_db.actions or []
 
     # TODO: json.dumps/loads should be probably moved to neo4j.py
-    def set_args_from_dict(self, args):
-        self.node.pull()
+    def create_inputs(self, args):
+        for name, v in self.db_obj.meta_inputs.items():
+            value = args.get(name, v.get('value'))
 
-        for k, v in self.metadata['input'].items():
-            value = args.get(k, v.get('value'))
-
-            uid = '{}-{}'.format(k, uuid.uuid4())
-
-            i = db.get_or_create(
-                uid,
-                properties={
-                    'is_list': isinstance(v.get('schema'), list),
-                    'input_name': k,
-                    'value': json.dumps(value),
-                },
-                collection=db.COLLECTIONS.input
-            )
-            db.get_or_create_relation(
-                self.node,
-                i,
-                properties={},
-                type_=db.RELATION_TYPES.resource_input
-            )
+            self.db_obj.add_input(name, v['schema'], value)
 
     @property
     def args(self):
         ret = {}
-        for k, n in self.resource_inputs().items():
-            ret[k] = _read_input_value(n)
+        for i in self.resource_inputs().values():
+            ret[i.name] = _read_input_value(i._db_node)
         return ret
 
     def update(self, args):
@@ -148,18 +128,12 @@ class Resource(object):
 
         for k, v in args.items():
             i = resource_inputs[k]
-            i.properties['value'] = json.dumps(v)
-            i.push()
+            i.value = v
+            i.save()
 
     def resource_inputs(self):
-        resource_inputs = [
-            r.end_node for r in
-            db.get_relations(source=self.node,
-                             type_=db.RELATION_TYPES.resource_input)
-        ]
-
         return {
-            i.properties['input_name']: i for i in resource_inputs
+            i.name: i for i in self.db_obj.inputs.value
         }
 
 
@@ -169,8 +143,4 @@ def load(name):
     if not r:
         raise Exception('Resource {} does not exist in DB'.format(name))
 
-    return wrap_resource(r)
-
-
-def wrap_resource(resource_db):
-    return Resource(resource_db)
+    return Resource(r)

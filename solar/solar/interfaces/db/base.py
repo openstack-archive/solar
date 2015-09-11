@@ -1,7 +1,6 @@
 import abc
 from enum import Enum
 from functools import partial
-import types
 
 
 class Node(object):
@@ -18,26 +17,6 @@ class Node(object):
             list(self.labels)[0]
         )
 
-    def pull(self):
-        import warnings
-
-        warnings.warn('pull used', DeprecationWarning)
-
-        n = self.db.get(self.uid, collection=self.collection)
-        self._update_self_with_new_node(n)
-
-    def push(self):
-        import warnings
-
-        warnings.warn('push used', DeprecationWarning)
-
-        n = self.db.push_node(self)
-        self._update_self_with_new_node(n)
-
-    def _update_self_with_new_node(self, n):
-        self.labels = n.labels
-        self.properties = n.properties
-        
 
 class Relation(object):
     def __init__(self, db, start_node, end_node, properties):
@@ -54,7 +33,6 @@ class DBObjectMeta(abc.ABCMeta):
         ('create', False),
         ('get', False),
         ('get_or_create', False),
-        ('push_node', False),
     ]
     relation_db_read_methods = [
         ('all_relations', True),
@@ -244,7 +222,3 @@ class BaseGraphDB(object):
                                properties={},
                                type_=DEFAULT_RELATION):
         """Fetch or create relation with given args."""
-
-    @abc.abstractmethod
-    def push_node(self, node):
-        """Push Node object to DB."""
