@@ -33,7 +33,6 @@ class SolardTCPClient(object):
         self.sock = None
         self._streaming = False
 
-
     def connect(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:

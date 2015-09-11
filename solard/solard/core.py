@@ -197,7 +197,7 @@ class SolardIface(object):
             return out.stdout
 
     @staticmethod
-    def copy_file(solard_context, stream_reader, path, size=None):
+    def copy_file(solard_context, stream_reader, path, use_sudo=False, size=None):
         f = SolardIface.file_start(solard_context, path)
         rdr = stream_reader(size)
         for data in rdr:

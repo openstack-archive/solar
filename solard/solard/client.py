@@ -17,23 +17,27 @@ class SolardClient(object):
 
     def copy_directory(self, _from, _to, use_sudo=False):
         # dir should open context on remote, and sync all files as one req/resp
+        to_cp_files = []
         for root, dirs, files in os.walk(_from):
             for name in files:
                 _from = os.path.join(root, name)
                 _to = os.path.join(root.replace(_from, _to), name)
-                self._copy_file(_from, _to, use_sudo)
-                resp = self.transport.resp(close=False)
-                if not resp:
-                    break
-        self.transport.disconnect()
-        return True
+                to_cp_files.append((_from, _to))
+        for _from, _to in to_cp_files:
+            self._copy_file(_from, _to, use_sudo, empty_ok_resp=True)
+        resp = self.transport.resp()
+        return resp
 
-    def _copy_file(self, _from, _to, use_sudo=False):
+    def _copy_file(self, _from, _to, use_sudo=False, empty_ok_resp=False):
+        # TODO: separate empty_ok_resp from copy args
         transport = self.transport
         f_size = os.stat(_from).st_size
-        send = transport.send({'m': 'copy_file',
-                               'args': (_to, f_size),
-                               's': True})
+        data = {'m': 'copy_file',
+                'args': (_to, use_sudo, f_size),
+                's': True}
+        if empty_ok_resp:
+            data['empty_ok_resp'] = True
+        send = transport.send(data)
         transport.send_stream_start(add_size=False)
         to_read = f_size
         with open(_from, 'rb') as f:

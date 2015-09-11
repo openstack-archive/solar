@@ -141,7 +141,8 @@ class SolardTCPHandler(object):
                         pass
                     self._wrote = True
             else:
-                self._write_ok(res)
+                if not input_data.get('empty_ok_resp', False):
+                    self._write_ok(res)
 
         except ReadFailure:
             return False
