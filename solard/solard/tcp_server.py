@@ -141,7 +141,6 @@ class SolardTCPHandler(object):
                         pass
                     self._wrote = True
             else:
-                # if input_data.get('silent', False):
                 self._write_ok(res)
 
         except ReadFailure:

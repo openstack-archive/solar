@@ -16,21 +16,15 @@ class SolardClient(object):
         return resp
 
     def copy_directory(self, _from, _to, use_sudo=False):
-        i = 0  # TODO: very very naive
+        # dir should open context on remote, and sync all files as one req/resp
         for root, dirs, files in os.walk(_from):
             for name in files:
                 _from = os.path.join(root, name)
                 _to = os.path.join(root.replace(_from, _to), name)
                 self._copy_file(_from, _to, use_sudo)
-                # resp = self.transport.resp(close=False)
-                resp = True
-                i += 1  # TODO: this is very very naive
+                resp = self.transport.resp(close=False)
                 if not resp:
                     break
-        for _ in xrange(i):
-            resp = self.transport.resp(close=False)
-            if not resp:
-                return resp
         self.transport.disconnect()
         return True
 
