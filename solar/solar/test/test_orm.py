@@ -117,6 +117,26 @@ class TestORM(BaseResourceTest):
         with self.assertRaisesRegexp(errors.SolarError, 'Unknown fields .*iid'):
             TestDBObject(iid=1)
 
+    def test_equality(self):
+        class TestDBObject(orm.DBObject):
+            _collection = base.BaseGraphDB.COLLECTIONS.resource
+            __metaclass__ = orm.DBObjectMeta
+
+            id = orm.db_field(schema='str', is_primary=True)
+            test = orm.db_field(schema='str')
+
+        t1 = TestDBObject(id='1', test='test')
+
+        t2 = TestDBObject(id='2', test='test')
+        self.assertNotEqual(t1, t2)
+
+        t2 = TestDBObject(id='1', test='test2')
+        self.assertNotEqual(t1, t2)
+
+        t2 = TestDBObject(id='1', test='test')
+        self.assertEqual(t1, t2)
+
+
 
 class TestORMRelation(BaseResourceTest):
     def test_children_value(self):
@@ -152,11 +172,32 @@ class TestORMRelation(BaseResourceTest):
         o.related.add(r2)
         self.assertSetEqual(o.related.value, {r1, r2})
 
+        o.related.remove(r2)
+        self.assertSetEqual(o.related.value, {r1})
+
+        o.related.add(r2)
+        self.assertSetEqual(o.related.value, {r1, r2})
+
+        o.related.remove(r1, r2)
+        self.assertSetEqual(o.related.value, set())
+
+        o.related.add(r1, r2)
+        self.assertSetEqual(o.related.value, {r1, r2})
+
 
 class TestResourceORM(BaseResourceTest):
     def test_save(self):
-        r = orm.DBResource(name='test1', base_path='x')
-
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
         r.save()
 
-        rr = resource.load(r.name)
+        rr = resource.load(r.id)
+
+        self.assertEqual(r, rr.db_obj)
+
+    def test_add_input(self):
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r.save()
+
+        r.add_input('ip', 'str!', '10.0.0.2')
+
+        self.assertEqual(len(r.inputs.value), 1)

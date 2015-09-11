@@ -86,13 +86,22 @@ class DBRelatedField(object):
         self.name = name
         self.source_db_object = source_db_object
 
-    def add(self, destination_db_object):
-        db.get_or_create_relation(
-            self.source_db_object._db_node,
-            destination_db_object._db_node,
-            properties={},
-            type_=self.relation_type
-        )
+    def add(self, *destination_db_objects):
+        for dest in destination_db_objects:
+            db.get_or_create_relation(
+                self.source_db_object._db_node,
+                dest._db_node,
+                properties={},
+                type_=self.relation_type
+            )
+
+    def remove(self, *destination_db_objects):
+        for dest in destination_db_objects:
+            db.delete_relations(
+                source=self.source_db_object._db_node,
+                dest=dest._db_node,
+                type_=self.relation_type
+            )
 
     @property
     def value(self):
@@ -186,7 +195,9 @@ class DBObject(object):
         self._update_values()
 
     def __eq__(self, inst):
-        return self._meta['fields'] == inst._meta['fields']
+        # NOTE: don't compare related fields
+        self._update_fields_values()
+        return self._fields == inst._fields
 
     def __ne__(self, inst):
         return not self.__eq__(inst)
@@ -264,7 +275,8 @@ class DBResourceInput(DBObject):
 
     _collection = base.BaseGraphDB.COLLECTIONS.input
 
-    name = db_field(schema='str!', is_primary=True)
+    id = db_field(schema='str!', is_primary=True)
+    name = db_field(schema='str!')
     schema = db_field()
     value = db_field(schema_in_field='schema')
 
@@ -274,17 +286,27 @@ class DBResource(DBObject):
 
     _collection = base.BaseGraphDB.COLLECTIONS.resource
 
-    name = db_field(schema='str!', is_primary=True)
+    id = db_field(schema='str', is_primary=True)
+    name = db_field(schema='str!')
     actions_path = db_field(schema='str')
     base_name = db_field(schema='str')
     base_path = db_field(schema='str')
     handler = db_field(schema='str')  # one of: {'ansible_playbook', 'ansible_template', 'puppet', etc}
-    id = db_field(schema='str')
     version = db_field(schema='str')
     tags = db_field(schema=[], default_value=[])
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
+
+    def add_input(self, name, schema, value):
+        # NOTE: Inputs need to have uuid added because there can be many
+        #       inputs with the same name
+        uid = '{}-{}'.format(name, uuid.uuid4())
+        input = DBResourceInput(id=uid, name=name, schema=schema, value=value)
+        input.validate()
+        input.save()
+
+        self.inputs.add(input)
 
 
 # TODO: remove this
