@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 from solar.test import base
 
 from solar import errors
@@ -187,6 +185,3 @@ input:
         r.update({'values': {'a': 1, 'c': 3}})
         errors = sv.validate_resource(r)
         self.assertEqual(errors, {})
-
-if __name__ == '__main__':
-    unittest.main()

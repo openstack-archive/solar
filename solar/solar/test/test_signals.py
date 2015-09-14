@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 import base
 
 from solar.core import signals as xs
@@ -523,7 +521,3 @@ input:
             receiver.args['server'],
         )
 '''
-
-
-if __name__ == '__main__':
-    unittest.main()

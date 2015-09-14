@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 import base
 
 from solar.core import resource
@@ -95,7 +93,3 @@ input:
 
         self.assertDictEqual(sample.args, sample_l.args)
         self.assertListEqual(sample.tags, sample_l.tags)
-
-
-if __name__ == '__main__':
-    unittest.main()
