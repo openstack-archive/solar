@@ -34,10 +34,7 @@ slave_celery = ansible_playbook_command("celery.yml", ["--skip-tags", "master"])
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
-      #config.vm.box = "deb/jessie-amd64"
-      #config.vm.box = "rustyrobot/deb-jessie-amd64"
-      #config.vm.box = "ubuntu/trusty64"
-      config.vm.box = "cgenie/solar-master"
+    config.vm.box = "cgenie/solar-master"
 
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_celery, privileged: true
@@ -53,6 +50,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--paravirtprovider", "kvm" # for linux guest
       ]
       v.name = "solar-dev"
+    end
+
+    config.vm.provider:libvirt do |libvirt|
+      config.vm.synced_folder ".", "/vagrant", type: "9p", disabled: false, accessmode: "mapped"
+      libvirt.driver = 'kvm'
+      libvirt.memory = MASTER_RAM
     end
   end
 
@@ -78,6 +81,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         ]
         v.name = "solar-dev#{index}"
       end
+    config.vm.provider:libvirt do |libvirt|
+      config.vm.synced_folder ".", "/vagrant", type: "9p", disabled: false, accessmode: "mapped"
+      libvirt.driver = 'kvm'
+      libvirt.memory = SLAVES_RAM
+    end
     end
   end
 
