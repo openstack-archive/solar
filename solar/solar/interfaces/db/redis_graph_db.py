@@ -15,7 +15,6 @@ class RedisGraphDB(BaseGraphDB):
     }
     REDIS_CLIENT = redis.StrictRedis
 
-
     def __init__(self):
         self._r = self.REDIS_CLIENT(**self.DB)
         self.entities = {}

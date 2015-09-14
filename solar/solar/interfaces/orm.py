@@ -81,6 +81,7 @@ def db_field(schema=None,
 
 
 class DBRelatedField(object):
+    source_db_class = None
     destination_db_class = None
     relation_type = None
 
@@ -114,6 +115,10 @@ class DBRelatedField(object):
 
     @property
     def value(self):
+        """
+        Return DB objects that are destinations for self.source_db_object.
+        """
+
         source_db_node = self.source_db_object._db_node
 
         if source_db_node is None:
@@ -127,6 +132,29 @@ class DBRelatedField(object):
         for rel in relations:
             ret.add(
                 self.destination_db_class(**rel.end_node.properties)
+            )
+
+        return ret
+
+    def sources(self, destination_db_object):
+        """
+        Reverse of self.value, i.e. for given destination_db_object,
+        return source DB objects.
+        """
+
+        destination_db_node = destination_db_object._db_node
+
+        if destination_db_node is None:
+            return set()
+
+        relations = db.get_relations(dest=destination_db_node,
+                                     type_=self.relation_type)
+
+        ret = set()
+
+        for rel in relations:
+            ret.add(
+                self.source_db_class(**rel.start_node.properties)
             )
 
         return ret
@@ -168,7 +196,6 @@ class DBObjectMeta(type):
 
                     dct['_meta']['primary'] = field_name
             elif issubclass(field_klass, DBRelatedField):
-                field_klass._parent_db_class = cls
                 dct['_meta']['related_to'][field_name] = field_klass
 
         if not has_primary:
@@ -178,6 +205,7 @@ class DBObjectMeta(type):
 
         # Support for self-references in relations
         for field_name, field_klass in klass._meta['related_to'].items():
+            field_klass.source_db_class = klass
             if field_klass.destination_db_class == klass.__name__:
                 field_klass.destination_db_class = klass
 
@@ -299,6 +327,21 @@ class DBResourceInput(DBObject):
 
     receivers = db_related_field(base.BaseGraphDB.RELATION_TYPES.input_to_input,
                                  'DBResourceInput')
+
+    def backtrack_value(self):
+        # TODO: this is actually just fetching head element in linked list
+        #       so this whole algorithm can be moved to the db backend probably
+        # TODO: cycle detection?
+        # TODO: write this as a Cypher query? Move to DB?
+        inputs = self.receivers.sources(self)
+
+        if not inputs:
+            return self.value
+
+        if self.is_list:
+            return [i.backtrack_value() for i in inputs]
+
+        return inputs.pop().backtrack_value()
 
 
 class DBResource(DBObject):

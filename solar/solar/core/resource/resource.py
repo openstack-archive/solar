@@ -14,10 +14,8 @@
 #    under the License.
 
 from copy import deepcopy
-import json
 from multipledispatch import dispatch
 import os
-import uuid
 
 from solar.interfaces.db import get_db
 from solar.interfaces import orm
@@ -25,23 +23,6 @@ from solar import utils
 
 
 db = get_db()
-
-
-# TODO: this is actually just fetching head element in linked list
-#       so this whole algorithm can be moved to the db backend probably
-# TODO: cycle detection?
-# TODO: write this as a Cypher query? Move to DB?
-def _read_input_value(input_node):
-    rel = db.get_relations(dest=input_node,
-                           type_=db.RELATION_TYPES.input_to_input)
-
-    if not rel:
-        return input_node.properties['value']
-
-    if input_node.properties['is_list']:
-        return [_read_input_value(r.start_node) for r in rel]
-
-    return _read_input_value(rel[0].start_node)
 
 
 def prepare_meta(meta):
@@ -99,7 +80,7 @@ class Resource(object):
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
-        # TODO:
+        # TODO: tags
         self.tags = []
         self.virtual_resource = None
 
@@ -107,7 +88,6 @@ class Resource(object):
     def actions(self):
         return self.resource_db.actions or []
 
-    # TODO: json.dumps/loads should be probably moved to neo4j.py
     def create_inputs(self, args):
         for name, v in self.db_obj.meta_inputs.items():
             value = args.get(name, v.get('value'))
@@ -118,7 +98,7 @@ class Resource(object):
     def args(self):
         ret = {}
         for i in self.resource_inputs().values():
-            ret[i.name] = _read_input_value(i._db_node)
+            ret[i.name] = i.backtrack_value()
         return ret
 
     def update(self, args):
