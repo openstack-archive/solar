@@ -42,7 +42,7 @@ def add_event(ev):
             break
     else:
         rst.append(ev)
-        db.save(
+        db.create(
             ev.parent_node,
             [i.to_dict() for i in rst],
             collection=db.COLLECTIONS.events)
@@ -64,14 +64,14 @@ def add_react(parent, dep, actions, state='success'):
 
 def remove_event(ev):
     rst = all_events(ev.parent_node)
-    db.save(
+    db.create(
         ev.parent_node,
         [i.to_dict() for i in rst],
         collection=db.COLLECTIONS.events)
 
 
 def set_events(resource, lst):
-    db.save(
+    db.create(
         resource,
         [i.to_dict() for i in lst],
         collection=db.COLLECTIONS.events)
@@ -84,10 +84,11 @@ def add_events(resource, lst):
 
 
 def all_events(resource):
-    events = db.read(resource, collection=db.COLLECTIONS.events)
+    events = db.get(resource, collection=db.COLLECTIONS.events,
+                    return_empty=True, db_convert=False)
     if not events:
         return []
-    return [create_event(i) for i in events]
+    return [create_event(i) for i in events['properties']]
 
 
 def bft_events_graph(start):

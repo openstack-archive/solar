@@ -120,3 +120,9 @@ def load(name):
         raise Exception('Resource {} does not exist in DB'.format(name))
 
     return Resource(r)
+
+
+# TODO
+def load_all():
+    return [wrap_resource(r) for r
+            in db.all(collection=db.COLLECTIONS.resource)]

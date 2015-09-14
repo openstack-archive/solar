@@ -12,33 +12,42 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import json
 import uuid
 
 import networkx as nx
-import redis
 
 from solar import utils
 from .traversal import states
 
 
-r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
+from solar.interfaces.db import get_db
+
+db = get_db()
 
 
 def save_graph(name, graph):
     # maybe it is possible to store part of information in AsyncResult backend
-    r.set('{}:nodes'.format(name), json.dumps(graph.node.items()))
-    r.set('{}:edges'.format(name), json.dumps(graph.edges(data=True)))
-    r.set('{}:attributes'.format(name), json.dumps(graph.graph))
+    uid = graph.graph['uid']
+    db.create(uid, graph.graph, db.COLLECTIONS.plan_graph)
+
+    for n in graph:
+        collection = db.COLLECTIONS.plan_node.name + ':' + uid
+        db.create(n, properties=graph.node[n], collection=collection)
+        db.create_relation_str(uid, n, type_=db.RELATION_TYPES.graph_to_node)
+
+    for u, v, properties in graph.edges(data=True):
+        type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
+        db.create_relation_str(u, v, properties, type_=type_)
 
 
-def get_graph(name):
+def get_graph(uid):
     dg = nx.MultiDiGraph()
-    nodes = json.loads(r.get('{}:nodes'.format(name)))
-    edges = json.loads(r.get('{}:edges'.format(name)))
-    dg.graph = json.loads(r.get('{}:attributes'.format(name)))
-    dg.add_nodes_from(nodes)
-    dg.add_edges_from(edges)
+    collection = db.COLLECTIONS.plan_node.name + ':' + uid
+    type_= db.RELATION_TYPES.plan_edge.name + ':' + uid
+    dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
+    dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
+    dg.add_edges_from([(i['source'], i['dest'], i['properties']) for
+                       i in db.all_relations(type_=type_, db_convert=False)])
     return dg
 
 

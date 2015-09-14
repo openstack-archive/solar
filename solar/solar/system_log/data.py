@@ -83,8 +83,8 @@ def details(diff):
     rst = []
     for type_, val, change in diff:
         if type_ == 'add':
-            for it in change:
-                rst.append('++ {}: {}'.format(it[0], unwrap_add(it[1])))
+            for key, val in change:
+                rst.append('++ {}: {}'.format(key ,val))
         elif type_ == 'change':
             rst.append('-+ {}: {} >> {}'.format(
                 unwrap_change_val(val), change[0], change[1]))
@@ -112,7 +112,7 @@ def unwrap_change_val(val):
 class Log(object):
 
     def __init__(self, path):
-        self.ordered_log = db.get_set(path)
+        self.ordered_log = db.get_ordered_hash(path)
 
     def append(self, logitem):
         self.ordered_log.add([(logitem.log_action, logitem.to_dict())])
@@ -153,7 +153,8 @@ class Data(collections.MutableMapping):
     def __init__(self, path):
         self.path = path
         self.store = {}
-        r = db.read(path, collection=db.COLLECTIONS.state_data)
+        r = db.get(path, collection=db.COLLECTIONS.state_data,
+                   return_empty=True, db_convert=False)
         if r:
             self.store = r or self.store
 
@@ -162,11 +163,11 @@ class Data(collections.MutableMapping):
 
     def __setitem__(self, key, value):
         self.store[key] = value
-        db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
+        db.create(self.path, self.store, collection=db.COLLECTIONS.state_data)
 
     def __delitem__(self, key):
         self.store.pop(key)
-        db.save(self.path, self.store, collection=db.COLLECTIONS.state_data)
+        db.create(self.path, self.store, collection=db.COLLECTIONS.state_data)
 
     def __iter__(self):
         return iter(self.store)
@@ -175,4 +176,4 @@ class Data(collections.MutableMapping):
         return len(self.store)
 
     def clean(self):
-        db.save(self.path, {}, collection=db.COLLECTIONS.state_data)
+        db.create(self.path, {}, collection=db.COLLECTIONS.state_data)
