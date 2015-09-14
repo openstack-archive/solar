@@ -41,7 +41,9 @@ __all__ = ['solar_resource', 'cmd', 'sleep',
 class ReportTask(task.Task):
 
     def on_success(self, retval, task_id, args, kwargs):
-        schedule_next.apply_async(args=[task_id, 'SUCCESS'], queue='scheduler')
+        schedule_next.apply_async(
+            args=[task_id, 'SUCCESS'],
+            queue='scheduler')
         commit_logitem.apply_async(args=[task_id], queue='system_log')
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -154,5 +156,6 @@ def schedule_next(task_id, status, errmsg=None):
     dg = graph.get_graph(plan_uid)
     dg.node[task_name]['status'] = status
     dg.node[task_name]['errmsg'] = errmsg
+    dg.node[task_name]['end_time'] = time.time()
 
     schedule(plan_uid, dg)

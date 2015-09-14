@@ -12,10 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from pytest import fixture
 import networkx as nx
 
 from solar.orchestration import limits
+from solar.orchestration import graph
 
 
 @fixture
@@ -60,3 +63,21 @@ def test_filtering_chain(target_dg):
 
     chain = limits.get_default_chain(target_dg, [], ['t1', 't2'])
     assert list(chain) == ['t1']
+
+
+@fixture
+def seq_plan():
+    seq_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'orch_fixtures',
+        'sequential.yml')
+    return graph.create_plan(seq_path, save=False)
+
+
+def test_limits_sequential(seq_plan):
+    stack_to_execute = seq_plan.nodes()
+    while stack_to_execute:
+        left = stack_to_execute[0]
+        assert list(limits.get_default_chain(
+            seq_plan, [], stack_to_execute)) == [left]
+        stack_to_execute.pop(0)

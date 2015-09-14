@@ -108,6 +108,8 @@ def send_to_orchestration():
     return graph.create_plan_from_graph(dg)
 
 
-def parameters(res, action):
+def parameters(res, action, data):
     return {'args': [res, action],
-            'type': 'solar_resource'}
+            'type': 'solar_resource',
+            # unique identifier for a node should be passed
+            'target': data.get('ip')}

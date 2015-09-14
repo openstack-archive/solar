@@ -1,0 +1,31 @@
+name: sleeping_beauty
+tasks:
+    - uid: fairy1
+      parameters:
+        type: sleep
+        args: [10]
+      before: [princess]
+    - uid: fairy2
+      parameters:
+        type: sleep
+        args: [10]
+      before: [princess]
+    - uid: fairy3
+      parameters:
+        type: sleep
+        args: [10]
+      before: [princess]
+    - uid: fairy4
+      parameters:
+        type: sleep
+        args: [10]
+      before: [princess]
+    - uid: fairy5
+      parameters:
+        type: sleep
+        args: [10]
+      before: [princess]
+    - uid: princess
+      parameters:
+        type: sleep
+        args: [10]

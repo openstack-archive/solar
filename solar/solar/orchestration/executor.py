@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import time
+
 from solar.orchestration.runner import app
 from celery import group
 
@@ -28,6 +30,7 @@ def celery_executor(dg, tasks, control_tasks=()):
 
         if all_success(dg, dg.predecessors(task_name)) or task_name in control_tasks:
             dg.node[task_name]['status'] = 'INPROGRESS'
+            dg.node[task_name]['start_time'] = time.time()
             for t in generate_task(task, dg.node[task_name], task_id):
                 to_execute.append(t)
     return group(to_execute)
@@ -40,8 +43,10 @@ def generate_task(task, data, task_id):
         time_limit=data.get('time_limit', None),
         soft_time_limit=data.get('soft_time_limit', None))
 
-    if data.get('target', None):
-        subtask.set(queue=data['target'])
+    # NOTE(dshulyak) it seems that we agreed that celery wont be installed
+    # on every slave and transport will be chosen in handler
+    # if data.get('target', None):
+    #     subtask.set(queue=data['target'])
 
     yield subtask
 
