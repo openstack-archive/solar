@@ -40,24 +40,23 @@ def save_graph(name, graph):
         db.create_relation_str(u, v, properties, type_=type_)
 
 
-def get_graph(uid):
-    dg = nx.MultiDiGraph()
-    collection = db.COLLECTIONS.plan_node.name + ':' + uid
-    type_= db.RELATION_TYPES.plan_edge.name + ':' + uid
-    dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
-    dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
-    dg.add_edges_from([(i['source'], i['dest'], i['properties']) for
-                       i in db.all_relations(type_=type_, db_convert=False)])
+def get_graph(name):
+    dg = nx.OrderedMultiDiGraph()
+    nodes = json.loads(r.get('{}:nodes'.format(name)))
+    edges = json.loads(r.get('{}:edges'.format(name)))
+    dg.graph = json.loads(r.get('{}:attributes'.format(name)))
+    dg.add_nodes_from(nodes)
+    dg.add_edges_from(edges)
     return dg
 
 
 get_plan = get_graph
 
 
-def parse_plan(plan_data):
+def parse_plan(plan_path):
     """ parses yaml definition and returns graph
     """
-    plan = utils.yaml_load(plan_data)
+    plan = utils.yaml_load(plan_path)
     dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
     for task in plan['tasks']:
@@ -100,17 +99,17 @@ def show(uid):
     return utils.yaml_dump(result)
 
 
-def create_plan(plan_data, save=True):
+def create_plan(plan_path, save=True):
     """
     """
-    dg = parse_plan(plan_data)
+    dg = parse_plan(plan_path)
     return create_plan_from_graph(dg, save=save)
 
 
-def update_plan(uid, plan_data):
+def update_plan(uid, plan_path):
     """update preserves old status of tasks if they werent removed
     """
-    dg = parse_plan(plan_data)
+    dg = parse_plan(plan_path)
     old_dg = get_graph(uid)
     dg.graph = old_dg.graph
     for n in dg:
@@ -139,6 +138,12 @@ def report_topo(uid):
     report = []
 
     for task in nx.topological_sort(dg):
-        report.append([task, dg.node[task]['status'], dg.node[task]['errmsg']])
+        data = dg.node[task]
+        report.append([
+            task,
+            data['status'],
+            data['errmsg'],
+            data.get('start_time'),
+            data.get('end_time')])
 
     return report

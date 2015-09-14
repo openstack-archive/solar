@@ -1,0 +1,18 @@
+name: seq
+tasks:
+    - uid: s1
+      parameters:
+        type: sleep
+        args: [2]
+        target: 1
+    - uid: s2
+
+      parameters:
+        type: sleep
+        args: [2]
+        target: 1
+    - uid: s3
+      parameters:
+        type: sleep
+        args: [2]
+        target: 1
