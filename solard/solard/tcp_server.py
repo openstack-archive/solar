@@ -10,7 +10,8 @@ import struct
 import errno
 import sys
 import traceback
-
+import pwd
+import os
 
 from types import GeneratorType
 from solard.logger import logger
@@ -39,7 +40,9 @@ class SolardTCPHandler(object):
         self.sock = sock
         self.address = address
         self.ctx = SolardContext()
+        self.auth = None
         self._wrote = False
+        self.forked = False
 
     def _read(self):
         # TODO: client closed connection
@@ -122,6 +125,42 @@ class SolardTCPHandler(object):
         data = {'st': 1, 'error': error}
         self._write(**data)
 
+    def make_auth(self):
+        # it's responsible for:
+        # - checking auth
+        # - forking if needed
+        auth_data = self._read()
+        if not auth_data:
+            self._write_ok(False)
+            return False
+        req_user = auth_data.get('user')
+        if not req_user:
+            self._write_ok(False)
+            return False
+        proc_user = pwd.getpwuid(os.getuid())[0]
+        logger.debug("Requested user %r", req_user)
+        # we may add there anything we want, checking in file etc
+        valid = auth_data.get('auth') == 'password'
+        if not valid:
+            self._write_ok(False)
+            return False
+        if req_user == proc_user:
+            self._write_ok(True)
+            return True
+        # fork there
+        child_pid = os.fork()
+        if child_pid == 0:
+            pw_uid = pwd.getpwnam(req_user).pw_uid
+            pw_gid = pwd.getpwuid(pw_uid).pw_gid
+            os.setgid(pw_gid)
+            os.setuid(pw_uid)
+            logger.debug("Child forked %d", os.getpid())
+            self.forked = True
+            self._write_ok(True)
+            return True
+        return None
+
+
     def process(self):
         try:
             known_type = INT_DEFAULT_REPLY_TYPE
@@ -199,9 +238,18 @@ class SolardTCPServer(StreamServer):
         StreamServer.__init__(self, *args, **kwargs)
 
     def handle(self, sock, address):
+        close = True
+        h = SolardTCPHandler(sock, address)
         try:
             logger.debug("New from %s:%d" % address)
-            h = SolardTCPHandler(sock, address)
+            auth_state = h.make_auth()
+            if auth_state is False:
+                logger.debug("Failed auth")
+                return
+            if auth_state is None:
+                # child forked
+                close = False
+                return
             while True:
                 if not h.process():
                     logger.debug("End from %s:%d" % address)
@@ -214,7 +262,9 @@ class SolardTCPServer(StreamServer):
                 pass
         finally:
             sock.close()
-
+            if h.forked:
+                # if forked we can safely exit now
+                sys.exit()
 
 
 

@@ -31,6 +31,7 @@ class SolardTCPClient(object):
         # self._connect_timeout = kwargs.get("connect_timeout", None)
         self._socket_timeout = kwargs.get("socket_timeout", None)
         self.sock = None
+        self.auth = None
         self._streaming = False
 
     def connect(self):
@@ -43,7 +44,15 @@ class SolardTCPClient(object):
             raise
         else:
             self.sock = sock
+            if not self.initialize_with_auth():
+                self.sock = None
+                raise ClientException("Auth failed")
             return sock
+
+    def initialize_with_auth(self):
+        self.send(self.auth)
+        resp = self.resp(close=False)
+        return resp
 
     def disconnect(self):
         sock = self.sock

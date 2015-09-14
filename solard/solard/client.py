@@ -7,8 +7,13 @@ class SolardClient(object):
 
     read_buffer = 4096
 
-    def __init__(self, transport):
+    def __init__(self, auth, transport):
+        self.auth = auth
         self.transport = transport
+        self.make_auth()
+
+    def make_auth(self):
+        self.transport.auth = self.auth
 
     def run(self, *args, **kwargs):
         send = self.transport.send({'m': 'run', 'args': args, 'kwargs': kwargs})
@@ -77,8 +82,9 @@ class SolardClient(object):
 if __name__ == '__main__':
     import time
     from solard.tcp_client import SolardTCPClient
-    c = SolardClient(transport=SolardTCPClient('localhost', 5555))
+    c = SolardClient(auth={'user': 'pigmej', 'auth': 'password'}, transport=SolardTCPClient('localhost', 5555))
     print c.run('hostname')
+    print c.run('whoami')
     print c.copy('/tmp/a', '/tmp/bbb/a.%s' % (time.time()))
     print c.copy('/tmp/a', '/tmp/bbb/b.%s' % (time.time()))
     print c.copy('/tmp/bbb', '/tmp/s/ccc%s' % (time.time()))
