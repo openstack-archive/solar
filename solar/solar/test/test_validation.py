@@ -39,16 +39,19 @@ input:
         es = sv.validate_resource(r)
         self.assertEqual(es, {})
 
-        with self.assertRaisesRegexp(errors.ValidationError, 'value.*1.*is not valid'):
-            r = self.create_resource(
-                'r2', sample_meta_dir, {'value': 1, 'value-required': 'y'}
-            )
+        r = self.create_resource(
+            'r2', sample_meta_dir, {'value': 1, 'value-required': 'y'}
+        )
+        es = sv.validate_resource(r)
+        self.assertIn('value', es)
+        self.assertIn('1 is not valid', es['value'][0])
 
-
-        with self.assertRaisesRegexp(errors.ValidationError, "value.*None.*is not of type 'string'"):
-            r = self.create_resource(
-                'r3', sample_meta_dir, {'value': ''}
-            )
+        r = self.create_resource(
+            'r3', sample_meta_dir, {'value': ''}
+        )
+        es = sv.validate_resource(r)
+        self.assertIn('value-required', es)
+        self.assertIn("None is not of type 'string'", es['value-required'][0])
 
         r = self.create_resource(
             'r4', sample_meta_dir, {'value': None, 'value-required': 'y'}
@@ -74,15 +77,19 @@ input:
         es = sv.validate_resource(r)
         self.assertEqual(es, {})
 
-        with self.assertRaisesRegexp(errors.ValidationError, "value.*'x'.*is not valid"):
-            r = self.create_resource(
-                'r2', sample_meta_dir, {'value': 'x', 'value-required': 2}
-            )
+        r = self.create_resource(
+            'r2', sample_meta_dir, {'value': 'x', 'value-required': 2}
+        )
+        es = sv.validate_resource(r)
+        self.assertIn('value', es)
+        self.assertIn("'x' is not valid", es['value'][0])
 
-        with self.assertRaisesRegexp(errors.ValidationError, "value.*None.*is not of type 'number'"):
-            r = self.create_resource(
-                'r3', sample_meta_dir, {'value': 1}
-            )
+        r = self.create_resource(
+            'r3', sample_meta_dir, {'value': 1}
+        )
+        es = sv.validate_resource(r)
+        self.assertIn('value-required', es)
+        self.assertIn("None is not of type 'number'", es['value-required'][0])
 
         r = self.create_resource(
             'r4', sample_meta_dir, {'value': None, 'value-required': 2}
@@ -113,10 +120,12 @@ input:
         es = sv.validate_resource(r)
         self.assertEqual(es, {})
 
-        with self.assertRaisesRegexp(errors.ValidationError, "value.*'a'.*is a required property"):
-            r = self.create_resource(
-                'r1', sample_meta_dir, {'values': {'b': 2}}
-            )
+        r = self.create_resource(
+            'r1', sample_meta_dir, {'values': {'b': 2}}
+        )
+        es = sv.validate_resource(r)
+        self.assertIn('values', es)
+        self.assertIn("'a' is a required property", es['values'][0])
 
     def test_complex_input(self):
         sample_meta_dir = self.make_resource_meta("""

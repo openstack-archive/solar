@@ -381,7 +381,6 @@ class DBResource(DBObject):
                                 schema=schema,
                                 value=value,
                                 is_list=isinstance(schema, list))
-        input.validate()
         input.save()
 
         self.inputs.add(input)
