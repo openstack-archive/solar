@@ -114,6 +114,12 @@ class Resource(object):
             i.name: i for i in self.db_obj.inputs.value
         }
 
+    def to_dict(self):
+        ret = self.db_obj.to_dict()
+        ret['input'] = self.args
+
+        return ret
+
 
 def load(name):
     r = orm.DBResource.load(name)
