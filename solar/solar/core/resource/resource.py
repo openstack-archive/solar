@@ -21,23 +21,15 @@ from solar.interfaces import orm
 from solar import utils
 
 
-def prepare_meta(meta):
-    actions_path = os.path.join(meta['base_path'], 'actions')
-    meta['actions_path'] = actions_path
-    meta['base_name'] = os.path.split(meta['base_path'])[-1]
-
-    meta['actions'] = {}
-    if os.path.exists(meta['actions_path']):
-        for f in os.listdir(meta['actions_path']):
-            meta['actions'][os.path.splitext(f)[0]] = f
-
-
 def read_meta(base_path):
     base_meta_file = os.path.join(base_path, 'meta.yaml')
 
     metadata = utils.yaml_load(base_meta_file)
     metadata['version'] = '1.0.0'
     metadata['base_path'] = os.path.abspath(base_path)
+    actions_path = os.path.join(metadata['base_path'], 'actions')
+    metadata['actions_path'] = actions_path
+    metadata['base_name'] = os.path.split(metadata['base_path'])[-1]
 
     return metadata
 
@@ -50,9 +42,9 @@ class Resource(object):
     def __init__(self, name, base_path, args, tags=None, virtual_resource=None):
         self.name = name
         if base_path:
-            self.metadata = read_meta(base_path)
+            metadata = read_meta(base_path)
         else:
-            self.metadata = deepcopy(self._metadata)
+            metadata = deepcopy(self._metadata)
 
         self.tags = tags or []
         self.virtual_resource = virtual_resource
@@ -60,12 +52,13 @@ class Resource(object):
         self.db_obj = orm.DBResource(**{
             'id': name,
             'name': name,
-            'actions_path': self.metadata.get('actions_path', ''),
-            'base_name': self.metadata.get('base_name', ''),
-            'base_path': self.metadata.get('base_path', ''),
-            'handler': self.metadata.get('handler', ''),
-            'version': self.metadata.get('version', ''),
-            'meta_inputs': self.metadata.get('input', {})
+            'actions_path': metadata.get('actions_path', ''),
+            'base_name': metadata.get('base_name', ''),
+            'base_path': metadata.get('base_path', ''),
+            'handler': metadata.get('handler', ''),
+            'puppet_module': metadata.get('puppet_module', ''),
+            'version': metadata.get('version', ''),
+            'meta_inputs': metadata.get('input', {})
         })
         self.db_obj.save()
 
@@ -82,7 +75,16 @@ class Resource(object):
 
     @property
     def actions(self):
-        return self.resource_db.actions or []
+        ret = {
+            os.path.splitext(p)[0]: os.path.join(
+                self.db_obj.actions_path, p
+            )
+            for p in os.listdir(self.db_obj.actions_path)
+        }
+
+        return {
+            k: v for k, v in ret.items() if os.path.isfile(v)
+        }
 
     def create_inputs(self, args):
         for name, v in self.db_obj.meta_inputs.items():
@@ -124,5 +126,4 @@ def load(name):
 
 # TODO
 def load_all():
-    return [wrap_resource(r) for r
-            in db.all(collection=db.COLLECTIONS.resource)]
+    return [Resource(r) for r in orm.DBResource.load_all()]

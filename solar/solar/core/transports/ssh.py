@@ -28,13 +28,13 @@ class _SSHTransport(object):
     def _fabric_settings(self, resource):
         return {
             'host_string': self._ssh_command_host(resource),
-            'key_filename': resource.args['ssh_key'].value,
+            'key_filename': resource.args['ssh_key'],
         }
 
     # TODO: maybe static/class method ?
     def _ssh_command_host(self, resource):
-        return '{}@{}'.format(resource.args['ssh_user'].value,
-                              resource.args['ip'].value)
+        return '{}@{}'.format(resource.args['ssh_user'],
+                              resource.args['ip'])
 
 
 class SSHSyncTransport(SyncTransport, _SSHTransport):

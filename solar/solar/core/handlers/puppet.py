@@ -31,7 +31,7 @@ class LibrarianPuppet(object):
     def install(self):
         puppet_module = '{}-{}'.format(
             self.organization,
-            self.resource.metadata['puppet_module']
+            self.resource.db_obj.puppet_module
         )
 
         puppetlabs = self.transport_run.run(
@@ -40,7 +40,7 @@ class LibrarianPuppet(object):
         )
         log.debug('Puppetlabs file is: \n%s\n', puppetlabs)
 
-        git = self.resource.args['git'].value
+        git = self.resource.args['git']
 
         definition = "mod '{module_name}', :git => '{repository}', :ref => '{branch}'".format(
             module_name=puppet_module,
@@ -121,19 +121,19 @@ class Puppet(TempFileHandler):
         return cmd
 
     def clone_manifests(self, resource):
-        git = resource.args['git'].value
+        git = resource.args['git']
         p = GitProvider(git['repository'], branch=git['branch'])
 
         return p.directory
 
     def upload_manifests(self, resource):
-        if 'forge' in resource.args and resource.args['forge'].value:
+        if 'forge' in resource.args and resource.args['forge']:
             self.upload_manifests_forge(resource)
         else:
             self.upload_manifests_librarian(resource)
 
     def upload_manifests_forge(self, resource):
-        forge = resource.args['forge'].value
+        forge = resource.args['forge']
 
         # Check if module already installed
         modules = self.transport_run.run(

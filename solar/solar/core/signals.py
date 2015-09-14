@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from solar.core.log import log
+
 
 def guess_mapping(emitter, receiver):
     """Guess connection mapping between emitter and receiver.
@@ -76,6 +78,9 @@ def connect_single(emitter, src, receiver, dst):
     if emitter_input in receiver_input.receivers.value:
         raise Exception('Prevented creating a cycle')
 
+    log.debug('Connecting {}::{} -> {}::{}'.format(
+        emitter.name, emitter_input.name, receiver.name, receiver_input.name
+    ))
     emitter_input.receivers.add(receiver_input)
 
 

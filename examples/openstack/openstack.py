@@ -689,12 +689,13 @@ resources_to_run = [
     'neutron_agents_ml22',
 ]
 
+
 @click.command()
 def deploy():
     setup_resources()
 
     # run
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = resource.load_all()
     resources = {r.name: r for r in resources}
 
     for name in resources_to_run:

@@ -316,6 +316,12 @@ class DBObject(object):
 
         return cls(**r.properties)
 
+    @classmethod
+    def load_all(cls):
+        rs = db.all(collection=cls._collection)
+
+        return [cls(**r.properties) for r in rs]
+
     def save(self):
         db.create(
             self._db_key,
@@ -365,6 +371,7 @@ class DBResource(DBObject):
     base_name = db_field(schema='str')
     base_path = db_field(schema='str')
     handler = db_field(schema='str')  # one of: {'ansible_playbook', 'ansible_template', 'puppet', etc}
+    puppet_module = db_field(schema='str')
     version = db_field(schema='str')
     tags = db_field(schema=[], default_value=[])
     meta_inputs = db_field(schema={}, default_value={})

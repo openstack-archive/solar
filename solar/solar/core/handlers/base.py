@@ -72,8 +72,7 @@ class TempFileHandler(BaseHandler):
     def _render_action(self, resource, action):
         log.debug('Rendering %s %s', resource.name, action)
 
-        action_file = resource.metadata['actions'][action]
-        action_file = os.path.join(resource.metadata['actions_path'], action_file)
+        action_file = resource.actions[action]
         log.debug('action file: %s', action_file)
         args = self._make_args(resource)
 
@@ -88,7 +87,7 @@ class TempFileHandler(BaseHandler):
         trg_templates_dir = None
         trg_scripts_dir = None
 
-        base_path = resource.metadata['base_path']
+        base_path = resource.db_obj.base_path
         src_templates_dir = os.path.join(base_path, 'templates')
         if os.path.exists(src_templates_dir):
             trg_templates_dir = os.path.join(self.dirs[resource.name], 'templates')
@@ -111,7 +110,7 @@ class TempFileHandler(BaseHandler):
 
     def _make_args(self, resource):
         args = {'resource_name': resource.name}
-        args['resource_dir'] = resource.metadata['base_path']
+        args['resource_dir'] = resource.db_obj.base_path
         args['templates_dir'] = 'templates/'
         args['scripts_dir'] = 'scripts/'
         args.update(resource.args)
