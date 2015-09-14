@@ -152,7 +152,9 @@ class SolardTCPHandler(object):
             return False
         proc_user = pwd.getpwuid(os.getuid())[0]
         logger.debug("Requested user %r", req_user)
+        # TODO:
         # we may add there anything we want, checking in file etc
+        # for now it's just `password`
         valid = auth_data.get('auth') == 'password'
         if not valid:
             self._write_ok(False)
@@ -160,8 +162,9 @@ class SolardTCPHandler(object):
         if req_user == proc_user:
             self._write_ok(True)
             return True
-        # we may not want to fork there
-        if auth_data.get('no_fork'):
+        # TODO: very naive
+        if auth_data.get('sudo'):
+            self._write_ok(True)
             return True
         # fork there
         child_pid = os.fork()

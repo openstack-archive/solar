@@ -189,8 +189,8 @@ class SolardIface(object):
     def run(solard_context, cmd, **kwargs):
         # return check_output(shlex.split(cmd))
         executor = fabric_api.local
-        if kwargs.get('use_sudo', False):
-            cmd = 'sudo ' + cmd
+        # if kwargs.get('use_sudo', False):
+        #     cmd = 'sudo ' + cmd
 
         managers = []
 

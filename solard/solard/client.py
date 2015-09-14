@@ -7,24 +7,36 @@ class SolardClient(object):
 
     read_buffer = 4096
 
-    def __init__(self, auth, transport):
+    def __init__(self, auth, transport_args, transport_class):
         self.auth = auth
-        self.transport = transport
+        self.sudo_transport = transport_class(*transport_args)
+        self.normal_transport = transport_class(*transport_args)
         self.make_auth()
 
     def make_auth(self):
-        self.transport.auth = self.auth
+        self.normal_transport.auth = dict(self.auth)
+        self.sudo_transport.auth = dict(self.auth)
+        self.sudo_transport.auth['sudo'] = True
 
     def run(self, *args, **kwargs):
-        send = self.transport.send({'m': 'run', 'args': args, 'kwargs': kwargs})
-        resp = self.transport.resp()
+        if kwargs.get('use_sudo'):
+            transport = self.transport(use_sudo=True)
+        else:
+            transport = self.transport(use_sudo=False)
+        send = transport.send({'m': 'run', 'args': args, 'kwargs': kwargs})
+        resp = transport.resp()
         return resp
+
+    def transport(self, use_sudo):
+        if use_sudo:
+            return self.sudo_transport
+        return self.normal_transport
 
     def copy_directory(self, _from, _to, use_sudo=False):
         # dir should open context on remote, and sync all files as one req/resp
         to_cp_files = []
-        transport = self.transport
-        for root, dirs, files in os.walk(_from):
+        transport = self.transport(use_sudo)
+        for root, _, files in os.walk(_from):
             for name in files:
                 _from = os.path.join(root, name)
                 _to = os.path.join(root.replace(_from, _to), name)
@@ -51,7 +63,7 @@ class SolardClient(object):
         return resp
 
     def copy_file(self, _from, _to, use_sudo=False):
-        transport = self.transport
+        transport = self.transport(use_sudo)
         f_size = os.stat(_from).st_size
         data = {'m': 'copy_file',
                 'args': (_to, use_sudo, f_size),
@@ -82,9 +94,10 @@ class SolardClient(object):
 if __name__ == '__main__':
     import time
     from solard.tcp_client import SolardTCPClient
-    c = SolardClient(auth={'user': 'pigmej', 'auth': 'password'}, transport=SolardTCPClient('localhost', 5555))
+    c = SolardClient(auth={'user': 'pigmej', 'auth': 'password'}, transport_args=('localhost', 5555), transport_class=SolardTCPClient)
     print c.run('hostname')
     print c.run('whoami')
-    print c.copy('/tmp/a', '/tmp/bbb/a.%s' % (time.time()))
-    print c.copy('/tmp/a', '/tmp/bbb/b.%s' % (time.time()))
-    print c.copy('/tmp/bbb', '/tmp/s/ccc%s' % (time.time()))
+    print c.run('whoami', use_sudo=True)
+    # print c.copy('/tmp/a', '/tmp/bbb/a.%s' % (time.time()))
+    # print c.copy('/tmp/a', '/tmp/bbb/b.%s' % (time.time()))
+    # print c.copy('/tmp/bbb', '/tmp/s/ccc%s' % (time.time()))
