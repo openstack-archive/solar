@@ -13,11 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.interfaces.db import get_db
-
-
-db = get_db()
-
 
 def guess_mapping(emitter, receiver):
     """Guess connection mapping between emitter and receiver.
@@ -74,24 +69,12 @@ def connect_single(emitter, src, receiver, dst):
                 emitter_input.id)
         )
 
-    # TODO: in ORM this has to be something like 'delete all incoming'
-    #       so we would have to trace the backwards relation for
-    #       db_related_field
     if not receiver_input.is_list:
-        db.delete_relations(
-            dest=receiver_input._db_node,
-            type_=db.RELATION_TYPES.input_to_input
-        )
+        receiver_input.receivers.delete_all_incoming(receiver_input)
 
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
-    r = db.get_relations(
-        receiver_input._db_node,
-        emitter_input._db_node,
-        type_=db.RELATION_TYPES.input_to_input
-    )
-
-    if r:
+    if emitter_input in receiver_input.receivers.value:
         raise Exception('Prevented creating a cycle')
 
     emitter_input.receivers.add(receiver_input)
@@ -100,10 +83,7 @@ def connect_single(emitter, src, receiver, dst):
 def disconnect_receiver_by_input(receiver, input_name):
     input_node = receiver.resource_inputs()[input_name]
 
-    db.delete_relations(
-        dest=input_node,
-        type_=db.RELATION_TYPES.input_to_input
-    )
+    input_node.receivers.delete_all_incoming(input_node)
 
 
 def disconnect(emitter, receiver):

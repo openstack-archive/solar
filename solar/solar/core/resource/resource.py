@@ -17,12 +17,8 @@ from copy import deepcopy
 from multipledispatch import dispatch
 import os
 
-from solar.interfaces.db import get_db
 from solar.interfaces import orm
 from solar import utils
-
-
-db = get_db()
 
 
 def prepare_meta(meta):

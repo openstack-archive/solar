@@ -159,6 +159,16 @@ class DBRelatedField(object):
 
         return ret
 
+    def delete_all_incoming(self, destination_db_object):
+        """
+        Delete all relations for which destination_db_object is an end node.
+        """
+
+        db.delete_relations(
+            dest=destination_db_object._db_node,
+            type_=self.relation_type
+        )
+
 
 def db_related_field(relation_type, destination_db_class):
     class DBRelatedFieldX(DBRelatedField):
