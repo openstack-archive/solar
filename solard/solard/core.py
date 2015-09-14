@@ -8,6 +8,8 @@ import shlex
 from itertools import takewhile
 
 
+from solard.logger import logger
+
 
 # XXX: not used for now vvv
 
@@ -204,6 +206,19 @@ class SolardIface(object):
             f.write(data)
         SolardIface.file_end(solard_context, path)
         return True
+
+    @staticmethod
+    def copy_files(solard_context, stream_reader, paths, use_sudo=False, total_size=None):
+        for _to, _size in paths:
+            logger.debug("Starting %s size=%d", _to, _size)
+            f = SolardIface.file_start(solard_context, _to)
+            rdr = stream_reader(_size)
+            for data in rdr:
+                f.write(data)
+            SolardIface.file_end(solard_context, _to)
+            logger.debug("Done %s size=%d", _to, _size)
+        return True
+
 
     # # TODO: not used YET fully
     # @staticmethod

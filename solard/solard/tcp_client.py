@@ -74,10 +74,22 @@ class SolardTCPClient(object):
             self.sock.sendall(hdr)
         return self.sock
 
+    def send_stream_cont(self, add_size=False):
+        assert self._streaming is True
+        if add_size is not False:
+            hdr = struct.pack(HDR, add_size)
+            self.sock.sendall(hdr)
+        return self.sock
+
+    def send_stream_end(self):
+        assert self._streaming is True
+        self._streaming = False
+        return self.sock
+
     def send_stream_data(self, data):
         assert self._streaming is True
         self.sock.sendall(data)  # TODO: expose sendfile easier
-        self._streaming = False
+        # self._streaming = False
 
     def read(self):
         sock = self.sock

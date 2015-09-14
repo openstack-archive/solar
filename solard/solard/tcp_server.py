@@ -51,13 +51,21 @@ class SolardTCPHandler(object):
         while True:
             b = min(size, SERVER_BUFF)
             curr = self.sock.recv(b)
+            if not curr:
+                raise ReadFailure("No data")
             d.append(curr)
             size -= len(curr)
             assert size >= 0
             if not size:
                 break
         self._wrote = False
-        return msgpack.unpackb(''.join(d))
+        try:
+            return msgpack.unpackb(''.join(d))
+        except:
+            print '--------------------'
+            print repr(d)
+            print '--------------------'
+            raise
 
     def _read_stream(self, size=None):
         if size is None:
@@ -68,6 +76,9 @@ class SolardTCPHandler(object):
         while True:
             b = min(size, SERVER_BUFF)
             curr = self.sock.recv(b)
+            if not curr:
+                if size > 0:
+                    raise ReadFailure("Expected more data")
             size -= len(curr)
             assert size >= 0
             yield curr
@@ -141,9 +152,8 @@ class SolardTCPHandler(object):
                         pass
                     self._wrote = True
             else:
-                if not input_data.get('empty_ok_resp', False):
-                    self._write_ok(res)
-
+                # if not input_data.get('empty_ok_resp', False):
+                self._write_ok(res)
         except ReadFailure:
             return False
         except Exception as ex:
