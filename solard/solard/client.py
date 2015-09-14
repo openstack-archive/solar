@@ -45,7 +45,7 @@ class SolardClient(object):
         tos = [(x[1], size) for x in to_cp_files]
         total_size = sum((x[1] for x in tos))
         data = {'m': 'copy_files',
-                'args': (tos, use_sudo, total_size),
+                'args': (tos, total_size),
                 's': True}
         _ = transport.send(data)
         transport.send_stream_start()
@@ -66,7 +66,7 @@ class SolardClient(object):
         transport = self.transport(use_sudo)
         f_size = os.stat(_from).st_size
         data = {'m': 'copy_file',
-                'args': (_to, use_sudo, f_size),
+                'args': (_to, f_size),
                 's': True}
         _ = transport.send(data)
         transport.send_stream_start(add_size=False)
