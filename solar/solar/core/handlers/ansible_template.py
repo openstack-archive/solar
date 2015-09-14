@@ -67,10 +67,10 @@ class AnsibleTemplate(TempFileHandler):
 
         # XXX: r.args['ssh_user'] should be something different in this case probably
         inventory = '{0} ansible_connection=local user={1} {2}'
-        host, user = 'localhost', r.args['ssh_user'].value
+        host, user = 'localhost', r.args['ssh_user']
         args = []
         for arg in r.args:
-            args.append('{0}="{1}"'.format(arg, r.args[arg].value))
+            args.append('{0}="{1}"'.format(arg, r.args[arg]))
         args = ' '.join(args)
         inventory = inventory.format(host, user, args)
         log.debug(inventory)

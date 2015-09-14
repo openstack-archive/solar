@@ -116,7 +116,11 @@ class Resource(object):
 
     def to_dict(self):
         ret = self.db_obj.to_dict()
-        ret['input'] = self.args
+        ret['input'] = {}
+        for k, v in self.args.items():
+            ret['input'][k] = {
+                'value': v,
+            }
 
         return ret
 
