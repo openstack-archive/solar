@@ -14,20 +14,14 @@
 import logging
 
 
-def __init_logger():
-    logger = logging.getLogger("Wassi")
+def __setup_logger():
+    logger = logging.getLogger("solard")
     logger.setLevel(logging.DEBUG)
-
-    # formatter = logging.Formatter(
-    #     '%(levelname)s:%(asctime)s - %(name)s - %(message)s')
-
-    formatter = logging.Formatter('%(levelname)s:%(asctime)s - %(message)s')
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-    ch.setFormatter(formatter)
-
-    logger.addHandler(ch)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s (%(filename)s::%(lineno)s)::%(message)s')
+    stream = logging.StreamHandler()
+    stream.setLevel(logging.DEBUG)
+    stream.setFormatter(formatter)
+    logger.addHandler(stream)
     return logger
 
 
@@ -37,7 +31,7 @@ __global_logger = None
 def get_logger():
     global __global_logger
     if not __global_logger:
-        __global_logger = __init_logger()
+        __global_logger = __setup_logger()
         return __global_logger
 
 logger = get_logger()
