@@ -49,12 +49,11 @@ def connect(emitter, receiver, mapping={}, events=None):
         return
 
     for src, dst in mapping.items():
-        if isinstance(dst, list):
-            for d in dst:
-                connect_single(emitter, src, receiver, d)
-            continue
+        if not isinstance(dst, list):
+            dst = [dst]
 
-        connect_single(emitter, src, receiver, dst)
+        for d in dst:
+            connect_single(emitter, src, receiver, d)
 
 
 def connect_single(emitter, src, receiver, dst):
