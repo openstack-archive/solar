@@ -1,4 +1,4 @@
-- hosts: [{{ ip }}]
+- hosts: [{{ host }}]
   sudo: yes
   tasks:
     - name: remove VG
