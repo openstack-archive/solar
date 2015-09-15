@@ -19,7 +19,7 @@ resources:
       ssh_key: '{{ssh_key}}'
 
   - id: keystone_base
-    from: templates/keystone_base.yml
+    from: templates/keystone_base.yaml
     values:
       login_user: root
       login_password: 'mariadb_service::root_password'
@@ -33,7 +33,7 @@ resources:
       ssh_key: '{{ssh_key}}'
 
   - id:  keystone_api_1
-    from: templates/keystone_api.yml
+    from: templates/keystone_api.yaml
     values:
       idx: 1
       db_password: 'keystone_db_user::user_password'
@@ -49,7 +49,7 @@ resources:
       ssh_key: '{{ssh_key}}'
 
   - id: openstack_base
-    from: templates/openstack_base.yml
+    from: templates/openstack_base.yaml
     values:
       ip: '{{ip}}'
       ssh_user: '{{ssh_user}}'

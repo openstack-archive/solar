@@ -2,9 +2,9 @@ id: riak_node
 handler: ansible
 version: 1.0.0
 actions:
-  commit: actions/commit.yml
-  run: actions/run.yml
-  join: actions/join.yml
+  commit: actions/commit.yaml
+  run: actions/run.yaml
+  join: actions/join.yaml
 input:
     ip:
       schema: str!

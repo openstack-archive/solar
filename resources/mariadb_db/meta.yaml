@@ -2,8 +2,8 @@ id: mariadb_db
 handler: ansible
 version: 1.0.0
 actions:
-    run: run.yml
-    remove: remove.yml
+    run: run.yaml
+    remove: remove.yaml
 input:
     db_name:
       schema: str!

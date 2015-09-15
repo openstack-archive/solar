@@ -14,7 +14,7 @@ signals.Connections.clear()
 from solar import template
 
 
-nodes = template.nodes_from('templates/riak_nodes.yml')
+nodes = template.nodes_from('templates/riak_nodes.yaml')
 
 riak_services = nodes.on_each(
     'resources/riak_node',

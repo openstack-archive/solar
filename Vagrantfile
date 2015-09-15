@@ -20,9 +20,9 @@ require 'yaml'
 VAGRANTFILE_API_VERSION = "2"
 
 # configs, custom updates _defaults
-defaults_cfg = YAML.load_file('vagrant-settings.yml_defaults')
-if File.exist?('vagrant-settings.yml')
-  custom_cfg = YAML.load_file('vagrant-settings.yml')
+defaults_cfg = YAML.load_file('vagrant-settings.yaml_defaults')
+if File.exist?('vagrant-settings.yaml')
+  custom_cfg = YAML.load_file('vagrant-settings.yaml')
   cfg = defaults_cfg.merge(custom_cfg)
 else
   cfg = defaults_cfg
@@ -36,13 +36,13 @@ def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
 end
 
-solar_script = ansible_playbook_command("solar.yml")
+solar_script = ansible_playbook_command("solar.yaml")
 
-slave_script = ansible_playbook_command("custom-configs.yml", ["-e", "master_ip=10.0.0.2"])
+slave_script = ansible_playbook_command("custom-configs.yaml", ["-e", "master_ip=10.0.0.2"])
 
-master_celery = ansible_playbook_command("celery.yml", ["--skip-tags", "slave"])
+master_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "slave"])
 
-slave_celery = ansible_playbook_command("celery.yml", ["--skip-tags", "master"])
+slave_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "master"])
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 

@@ -4,8 +4,8 @@
   hosts: all
   sudo: yes
   tasks:
-    - include: tasks/base.yml
-    - include: tasks/puppet.yml
-    - include: tasks/docker.yml
-    #- include: celery.yml tags=['master'] celery_dir=/var/run/celery
-    - include: tasks/cloud_archive.yml
+    - include: tasks/base.yaml
+    - include: tasks/puppet.yaml
+    - include: tasks/docker.yaml
+    #- include: celery.yaml tags=['master'] celery_dir=/var/run/celery
+    - include: tasks/cloud_archive.yaml

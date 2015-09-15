@@ -41,7 +41,7 @@ def setup_resources():
 
     signals.Connections.clear()
 
-    node1, node2 = vr.create('nodes', 'templates/nodes.yml', {})
+    node1, node2 = vr.create('nodes', 'templates/nodes.yaml', {})
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
