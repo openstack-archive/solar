@@ -12,10 +12,10 @@ input:
       schema: str!
       value: http
     ports:
-      schema: [{value: int}]
+      schema: [int]
       value: []
     servers:
-      schema: [{value: str}]
+      schema: [str]
       value: []
 
 tags: [resources/haproxy, resource/haproxy_general_config]
