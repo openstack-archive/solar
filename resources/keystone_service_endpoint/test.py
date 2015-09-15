@@ -41,8 +41,8 @@ def test(resource):
         if endpoint['service_id'] == service_id:
             endpoints[endpoint['interface']] = endpoint
 
-    assert jinja2.Template(resource.args['adminurl']).render(**resource.args_dict()) == endpoints['admin']['url']
-    assert jinja2.Template(resource.args['internalurl']).render(**resource.args_dict()) == endpoints['internal']['url']
-    assert jinja2.Template(resource.args['publicurl']).render(**resource.args_dict()) == endpoints['public']['url']
+    assert jinja2.Template(resource.args['adminurl']).render(**resource.args) == endpoints['admin']['url']
+    assert jinja2.Template(resource.args['internalurl']).render(**resource.args) == endpoints['internal']['url']
+    assert jinja2.Template(resource.args['publicurl']).render(**resource.args) == endpoints['public']['url']
 
     log.debug('%s endpoints: %s', resource.name, json.dumps(endpoints, indent=2))
