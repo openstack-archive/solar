@@ -17,12 +17,12 @@ from setuptools import find_packages
 from setuptools import setup
 
 
-# def find_requires():
-#     prj_root = os.path.dirname(os.path.realpath(__file__))
-#     requirements = []
-#     with open(u'{0}/requirements.txt'.format(prj_root), 'r') as reqs:
-#         requirements = reqs.readlines()
-#     return requirements
+def find_requires():
+    prj_root = os.path.dirname(os.path.realpath(__file__))
+    requirements = []
+    with open(u'{0}/requirements.txt'.format(prj_root), 'r') as reqs:
+        requirements = reqs.readlines()
+    return requirements
 
 
 setup(
@@ -43,9 +43,6 @@ setup(
     keywords='deployment',
     packages=find_packages(),
     zip_safe=False,
-    # install_requires=find_requires(),
-    include_package_data=True,
-    # entry_points={
-    #     'console_scripts': [
-    #         'solar = solar.cli.main:run']}
+    install_requires=find_requires(),
+    include_package_data=True
 )
