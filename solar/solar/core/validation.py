@@ -171,14 +171,14 @@ def validate_resource(r):
     """
     ret = {}
 
-    input_schemas = r.metadata['input']
-    args = r.args_dict()
+    inputs = r.resource_inputs()
+    args = r.args
 
-    for input_name, input_definition in input_schemas.items():
+    for input_name, input_definition in inputs.items():
         errors = validate_input(
             args.get(input_name),
-            jsonschema=input_definition.get('jsonschema'),
-            schema=input_definition.get('schema')
+            #jsonschema=input_definition.get('jsonschema'),
+            schema=input_definition.schema
         )
         if errors:
             ret[input_name] = errors

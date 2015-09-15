@@ -17,3 +17,5 @@ tabulate==0.7.5
 ansible
 celery
 mock
+multipledispatch==0.4.8
+mock

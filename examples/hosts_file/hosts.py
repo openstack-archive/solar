@@ -13,7 +13,6 @@ db = get_db()
 
 def run():
     db.clear()
-    signals.Connections.clear()
 
     node1 = vr.create('node1', 'resources/ro_node', {'name': 'first' + str(time.time()),
                                                    'ip': '10.0.0.3',

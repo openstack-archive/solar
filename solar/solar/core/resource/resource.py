@@ -14,204 +14,126 @@
 #    under the License.
 
 from copy import deepcopy
+from multipledispatch import dispatch
+import os
 
-from solar.core import actions
-from solar.core import observer
-from solar.core import validation
+from solar.interfaces import orm
+from solar import utils
 
-from solar.interfaces.db import get_db
 
-db = get_db()
+def read_meta(base_path):
+    base_meta_file = os.path.join(base_path, 'meta.yaml')
+
+    metadata = utils.yaml_load(base_meta_file)
+    metadata['version'] = '1.0.0'
+    metadata['base_path'] = os.path.abspath(base_path)
+    actions_path = os.path.join(metadata['base_path'], 'actions')
+    metadata['actions_path'] = actions_path
+    metadata['base_name'] = os.path.split(metadata['base_path'])[-1]
+
+    return metadata
 
 
 class Resource(object):
     _metadata = {}
 
-    def __init__(self, name, metadata, args, tags=None, virtual_resource=None):
+    # Create
+    @dispatch(str, str, dict)
+    def __init__(self, name, base_path, args, tags=None, virtual_resource=None):
         self.name = name
-        if metadata:
-            self.metadata = metadata
+        if base_path:
+            metadata = read_meta(base_path)
         else:
-            self.metadata = deepcopy(self._metadata)
-
-        self.metadata['id'] = name
+            metadata = deepcopy(self._metadata)
 
         self.tags = tags or []
         self.virtual_resource = virtual_resource
-        self.set_args_from_dict(args)
+
+        self.db_obj = orm.DBResource(**{
+            'id': name,
+            'name': name,
+            'actions_path': metadata.get('actions_path', ''),
+            'base_name': metadata.get('base_name', ''),
+            'base_path': metadata.get('base_path', ''),
+            'handler': metadata.get('handler', ''),
+            'puppet_module': metadata.get('puppet_module', ''),
+            'version': metadata.get('version', ''),
+            'meta_inputs': metadata.get('input', {})
+        })
+        self.db_obj.save()
+
+        self.create_inputs(args)
+
+    # Load
+    @dispatch(orm.DBResource)
+    def __init__(self, resource_db):
+        self.db_obj = resource_db
+        self.name = resource_db.name
+        # TODO: tags
+        self.tags = []
+        self.virtual_resource = None
 
     @property
     def actions(self):
-        return self.metadata.get('actions') or []
+        ret = {
+            os.path.splitext(p)[0]: os.path.join(
+                self.db_obj.actions_path, p
+            )
+            for p in os.listdir(self.db_obj.actions_path)
+        }
+
+        return {
+            k: v for k, v in ret.items() if os.path.isfile(v)
+        }
+
+    def create_inputs(self, args):
+        for name, v in self.db_obj.meta_inputs.items():
+            value = args.get(name, v.get('value'))
+
+            self.db_obj.add_input(name, v['schema'], value)
 
     @property
     def args(self):
         ret = {}
+        for i in self.resource_inputs().values():
+            ret[i.name] = i.backtrack_value()
+        return ret
 
-        args = self.args_dict()
+    def update(self, args):
+        # TODO: disconnect input when it is updated and end_node
+        #       for some input_to_input relation
+        resource_inputs = self.resource_inputs()
 
-        for arg_name, metadata_arg in self.metadata['input'].items():
-            type_ = validation.schema_input_type(metadata_arg.get('schema', 'str'))
+        for k, v in args.items():
+            i = resource_inputs[k]
+            i.value = v
+            i.save()
 
-            ret[arg_name] = observer.create(
-                type_, self, arg_name, args.get(arg_name)
-            )
+    def resource_inputs(self):
+        return {
+            i.name: i for i in self.db_obj.inputs.value
+        }
+
+    def to_dict(self):
+        ret = self.db_obj.to_dict()
+        ret['input'] = {}
+        for k, v in self.args.items():
+            ret['input'][k] = {
+                'value': v,
+            }
 
         return ret
 
-    def args_dict(self):
-        raw_resource = db.read(self.name, collection=db.COLLECTIONS.resource)
-        if raw_resource is None:
-            return {}
 
-        self.metadata = raw_resource
+def load(name):
+    r = orm.DBResource.load(name)
 
-        return Resource.get_raw_resource_args(raw_resource)
+    if not r:
+        raise Exception('Resource {} does not exist in DB'.format(name))
 
-    def set_args_from_dict(self, new_args):
-        args = self.args_dict()
-        args.update(new_args)
-
-        self.metadata['tags'] = self.tags
-        self.metadata['virtual_resource'] = self.virtual_resource
-        for k, v in args.items():
-            if k not in self.metadata['input']:
-                raise NotImplementedError(
-                    'Argument {} not implemented for resource {}'.format(k, self)
-                )
-
-            if isinstance(v, dict) and 'value' in v:
-                v = v['value']
-            self.metadata['input'][k]['value'] = v
-
-        db.save(self.name, self.metadata, collection=db.COLLECTIONS.resource)
-
-    def set_args(self, args):
-        self.set_args_from_dict({k: v.value for k, v in args.items()})
-
-    def __repr__(self):
-        return ("Resource(name='{id}', metadata={metadata}, args={input}, "
-                "tags={tags})").format(**self.to_dict())
-
-    def color_repr(self):
-        import click
-
-        arg_color = 'yellow'
-
-        return ("{resource_s}({name_s}='{id}', {metadata_s}={metadata}, "
-                "{args_s}={input}, {tags_s}={tags})").format(
-            resource_s=click.style('Resource', fg='white', bold=True),
-            name_s=click.style('name', fg=arg_color, bold=True),
-            metadata_s=click.style('metadata', fg=arg_color, bold=True),
-            args_s=click.style('args', fg=arg_color, bold=True),
-            tags_s=click.style('tags', fg=arg_color, bold=True),
-            **self.to_dict()
-        )
-
-    def to_dict(self):
-        return {
-            'id': self.name,
-            'metadata': self.metadata,
-            'input': self.args_show(),
-            'tags': self.tags,
-        }
-
-    def args_show(self):
-        def formatter(v):
-            if isinstance(v, observer.ListObserver):
-                return v.value
-            elif isinstance(v, observer.Observer):
-                return {
-                    'emitter': v.emitter.attached_to.name if v.emitter else None,
-                    'value': v.value,
-                }
-
-            return v
-
-        return {k: formatter(v) for k, v in self.args.items()}
-
-    def add_tag(self, tag):
-        if tag not in self.tags:
-            self.tags.append(tag)
-
-    def remove_tag(self, tag):
-        try:
-            self.tags.remove(tag)
-        except ValueError:
-            pass
-
-    def notify(self, emitter):
-        """Update resource's args from emitter's args.
-
-        :param emitter: Resource
-        :return:
-        """
-        r_args = self.args
-
-        for key, value in emitter.args.iteritems():
-            r_args[key].notify(value)
-
-    def update(self, args):
-        """This method updates resource's args with a simple dict.
-
-        :param args:
-        :return:
-        """
-        # Update will be blocked if this resource is listening
-        # on some input that is to be updated -- we should only listen
-        # to the emitter and not be able to change the input's value
-        r_args = self.args
-
-        for key, value in args.iteritems():
-            r_args[key].update(value)
-
-        self.set_args(r_args)
-
-    def action(self, action):
-        if action in self.actions:
-            actions.resource_action(self, action)
-        else:
-            raise Exception('Uuups, action is not available')
-
-    @staticmethod
-    def get_raw_resource_args(raw_resource):
-        return {k: v.get('value') for k, v in raw_resource['input'].items()}
+    return Resource(r)
 
 
-def wrap_resource(raw_resource):
-    name = raw_resource['id']
-    args = Resource.get_raw_resource_args(raw_resource)
-    tags = raw_resource.get('tags', [])
-    virtual_resource = raw_resource.get('virtual_resource', [])
-
-    return Resource(name, raw_resource, args, tags=tags, virtual_resource=virtual_resource)
-
-
-def wrap_resource_no_value(raw_resource):
-    name = raw_resource['id']
-    args = {k: v for k, v in raw_resource['input'].items()}
-    tags = raw_resource.get('tags', [])
-    virtual_resource = raw_resource.get('virtual_resource', [])
-
-    return Resource(name, raw_resource, args, tags=tags, virtual_resource=virtual_resource)
-
-
-def load(resource_name):
-    raw_resource = db.read(resource_name, collection=db.COLLECTIONS.resource)
-
-    if raw_resource is None:
-        raise KeyError(
-            'Resource {} does not exist'.format(resource_name)
-        )
-
-    return wrap_resource(raw_resource)
-
-
+# TODO
 def load_all():
-    ret = {}
-
-    for raw_resource in db.get_list(collection=db.COLLECTIONS.resource):
-        resource = wrap_resource(raw_resource)
-        ret[resource.name] = resource
-
-    return ret
+    return [Resource(r) for r in orm.DBResource.load_all()]

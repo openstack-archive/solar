@@ -21,21 +21,18 @@ from solar.system_log import data
 def host_diff():
     return [
         [u'add', u'', [
-            [u'ip', {u'emitter': u'node1', u'value': u'10.0.0.3'}],
-            [u'hosts_names',
-                [{u'emitter_attached_to': u'riak_service1', u'emitter': u'riak_hostname', u'value': u'riak_server1.solar'},
-                 {u'emitter_attached_to': u'riak_service2', u'emitter': u'riak_hostname', u'value': u'riak_server2.solar'},
-                 {u'emitter_attached_to': u'riak_service3', u'emitter': u'riak_hostname', u'value': u'riak_server3.solar'}]],
-            [u'ssh_user', {u'emitter': None, u'value': u'vagrant'}],
-            [u'ssh_key', {u'emitter': u'node1', u'value': u'/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'}],
+            [u'ip', u'10.0.0.3'],
+            [u'hosts_names', ['riak_server1.solar', 'riak_server2.solar', 'riak_server3.solar']],
+            [u'ssh_user', u'vagrant'],
+            [u'ssh_key', u'/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'],
     ]]]
 
 
 def test_details_for_add(host_diff):
     assert data.details(host_diff) == [
-        '++ ip: node1::10.0.0.3',
-        "++ hosts_names: ['riak_hostname::riak_server1.solar', 'riak_hostname::riak_server2.solar', 'riak_hostname::riak_server3.solar']",
-        '++ ssh_user: vagrant', '++ ssh_key: node1::/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key']
+        '++ ip: 10.0.0.3',
+        "++ hosts_names: ['riak_server1.solar', 'riak_server2.solar', 'riak_server3.solar']",
+        '++ ssh_user: vagrant', '++ ssh_key: /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key']
 
 
 @fixture

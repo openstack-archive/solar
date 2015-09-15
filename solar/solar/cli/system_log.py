@@ -86,8 +86,12 @@ def history(n):
 
 
 @changes.command()
-def test():
-    results = testing.test_all()
+@click.option('--name', default=None)
+def test(name):
+    if name:
+        results = testing.test(name)
+    else:
+        results = testing.test_all()
 
     for name, result in results.items():
         msg = '[{status}] {name} {message}'

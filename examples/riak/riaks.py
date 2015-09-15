@@ -26,7 +26,6 @@ db = get_db()
 
 def setup_riak():
     db.clear()
-    signals.Connections.clear()
 
     nodes = vr.create('nodes', 'templates/riak_nodes.yml', {})
     node1, node2, node3 = nodes

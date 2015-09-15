@@ -25,7 +25,7 @@ _default_transports = {
 }
 
 def resource_action(resource, action):
-    handler = resource.metadata.get('handler', 'none')
+    handler = resource.db_obj.handler or 'none'
     with handlers.get(handler)([resource], _default_transports) as h:
         return h.action(resource, action)
 

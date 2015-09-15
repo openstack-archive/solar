@@ -10,15 +10,15 @@ def test(resource):
     args = resource.args
 
     token, _ = validation.validate_token(
-        keystone_host=args['keystone_host'].value,
-        keystone_port=args['keystone_port'].value,
+        keystone_host=args['keystone_host'],
+        keystone_port=args['keystone_port'],
         user='glance_admin',
         tenant='services',
-        password=args['keystone_password'].value,
+        password=args['keystone_password'],
     )
 
     images = requests.get(
-        'http://%s:%s/v1/images' % (resource.args['ip'].value, 9393),
+        'http://%s:%s/v1/images' % (resource.args['ip'], 9393),
         headers={'X-Auth-Token': token}
     )
     assert images.json() == {'images': []}

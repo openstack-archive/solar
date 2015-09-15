@@ -19,7 +19,6 @@ import unittest
 import yaml
 
 from solar.core.resource import virtual_resource as vr
-from solar.core import signals as xs
 from solar.interfaces.db import get_db
 
 db = get_db()
@@ -32,7 +31,6 @@ class BaseResourceTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.storage_dir)
         db.clear()
-        xs.Connections.clear()
 
     def make_resource_meta(self, meta_yaml):
         meta = yaml.load(meta_yaml)
@@ -44,5 +42,5 @@ class BaseResourceTest(unittest.TestCase):
 
         return path
 
-    def create_resource(self, name, src, args):
-        return vr.create(name, src, args)[0]
+    def create_resource(self, name, src, args={}):
+        return vr.create(name, src, args=args)[0]

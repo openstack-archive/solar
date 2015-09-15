@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
-
 import base
 
 from solar.core import resource
@@ -35,11 +33,11 @@ input:
         sample1 = self.create_resource(
             'sample1', sample_meta_dir, {'value': 1}
         )
-        self.assertEqual(sample1.args['value'].value, 1)
+        self.assertEqual(sample1.args['value'], 1)
 
         # test default value
         sample2 = self.create_resource('sample2', sample_meta_dir, {})
-        self.assertEqual(sample2.args['value'].value, 0)
+        self.assertEqual(sample2.args['value'], 0)
 
     def test_connections_recreated_after_load(self):
         """
@@ -76,6 +74,22 @@ input:
         sample1.update({'value': 2})
         self.assertEqual(sample1.args['value'], sample2.args['value'])
 
+    def test_load(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
 
-if __name__ == '__main__':
-    unittest.main()
+        sample = self.create_resource(
+            'sample', sample_meta_dir, {'value': 1}
+        )
+
+        sample_l = resource.load('sample')
+
+        self.assertDictEqual(sample.args, sample_l.args)
+        self.assertListEqual(sample.tags, sample_l.tags)

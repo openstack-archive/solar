@@ -1,6 +1,6 @@
 :backends:
-  - redis
-  #- yaml
+  - yaml
+  #- redis
   #- json
 :yaml:
   :datadir: /etc/puppet/hieradata
@@ -12,4 +12,5 @@
   :host: localhost
   :deserialize: :json
 :hierarchy:
+  - "%{resource_name}"
   - resource
