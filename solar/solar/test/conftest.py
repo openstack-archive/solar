@@ -31,8 +31,6 @@ def pytest_configure():
 def cleanup(request):
 
     def fin():
-        from solar.core import signals
-
         db.get_db().clear()
 
     request.addfinalizer(fin)

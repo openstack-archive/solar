@@ -55,6 +55,7 @@ def add_dep(parent, dep, actions, state='success'):
         add_event(d)
         log.debug('Added event: %s', d)
 
+
 def add_react(parent, dep, actions, state='success'):
     for act in actions:
         r = React(parent, act, state=state,
@@ -62,19 +63,17 @@ def add_react(parent, dep, actions, state='success'):
         add_event(r)
         log.debug('Added event: %s', r)
 
-def remove_event(ev):
-    rst = all_events(ev.parent_node)
-    db.create(
-        ev.parent_node,
-        [i.to_dict() for i in rst],
-        collection=db.COLLECTIONS.events)
-
 
 def set_events(resource, lst):
     db.create(
         resource,
         [i.to_dict() for i in lst],
         collection=db.COLLECTIONS.events)
+
+
+def remove_event(ev):
+    rst = all_events(ev.parent_node)
+    set_events(ev.parent_node, [it for it in rst if not it == ev])
 
 
 def add_events(resource, lst):
@@ -88,7 +87,7 @@ def all_events(resource):
                     return_empty=True, db_convert=False)
     if not events:
         return []
-    return [create_event(i) for i in events['properties']]
+    return [create_event(i) for i in events.properties]
 
 
 def bft_events_graph(start):
