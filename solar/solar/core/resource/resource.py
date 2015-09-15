@@ -124,6 +124,21 @@ class Resource(object):
 
         return ret
 
+    def color_repr(self):
+        import click
+
+        arg_color = 'yellow'
+
+        return ("{resource_s}({name_s}='{id}', {base_path_s}={base_path} "
+                "{args_s}={input}, {tags_s}={tags})").format(
+            resource_s=click.style('Resource', fg='white', bold=True),
+            name_s=click.style('name', fg=arg_color, bold=True),
+            base_path_s=click.style('base_path', fg=arg_color, bold=True),
+            args_s=click.style('args', fg=arg_color, bold=True),
+            tags_s=click.style('tags', fg=arg_color, bold=True),
+            **self.to_dict()
+        )
+
 
 def load(name):
     r = orm.DBResource.load(name)

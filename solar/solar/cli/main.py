@@ -262,7 +262,7 @@ def init_cli_resource():
     def show(**kwargs):
         resources = []
 
-        for name, res in sresource.load_all().items():
+        for res in sresource.load_all():
             show = True
             if kwargs['tag']:
                 if kwargs['tag'] not in res.tags:
