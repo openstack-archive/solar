@@ -18,7 +18,43 @@ import traceback
 
 from log import log
 from solar.core import resource
-from solar.core import signals
+
+
+def test(r):
+    if isinstance(r, basestring):
+        r = resource.load(r)
+
+    log.debug('Trying {}'.format(r.name))
+
+    script_path = os.path.join(r.db_obj.base_path, 'test.py')
+    if not os.path.exists(script_path):
+        log.warning('resource {} has no tests'.format(r.name))
+        return
+
+    log.debug('File {} found'.format(script_path))
+
+    with open(script_path) as f:
+        module = imp.load_module(
+            '{}_test'.format(r.name),
+            f,
+            script_path,
+            ('', 'r', imp.PY_SOURCE)
+        )
+
+    try:
+        module.test(r)
+        return {
+            r.name: {
+                'status': 'ok',
+            },
+        }
+    except Exception:
+        return {
+            r.name: {
+                'status': 'error',
+                'message': traceback.format_exc(),
+            }
+        }
 
 
 def test_all():
@@ -27,32 +63,8 @@ def test_all():
     resources = resource.load_all()
 
     for r in resources:
-        log.debug('Trying {}'.format(r.name))
-
-        script_path = os.path.join(r.db_obj.base_path, 'test.py')
-        if not os.path.exists(script_path):
-            log.warning('resource {} has no tests'.format(r.name))
-            continue
-
-        log.debug('File {} found'.format(script_path))
-
-        with open(script_path) as f:
-            module = imp.load_module(
-                '{}_test'.format(r.name),
-                f,
-                script_path,
-                ('', 'r', imp.PY_SOURCE)
-            )
-
-        try:
-            module.test(r)
-            results[r.name] = {
-                'status': 'ok',
-            }
-        except Exception:
-            results[r.name] = {
-                'status': 'error',
-                'message': traceback.format_exc(),
-            }
+        ret = test(r)
+        if ret:
+            results.update(ret)
 
     return results
