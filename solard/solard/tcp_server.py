@@ -29,14 +29,10 @@ import os
 from types import GeneratorType
 from solard.logger import logger
 from solard.core import SolardContext, SolardIface
+from solard.tcp_core import *
 
 
 SERVER_BUFF = 4096
-HDR = "<I"
-HDR_SIZE = struct.calcsize(HDR)
-
-INT_DEFAULT_REPLY_TYPE = 0
-INT_GENERATOR_REPLY_TYPE = 1
 
 
 class SolardTCPException(Exception):
@@ -111,11 +107,11 @@ class SolardTCPHandler(object):
 
     def _write_ok(self, res):
         # logger.debug("Ok sent")
-        data = {'st': 2, 'res': res}
+        data = {'st': REPLY_OK, 'res': res}
         self._write(**data)
 
     def _write_ok_gen(self, res):
-        data = {'st': 20, 'res': res}
+        data = {'st': REPLY_GEN_OK, 'res': res}
         self._write(**data)
 
     # def _write_ok_stream(self, res):
@@ -126,16 +122,16 @@ class SolardTCPHandler(object):
     #     self.sock.sendall(data)
 
     def _write_gen_end(self):
-        data = {'st': 21, 'res': None}
+        data = {'st': REPLY_GEN_END, 'res': None}
         self._write(**data)
 
     def _write_failure(self, exception, reason, tb=""):
-        data = {'st': 0, 'exception': exception, 'reason': reason, 'tb': tb}
+        data = {'st': REPLY_FAIL, 'exception': exception, 'reason': reason, 'tb': tb}
         self._write(**data)
 
     def _write_err(self, error):
         logger.info("Client error: %s" % error)
-        data = {'st': 1, 'error': error}
+        data = {'st': REPLY_ERR, 'error': error}
         self._write(**data)
 
     def make_auth(self):

@@ -17,9 +17,8 @@ import socket
 import errno
 import struct
 
+from solard.tcp_core import *
 
-HDR = '<I'
-HDR_SIZE = struct.calcsize(HDR)
 
 CLIENT_BUFF = 4096
 
@@ -33,6 +32,10 @@ class ReadError(ClientException):
 
 
 class RemoteException(ClientException):
+    pass
+
+
+class RemoteFailure(ClientException):
     pass
 
 
@@ -131,9 +134,9 @@ class SolardTCPClient(object):
 
     def _resp_result_gen(self, data):
         st = data['st']
-        if st == 20:  # OK
+        if st == REPLY_GEN_OK:  # OK
             return data['res']
-        elif st == 21:
+        elif st == REPLY_GEN_END:
             raise StopIteration()
         else:
             raise RemoteException(data)
@@ -143,10 +146,12 @@ class SolardTCPClient(object):
 
     def _resp_result(self, data):
         st = data['st']
-        if st == 2:  # OK
+        if st == REPLY_OK:  # OK
             return data['res']
-        else:
+        elif st == REPLY_ERR:
             raise RemoteException(data)
+        else:
+            raise RemoteFailure(data)
 
     def _resp_gen(self, res, close):
         try:
@@ -165,7 +170,7 @@ class SolardTCPClient(object):
     def resp(self, close=True):
         recv = self.read()
         st = recv['st']
-        if 20 <= st < 30:
+        if REPLY_GEN_OK <= st <= REPLY_GEN_END:
             return self._resp_gen(recv, close)
         try:
             res = self._resp_result(recv)
