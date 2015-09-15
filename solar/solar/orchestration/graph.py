@@ -43,10 +43,10 @@ def save_graph(name, graph):
 def get_graph(uid):
     dg = nx.MultiDiGraph()
     collection = db.COLLECTIONS.plan_node.name + ':' + uid
-    type_ = db.RELATION_TYPES.plan_edge.name + ': ' + uid
-    db.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
-    db.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
-    db.add_edges_from([(i['source'], i['dest'], i['properties'])
+    type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
+    dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
+    dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
+    dg.add_edges_from([(i['source'], i['dest'], i['properties'])
                        for i in db.all_relations(type_=type_, db_convert=False)])
     return dg
 
