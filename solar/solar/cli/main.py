@@ -350,7 +350,6 @@ def run():
     init_actions()
     init_cli_connect()
     init_cli_connections()
-    init_cli_deployment_config()
     init_cli_resource()
 
     main.add_command(orchestration)

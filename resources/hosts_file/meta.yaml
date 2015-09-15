@@ -13,8 +13,8 @@ input:
       schema: str!
       value:
     hosts_names:
-      schema: [{value: str!}]
+      schema: [str!]
       value: []
     hosts_ips:
-      schema: [{value: str!}]
+      schema: [str!]
       value: []
