@@ -29,7 +29,7 @@ def test(r):
     script_path = os.path.join(r.db_obj.base_path, 'test.py')
     if not os.path.exists(script_path):
         log.warning('resource {} has no tests'.format(r.name))
-        return
+        return {}
 
     log.debug('File {} found'.format(script_path))
 
