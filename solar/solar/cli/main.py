@@ -313,9 +313,8 @@ def init_cli_resource():
                 k, v = arg.split('=')
                 args_parsed.update({k: v})
         click.echo('Updating resource {} with args {}'.format(name, args_parsed))
-        all = sresource.load_all()
-        r = all[name]
-        r.update(args_parsed)
+        res = sresource.load(name)
+        res.update(args_parsed)
 
     @resource.command()
     @click.option('--check-missing-connections', default=False, is_flag=True)

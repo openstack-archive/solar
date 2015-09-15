@@ -152,11 +152,13 @@ class Data(collections.MutableMapping):
 
     def __init__(self, path):
         self.path = path
-        self.store = {}
         r = db.get(path, collection=db.COLLECTIONS.state_data,
                    return_empty=True, db_convert=False)
+
         if r:
-            self.store = r or self.store
+            self.store = r.get('properties', {})
+        else:
+            self.store = {}
 
     def __getitem__(self, key):
         return self.store[key]
