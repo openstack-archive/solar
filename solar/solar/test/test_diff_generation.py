@@ -17,7 +17,6 @@ from dictdiffer import revert, patch
 import networkx as nx
 
 from solar.system_log import change
-from solar.core.resource import wrap_resource
 
 
 @fixture
