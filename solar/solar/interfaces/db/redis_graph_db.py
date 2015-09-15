@@ -2,9 +2,6 @@ import json
 import redis
 import fakeredis
 
-from solar import utils
-from solar import errors
-
 from .base import BaseGraphDB, Node, Relation
 from .redis_db import OrderedHash
 

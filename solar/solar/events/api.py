@@ -21,8 +21,8 @@ from solar.core.log import log
 from solar.interfaces.db import get_db
 from solar.events.controls import Dep, React, StateChange
 
-db = get_db()
 
+db = get_db()
 
 
 def create_event(event_dict):
@@ -84,7 +84,7 @@ def add_events(resource, lst):
 
 def all_events(resource):
     events = db.get(resource, collection=db.COLLECTIONS.events,
-                    return_empty=True)
+                    db_convert=False, return_empty=True)
 
     if not events:
         return []
