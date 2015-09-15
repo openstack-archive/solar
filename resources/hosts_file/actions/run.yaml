@@ -1,11 +1,11 @@
 - hosts: [{{host}}]
   sudo: yes
   tasks:
-    {% for ip, host in zip(hosts_ips.value, hosts_names.value) %}
-    - name: Create hosts entries for {{host['value']}} => {{ip['value']}}
+    {% for ip, host in zip(hosts_ips, hosts_names) %}
+    - name: Create hosts entries for {{host}} => {{ip}}
       lineinfile:
         dest: /etc/hosts
-        regexp: '.*{{host["value"]}}$'
-        line: '{{ip["value"]}} {{host["value"]}}'
+        regexp: '.*{{host}}$'
+        line: '{{ip}} {{host}}'
         state: present
     {% endfor %}
