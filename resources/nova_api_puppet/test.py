@@ -11,11 +11,11 @@ def test(resource):
     args = resource.args
 
     token, token_data = validation.validate_token(
-        keystone_host=args['auth_host'].value,
-        keystone_port=args['auth_port'].value,
-        user=args['admin_user'].value,
-        tenant=args['admin_tenant_name'].value,
-        password=args['admin_password'].value,
+        keystone_host=args['auth_host'],
+        keystone_port=args['auth_port'],
+        user=args['admin_user'],
+        tenant=args['admin_tenant_name'],
+        password=args['admin_password'],
     )
 
     endpoints = [
@@ -89,4 +89,3 @@ def test(resource):
     )
 
     log.debug('NOVA API IMAGES: %s', images.json())
-
