@@ -69,6 +69,9 @@ class Event(object):
         return '{}: {} -> {} -> {}'.format(
             self.etype, self.parent, self.state, self.dependent)
 
+    def __hash__(self):
+        return hash(repr(self))
+
 
 class Dependency(Event):
 

@@ -21,29 +21,40 @@ from solar.events import api as evapi
 from .base import BaseResourceTest
 
 
-class EventAPITest(BaseResourceTest):
-    def test_events_load(self):
-        sample_meta_dir = self.make_resource_meta("""
-id: sample
-handler: ansible
-version: 1.0.0
-input:
-  value:
-    schema: int
-    value: 0
-        """)
+@fixture
+def events_example():
+    return [
+        evapi.Dep('e1', 'run', 'success', 'e2', 'run'),
+        evapi.Dep('e1', 'run', 'success', 'e3', 'run'),
+        evapi.Dep('e1', 'run', 'success', 'e4', 'run'),
+    ]
 
-        sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'value': 1}
-        )
 
-        sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'value': 1}
-        )
+def test_add_events(events_example):
+    evapi.add_events('e1', events_example)
+    assert set(evapi.all_events('e1')) == set(events_example)
 
-        evapi.Dep('sample1', 'run', 'success', 'sample2', 'run'),
-        loaded = evapi.all_events(sample1)
-        
+
+def test_set_events(events_example):
+    partial = events_example[:2]
+    evapi.add_events('e1', events_example[:2])
+    evapi.set_events('e1', events_example[2:])
+
+    assert evapi.all_events('e1') == events_example[2:]
+
+
+def test_remove_events(events_example):
+    to_be_removed = events_example[2]
+    evapi.add_events('e1', events_example)
+    evapi.remove_event(to_be_removed)
+    assert to_be_removed not in evapi.all_events('e1')
+
+
+def test_single_event(events_example):
+    evapi.add_events('e1', events_example[:2])
+    evapi.add_event(events_example[2])
+    assert set(evapi.all_events('e1')) == set(events_example)
+
 
 @fixture
 def nova_deps():
