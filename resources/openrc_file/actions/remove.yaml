@@ -1,4 +1,4 @@
-- hosts: [ {{ ip }} ]
+- hosts: [ {{ host }} ]
   sudo: yes
   tasks:
     - file: path=/root/openrc state=absent
