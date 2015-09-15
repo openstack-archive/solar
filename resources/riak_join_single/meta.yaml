@@ -2,7 +2,7 @@ id: riak_join_single
 handler: ansible
 version: 1.0.0
 actions:
-  join: actions/join.yml
+  join: actions/join.yaml
 input:
     join_to:
       schema: str!

@@ -70,7 +70,7 @@ def seq_plan():
     seq_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'orch_fixtures',
-        'sequential.yml')
+        'sequential.yaml')
     return graph.create_plan(seq_path, save=False)
 
 

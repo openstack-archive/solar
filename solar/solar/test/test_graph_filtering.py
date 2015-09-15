@@ -63,7 +63,7 @@ def riak_plan():
     riak_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'orch_fixtures',
-        'riak.yml')
+        'riak.yaml')
     return graph.create_plan(riak_path, save=False)
 
 

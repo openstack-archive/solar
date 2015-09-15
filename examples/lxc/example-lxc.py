@@ -47,8 +47,8 @@ def deploy():
     db.clear()
     signals.Connections.clear()
 
-    node1 = vr.create('nodes', 'templates/nodes.yml', {})[0]
-    seed = vr.create('nodes', 'templates/seed_node.yml', {})[0]
+    node1 = vr.create('nodes', 'templates/nodes.yaml', {})[0]
+    seed = vr.create('nodes', 'templates/seed_node.yaml', {})[0]
 
     ssh_key = vr.create('ssh_key1', 'resources/ssh_key', {
         'keys_dir': '/vagrant/.ssh',

@@ -80,7 +80,7 @@ def ext_encoder(fpath):
     ext = os.path.splitext(os.path.basename(fpath))[1].strip('.')
     if ext in ['json']:
         return json
-    elif ext in ['yaml', 'yml']:
+    elif ext in ['yaml', 'yaml']:
         return yaml
 
     raise Exception('Unknown extension {}'.format(ext))

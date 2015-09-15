@@ -39,7 +39,7 @@
     }, {
       "type": "ansible-local",
       "playbook_dir": "playbooks",
-      "playbook_file": "playbooks/build-main.yml",
+      "playbook_file": "playbooks/build-main.yaml",
       "extra_arguments": ["--verbose"]
     }],
   "post-processors": [{

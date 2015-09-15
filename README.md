@@ -242,7 +242,7 @@ functional way, and in particular avoid `for` loops. Here's an example:
 ```python
 from solar import template
 
-nodes = template.nodes_from('templates/riak_nodes.yml')
+nodes = template.nodes_from('templates/riak_nodes.yaml')
 
 riak_services = nodes.on_each(
     'resources/riak_node',
