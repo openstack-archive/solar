@@ -31,7 +31,7 @@ resources_compiled.py
 bootstrap/packer_cache
 bootstrap/trusty64
 bootstrap/solar-master.box
-vagrant-settings.yml
+vagrant-settings.yaml
 
 .solar_cli_uids
 
