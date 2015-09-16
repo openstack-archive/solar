@@ -84,7 +84,7 @@ def add_events(resource, lst):
 
 def all_events(resource):
     events = db.get(resource, collection=db.COLLECTIONS.events,
-                    db_convert=False, return_empty=True)
+                    return_empty=True)
 
     if not events:
         return []
