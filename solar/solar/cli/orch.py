@@ -99,14 +99,8 @@ def run_once(uid):
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def restart(uid):
-    graph.reset(uid)
+    graph.reset_by_uid(uid)
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
-
-
-@orchestration.command()
-@click.argument('uid', type=SOLARUID)
-def reset(uid):
-    graph.reset(uid)
 
 
 @orchestration.command()
@@ -121,15 +115,21 @@ def stop(uid):
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
+def reset(uid):
+    graph.reset_by_uid(uid)
+
+
+@orchestration.command()
+@click.argument('uid', type=SOLARUID)
 def resume(uid):
-    graph.reset(uid, ['SKIPPED'])
+    graph.reset_by_uid(uid, ['SKIPPED'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def retry(uid):
-    graph.reset(uid, ['ERROR'])
+    graph.reset_by_uid(uid, ['ERROR'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
