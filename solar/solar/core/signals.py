@@ -151,14 +151,22 @@ def detailed_connection_graph(start_with=None, end_with=None):
                 'style': 'filled, rounded',
             }
 
+    def format_name(i):
+        if isinstance(i, orm.DBResource):
+            return i.name
+        elif isinstance(i, orm.DBResourceInput):
+            return '{}/{}'.format(i.resource.name, i.name)
+
     for r, i in resource_inputs_graph.edges():
         inputs_graph.add_edge(r, i)
 
     ret = networkx.MultiDiGraph()
 
     for u, v in inputs_graph.edges():
-        ret.add_edge(u.name, v.name, attr_dict={'label': v.value})
-        ret.node[u.name] = node_attrs(u)
-        ret.node[v.name] = node_attrs(v)
+        u_n = format_name(u)
+        v_n = format_name(v)
+        ret.add_edge(u_n, v_n)
+        ret.node[u_n] = node_attrs(u)
+        ret.node[v_n] = node_attrs(v)
 
     return ret
