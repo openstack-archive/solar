@@ -67,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       v.name = "solar-dev"
     end
 
-    config.vm.provider:libvirt do |libvirt|
+    config.vm.provider :libvirt do |libvirt|
       libvirt.driver = 'kvm'
       libvirt.memory = MASTER_RAM
     end
@@ -104,7 +104,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         v.name = "solar-dev#{index}"
       end
 
-      config.vm.provider:libvirt do |libvirt|
+      config.vm.provider :libvirt do |libvirt|
         libvirt.driver = 'kvm'
         libvirt.memory = SLAVES_RAM
       end
