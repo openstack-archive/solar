@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import networkx
+
 from solar.core.log import log
 from solar.events.api import add_events
 from solar.events.controls import Dependency
+from solar.interfaces import orm
 
 
 def guess_mapping(emitter, receiver):
@@ -139,3 +142,40 @@ def disconnect(emitter, receiver):
     for emitter_input in emitter.resource_inputs().values():
         for receiver_input in receiver.resource_inputs().values():
             emitter_input.receivers.remove(receiver_input)
+
+
+def detailed_connection_graph(start_with=None, end_with=None):
+    resource_inputs_graph = orm.DBResource.inputs.graph()
+    inputs_graph = orm.DBResourceInput.receivers.graph()
+
+    def node_attrs(n):
+        if isinstance(n, orm.DBResource):
+            return {
+                'color': 'yellowgreen',
+                'style': 'filled',
+            }
+        elif isinstance(n, orm.DBResourceInput):
+            return {
+                'color': 'lightskyblue',
+                'style': 'filled, rounded',
+            }
+
+    def format_name(i):
+        if isinstance(i, orm.DBResource):
+            return i.name
+        elif isinstance(i, orm.DBResourceInput):
+            return '{}/{}'.format(i.resource.name, i.name)
+
+    for r, i in resource_inputs_graph.edges():
+        inputs_graph.add_edge(r, i)
+
+    ret = networkx.MultiDiGraph()
+
+    for u, v in inputs_graph.edges():
+        u_n = format_name(u)
+        v_n = format_name(v)
+        ret.add_edge(u_n, v_n)
+        ret.node[u_n] = node_attrs(u)
+        ret.node[v_n] = node_attrs(v)
+
+    return ret

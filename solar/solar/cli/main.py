@@ -165,21 +165,12 @@ def init_cli_connections():
     @connections.command()
     @click.option('--start-with', default=None)
     @click.option('--end-with', default=None)
-    def graph(end_with, start_with):
-        #g = xs.connection_graph()
+    def graph(start_with, end_with):
         g = signals.detailed_connection_graph(start_with=start_with,
                                               end_with=end_with)
 
         nx.write_dot(g, 'graph.dot')
         fabric_api.local('dot -Tpng graph.dot -o graph.png')
-
-        # Matplotlib
-        #pos = nx.spring_layout(g)
-        #nx.draw_networkx_nodes(g, pos)
-        #nx.draw_networkx_edges(g, pos, arrows=True)
-        #nx.draw_networkx_labels(g, pos)
-        #plt.axis('off')
-        #plt.savefig('graph.png')
 
 
 def init_cli_resource():
