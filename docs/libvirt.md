@@ -19,6 +19,8 @@ vagrant plugin install vagrant-mutate
 vagrant mutate cgenie/solar-master libvirt
 ```
 
+You can also change `sync_type` in your custom `vagrant-settings.yml` file.
+
 # Use solar
 
 ``` bash

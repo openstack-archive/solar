@@ -4,3 +4,7 @@
 slaves_count: 2
 slaves_ram: 1024
 master_ram: 1024
+# By default Virtualbox shared folder is used which is very slow
+# Uncomment following option to change it.
+# Possible options are: rsync, nfs
+# sync_type: nfs
