@@ -86,7 +86,10 @@ class DBObjectMeta(abc.ABCMeta):
                 func = from_db_list_decorator
             else:
                 func = from_db_decorator
-            dct[method_name] = func(node_db_to_object, method)
+            # Handle subclasses
+            if not getattr(method, '_wrapped', None):
+                dct[method_name] = func(node_db_to_object, method)
+                setattr(dct[method_name], '_wrapped', True)
 
         # Relation conversions
         for method_name, is_list in cls.relation_db_read_methods:
@@ -95,7 +98,10 @@ class DBObjectMeta(abc.ABCMeta):
                 func = from_db_list_decorator
             else:
                 func = from_db_decorator
-            dct[method_name] = func(relation_db_to_object, method)
+            # Handle subclasses
+            if not getattr(method, '_wrapped', None):
+                dct[method_name] = func(relation_db_to_object, method)
+                setattr(dct[method_name], '_wrapped', True)
 
         return super(DBObjectMeta, cls).__new__(cls, name, parents, dct)
 
