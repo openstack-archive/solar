@@ -89,6 +89,24 @@ class DBRelatedField(object):
         self.name = name
         self.source_db_object = source_db_object
 
+    def all(self):
+        source_db_node = self.source_db_object._db_node
+
+        if source_db_node is None:
+            return []
+
+        return db.get_relations(source=source_db_node,
+                                type_=self.relation_type)
+
+    def all_by_dest(self, destination_db_object):
+        destination_db_node = destination_db_object._db_node
+
+        if destination_db_node is None:
+            return set()
+
+        return db.get_relations(dest=destination_db_node,
+                                type_=self.relation_type)
+
     def add(self, *destination_db_objects):
         for dest in destination_db_objects:
             if not isinstance(dest, self.destination_db_class):
@@ -105,6 +123,21 @@ class DBRelatedField(object):
                 type_=self.relation_type
             )
 
+    def add_hash(self, destination_db_object, destination_key):
+        if not isinstance(destination_db_object, self.destination_db_class):
+            raise errors.SolarError(
+                'Object {} is of incompatible type {}.'.format(
+                    destination_db_object, self.destination_db_class
+                )
+            )
+
+        db.get_or_create_relation(
+            self.source_db_object._db_node,
+            destination_db_object._db_node,
+            properties={'destination_key': destination_key},
+            type_=self.relation_type
+        )
+
     def remove(self, *destination_db_objects):
         for dest in destination_db_objects:
             db.delete_relations(
@@ -119,13 +152,7 @@ class DBRelatedField(object):
         Return DB objects that are destinations for self.source_db_object.
         """
 
-        source_db_node = self.source_db_object._db_node
-
-        if source_db_node is None:
-            return set()
-
-        relations = db.get_relations(source=source_db_node,
-                                     type_=self.relation_type)
+        relations = self.all()
 
         ret = set()
 
@@ -142,13 +169,7 @@ class DBRelatedField(object):
         return source DB objects.
         """
 
-        destination_db_node = destination_db_object._db_node
-
-        if destination_db_node is None:
-            return set()
-
-        relations = db.get_relations(dest=destination_db_node,
-                                     type_=self.relation_type)
+        relations = self.all_by_dest(destination_db_object)
 
         ret = set()
 
@@ -339,10 +360,20 @@ class DBResourceInput(DBObject):
     name = db_field(schema='str!')
     schema = db_field()
     value = db_field(schema_in_field='schema')
-    is_list = db_field(schema='bool')
+    is_list = db_field(schema='bool!', default_value=False)
+    is_hash = db_field(schema='bool!', default_value=False)
 
     receivers = db_related_field(base.BaseGraphDB.RELATION_TYPES.input_to_input,
                                  'DBResourceInput')
+
+    @property
+    def resource(self):
+        return DBResource(
+            **db.get_relations(
+                dest=self._db_node,
+                type_=base.BaseGraphDB.RELATION_TYPES.resource_input
+            )[0].start_node.properties
+        )
 
     def backtrack_value(self):
         # TODO: this is actually just fetching head element in linked list
@@ -350,12 +381,43 @@ class DBResourceInput(DBObject):
         # TODO: cycle detection?
         # TODO: write this as a Cypher query? Move to DB?
         inputs = self.receivers.sources(self)
+        relations = self.receivers.all_by_dest(self)
+        source_class = self.receivers.source_db_class
 
         if not inputs:
             return self.value
 
         if self.is_list:
-            return [i.backtrack_value() for i in inputs]
+            if not self.is_hash:
+                return [i.backtrack_value() for i in inputs]
+
+            # NOTE: we return a list of values, but we need to group them
+            #       by resource name, hence this dict here
+            ret = {}
+
+            for r in relations:
+                source = source_class(**r.start_node.properties)
+                ret.setdefault(source.resource.name, {})
+                key = r.properties['destination_key']
+                value = source.backtrack_value()
+
+                ret[source.resource.name].update({key: value})
+
+            return ret.values()
+        elif self.is_hash:
+            ret = self.value or {}
+            for r in relations:
+                source = source_class(
+                    **r.start_node.properties
+                )
+                # NOTE: hard way to do this, what if there are more relations
+                #       and some of them do have destination_key while others
+                #       don't?
+                if 'destination_key' not in r.properties:
+                    return source.backtrack_value()
+                key = r.properties['destination_key']
+                ret[key] = source.backtrack_value()
+            return ret
 
         return inputs.pop().backtrack_value()
 
@@ -387,7 +449,8 @@ class DBResource(DBObject):
                                 name=name,
                                 schema=schema,
                                 value=value,
-                                is_list=isinstance(schema, list))
+                                is_list=isinstance(schema, list),
+                                is_hash=isinstance(schema, dict) or (isinstance(schema, list) and len(schema) > 0 and isinstance(schema[0], dict)))
         input.save()
 
         self.inputs.add(input)
