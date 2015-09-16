@@ -654,3 +654,50 @@ input:
             {'ip': sample.args['ip']},
             receiver.args['server'],
         )
+
+    def test_hash_input_multiple_resources_with_tag_connect(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    port:
+        schema: int!
+        value:
+        """)
+        receiver_meta_dir = self.make_resource_meta("""
+id: receiver
+handler: ansible
+version: 1.0.0
+input:
+    server:
+        schema: [{ip: str!, port: int!}]
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, args={'ip': '10.0.0.1', 'port': 5000}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, args={'ip': '10.0.0.2', 'port': 5001}
+        )
+        receiver = self.create_resource(
+            'receiver', receiver_meta_dir
+        )
+        xs.connect(sample1, receiver, mapping={'ip': 'server:ip'})
+        xs.connect(sample2, receiver, mapping={'port': 'server:port|sample1'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample2.args['port']}],
+            receiver.args['server'],
+        )
+        sample3 = self.create_resource(
+            'sample3', sample_meta_dir, args={'ip': '10.0.0.3', 'port': 5002}
+        )
+        xs.connect(sample3, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample2.args['port']},
+             {'ip': sample3.args['ip'], 'port': sample3.args['port']}],
+            receiver.args['server'],
+        )

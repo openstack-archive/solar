@@ -103,6 +103,10 @@ def connect_single(emitter, src, receiver, dst):
 
 def connect_multi(emitter, src, receiver, dst):
     receiver_input_name, receiver_input_key = dst.split(':')
+    if '|' in receiver_input_key:
+        receiver_input_key, receiver_input_tag = receiver_input_key.split('|')
+    else:
+        receiver_input_tag = None
 
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[receiver_input_name]
@@ -113,11 +117,16 @@ def connect_multi(emitter, src, receiver, dst):
             'Receiver input {} must be a hash or a list of hashes'.format(receiver_input_name)
         )
 
-    log.debug('Connecting {}::{} -> {}::{}[{}]'.format(
+    log.debug('Connecting {}::{} -> {}::{}[{}], tag={}'.format(
         emitter.name, emitter_input.name, receiver.name, receiver_input.name,
-        receiver_input_key
+        receiver_input_key,
+        receiver_input_tag
     ))
-    emitter_input.receivers.add_hash(receiver_input, receiver_input_key)
+    emitter_input.receivers.add_hash(
+        receiver_input,
+        receiver_input_key,
+        tag=receiver_input_tag
+    )
 
 
 def disconnect_receiver_by_input(receiver, input_name):
