@@ -153,7 +153,6 @@ def init_cli_connections():
         for r in resources:
             show_emitter_connections(r)
 
-    # TODO: this requires graphing libraries
     @connections.command()
     @click.option('--start-with', default=None)
     @click.option('--end-with', default=None)
@@ -325,7 +324,7 @@ def init_cli_resource():
     def get_inputs(path):
         with open(path) as f:
             content = f.read()
-        print vr.get_inputs(content)
+        click.echo(vr.get_inputs(content))
 
 
 def run():
