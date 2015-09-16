@@ -53,10 +53,6 @@ def connect(emitter, receiver, mapping={}, events=None):
         return
 
     for src, dst in mapping.items():
-        if ':' in dst:
-            connect_multi(emitter, src, receiver, dst)
-            continue
-
         if not isinstance(dst, list):
             dst = [dst]
 
@@ -77,6 +73,9 @@ def connect(emitter, receiver, mapping={}, events=None):
 
 
 def connect_single(emitter, src, receiver, dst):
+    if ':' in dst:
+        return connect_multi(emitter, src, receiver, dst)
+
     # Disconnect all receiver inputs
     # Check if receiver input is of list type first
     emitter_input = emitter.resource_inputs()[src]
