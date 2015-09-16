@@ -24,7 +24,8 @@ from solar.core import resource
 from solar.core import signals
 
 
-def create(name, base_path, args={}, virtual_resource=None):
+def create(name, base_path, args=None, virtual_resource=None):
+    args = args or {}
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
@@ -47,7 +48,8 @@ def create(name, base_path, args={}, virtual_resource=None):
     return rs
 
 
-def create_resource(name, base_path, args={}, virtual_resource=None):
+def create_resource(name, base_path, args=None, virtual_resource=None):
+    args = args or {}
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
