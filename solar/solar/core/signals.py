@@ -139,12 +139,26 @@ def detailed_connection_graph(start_with=None, end_with=None):
     resource_inputs_graph = orm.DBResource.inputs.graph()
     inputs_graph = orm.DBResourceInput.receivers.graph()
 
+    def node_attrs(n):
+        if isinstance(n, orm.DBResource):
+            return {
+                'color': 'yellowgreen',
+                'style': 'filled',
+            }
+        elif isinstance(n, orm.DBResourceInput):
+            return {
+                'color': 'lightskyblue',
+                'style': 'filled, rounded',
+            }
+
     for r, i in resource_inputs_graph.edges():
         inputs_graph.add_edge(r, i)
 
     ret = networkx.MultiDiGraph()
 
     for u, v in inputs_graph.edges():
-        ret.add_edge(u.name, v.name)
+        ret.add_edge(u.name, v.name, attr_dict={'label': v.value})
+        ret.node[u.name] = node_attrs(u)
+        ret.node[v.name] = node_attrs(v)
 
     return ret
