@@ -12,4 +12,4 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from .resource import Resource, load, load_all
+from .resource import Resource, load, load_all, validate_resources

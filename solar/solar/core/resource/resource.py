@@ -17,8 +17,9 @@ from copy import deepcopy
 from multipledispatch import dispatch
 import os
 
-from solar.interfaces import orm
 from solar import utils
+from solar.core import validation
+from solar.interfaces import orm
 
 
 def read_meta(base_path):
@@ -154,3 +155,16 @@ def load(name):
 # TODO
 def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
+
+
+def validate_resources():
+    resources = load_all()
+
+    ret = []
+
+    for r in resources:
+        e = validation.validate_resource(r)
+        if e:
+            ret.append((r, e))
+
+    return ret

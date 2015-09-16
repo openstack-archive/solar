@@ -122,14 +122,14 @@ def reset(uid):
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def resume(uid):
-    graph.reset_by_uid(uid, ['SKIPPED'])
+    graph.reset_by_uid(uid, state_list=['SKIPPED'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def retry(uid):
-    graph.reset_by_uid(uid, ['ERROR'])
+    graph.reset_by_uid(uid, state_list=['ERROR'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
