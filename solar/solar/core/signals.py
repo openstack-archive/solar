@@ -73,6 +73,9 @@ def connect(emitter, receiver, mapping={}, events=None):
 
 
 def connect_single(emitter, src, receiver, dst):
+    if ':' in dst:
+        return connect_multi(emitter, src, receiver, dst)
+
     # Disconnect all receiver inputs
     # Check if receiver input is of list type first
     emitter_input = emitter.resource_inputs()[src]
@@ -96,6 +99,25 @@ def connect_single(emitter, src, receiver, dst):
         emitter.name, emitter_input.name, receiver.name, receiver_input.name
     ))
     emitter_input.receivers.add(receiver_input)
+
+
+def connect_multi(emitter, src, receiver, dst):
+    receiver_input_name, receiver_input_key = dst.split(':')
+
+    emitter_input = emitter.resource_inputs()[src]
+    receiver_input = receiver.resource_inputs()[receiver_input_name]
+
+    # NOTE: make sure that receiver.args[receiver_input] is of dict type
+    if not receiver_input.is_hash:
+        raise Exception(
+            'Receiver input {} must be a hash or a list of hashes'.format(receiver_input_name)
+        )
+
+    log.debug('Connecting {}::{} -> {}::{}[{}]'.format(
+        emitter.name, emitter_input.name, receiver.name, receiver_input.name,
+        receiver_input_key
+    ))
+    emitter_input.receivers.add_hash(receiver_input, receiver_input_key)
 
 
 def disconnect_receiver_by_input(receiver, input_name):

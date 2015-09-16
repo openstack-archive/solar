@@ -38,8 +38,9 @@ class Resource(object):
     _metadata = {}
 
     # Create
-    @dispatch(str, str, dict)
-    def __init__(self, name, base_path, args, tags=None, virtual_resource=None):
+    @dispatch(str, str)
+    def __init__(self, name, base_path, args=None, tags=None, virtual_resource=None):
+        args = args or {}
         self.name = name
         if base_path:
             metadata = read_meta(base_path)
@@ -86,7 +87,8 @@ class Resource(object):
             k: v for k, v in ret.items() if os.path.isfile(v)
         }
 
-    def create_inputs(self, args):
+    def create_inputs(self, args=None):
+        args = args or {}
         for name, v in self.db_obj.meta_inputs.items():
             value = args.get(name, v.get('value'))
 

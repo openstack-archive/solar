@@ -457,10 +457,10 @@ input:
             'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': 1001}
         )
         list_input = self.create_resource(
-            'list-input', list_input_meta_dir, {}
+            'list-input', list_input_meta_dir,
         )
         list_input_nested = self.create_resource(
-            'list-input-nested', list_input_nested_meta_dir, {}
+            'list-input-nested', list_input_nested_meta_dir,
         )
 
         xs.connect(sample1, list_input, mapping={'ip': 'ips', 'port': 'ports'})
@@ -490,16 +490,19 @@ input:
         )
 
 
-'''
-class TestMultiInput(base.BaseResourceTest):
-    def test_multi_input(self):
+class TestHashInput(base.BaseResourceTest):
+    def test_hash_input_basic(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
 handler: ansible
 version: 1.0.0
 input:
     ip:
+        schema: str!
+        value:
     port:
+        schema: int!
+        value:
         """)
         receiver_meta_dir = self.make_resource_meta("""
 id: receiver
@@ -507,17 +510,147 @@ handler: ansible
 version: 1.0.0
 input:
     server:
+        schema: {ip: str!, port: int!}
         """)
 
         sample = self.create_resource(
-            'sample', sample_meta_dir, {'ip': '10.0.0.1', 'port': '5000'}
+            'sample', sample_meta_dir, args={'ip': '10.0.0.1', 'port': 5000}
         )
         receiver = self.create_resource(
-            'receiver', receiver_meta_dir, {'server': None}
+            'receiver', receiver_meta_dir
         )
-        xs.connect(sample, receiver, mapping={'ip, port': 'server'})
-        self.assertItemsEqual(
-            (sample.args['ip'], sample.args['port']),
+        xs.connect(sample, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        self.assertDictEqual(
+            {'ip': sample.args['ip'], 'port': sample.args['port']},
             receiver.args['server'],
         )
-'''
+        sample.update({'ip': '10.0.0.2'})
+        self.assertDictEqual(
+            {'ip': sample.args['ip'], 'port': sample.args['port']},
+            receiver.args['server'],
+        )
+
+    def test_hash_input_mixed(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    port:
+        schema: int!
+        value:
+        """)
+        receiver_meta_dir = self.make_resource_meta("""
+id: receiver
+handler: ansible
+version: 1.0.0
+input:
+    server:
+        schema: {ip: str!, port: int!}
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, args={'ip': '10.0.0.1', 'port': 5000}
+        )
+        receiver = self.create_resource(
+            'receiver', receiver_meta_dir, args={'server': {'port': 5001}}
+        )
+        xs.connect(sample, receiver, mapping={'ip': 'server:ip'})
+        self.assertDictEqual(
+            {'ip': sample.args['ip'], 'port': 5001},
+            receiver.args['server'],
+        )
+        sample.update({'ip': '10.0.0.2'})
+        self.assertDictEqual(
+            {'ip': sample.args['ip'], 'port': 5001},
+            receiver.args['server'],
+        )
+
+    def test_hash_input_with_list(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    port:
+        schema: int!
+        value:
+        """)
+        receiver_meta_dir = self.make_resource_meta("""
+id: receiver
+handler: ansible
+version: 1.0.0
+input:
+    server:
+        schema: [{ip: str!, port: int!}]
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, args={'ip': '10.0.0.1', 'port': 5000}
+        )
+        receiver = self.create_resource(
+            'receiver', receiver_meta_dir
+        )
+        xs.connect(sample1, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample1.args['port']}],
+            receiver.args['server'],
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, args={'ip': '10.0.0.2', 'port': 5001}
+        )
+        xs.connect(sample2, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample1.args['port']},
+             {'ip': sample2.args['ip'], 'port': sample2.args['port']}],
+            receiver.args['server'],
+        )
+        xs.disconnect(sample1, receiver)
+        self.assertItemsEqual(
+            [{'ip': sample2.args['ip'], 'port': sample2.args['port']}],
+            receiver.args['server'],
+        )
+
+    def test_hash_input_with_multiple_connections(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+        """)
+        receiver_meta_dir = self.make_resource_meta("""
+id: receiver
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    server:
+        schema: {ip: str!}
+        """)
+
+        sample = self.create_resource(
+            'sample', sample_meta_dir, args={'ip': '10.0.0.1'}
+        )
+        receiver = self.create_resource(
+            'receiver', receiver_meta_dir
+        )
+        xs.connect(sample, receiver, mapping={'ip': ['ip', 'server:ip']})
+        self.assertEqual(
+            sample.args['ip'],
+            receiver.args['ip']
+        )
+        self.assertDictEqual(
+            {'ip': sample.args['ip']},
+            receiver.args['server'],
+        )
