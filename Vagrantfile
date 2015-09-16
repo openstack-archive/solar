@@ -69,6 +69,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provider :libvirt do |libvirt|
       libvirt.driver = 'kvm'
       libvirt.memory = MASTER_RAM
+      libvirt.nested = true
+      libvirt.cpu_mode = 'host-passthrough'
+      libvirt.volume_cache = 'unsafe'
     end
 
     if SYNC_TYPE == 'nfs'
@@ -106,6 +109,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.provider :libvirt do |libvirt|
         libvirt.driver = 'kvm'
         libvirt.memory = SLAVES_RAM
+        libvirt.nested = true
+        libvirt.cpu_mode = 'host-passthrough'
+        libvirt.volume_cache = 'unsafe'
       end
 
       if SYNC_TYPE == 'nfs'
