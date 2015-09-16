@@ -6,7 +6,7 @@ input:
       schema: str!
       value:
     ports:
-      schema: [{value: [{value: int}]}]
+      schema: [[int]]
       value: []
     ssh_user:
       schema: str!
