@@ -5,17 +5,19 @@ input:
     name:
       schema: str!
       value: general_haproxy
+    backends:
+      schema: [{server: str!, port: int!}]
     listen_port:
       schema: int!
       value: 9999
     protocol:
       schema: str!
       value: http
-    ports:
-      schema: [int]
-      value: []
-    servers:
-      schema: [str]
-      value: []
+    # ports:
+    #   schema: [int]
+    #   value: []
+    # servers:
+    #   schema: [str]
+    #   value: []
 
 tags: [resources/haproxy, resource/haproxy_general_config]

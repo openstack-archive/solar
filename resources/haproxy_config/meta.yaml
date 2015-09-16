@@ -8,20 +8,23 @@ input:
     config_dir:
       schema: {src: str!, dst: str!}
       value: {src: /etc/solar/haproxy, dst: /etc/haproxy}
-    listen_ports:
-      schema: [int]
-      value: []
-    configs:
-      schema: [[str]]
-      value: []
-    configs_names:
-      schema: [str]
-      value: []
-    configs_ports:
-      schema: [[int]]
-      value: []
-    configs_protocols:
-      schema: [str]
+    # listen_ports:
+    #   schema: [int]
+    #   value: []
+    # configs:
+    #   schema: [[str]]
+    #   value: []
+    # configs_names:
+    #   schema: [str]
+    #   value: []
+    # configs_ports:
+    #   schema: [[int]]
+    #   value: []
+    # configs_protocols:
+    #   schema: [str]
+    #   value: []
+    config:
+      schema: [{backends: [{server: str!, port: int!}], listen_port: int!, protocol: str!, name: str!}]
       value: []
     ssh_user:
       schema: str!

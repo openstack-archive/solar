@@ -144,33 +144,45 @@ def setup_haproxies():
 
     for single_hpsc in hpsc_http:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
-                                                'riak_port_http': 'ports'})
+            # signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
+            #                                     'riak_port_http': 'ports'})
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
+                                                'riak_port_http': 'backends:port'})
 
     for single_hpsc in hpsc_pb:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
-                                                'riak_port_pb': 'ports'})
+            # signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
+            #                                     'riak_port_pb': 'ports'})
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
+                                                'riak_port_pb': 'backends:port'})
 
     # haproxy config to haproxy service
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_http):
-        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
-                                                  'listen_port': 'listen_ports',
-                                                  'name': 'configs_names',
-                                                  'servers': 'configs',
-                                                  'ports': 'configs_ports'})
+        # signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
+        #                                           'listen_port': 'listen_ports',
+        #                                           'name': 'configs_names',
+        #                                           'servers': 'configs',
+        #                                           'ports': 'configs_ports'})
+        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+                                                  "listen_port": "config:listen_port",
+                                                  "protocol": "config:protocol",
+                                                  "name": "config:name"})
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_pb):
-        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
-                                                  'listen_port': 'listen_ports',
-                                                  'name': 'configs_names',
-                                                  'servers': 'configs',
-                                                  'ports': 'configs_ports'})
+        # signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
+        #                                           'listen_port': 'listen_ports',
+        #                                           'name': 'configs_names',
+        #                                           'servers': 'configs',
+        #                                           'ports': 'configs_ports'})
+        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+                                                  "listen_port": "config:listen_port",
+                                                  "protocol": "config:protocol",
+                                                  "name": "config:name"})
 
-    for single_hps, single_hpc in zip(hps, hpc):
-        signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'},
-                        events=False)
+    # for single_hps, single_hpc in zip(hps, hpc):
+    #     signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'},
+    #                     events=False)
 
     # assign haproxy services to each node
 
