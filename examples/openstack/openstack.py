@@ -710,7 +710,7 @@ def deploy():
 
 @click.command()
 def undeploy():
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = resource.load_all()
     resources = {r.name: r for r in resources}
 
     for name in reversed(resources_to_run):
