@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import networkx
+
 from solar.core.log import log
 from solar.events.api import add_events
 from solar.events.controls import Dependency
+from solar.interfaces import orm
 
 
 def guess_mapping(emitter, receiver):
@@ -130,3 +133,18 @@ def disconnect(emitter, receiver):
     for emitter_input in emitter.resource_inputs().values():
         for receiver_input in receiver.resource_inputs().values():
             emitter_input.receivers.remove(receiver_input)
+
+
+def detailed_connection_graph(start_with=None, end_with=None):
+    resource_inputs_graph = orm.DBResource.inputs.graph()
+    inputs_graph = orm.DBResourceInput.receivers.graph()
+
+    for r, i in resource_inputs_graph.edges():
+        inputs_graph.add_edge(r, i)
+
+    ret = networkx.MultiDiGraph()
+
+    for u, v in inputs_graph.edges():
+        ret.add_edge(u.name, v.name)
+
+    return ret

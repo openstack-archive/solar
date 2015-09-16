@@ -13,6 +13,7 @@
 #    under the License.
 
 import inspect
+import networkx
 import uuid
 
 from solar import errors
@@ -88,6 +89,24 @@ class DBRelatedField(object):
     def __init__(self, name, source_db_object):
         self.name = name
         self.source_db_object = source_db_object
+
+    @classmethod
+    def graph(self):
+        relations = db.get_relations(type_=self.relation_type)
+
+        g = networkx.MultiDiGraph()
+
+        for r in relations:
+            source = self.source_db_class(**r.start_node.properties)
+            dest = self.destination_db_class(**r.end_node.properties)
+            properties = r.properties.copy()
+            g.add_edge(
+                source,
+                dest,
+                attr_dict=properties
+            )
+
+        return g
 
     def all(self):
         source_db_node = self.source_db_object._db_node
