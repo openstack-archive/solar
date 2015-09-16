@@ -58,7 +58,8 @@ def setup_riak():
     for riak in riak_services:
         for hosts_file in hosts_services:
             signals.connect(riak, hosts_file,
-                            {'riak_hostname': 'hosts_names', 'ip': 'hosts_ips'},
+                            {'riak_hostname': 'hosts:name',
+                             'ip': 'hosts:ip'},
                             events=False)
 
     has_errors = False
