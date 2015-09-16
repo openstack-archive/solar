@@ -31,6 +31,7 @@ end
 SLAVES_COUNT = cfg["slaves_count"]
 SLAVES_RAM = cfg["slaves_ram"]
 MASTER_RAM = cfg["master_ram"]
+SYNC_TYPE = cfg["sync_type"]
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
@@ -66,10 +67,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       v.name = "solar-dev"
     end
 
-    config.vm.provider:libvirt do |libvirt|
-      config.vm.synced_folder ".", "/vagrant", type: "9p", disabled: false, accessmode: "mapped"
+    config.vm.provider :libvirt do |libvirt|
       libvirt.driver = 'kvm'
       libvirt.memory = MASTER_RAM
+    end
+
+    if SYNC_TYPE == 'nfs'
+      config.vm.synced_folder ".", "/vagrant", type: "nfs"
+    end
+    if SYNC_TYPE == 'rsync'
+      config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+        rsync__args: ["--verbose", "--archive", "--delete", "-z"]
     end
   end
 
@@ -95,11 +103,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         ]
         v.name = "solar-dev#{index}"
       end
-    config.vm.provider:libvirt do |libvirt|
-      config.vm.synced_folder ".", "/vagrant", type: "9p", disabled: false, accessmode: "mapped"
-      libvirt.driver = 'kvm'
-      libvirt.memory = SLAVES_RAM
-    end
+
+      config.vm.provider :libvirt do |libvirt|
+        libvirt.driver = 'kvm'
+        libvirt.memory = SLAVES_RAM
+      end
+
+      if SYNC_TYPE == 'nfs'
+        config.vm.synced_folder ".", "/vagrant", type: "nfs"
+      end
+      if SYNC_TYPE == 'rsync'
+        config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+          rsync__args: ["--verbose", "--archive", "--delete", "-z"]
+      end
     end
   end
 
