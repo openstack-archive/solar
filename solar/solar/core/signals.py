@@ -102,16 +102,11 @@ def connect_single(emitter, src, receiver, dst):
 
 
 def connect_multi(emitter, src, receiver, dst):
-    s = dst.split(':')
-    if len(s) == 2:
-        receiver_input_name, receiver_input_key = s
-        receiver_input_tag = None
-    elif len(s) == 3:
-        receiver_input_name, receiver_input_key, receiver_input_tag = s
+    receiver_input_name, receiver_input_key = dst.split(':')
+    if '|' in receiver_input_key:
+        receiver_input_key, receiver_input_tag = receiver_input_key.split('|')
     else:
-        raise Exception(
-            "Don't know how to parse {}".format(dst)
-        )
+        receiver_input_tag = None
 
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[receiver_input_name]

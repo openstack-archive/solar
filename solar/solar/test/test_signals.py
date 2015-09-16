@@ -687,7 +687,7 @@ input:
             'receiver', receiver_meta_dir
         )
         xs.connect(sample1, receiver, mapping={'ip': 'server:ip'})
-        xs.connect(sample2, receiver, mapping={'port': 'server:port:sample1'})
+        xs.connect(sample2, receiver, mapping={'port': 'server:port|sample1'})
         self.assertItemsEqual(
             [{'ip': sample1.args['ip'], 'port': sample2.args['port']}],
             receiver.args['server'],
