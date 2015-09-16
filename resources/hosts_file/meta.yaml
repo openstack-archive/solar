@@ -12,9 +12,5 @@ input:
     ssh_user:
       schema: str!
       value:
-    hosts_names:
-      schema: [str!]
-      value: []
-    hosts_ips:
-      schema: [str!]
-      value: []
+    hosts:
+      schema: [{name: str!, ip: str!}]

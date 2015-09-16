@@ -29,27 +29,27 @@ def run():
     hosts1 = vr.create('hosts_file1', 'resources/hosts_file', {})[0]
     hosts2 = vr.create('hosts_file2', 'resources/hosts_file', {})[0]
     signals.connect(node1, hosts1, {
-        'name': 'hosts_names',
-        'ip': ['hosts_ips', 'ip'],
+        'name': 'hosts:name',
+        'ip': ['hosts:ip', 'ip'],
         'ssh_user': 'ssh_user',
         'ssh_key': 'ssh_key'
     })
 
     signals.connect(node2, hosts2, {
-        'name': 'hosts_names',
-        'ip': ['hosts_ips', 'ip'],
+        'name': 'hosts:name',
+        'ip': ['hosts:ip', 'ip'],
         'ssh_user': 'ssh_user',
         'ssh_key': 'ssh_key'
     })
 
     signals.connect(node1, hosts2, {
-        'ip': 'hosts_ips',
-        'name': 'hosts_names'
+        'name': 'hosts:name',
+        'ip': 'hosts:ip',
     })
 
     signals.connect(node2, hosts1, {
-        'ip': 'hosts_ips',
-        'name': 'hosts_names'
+        'name': 'hosts:name',
+        'ip': 'hosts:ip',
     })
 
 
