@@ -25,7 +25,7 @@ from solar.interfaces.db import get_db
 db = get_db()
 
 
-def save_graph(name, graph):
+def save_graph(graph):
     # maybe it is possible to store part of information in AsyncResult backend
     uid = graph.graph['uid']
     db.create(uid, graph.graph, db.COLLECTIONS.plan_graph)
@@ -78,7 +78,7 @@ def parse_plan(plan_path):
 def create_plan_from_graph(dg, save=True):
     dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
     if save:
-        save_graph(dg.graph['uid'], dg)
+        save_graph(dg)
     return dg
 
 
@@ -110,27 +110,36 @@ def create_plan(plan_path, save=True):
 def update_plan(uid, plan_path):
     """update preserves old status of tasks if they werent removed
     """
-    dg = parse_plan(plan_path)
-    old_dg = get_graph(uid)
-    dg.graph = old_dg.graph
-    for n in dg:
-        if n in old_dg:
-            dg.node[n]['status'] = old_dg.node[n]['status']
 
-    save_graph(uid, dg)
-    return uid
+    new = parse_plan(plan_path)
+    old = get_graph(uid)
+    return update_plan_from_graph(new, old).graph['uid']
 
 
-def reset(uid, state_list=None):
+def update_plan_from_graph(new, old):
+    new.graph = old.graph
+    for n in new:
+        if n in old:
+            new.node[n]['status'] = old.node[n]['status']
+
+    save_graph(new)
+    return new
+
+
+def reset_by_uid(uid, state_list=None):
     dg = get_graph(uid)
-    for n in dg:
-        if state_list is None or dg.node[n]['status'] in state_list:
-            dg.node[n]['status'] = states.PENDING.name
-    save_graph(uid, dg)
+    return reset(dg, state_list=state_list)
+
+
+def reset(graph, state_list=None):
+    for n in graph:
+        if state_list is None or graph.node[n]['status'] in state_list:
+            graph.node[n]['status'] = states.PENDING.name
+    save_graph(graph)
 
 
 def reset_filtered(uid):
-    reset(uid, state_list=[states.SKIPPED.name, states.NOOP.name])
+    reset_by_uid(uid, state_list=[states.SKIPPED.name, states.NOOP.name])
 
 
 def report_topo(uid):
