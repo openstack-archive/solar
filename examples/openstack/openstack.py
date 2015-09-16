@@ -721,8 +721,6 @@ def undeploy():
 
     db.clear()
 
-    signals.Connections.clear()
-
 
 main.add_command(deploy)
 main.add_command(undeploy)
