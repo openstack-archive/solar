@@ -3,7 +3,9 @@
 
 slaves_count: 2
 slaves_ram: 1024
+slaves_image: cgenie/solar-master
 master_ram: 1024
+master_image: cgenie/solar-master
 # By default Virtualbox shared folder is used which is very slow
 # Uncomment following option to change it.
 # Possible options are: rsync, nfs
