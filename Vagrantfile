@@ -30,7 +30,9 @@ end
 
 SLAVES_COUNT = cfg["slaves_count"]
 SLAVES_RAM = cfg["slaves_ram"]
+SLAVES_IMAGE = cfg["slaves_image"]
 MASTER_RAM = cfg["master_ram"]
+MASTER_IMAGE = cfg["master_image"]
 SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
@@ -50,7 +52,7 @@ slave_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "master"]
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
-    config.vm.box = "cgenie/solar-master"
+    config.vm.box = MASTER_IMAGE
 
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_celery, privileged: true
@@ -95,7 +97,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
       # standard box with all stuff preinstalled
-      config.vm.box = "cgenie/solar-master"
+      config.vm.box = SLAVES_IMAGE
 
       config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
       config.vm.provision "shell", inline: slave_script, privileged: true

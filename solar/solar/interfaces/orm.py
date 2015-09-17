@@ -13,6 +13,7 @@
 #    under the License.
 
 import inspect
+import networkx
 import uuid
 
 from solar import errors
@@ -89,6 +90,24 @@ class DBRelatedField(object):
         self.name = name
         self.source_db_object = source_db_object
 
+    @classmethod
+    def graph(self):
+        relations = db.get_relations(type_=self.relation_type)
+
+        g = networkx.MultiDiGraph()
+
+        for r in relations:
+            source = self.source_db_class(**r.start_node.properties)
+            dest = self.destination_db_class(**r.end_node.properties)
+            properties = r.properties.copy()
+            g.add_edge(
+                source,
+                dest,
+                attr_dict=properties
+            )
+
+        return g
+
     def all(self):
         source_db_node = self.source_db_object._db_node
 
@@ -123,7 +142,7 @@ class DBRelatedField(object):
                 type_=self.relation_type
             )
 
-    def add_hash(self, destination_db_object, destination_key):
+    def add_hash(self, destination_db_object, destination_key, tag=None):
         if not isinstance(destination_db_object, self.destination_db_class):
             raise errors.SolarError(
                 'Object {} is of incompatible type {}.'.format(
@@ -134,7 +153,7 @@ class DBRelatedField(object):
         db.get_or_create_relation(
             self.source_db_object._db_node,
             destination_db_object._db_node,
-            properties={'destination_key': destination_key},
+            properties={'destination_key': destination_key, 'tag': tag},
             type_=self.relation_type
         )
 
@@ -146,8 +165,7 @@ class DBRelatedField(object):
                 type_=self.relation_type
             )
 
-    @property
-    def value(self):
+    def as_set(self):
         """
         Return DB objects that are destinations for self.source_db_object.
         """
@@ -165,7 +183,7 @@ class DBRelatedField(object):
 
     def sources(self, destination_db_object):
         """
-        Reverse of self.value, i.e. for given destination_db_object,
+        Reverse of self.as_set, i.e. for given destination_db_object,
         return source DB objects.
         """
 
@@ -392,16 +410,19 @@ class DBResourceInput(DBObject):
                 return [i.backtrack_value() for i in inputs]
 
             # NOTE: we return a list of values, but we need to group them
-            #       by resource name, hence this dict here
+            #       hence this dict here
+            # NOTE: grouping is done by resource.name by default, but this
+            #       can be overwritten by the 'tag' property in relation
             ret = {}
 
             for r in relations:
                 source = source_class(**r.start_node.properties)
-                ret.setdefault(source.resource.name, {})
+                tag = r.properties['tag'] or source.resource.name
+                ret.setdefault(tag, {})
                 key = r.properties['destination_key']
                 value = source.backtrack_value()
 
-                ret[source.resource.name].update({key: value})
+                ret[tag].update({key: value})
 
             return ret.values()
         elif self.is_hash:

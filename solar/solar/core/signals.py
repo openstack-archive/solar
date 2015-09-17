@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import networkx
+
 from solar.core.log import log
 from solar.events.api import add_events
 from solar.events.controls import Dependency
+from solar.interfaces import orm
 
 
 def guess_mapping(emitter, receiver):
@@ -92,7 +95,7 @@ def connect_single(emitter, src, receiver, dst):
 
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
-    if emitter_input in receiver_input.receivers.value:
+    if emitter_input in receiver_input.receivers.as_set():
         raise Exception('Prevented creating a cycle')
 
     log.debug('Connecting {}::{} -> {}::{}'.format(
@@ -103,6 +106,10 @@ def connect_single(emitter, src, receiver, dst):
 
 def connect_multi(emitter, src, receiver, dst):
     receiver_input_name, receiver_input_key = dst.split(':')
+    if '|' in receiver_input_key:
+        receiver_input_key, receiver_input_tag = receiver_input_key.split('|')
+    else:
+        receiver_input_tag = None
 
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[receiver_input_name]
@@ -113,11 +120,16 @@ def connect_multi(emitter, src, receiver, dst):
             'Receiver input {} must be a hash or a list of hashes'.format(receiver_input_name)
         )
 
-    log.debug('Connecting {}::{} -> {}::{}[{}]'.format(
+    log.debug('Connecting {}::{} -> {}::{}[{}], tag={}'.format(
         emitter.name, emitter_input.name, receiver.name, receiver_input.name,
-        receiver_input_key
+        receiver_input_key,
+        receiver_input_tag
     ))
-    emitter_input.receivers.add_hash(receiver_input, receiver_input_key)
+    emitter_input.receivers.add_hash(
+        receiver_input,
+        receiver_input_key,
+        tag=receiver_input_tag
+    )
 
 
 def disconnect_receiver_by_input(receiver, input_name):
@@ -130,3 +142,40 @@ def disconnect(emitter, receiver):
     for emitter_input in emitter.resource_inputs().values():
         for receiver_input in receiver.resource_inputs().values():
             emitter_input.receivers.remove(receiver_input)
+
+
+def detailed_connection_graph(start_with=None, end_with=None):
+    resource_inputs_graph = orm.DBResource.inputs.graph()
+    inputs_graph = orm.DBResourceInput.receivers.graph()
+
+    def node_attrs(n):
+        if isinstance(n, orm.DBResource):
+            return {
+                'color': 'yellowgreen',
+                'style': 'filled',
+            }
+        elif isinstance(n, orm.DBResourceInput):
+            return {
+                'color': 'lightskyblue',
+                'style': 'filled, rounded',
+            }
+
+    def format_name(i):
+        if isinstance(i, orm.DBResource):
+            return i.name
+        elif isinstance(i, orm.DBResourceInput):
+            return '{}/{}'.format(i.resource.name, i.name)
+
+    for r, i in resource_inputs_graph.edges():
+        inputs_graph.add_edge(r, i)
+
+    ret = networkx.MultiDiGraph()
+
+    for u, v in inputs_graph.edges():
+        u_n = format_name(u)
+        v_n = format_name(v)
+        ret.add_edge(u_n, v_n)
+        ret.node[u_n] = node_attrs(u)
+        ret.node[v_n] = node_attrs(v)
+
+    return ret

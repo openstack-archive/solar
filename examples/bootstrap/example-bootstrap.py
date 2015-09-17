@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import click
 import sys
 import time
@@ -10,19 +12,6 @@ from solar.core.resource import virtual_resource as vr
 from solar import errors
 
 from solar.interfaces.db import get_db
-
-
-GIT_PUPPET_LIBS_URL = 'https://github.com/CGenie/puppet-libs-resource'
-
-
-# TODO
-# Resource for repository OR puppet apt-module in run.pp
-# add-apt-repository cloud-archive:juno
-# To discuss: install stuff in Docker container
-
-# NOTE
-# No copy of manifests, pull from upstream (implemented in the puppet handler)
-# Official puppet manifests, not fuel-library
 
 
 db = get_db()
@@ -38,15 +27,15 @@ def setup_resources():
 
     signals.Connections.clear()
 
-    node3 = vr.create('node3', 'resources/ro_node/', {
-        'ip': '10.0.0.5',
-        'ssh_key': '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key',
+    node2 = vr.create('node2', 'resources/ro_node/', {
+        'ip': '10.0.0.4',
+        'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key',
         'ssh_user': 'vagrant'
     })[0]
 
-    solar_bootstrap3 = vr.create('solar_bootstrap3', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
+    solar_bootstrap2 = vr.create('solar_bootstrap2', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
 
-    signals.connect(node3, solar_bootstrap3)
+    signals.connect(node2, solar_bootstrap2)
 
     has_errors = False
     for r in locals().values():
@@ -63,7 +52,7 @@ def setup_resources():
         sys.exit(1)
 
 resources_to_run = [
-    'solar_bootstrap3',
+    'solar_bootstrap2',
 ]
 
 
