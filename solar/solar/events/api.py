@@ -18,19 +18,21 @@ __all__ = ['add_dep', 'add_react']
 import networkx as nx
 
 from solar.core.log import log
-from solar.interfaces.db import get_db
+from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
 
-db = get_db()
-
-
 def create_event(event_dict):
-    etype = event_dict.pop('etype')
+    etype = event_dict['etype']
+    kwargs = {'child': event_dict['child'],
+              'parent': event_dict['parent'],
+              'child_action': event_dict['child_action'],
+              'parent_action': event_dict['parent_action'],
+              'state': event_dict['state']}
     if etype == React.etype:
-        return React(**event_dict)
+        return React(**kwargs)
     elif etype == Dep.etype:
-        return Dep(**event_dict)
+        return Dep(**kwargs)
     else:
         raise Exception('No support for type %s', etype)
 
@@ -42,10 +44,8 @@ def add_event(ev):
             break
     else:
         rst.append(ev)
-        db.create(
-            ev.parent_node,
-            [i.to_dict() for i in rst],
-            collection=db.COLLECTIONS.events)
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
 
 
 def add_dep(parent, dep, actions, state='success'):
@@ -64,31 +64,28 @@ def add_react(parent, dep, actions, state='success'):
         log.debug('Added event: %s', r)
 
 
+def add_events(resource, lst):
+    for ev in lst:
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
+
+
 def set_events(resource, lst):
-    db.create(
-        resource,
-        [i.to_dict() for i in lst],
-        collection=db.COLLECTIONS.events)
+    orm.DBEvent.delete_list(resource)
+    add_events(resource, lst)
 
 
 def remove_event(ev):
-    rst = all_events(ev.parent_node)
-    set_events(ev.parent_node, [it for it in rst if not it == ev])
-
-
-def add_events(resource, lst):
-    rst = all_events(resource)
-    rst.extend(lst)
-    set_events(resource, rst)
+    event_db = orm.DBEvent(**ev.to_dict())
+    event_db.delete()
 
 
 def all_events(resource):
-    events = db.get(resource, collection=db.COLLECTIONS.events,
-                    return_empty=True)
+    events = orm.DBEvent.load_list(resource)
 
     if not events:
         return []
-    return [create_event(i) for i in events.properties]
+    return [create_event(i.to_dict()) for i in events]
 
 
 def bft_events_graph(start):

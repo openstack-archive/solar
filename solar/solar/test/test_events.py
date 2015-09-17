@@ -39,7 +39,6 @@ def test_set_events(events_example):
     partial = events_example[:2]
     evapi.add_events('e1', events_example[:2])
     evapi.set_events('e1', events_example[2:])
-
     assert evapi.all_events('e1') == events_example[2:]
 
 

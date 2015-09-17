@@ -432,7 +432,7 @@ class TestEventORM(BaseResourceTest):
             state='success',
             child_action='run',
             child='n2',
-            evtype='dependency')
+            etype='dependency')
         ev.save()
 
         rst = orm.DBEvent.load_list('n1')
@@ -446,7 +446,7 @@ class TestEventORM(BaseResourceTest):
             state='success',
             child_action='run',
             child='n2',
-            evtype='dependency')
+            etype='dependency')
         ev.save()
         ev1 = orm.DBEvent(
             parent='n1',
@@ -454,6 +454,6 @@ class TestEventORM(BaseResourceTest):
             state='success',
             child_action='run',
             child='n3',
-            evtype='dependency')
+            etype='dependency')
         ev1.save()
         self.assertEqual(len(orm.DBEvent.load_list('n1')), 2)

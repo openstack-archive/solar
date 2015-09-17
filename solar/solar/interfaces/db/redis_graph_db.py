@@ -152,6 +152,11 @@ class RedisGraphDB(BaseGraphDB):
         except TypeError:
             raise KeyError
 
+    def delete(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
+        keys = self._r.keys(self._make_collection_key(collection, name))
+        if keys:
+            self._r.delete(*keys)
+
     def get_or_create(self,
                       name,
                       properties={},

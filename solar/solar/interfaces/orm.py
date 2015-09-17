@@ -382,6 +382,12 @@ class DBObject(object):
             collection=self._collection
         )
 
+    def delete(self):
+        db.delete(
+            self._db_key,
+            collection=self._collection
+        )
+
 
 class DBResourceInput(DBObject):
     __metaclass__ = DBObjectMeta
@@ -526,7 +532,7 @@ class DBEvent(DBObject):
     id = db_field(is_primary=True)
     parent = db_field(schema='str!')
     parent_action = db_field(schema='str!')
-    evtype = db_field('str!')
+    etype = db_field('str!')
     state = db_field('str')
     child = db_field('str')
     child_action = db_field('str')
@@ -536,10 +542,17 @@ class DBEvent(DBObject):
         rs = db.all(collection=cls._collection.name + ':' + parent)
         return [cls(**r.properties) for r in rs]
 
+    @classmethod
+    def delete_list(cls, parent):
+        db.delete('*', collection=cls._collection.name + ':' + parent)
+
     @property
     def _db_key(self):
         if not self._primary_field.value:
-            setattr(self, self._primary_field.name, '{}:{}'.format(self.parent, unicode(uuid.uuid4())))
+            setattr(self, self._primary_field.name,
+                    '{}:{}:{}:{}:{}'.format(
+                        self.parent, self.parent_action,
+                        self.state, self.child, self.child_action))
             self._update_fields_values()
         return DBObject._db_key.fget(self)
 
