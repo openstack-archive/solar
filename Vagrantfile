@@ -34,6 +34,8 @@ SLAVES_IMAGE = cfg["slaves_image"]
 MASTER_RAM = cfg["master_ram"]
 MASTER_IMAGE = cfg["master_image"]
 SYNC_TYPE = cfg["sync_type"]
+MASTER_CPUS = cfg["master_cpus"]
+SLAVES_CPUS = cfg["slaves_cpus"]
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
@@ -60,10 +62,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
+      v.memory = MASTER_RAM
+      v.cpus = MASTER_CPUS
       v.customize [
         "modifyvm", :id,
         "--memory", MASTER_RAM,
-        "--paravirtprovider", "kvm" # for linux guest
+        "--cpus", MASTER_CPUS,
+        "--paravirtprovider", "kvm", # for linux guest
+        "--ioapic", "on",
       ]
       v.name = "solar-dev"
     end
@@ -71,6 +77,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provider :libvirt do |libvirt|
       libvirt.driver = 'kvm'
       libvirt.memory = MASTER_RAM
+      libvirt.cpus = MASTER_CPUS
+      libvirt.nested = true
+      libvirt.cpu_mode = 'host-passthrough'
+      libvirt.volume_cache = 'unsafe'
     end
 
     if SYNC_TYPE == 'nfs'
@@ -100,7 +110,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         v.customize [
             "modifyvm", :id,
             "--memory", SLAVES_RAM,
-            "--paravirtprovider", "kvm" # for linux guest
+            "--cpus", SLAVES_CPUS,
+            "--paravirtprovider", "kvm", # for linux guest
+            "--ioapic", "on",
         ]
         v.name = "solar-dev#{index}"
       end
@@ -108,6 +120,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.provider :libvirt do |libvirt|
         libvirt.driver = 'kvm'
         libvirt.memory = SLAVES_RAM
+        libvirt.cpus = SLAVES_CPUS
+        libvirt.nested = true
+        libvirt.cpu_mode = 'host-passthrough'
+        libvirt.volume_cache = 'unsafe'
       end
 
       if SYNC_TYPE == 'nfs'
