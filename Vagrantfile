@@ -38,6 +38,7 @@ MASTER_IMAGE = cfg["master_image"]
 SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
+PARAVIRT_PROVIDER = cfg.fetch('paravirtprovider', false)
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
@@ -113,9 +114,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             "modifyvm", :id,
             "--memory", SLAVES_RAM,
             "--cpus", SLAVES_CPUS,
-            "--paravirtprovider", "kvm", # for linux guest
             "--ioapic", "on",
         ]
+        if PARAVIRT_PROVIDER
+          v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+        end
         v.name = "solar-dev#{index}"
       end
 

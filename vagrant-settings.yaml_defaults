@@ -8,6 +8,11 @@ slaves_image: cgenie/solar-master
 master_ram: 1024
 master_cpus: 1
 slaves_cpus: 1
+
+# if you have virtualbox 5.x then enable it
+# if will speedup things a lot
+# paravirtprovider: kvm
+
 # By default Virtualbox shared folder is used which is very slow
 # Uncomment following option to change it.
 # Possible options are: rsync, nfs
