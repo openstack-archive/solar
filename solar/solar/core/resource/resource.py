@@ -18,8 +18,13 @@ from multipledispatch import dispatch
 import os
 
 from solar import utils
+
 from solar.core import validation
 from solar.interfaces import orm
+
+from uuid import uuid4
+from hashlib import md5
+
 
 
 def read_meta(base_path):
@@ -51,6 +56,10 @@ class Resource(object):
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 
+        inputs = metadata.get('input', {})
+
+        self.auto_extend_inputs(inputs)
+
         self.db_obj = orm.DBResource(**{
             'id': name,
             'name': name,
@@ -60,8 +69,10 @@ class Resource(object):
             'handler': metadata.get('handler', ''),
             'puppet_module': metadata.get('puppet_module', ''),
             'version': metadata.get('version', ''),
-            'meta_inputs': metadata.get('input', {})
+            'meta_inputs': inputs
+
         })
+
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -74,6 +85,10 @@ class Resource(object):
         # TODO: tags
         self.tags = []
         self.virtual_resource = None
+
+    def auto_extend_inputs(self, inputs):
+        inputs.setdefault('location_id', {'value': md5(self.name + uuid4().hex).hexdigest(),
+                                          'schema': 'str!'})
 
     @property
     def actions(self):

@@ -46,9 +46,17 @@ def guess_mapping(emitter, receiver):
 
     return guessed
 
+def extend_mapping_by_defaults(mapping):
+    if isinstance(mapping, set):
+        mapping.add('location_id')
+    else:
+        mapping['location_id'] = 'location_id'
 
 def connect(emitter, receiver, mapping=None, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
+
+    extend_mapping_by_defaults(mapping)
+
 
     if isinstance(mapping, set):
         mapping = {src: src for src in mapping}
