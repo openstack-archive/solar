@@ -22,10 +22,8 @@ from fabric import api as fabric_api
 import json
 import networkx as nx
 import os
-import pprint
 import sys
 import tabulate
-import yaml
 
 from solar.core import actions
 from solar.core import resource as sresource
@@ -34,7 +32,6 @@ from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
-from solar.interfaces.db import get_db
 from solar.interfaces import orm
 from solar import utils
 
@@ -43,9 +40,6 @@ from solar.cli import executors
 from solar.cli.orch import orchestration
 from solar.cli.system_log import changes
 from solar.cli.events import events
-
-
-db = get_db()
 
 
 # HELPERS
@@ -84,18 +78,16 @@ def init_actions():
     @click.option('-d', '--dry-run', default=False, is_flag=True)
     @click.option('-m', '--dry-run-mapping', default='{}')
     def run(dry_run_mapping, dry_run, action, tags):
-        from solar.core import actions
-        from solar.core import resource
-
         if dry_run:
             dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
         resources = filter(
-            lambda r: Expression(tags, r.get('tags', [])).evaluate(),
-            db.get_list('resource'))
+            lambda r: Expression(tags, r.tags).evaluate(),
+            orm.DBResource.all()
+        )
 
-        for resource in resources:
-            resource_obj = sresource.load(resource['id'])
+        for r in resources:
+            resource_obj = sresource.load(r['id'])
             actions.resource_action(resource_obj, action)
 
         if dry_run:
@@ -214,8 +206,8 @@ def init_cli_resource():
 
     @resource.command()
     def clear_all():
-        click.echo('Clearing all resources')
-        db.clear()
+        click.echo('Clearing all resources and connections')
+        orm.db.clear()
 
     @resource.command()
     @click.argument('name')

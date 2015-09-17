@@ -73,6 +73,7 @@ def report(uid):
         click.echo(click.style(msg, fg=colors[item[1]]))
     click.echo('Delta SUM: {}'.format(total))
 
+
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
