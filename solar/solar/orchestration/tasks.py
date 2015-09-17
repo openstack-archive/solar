@@ -126,7 +126,7 @@ def schedule(plan_uid, dg):
         tasks)
     execution = executor.celery_executor(
         dg, limit_chain, control_tasks=('fault_tolerance',))
-    graph.save_graph(plan_uid, dg)
+    graph.save_graph(dg)
     execution()
 
 
@@ -147,7 +147,7 @@ def soft_stop(plan_uid):
     for n in dg:
         if dg.node[n]['status'] == 'PENDING':
             dg.node[n]['status'] = 'SKIPPED'
-    graph.save_graph(plan_uid, dg)
+    graph.save_graph(dg)
 
 
 @app.task(name='schedule_next')
