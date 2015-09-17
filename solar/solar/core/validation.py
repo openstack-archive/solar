@@ -98,6 +98,9 @@ def _construct_jsonschema(schema, definition_base=''):
     if schema == 'bool!':
         return {'type': 'boolean'}, {}
 
+    print repr(schema)
+    print locals()
+
     if isinstance(schema, list):
         items, definitions = _construct_jsonschema(schema[0], definition_base=definition_base)
 
