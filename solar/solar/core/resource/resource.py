@@ -113,7 +113,7 @@ class Resource(object):
 
     def resource_inputs(self):
         return {
-            i.name: i for i in self.db_obj.inputs.value
+            i.name: i for i in self.db_obj.inputs.as_set()
         }
 
     def to_dict(self):

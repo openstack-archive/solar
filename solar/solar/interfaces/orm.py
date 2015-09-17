@@ -165,8 +165,7 @@ class DBRelatedField(object):
                 type_=self.relation_type
             )
 
-    @property
-    def value(self):
+    def as_set(self):
         """
         Return DB objects that are destinations for self.source_db_object.
         """
@@ -184,7 +183,7 @@ class DBRelatedField(object):
 
     def sources(self, destination_db_object):
         """
-        Reverse of self.value, i.e. for given destination_db_object,
+        Reverse of self.as_set, i.e. for given destination_db_object,
         return source DB objects.
         """
 

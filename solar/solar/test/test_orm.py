@@ -137,7 +137,6 @@ class TestORM(BaseResourceTest):
         self.assertEqual(t1, t2)
 
 
-
 class TestORMRelation(BaseResourceTest):
     def test_children_value(self):
         class TestDBRelatedObject(orm.DBObject):
@@ -164,25 +163,25 @@ class TestORMRelation(BaseResourceTest):
         o = TestDBObject(id='a')
         o.save()
 
-        self.assertSetEqual(o.related.value, set())
+        self.assertSetEqual(o.related.as_set(), set())
 
         o.related.add(r1)
-        self.assertSetEqual(o.related.value, {r1})
+        self.assertSetEqual(o.related.as_set(), {r1})
 
         o.related.add(r2)
-        self.assertSetEqual(o.related.value, {r1, r2})
+        self.assertSetEqual(o.related.as_set(), {r1, r2})
 
         o.related.remove(r2)
-        self.assertSetEqual(o.related.value, {r1})
+        self.assertSetEqual(o.related.as_set(), {r1})
 
         o.related.add(r2)
-        self.assertSetEqual(o.related.value, {r1, r2})
+        self.assertSetEqual(o.related.as_set(), {r1, r2})
 
         o.related.remove(r1, r2)
-        self.assertSetEqual(o.related.value, set())
+        self.assertSetEqual(o.related.as_set(), set())
 
         o.related.add(r1, r2)
-        self.assertSetEqual(o.related.value, {r1, r2})
+        self.assertSetEqual(o.related.as_set(), {r1, r2})
 
         with self.assertRaisesRegexp(errors.SolarError, '.*incompatible type.*'):
             o.related.add(o)
@@ -208,8 +207,8 @@ class TestORMRelation(BaseResourceTest):
         o1.related.add(o2)
         o2.related.add(o3)
 
-        self.assertEqual(o1.related.value, {o2})
-        self.assertEqual(o2.related.value, {o3})
+        self.assertEqual(o1.related.as_set(), {o2})
+        self.assertEqual(o2.related.as_set(), {o3})
 
 
 class TestResourceORM(BaseResourceTest):
@@ -227,4 +226,4 @@ class TestResourceORM(BaseResourceTest):
 
         r.add_input('ip', 'str!', '10.0.0.2')
 
-        self.assertEqual(len(r.inputs.value), 1)
+        self.assertEqual(len(r.inputs.as_set()), 1)

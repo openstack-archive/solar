@@ -95,7 +95,7 @@ def connect_single(emitter, src, receiver, dst):
 
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
-    if emitter_input in receiver_input.receivers.value:
+    if emitter_input in receiver_input.receivers.as_set():
         raise Exception('Prevented creating a cycle')
 
     log.debug('Connecting {}::{} -> {}::{}'.format(
