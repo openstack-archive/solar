@@ -162,7 +162,7 @@ def detailed_connection_graph(start_with=None, end_with=None):
 
     def format_name(i):
         if isinstance(i, orm.DBResource):
-            return i.name
+            return '"{}"'.format(i.name)
         elif isinstance(i, orm.DBResourceInput):
             return '{}/{}'.format(i.resource.name, i.name)
 
