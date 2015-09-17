@@ -226,10 +226,10 @@ class TestResourceORM(BaseResourceTest):
         r.save()
 
         r.add_input('ip', 'str!', '10.0.0.2')
-
         self.assertEqual(len(r.inputs.as_set()), 1)
 
 
+<<<<<<< HEAD
 class TestResourceInputORM(BaseResourceTest):
     def test_backtrack_simple(self):
         sample_meta_dir = self.make_resource_meta("""
@@ -421,3 +421,39 @@ input:
         signals.disconnect(sample2, sample_dict_list)
         self.assertEqual(vi.backtrack_value_emitter(),
                          [{'a': sample1.resource_inputs()['value']}])
+
+
+class TestEventORM(BaseResourceTest):
+
+    def test_save_and_load_by_parent(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            evtype='dependency')
+        ev.save()
+
+        rst = orm.DBEvent.load_list('n1')
+        self.assertEqual(len(rst), 1)
+        self.assertEqual(rst[0], ev)
+
+    def test_save_several(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            evtype='dependency')
+        ev.save()
+        ev1 = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n3',
+            evtype='dependency')
+        ev1.save()
+        self.assertEqual(len(orm.DBEvent.load_list('n1')), 2)

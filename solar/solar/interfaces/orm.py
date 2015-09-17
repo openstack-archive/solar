@@ -517,6 +517,33 @@ class DBResource(DBObject):
         self.inputs.add(input)
 
 
+class DBEvent(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.events
+
+    id = db_field(is_primary=True)
+    parent = db_field(schema='str!')
+    parent_action = db_field(schema='str!')
+    evtype = db_field('str!')
+    state = db_field('str')
+    child = db_field('str')
+    child_action = db_field('str')
+
+    @classmethod
+    def load_list(cls, parent):
+        rs = db.all(collection=cls._collection.name + ':' + parent)
+        return [cls(**r.properties) for r in rs]
+
+    @property
+    def _db_key(self):
+        if not self._primary_field.value:
+            setattr(self, self._primary_field.name, '{}:{}'.format(self.parent, unicode(uuid.uuid4())))
+            self._update_fields_values()
+        return DBObject._db_key.fget(self)
+
+
 # TODO: remove this
 if __name__ == '__main__':
     r = DBResource(name=1)
