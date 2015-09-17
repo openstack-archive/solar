@@ -1,8 +1,27 @@
-# Setup development env
+# Requirements
 
-Install [Vagrant](http://www.vagrantup.com/downloads.html).
+## Supported development platforms
+
+Linux or MacOS
+
+## Additional software
+
+[VirtualBox](https://www.virtualbox.org/wiki/Downloads): 5.x
+
+[Vagrant](http://www.vagrantup.com/downloads.html): 1.7.x
+
+Note: You can also use Vagrant 4.x but you will need to uncomment paravirtprovider setting in vagrant-settings.yaml:
+```bash
+paravirtprovider: kvm
+```
+
+For details see Customizing vagrant-settings.yaml section.
+
 For automatically installation of VirtualBox Guest Additions you could install
 [vagrant plugin](https://github.com/dotless-de/vagrant-vbguest).
+
+# Setup development env
+
 Setup environment:
 ```bash
 cd solar
@@ -267,3 +286,8 @@ riak_master_service.connect_list(
 For full Riak example, please look at `examples/riak/riaks-template.py`.
 
 Full documentation of individual functions is found in the `solar/template.py` file.
+
+
+# Customizing vagrant-settings.yaml
+
+Solar is shipped with sane defaults in vagrant-setting.yaml_defaults. If you need to adjust them for your needs, e.g. changing resource allocation for VirtualBox machines, you should just compy the file to vagrant-setting.yaml and make your modifications.
