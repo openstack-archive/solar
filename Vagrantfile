@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+Vagrant.require_version ">= 1.7.0"
+
 require 'yaml'
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
