@@ -417,6 +417,6 @@ input:
                               [{'a': sample1.resource_inputs()['value']},
                                {'a': sample2.resource_inputs()['value']}])
 
-        # sample3 disconnected
-        signals.disconnect(sample3, sample_dict_list)
-        self.assertEqual(vi.backtrack_value_emitter(), vi)
+        # sample2 disconnected
+        signals.disconnect(sample2, sample_dict_list)
+        self.assertEqual(vi.backtrack_value_emitter(), [vi])

@@ -198,32 +198,29 @@ class DBRelatedField(object):
 
         return ret
 
-    def delete_all_incoming(self, destination_db_object, destination_key=None):
+    def delete_all_incoming(self,
+                            destination_db_object,
+                            destination_key=None,
+                            tag=None):
         """
         Delete all relations for which destination_db_object is an end node.
 
         If object is a hash, you can additionally specify the dst_key argument.
         Then only connections that are destinations of dst_key will be deleted.
-        """
 
-        if destination_key is None:
-            db.delete_relations(
-                dest=destination_db_object._db_node,
-                type_=self.relation_type
-            )
-        else:
-            # TODO: check if destination_db_object is of hash type
-            rels = db.get_relations(
-                dest=destination_db_object._db_node,
-                type_=self.relation_type
-            )
-            for r in rels:
-                if r.properties.get('destination_key') == destination_key:
-                    db.delete_relations(
-                        source=r.start_node,
-                        dest=destination_db_object._db_node,
-                        type_=self.relation_type
-                    )
+        Same with tag.
+        """
+        properties = {}
+        if destination_key is not None:
+            properties['destination_key'] = destination_key
+        if tag is not None:
+            properties['tag'] = tag
+
+        db.delete_relations(
+            dest=destination_db_object._db_node,
+            type_=self.relation_type,
+            has_properties=properties or None
+        )
 
 
 def db_related_field(relation_type, destination_db_class):
@@ -443,7 +440,7 @@ class DBResourceInput(DBObject):
 
             for r in relations:
                 source = source_class(**r.start_node.properties)
-                tag = r.properties['tag'] or source.resource.name
+                tag = r.properties['tag']
                 ret.setdefault(tag, {})
                 key = r.properties['destination_key']
                 value = backtrack_func(source)
