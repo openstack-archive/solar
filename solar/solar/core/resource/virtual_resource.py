@@ -22,6 +22,8 @@ from jinja2 import Template, Environment, meta
 from solar.core import provider
 from solar.core import resource
 from solar.core import signals
+from solar.events.api import add_event
+from solar.events.controls import React, Dep
 
 
 def create(name, base_path, args=None, virtual_resource=None):
@@ -61,36 +63,13 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
 
 
 def create_virtual_resource(vr_name, template):
-    resources = template['resources']
-    created_resources = []
+    template_resources = template['resources']
+    template_events = template.get('events', {})
 
-    cwd = os.getcwd()
-    for r in resources:
-        connections = []
-        name = r['id']
-        base_path = os.path.join(cwd, r['from'])
-        args = r['values']
-        new_resources = create(name, base_path, args, vr_name)
-        created_resources += new_resources
-
-        def add_connection(element):
-            if isinstance(element, basestring) and '::' in element:
-                emitter, src = element.split('::')
-                connections.append((emitter, name, {src: key}))
-
-        if not is_virtual(base_path):
-            for key, arg in args.items():
-                if isinstance(arg, list):
-                    for item in arg:
-                        add_connection(item)
-                else:
-                    add_connection(arg)
-
-        for emitter, reciver, mapping in connections:
-            emitter = r.load(emitter)
-            reciver = r.load(reciver)
-            signals.connect(emitter, reciver, mapping)
-
+    created_resources = parse_resources(template_resources)
+    events = parse_events(template_events)
+    for event in events:
+        add_event(event)
     return created_resources
 
 
@@ -100,6 +79,8 @@ def _compile_file(name, path, kwargs):
 
     inputs = get_inputs(content)
     template = _get_template(name, content, kwargs, inputs)
+    with open('/tmp/compiled', 'w') as c:
+        c.write(template)
     return template
 
 
@@ -124,3 +105,70 @@ def _get_template(name, content, kwargs, inputs):
 
 def is_virtual(path):
     return os.path.isfile(path)
+
+
+def parse_resources(resources):
+    created_resources = []
+    cwd = os.getcwd()
+    for r in resources:
+        connections = []
+        resource_name = r['id']
+        base_path = os.path.join(cwd, r['from'])
+        args = r['values']
+        new_resources = create(resource_name, base_path, args)
+        created_resources += new_resources
+
+        if not is_virtual(base_path):
+            for receiver_input, arg in args.items():
+                if isinstance(arg, list):
+                    for item in arg:
+                        connections.append(parse_connection(resource_name,
+                                                            receiver_input,
+                                                            item))
+                else:
+                    connections.append(parse_connection(resource_name,
+                                                        receiver_input,
+                                                        arg))
+
+        connections = [c for c in connections if c is not None]
+        for c in connections:
+            emitter = resource.load(c['emitter'])
+            receiver = resource.load(c['receiver'])
+            events = c['events']
+            mapping = {c['emitter_input'] : c['receiver_input']}
+            signals.connect(emitter, receiver, mapping, events)
+
+    return created_resources
+
+def parse_events(events):
+    parsed_events = []
+    for event in events:
+        event_type = event['type']
+        parent, parent_action = event['parent_action'].split('.')
+        depend, depend_action = event['depend_action'].split('.')
+        state = event['state']
+        if event_type == Dep.etype:
+            event = Dep(parent, parent_action, state, depend, depend_action)
+        elif event_type == React.etype:
+            event = React(parent, parent_action, state, depend, depend_action)
+        else:
+            raise Exception('Invalid event type: {0}'.format(event_type))
+        parsed_events.append(event)
+    return parsed_events
+
+def parse_connection(receiver, receiver_input, element):
+    if isinstance(element, basestring) and '::' in element:
+        emitter, src = element.split('::', 1)
+        try:
+            src, events = src.split('::')
+            if events == 'NO_EVENTS':
+                events = False
+        except ValueError:
+            events = None
+        return {'receiver': receiver,
+                'receiver_input': receiver_input,
+                'emitter' : emitter,
+                'emitter_input': src,
+                'events' : events
+                }
+        #return (emitter, name, {src: key}, events)
