@@ -47,7 +47,7 @@ def guess_mapping(emitter, receiver):
     return guessed
 
 
-def connect(emitter, receiver, mapping={}, events=None):
+def connect(emitter, receiver, mapping=None, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
     if isinstance(mapping, set):
