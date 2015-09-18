@@ -717,3 +717,19 @@ input:
              {'ip': sample3.args['ip'], 'port': sample3.args['port']}],
             receiver.args['server'],
         )
+        sample4 = self.create_resource(
+            'sample4', sample_meta_dir, args={'ip': '10.0.0.4', 'port': 5003}
+        )
+        xs.connect(sample4, receiver, mapping={'port': 'server:port|sample3'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample2.args['port']},
+             {'ip': sample3.args['ip'], 'port': sample4.args['port']}],
+            receiver.args['server'],
+        )
+        # There can be no sample3 connections left now
+        xs.connect(sample4, receiver, mapping={'ip': 'server:ip|sample3'})
+        self.assertItemsEqual(
+            [{'ip': sample1.args['ip'], 'port': sample2.args['port']},
+             {'ip': sample4.args['ip'], 'port': sample4.args['port']}],
+            receiver.args['server'],
+        )

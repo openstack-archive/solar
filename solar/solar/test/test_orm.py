@@ -319,7 +319,6 @@ input:
         self.assertEqual(vi.backtrack_value_emitter(),
                          [sample3.resource_inputs()['value']])
 
-
     def test_backtrack_dict(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -348,10 +347,7 @@ input:
             'sample1', sample_meta_dir, {'value': 'x'}
         )
         sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'value': 'y'}
-        )
-        sample3 = self.create_resource(
-            'sample3', sample_meta_dir, {'value': 'z'}
+            'sample2', sample_meta_dir, {'value': 'z'}
         )
         self.assertEqual(vi.backtrack_value_emitter(), vi)
 
@@ -360,11 +356,67 @@ input:
         self.assertDictEqual(vi.backtrack_value_emitter(),
                              {'a': sample1.resource_inputs()['value']})
 
-        # {a: sample3} -> sample_dict
-        signals.connect(sample3, sample_dict, {'value': 'value:a'})
+        # {a: sample2} -> sample_dict
+        signals.connect(sample2, sample_dict, {'value': 'value:a'})
         self.assertDictEqual(vi.backtrack_value_emitter(),
-                             {'a': sample3.resource_inputs()['value']})
+                             {'a': sample2.resource_inputs()['value']})
+
+        # sample2 disconnected
+        signals.disconnect(sample2, sample_dict)
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+    def test_backtrack_dict_list(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+        sample_dict_list_meta_dir = self.make_resource_meta("""
+id: sample_dict_list
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: [{a: str!}]
+    value:
+        """)
+
+        sample_dict_list = self.create_resource(
+            'sample_dict', sample_dict_list_meta_dir
+        )
+        vi = sample_dict_list.resource_inputs()['value']
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'y'}
+        )
+        sample3 = self.create_resource(
+            'sample3', sample_meta_dir, {'value': 'z'}
+        )
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+        # [{a: sample1}] -> sample_dict_list
+        signals.connect(sample1, sample_dict_list, {'value': 'value:a'})
+        self.assertListEqual(vi.backtrack_value_emitter(),
+                             [{'a': sample1.resource_inputs()['value']}])
+
+        # [{a: sample1}, {a: sample3}] -> sample_dict_list
+        signals.connect(sample3, sample_dict_list, {'value': 'value:a'})
+        self.assertItemsEqual(vi.backtrack_value_emitter(),
+                              [{'a': sample1.resource_inputs()['value']},
+                               {'a': sample3.resource_inputs()['value']}])
+
+        # [{a: sample1}, {a: sample2}] -> sample_dict_list
+        signals.connect(sample2, sample_dict_list, {'value': 'value:a|sample3'})
+        self.assertItemsEqual(vi.backtrack_value_emitter(),
+                              [{'a': sample1.resource_inputs()['value']},
+                               {'a': sample2.resource_inputs()['value']}])
 
         # sample3 disconnected
-        signals.disconnect(sample3, sample_dict)
+        signals.disconnect(sample3, sample_dict_list)
         self.assertEqual(vi.backtrack_value_emitter(), vi)
