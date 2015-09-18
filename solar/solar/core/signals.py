@@ -114,6 +114,9 @@ def connect_multi(emitter, src, receiver, dst):
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[receiver_input_name]
 
+    if not receiver_input.is_list:
+        receiver_input.receivers.delete_all_incoming(receiver_input, destination_key=receiver_input_key)
+
     # NOTE: make sure that receiver.args[receiver_input] is of dict type
     if not receiver_input.is_hash:
         raise Exception(

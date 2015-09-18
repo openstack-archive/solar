@@ -198,15 +198,32 @@ class DBRelatedField(object):
 
         return ret
 
-    def delete_all_incoming(self, destination_db_object):
+    def delete_all_incoming(self, destination_db_object, destination_key=None):
         """
         Delete all relations for which destination_db_object is an end node.
+
+        If object is a hash, you can additionally specify the dst_key argument.
+        Then only connections that are destinations of dst_key will be deleted.
         """
 
-        db.delete_relations(
-            dest=destination_db_object._db_node,
-            type_=self.relation_type
-        )
+        if destination_key is None:
+            db.delete_relations(
+                dest=destination_db_object._db_node,
+                type_=self.relation_type
+            )
+        else:
+            # TODO: check if destination_db_object is of hash type
+            rels = db.get_relations(
+                dest=destination_db_object._db_node,
+                type_=self.relation_type
+            )
+            for r in rels:
+                if r.properties.get('destination_key') == destination_key:
+                    db.delete_relations(
+                        source=r.start_node,
+                        dest=destination_db_object._db_node,
+                        type_=self.relation_type
+                    )
 
 
 def db_related_field(relation_type, destination_db_class):
@@ -463,7 +480,7 @@ class DBResourceInput(DBObject):
                 k: self.parse_backtracked_value(vv) for k, vv in v.items()
             }
 
-        raise Exception('I dont know what to do')
+        return v
 
     def backtrack_value(self):
         return self.parse_backtracked_value(self.backtrack_value_emitter())

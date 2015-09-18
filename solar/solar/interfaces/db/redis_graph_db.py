@@ -223,9 +223,10 @@ class RedisGraphDB(BaseGraphDB):
     def get_or_create_relation(self,
                                source,
                                dest,
-                               properties={},
+                               properties=None,
                                type_=BaseGraphDB.DEFAULT_RELATION):
         """Fetch or create relation with given properties."""
+        properties = properties or {}
 
         try:
             return self.get_relation(source, dest, type_=type_)
