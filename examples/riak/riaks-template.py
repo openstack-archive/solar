@@ -89,6 +89,7 @@ def setup_haproxies():
         {
             'listen_port': 8098,
             'protocol': 'http',
+            'name': 'riak_haproxy_http{num}',
         }
     )
     haproxy_service_configs_pb = nodes.on_each(
@@ -96,6 +97,7 @@ def setup_haproxies():
         {
             'listen_port': 8087,
             'protocol': 'tcp',
+            'name': 'riak_haproxy_pb{num}',
         }
     )
 
