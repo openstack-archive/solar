@@ -489,6 +489,29 @@ class DBResourceInput(DBObject):
         return self.parse_backtracked_value(self.backtrack_value_emitter())
 
 
+class DBEvent(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.events
+
+    id = db_field(is_primary=True)
+    parent = db_field(schema='str!')
+    parent_action = db_field(schema='str!')
+    etype = db_field('str!')
+    state = db_field('str')
+    child = db_field('str')
+    child_action = db_field('str')
+
+    def delete(self):
+        db.delete_relations(
+            dest=self._db_node,
+            type_=base.BaseGraphDB.RELATION_TYPES.resource_event
+        )
+        super(DBEvent, self).delete()
+
+
+
 class DBResource(DBObject):
     __metaclass__ = DBObjectMeta
 
@@ -507,6 +530,8 @@ class DBResource(DBObject):
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
+    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
+                              DBEvent)
 
     def add_input(self, name, schema, value):
         # NOTE: Inputs need to have uuid added because there can be many
@@ -522,39 +547,17 @@ class DBResource(DBObject):
 
         self.inputs.add(input)
 
-
-class DBEvent(DBObject):
-
-    __metaclass__ = DBObjectMeta
-
-    _collection = base.BaseGraphDB.COLLECTIONS.events
-
-    id = db_field(is_primary=True)
-    parent = db_field(schema='str!')
-    parent_action = db_field(schema='str!')
-    etype = db_field('str!')
-    state = db_field('str')
-    child = db_field('str')
-    child_action = db_field('str')
-
-    @classmethod
-    def load_list(cls, parent):
-        rs = db.all(collection=cls._collection.name + ':' + parent)
-        return [cls(**r.properties) for r in rs]
-
-    @classmethod
-    def delete_list(cls, parent):
-        db.delete('*', collection=cls._collection.name + ':' + parent)
-
-    @property
-    def _db_key(self):
-        if not self._primary_field.value:
-            setattr(self, self._primary_field.name,
-                    '{}:{}:{}:{}:{}'.format(
-                        self.parent, self.parent_action,
-                        self.state, self.child, self.child_action))
-            self._update_fields_values()
-        return DBObject._db_key.fget(self)
+    def add_event(self, action, state, etype, child, child_action):
+        event = DBEvent(
+            parent=self.name,
+            parent_action=action,
+            state=state,
+            etype=etype,
+            child=child,
+            child_action=child_action
+            )
+        event.save()
+        self.events.add(event)
 
 
 # TODO: remove this

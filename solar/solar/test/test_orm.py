@@ -425,6 +425,11 @@ input:
 
 class TestEventORM(BaseResourceTest):
 
+    def test_return_emtpy_set(self):
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r.save()
+        self.assertEqual(r.events.as_set(), set())
+
     def test_save_and_load_by_parent(self):
         ev = orm.DBEvent(
             parent='n1',
@@ -435,9 +440,8 @@ class TestEventORM(BaseResourceTest):
             etype='dependency')
         ev.save()
 
-        rst = orm.DBEvent.load_list('n1')
-        self.assertEqual(len(rst), 1)
-        self.assertEqual(rst[0], ev)
+        rst = orm.DBEvent.load(ev.id)
+        self.assertEqual(rst, ev)
 
     def test_save_several(self):
         ev = orm.DBEvent(
@@ -456,4 +460,24 @@ class TestEventORM(BaseResourceTest):
             child='n3',
             etype='dependency')
         ev1.save()
-        self.assertEqual(len(orm.DBEvent.load_list('n1')), 2)
+        self.assertEqual(len(orm.DBEvent.load_all()), 2)
+
+    def test_removal_of_event(self):
+        r = orm.DBResource(id='n1', name='n1', base_path='x')
+        r.save()
+
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+        r.events.add(ev)
+
+        self.assertEqual(r.events.as_set(), {ev})
+        ev.delete()
+
+        r = orm.DBResource.load('n1')
+        self.assertEqual(r.events.as_set(), set())

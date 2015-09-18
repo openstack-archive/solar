@@ -38,14 +38,16 @@ def create_event(event_dict):
 
 
 def add_event(ev):
-    rst = all_events(ev.parent_node)
+    rst = all_events(ev.parent)
     for rev in rst:
         if ev == rev:
             break
     else:
         rst.append(ev)
+        resource_db = orm.DBResource.load(ev.parent)
         event_db = orm.DBEvent(**ev.to_dict())
         event_db.save()
+        resource_db.events.add(event_db)
 
 
 def add_dep(parent, dep, actions, state='success'):
@@ -59,20 +61,27 @@ def add_dep(parent, dep, actions, state='success'):
 def add_react(parent, dep, actions, state='success'):
     for act in actions:
         r = React(parent, act, state=state,
-                depend_node=dep, depend_action=act)
+                  depend_node=dep, depend_action=act)
         add_event(r)
         log.debug('Added event: %s', r)
 
 
 def add_events(resource, lst):
+    db_resource = orm.DBResource.load(resource)
     for ev in lst:
         event_db = orm.DBEvent(**ev.to_dict())
         event_db.save()
+        db_resource.events.add(event_db)
 
 
 def set_events(resource, lst):
-    orm.DBEvent.delete_list(resource)
-    add_events(resource, lst)
+    db_resource = orm.DBResource.load(resource)
+    for ev in db_resource.events.as_set():
+        ev.delete()
+    for ev in lst:
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
+        db_resource.events.add(event_db)
 
 
 def remove_event(ev):
@@ -81,7 +90,7 @@ def remove_event(ev):
 
 
 def all_events(resource):
-    events = orm.DBEvent.load_list(resource)
+    events = orm.DBResource.load(resource).events.as_set()
 
     if not events:
         return []

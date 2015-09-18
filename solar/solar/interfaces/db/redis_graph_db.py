@@ -38,6 +38,9 @@ class RedisGraphDB(BaseGraphDB):
         elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_input.name:
             source_collection = BaseGraphDB.COLLECTIONS.resource
             dest_collection = BaseGraphDB.COLLECTIONS.input
+        elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_event.name:
+            source_collection = BaseGraphDB.COLLECTIONS.resource
+            dest_collection = BaseGraphDB.COLLECTIONS.events
 
         source = self.get(relation_db['source'], collection=source_collection)
         dest = self.get(relation_db['dest'], collection=dest_collection)

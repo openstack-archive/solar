@@ -17,6 +17,7 @@ import networkx as nx
 from pytest import fixture
 
 from solar.events import api as evapi
+from solar.interfaces import orm
 
 from .base import BaseResourceTest
 
@@ -31,11 +32,16 @@ def events_example():
 
 
 def test_add_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
+
     evapi.add_events('e1', events_example)
     assert set(evapi.all_events('e1')) == set(events_example)
 
 
 def test_set_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     partial = events_example[:2]
     evapi.add_events('e1', events_example[:2])
     evapi.set_events('e1', events_example[2:])
@@ -43,6 +49,8 @@ def test_set_events(events_example):
 
 
 def test_remove_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     to_be_removed = events_example[2]
     evapi.add_events('e1', events_example)
     evapi.remove_event(to_be_removed)
@@ -50,6 +58,8 @@ def test_remove_events(events_example):
 
 
 def test_single_event(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     evapi.add_events('e1', events_example[:2])
     evapi.add_event(events_example[2])
     assert set(evapi.all_events('e1')) == set(events_example)
