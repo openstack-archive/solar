@@ -39,7 +39,7 @@ class Resource(object):
     _metadata = {}
 
     # Create
-    @dispatch(str, str)
+    @dispatch(basestring, basestring)
     def __init__(self, name, base_path, args=None, tags=None, virtual_resource=None):
         args = args or {}
         self.name = name
