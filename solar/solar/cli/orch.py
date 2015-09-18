@@ -51,7 +51,7 @@ def update(uid, plan):
 
 
 @orchestration.command()
-@click.argument('uid', type=SOLARUID)
+@click.argument('uid', type=SOLARUID, default='last')
 def report(uid):
     colors = {
         'PENDING': 'cyan',
@@ -90,7 +90,7 @@ def filter(uid, start, end):
 
 
 @orchestration.command(name='run-once')
-@click.argument('uid', type=SOLARUID)
+@click.argument('uid', type=SOLARUID, default='last')
 def run_once(uid):
     tasks.schedule_start.apply_async(
         args=[uid],
