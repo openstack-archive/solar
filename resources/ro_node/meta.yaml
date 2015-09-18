@@ -14,4 +14,7 @@ input:
     #   value:
     name:
       schema: str
-      value:
+      value: a node
+    location_id:
+      schema: str!
+      value: $uuid

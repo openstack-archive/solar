@@ -445,6 +445,13 @@ class DBResourceInput(DBObject):
         if not inputs:
             return self
 
+            # if lazy_val is None:
+            #     return self.value
+            # print self.resource.name
+            # print [x.name for x in self.resource.inputs.as_set()]
+            # _input = next(x for x in self.resource.inputs.as_set() if x.name == lazy_val)
+            # return _input.backtrack_value()
+            # # return self.value
         if self.is_list:
             if not self.is_hash:
                 return [backtrack_func(i) for i in inputs]

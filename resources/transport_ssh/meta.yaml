@@ -12,3 +12,7 @@ input:
   name:
     schema: str!
     value: ssh
+  location_id:
+    schema: str!
+    value:
+    reverse: True

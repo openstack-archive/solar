@@ -87,8 +87,23 @@ class Resource(object):
         self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
-        inputs.setdefault('location_id', {'value': md5(self.name + uuid4().hex).hexdigest(),
+        # inputs.setdefault('location_id', {'value': md5(self.name + uuid4().hex).hexdigest(),
+        #                                   'schema': 'str!'})
+        inputs.setdefault('location_id', {'value': "",
                                           'schema': 'str!'})
+        inputs.setdefault('transports_id', {'value': "",
+                                          'schema': 'str'})
+        for inp in ('transports_id', 'location_id'):
+            if inputs[inp]['value'] == '$uuid':
+                inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
+
+    def transports(self):
+        inputs = self.resource_inputs()
+        location_id = inputs['transports_id']
+        print 'tu'
+        print location_id.backtrack_value(lazy_val='transports')
+        print 'tu2'
+
 
     @property
     def actions(self):

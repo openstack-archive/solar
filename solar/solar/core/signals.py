@@ -46,17 +46,50 @@ def guess_mapping(emitter, receiver):
 
     return guessed
 
-def extend_mapping_by_defaults(mapping):
-    if isinstance(mapping, set):
-        mapping.add('location_id')
-    else:
-        mapping['location_id'] = 'location_id'
+
+def location_and_transports(emitter, receiver, orig_mapping):
+
+    def _remove_from_mapping(single):
+        if single in orig_mapping:
+            if isinstance(orig_mapping, dict):
+                del orig_mapping[single]
+            elif isinstance(orig_mapping, set):
+                orig_mapping.remove(single)
+
+    def _single(single):
+        emitter_single = emitter.db_obj.meta_inputs[single]
+        receiver_single = receiver.db_obj.meta_inputs[single]
+        emitter_single_reverse = emitter_single.get('reverse')
+        receiver_single_reverse = receiver_single.get('reverse')
+        print emitter_single, receiver_single
+        # connect in other direction
+        if emitter_single_reverse:
+            connect_single(receiver, single, emitter, single)
+            _remove_from_mapping(single)
+            return
+        if isinstance(orig_mapping, dict):
+            orig_mapping[single] = single
+        # if we have reverse then do it in reverse way
+        # if emitter_single.get('reverse'):
+        #     connect_single(receiver, single, emitter, single)
+        #     # maybe already connected somewhere, then don't create this relation
+        #     if not emitter.resource_inputs()[single].backtrack_value():
+        #         connect_single(receiver, single, emitter, single)
+        # elif not receiver_single.get('reverse', False):
+        #     # maybe already connected somewhere, then don't create this relation
+        #     if not receiver.resource_inputs()[single].backtrack_value():
+        #         if isinstance(orig_mapping, dict):
+        #             orig_mapping[single] = single
+
+    for single in ('transports_id', 'location_id'):
+        _single(single)
+    return
+
 
 def connect(emitter, receiver, mapping=None, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
-    extend_mapping_by_defaults(mapping)
-
+    location_and_transports(emitter, receiver, mapping)
 
     if isinstance(mapping, set):
         mapping = {src: src for src in mapping}
@@ -102,7 +135,8 @@ def connect_single(emitter, src, receiver, dst):
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
     if emitter_input in receiver_input.receivers.as_set():
-        raise Exception('Prevented creating a cycle')
+        raise Exception('Prevented creating a cycle on %s::%s' % (emitter.name,
+                                                                  emitter_input.name))
 
     log.debug('Connecting {}::{} -> {}::{}'.format(
         emitter.name, emitter_input.name, receiver.name, receiver_input.name
