@@ -393,21 +393,30 @@ class DBResourceInput(DBObject):
             )[0].start_node.properties
         )
 
-    def backtrack_value(self):
+    def backtrack_value_emitter(self, level=None):
         # TODO: this is actually just fetching head element in linked list
         #       so this whole algorithm can be moved to the db backend probably
         # TODO: cycle detection?
         # TODO: write this as a Cypher query? Move to DB?
+        if level == 0:
+            return self
+
+        def backtrack_func(i):
+            if level is None:
+                return i.backtrack_value_emitter()
+
+            return i.backtrack_value_emitter(level=level - 1)
+
         inputs = self.receivers.sources(self)
         relations = self.receivers.all_by_dest(self)
         source_class = self.receivers.source_db_class
 
         if not inputs:
-            return self.value
+            return self
 
         if self.is_list:
             if not self.is_hash:
-                return [i.backtrack_value() for i in inputs]
+                return [backtrack_func(i) for i in inputs]
 
             # NOTE: we return a list of values, but we need to group them
             #       hence this dict here
@@ -420,7 +429,7 @@ class DBResourceInput(DBObject):
                 tag = r.properties['tag'] or source.resource.name
                 ret.setdefault(tag, {})
                 key = r.properties['destination_key']
-                value = source.backtrack_value()
+                value = backtrack_func(source)
 
                 ret[tag].update({key: value})
 
@@ -435,12 +444,29 @@ class DBResourceInput(DBObject):
                 #       and some of them do have destination_key while others
                 #       don't?
                 if 'destination_key' not in r.properties:
-                    return source.backtrack_value()
+                    return backtrack_func(source)
                 key = r.properties['destination_key']
-                ret[key] = source.backtrack_value()
+                ret[key] = backtrack_func(source)
             return ret
 
-        return inputs.pop().backtrack_value()
+        return backtrack_func(inputs.pop())
+
+    def parse_backtracked_value(self, v):
+        if isinstance(v, DBResourceInput):
+            return v.value
+
+        if isinstance(v, list):
+            return [self.parse_backtracked_value(vv) for vv in v]
+
+        if isinstance(v, dict):
+            return {
+                k: self.parse_backtracked_value(vv) for k, vv in v.items()
+            }
+
+        raise Exception('I dont know what to do')
+
+    def backtrack_value(self):
+        return self.parse_backtracked_value(self.backtrack_value_emitter())
 
 
 class DBResource(DBObject):

@@ -24,6 +24,7 @@ import networkx as nx
 import os
 import sys
 import tabulate
+import yaml
 
 from solar.core import actions
 from solar.core import resource as sresource
@@ -59,7 +60,7 @@ def show_emitter_connections(emitter):
                 '[{}]'.format(
                     ', '.join(
                         format_resource_input(r)
-                        for r in emitter_input.receivers.value
+                        for r in emitter_input.receivers.as_set()
                     )
                 )
             )
@@ -190,6 +191,34 @@ def init_cli_resource():
                 ))
 
     @resource.command()
+    @click.argument('resource')
+    def backtrack_inputs(resource):
+        r = sresource.load(resource)
+
+        inputs = []
+
+        def backtrack(i):
+            def format_input(i):
+                return '{}::{}'.format(i.resource.name, i.name)
+
+            if isinstance(i, list):
+                return [backtrack(bi) for bi in i]
+
+            if isinstance(i, dict):
+                return {
+                    k: backtrack(bi) for k, bi in i.items()
+                }
+
+            bi = i.backtrack_value_emitter(level=1)
+            if isinstance(i, orm.DBResourceInput) and isinstance(bi, orm.DBResourceInput) and i == bi:
+                return (format_input(i), )
+
+            return (format_input(i), backtrack(bi))
+
+        for i in r.resource_inputs().values():
+            click.echo(yaml.safe_dump({i.name: backtrack(i)}, default_flow_style=False))
+
+    @resource.command()
     def compile_all():
         from solar.core.resource import compiler
 
@@ -224,7 +253,7 @@ def init_cli_resource():
             except ValueError:
                 k, v = arg.split('=')
                 args_parsed.update({k: v})
-        resources = vr.create(name, base_path, args_parsed)
+        resources = vr.create(name, base_path, args=args_parsed)
         for res in resources:
             click.echo(res.color_repr())
 
