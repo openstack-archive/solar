@@ -1,5 +1,10 @@
+#!/usr/bin/env python
+
 # To run:
 # python example-riaks.py deploy
+# solar changes stage
+# solar changes process
+# solar orch run-once last
 # python example-riaks.py add_haproxies
 # solar changes stage
 # solar changes process
@@ -45,7 +50,7 @@ def setup_riak():
         signals.connect(nodes[i], riak)
 
     for i, riak in enumerate(riak_services[1:]):
-        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'}, events=None)
+        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
 
     hosts_services = []
     for i, riak in enumerate(riak_services):
@@ -62,21 +67,13 @@ def setup_riak():
                              'ip': 'hosts:ip'},
                             events=False)
 
+    errors = resource.validate_resources()
+    for r, error in errors:
+        click.echo('ERROR: %s: %s' % (r.name, error))
     has_errors = False
-    for r in locals().values():
 
-        # TODO: handle list
-        if not isinstance(r, resource.Resource):
-            continue
-
-        # print 'Validating {}'.format(r.name)
-        local_errors = validation.validate_resource(r)
-        if local_errors:
-            has_errors = True
-            print 'ERROR: %s: %s' % (r.name, local_errors)
-
-    if has_errors:
-        print "ERRORS"
+    if errors:
+        click.echo("ERRORS")
         sys.exit(1)
 
     events = [
@@ -109,7 +106,7 @@ def setup_riak():
     for event in events:
         add_event(event)
 
-    print 'Use solar changes process & orch'
+    click.echo('Use solar changes process & orch')
     sys.exit(0)
 
 
@@ -218,6 +215,7 @@ def main():
 @click.command()
 def deploy():
     setup_riak()
+
 
 @click.command()
 def add_haproxies():
