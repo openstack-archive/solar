@@ -51,9 +51,7 @@ def connect(emitter, receiver, mapping={}, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
     if isinstance(mapping, set):
-        for src in mapping:
-            connect_single(emitter, src, receiver, src)
-        return
+        mapping = {src: src for src in mapping}
 
     for src, dst in mapping.items():
         if not isinstance(dst, list):
@@ -113,6 +111,16 @@ def connect_multi(emitter, src, receiver, dst):
 
     emitter_input = emitter.resource_inputs()[src]
     receiver_input = receiver.resource_inputs()[receiver_input_name]
+
+    if not receiver_input.is_list or receiver_input_tag:
+        receiver_input.receivers.delete_all_incoming(
+            receiver_input,
+            destination_key=receiver_input_key,
+            tag=receiver_input_tag
+        )
+
+    # We can add default tag now
+    receiver_input_tag = receiver_input_tag or emitter.name
 
     # NOTE: make sure that receiver.args[receiver_input] is of dict type
     if not receiver_input.is_hash:

@@ -201,14 +201,16 @@ class BaseGraphDB(object):
     def delete_relations(self,
                          source=None,
                          dest=None,
-                         type_=DEFAULT_RELATION):
+                         type_=DEFAULT_RELATION,
+                         has_properties=None):
         """Delete all relations of type `type_` from source to dest."""
 
     @abc.abstractmethod
     def get_relations(self,
                       source=None,
                       dest=None,
-                      type_=DEFAULT_RELATION):
+                      type_=DEFAULT_RELATION,
+                      has_properties=None):
         """Fetch all relations of type `type_` from source to dest.
 
         NOTE that this function must return only direct relations (edges)
