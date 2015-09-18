@@ -18,3 +18,4 @@ input:
     location_id:
       schema: str!
       value: $uuid
+      reverse: True

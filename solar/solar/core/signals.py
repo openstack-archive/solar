@@ -64,23 +64,16 @@ def location_and_transports(emitter, receiver, orig_mapping):
         print emitter_single, receiver_single
         # connect in other direction
         if emitter_single_reverse:
+            if receiver_single_reverse:
+                connect_single(receiver, single, emitter, single)
+                _remove_from_mapping(single)
+                return
+        if receiver_single_reverse:
             connect_single(receiver, single, emitter, single)
             _remove_from_mapping(single)
             return
         if isinstance(orig_mapping, dict):
             orig_mapping[single] = single
-        # if we have reverse then do it in reverse way
-        # if emitter_single.get('reverse'):
-        #     connect_single(receiver, single, emitter, single)
-        #     # maybe already connected somewhere, then don't create this relation
-        #     if not emitter.resource_inputs()[single].backtrack_value():
-        #         connect_single(receiver, single, emitter, single)
-        # elif not receiver_single.get('reverse', False):
-        #     # maybe already connected somewhere, then don't create this relation
-        #     if not receiver.resource_inputs()[single].backtrack_value():
-        #         if isinstance(orig_mapping, dict):
-        #             orig_mapping[single] = single
-
     for single in ('transports_id', 'location_id'):
         _single(single)
     return
