@@ -101,8 +101,9 @@ class React(Event):
                     errmsg=None, type='solar_resource',
                     args=[self.child, self.child_action])
 
-            changes_graph.add_edge(self.parent_node, self.child_node, state=self.state)
-            changed_resources.append(self.child)
+            changes_graph.add_edge(
+                self.parent_node, self.child_node, state=self.state)
+            changed_resources.append(self.child_node)
 
 
 class StateChange(Event):

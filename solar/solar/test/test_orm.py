@@ -229,7 +229,6 @@ class TestResourceORM(BaseResourceTest):
         self.assertEqual(len(r.inputs.as_set()), 1)
 
 
-<<<<<<< HEAD
 class TestResourceInputORM(BaseResourceTest):
     def test_backtrack_simple(self):
         sample_meta_dir = self.make_resource_meta("""

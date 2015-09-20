@@ -90,7 +90,7 @@ def send_to_orchestration():
             state_change = evapi.StateChange(res_uid, action)
             state_change.insert(changed_nodes, dg)
 
-    evapi.build_edges(changed_nodes, dg, events)
+    evapi.build_edges(dg, events)
 
     # what it should be?
     dg.graph['name'] = 'system_log'

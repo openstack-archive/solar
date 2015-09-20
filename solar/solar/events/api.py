@@ -111,41 +111,47 @@ def bft_events_graph(start):
         current_events = all_events(item)
 
         for ev in current_events:
-            dg.add_edge(ev.parent, ev.dependent, label=ev.state)
+            dg.add_edge(ev.parent_node, ev.child_node, label=ev.state)
 
-            if ev.depend_node in visited:
+            if ev.child in visited:
                 continue
 
             # it is possible to have events leading to same resource but
             # different action
-            if ev.depend_node in stack:
+            if ev.child in stack:
                 continue
 
-            stack.append(ev.depend_node)
-        visited.add(ev.parent_node)
+            stack.append(ev.child)
+        visited.add(ev.parent)
     return dg
 
 
 
-def build_edges(changed_resources, changes_graph, events):
+def build_edges(changes_graph, events):
     """
-    :param changed_resources: list of resource names that were changed
     :param changes_graph: nx.DiGraph object with actions to be executed
     :param events: {res: [controls.Event objects]}
     """
-    stack = changed_resources[:]
-    visited = []
+    events_graph = nx.MultiDiGraph()
+
+    for res_evts in events.values():
+        for ev in res_evts:
+            events_graph.add_edge(ev.parent_node, ev.child_node, event=ev)
+
+    stack = changes_graph.nodes()
+    visited = set()
     while stack:
-        node = stack.pop()
+        event_name = stack.pop(0)
 
-        if node in events:
-            log.debug('Events %s for resource %s', events[node], node)
+        if event_name in events_graph:
+            log.debug('Next events after %s are %s', event_name, events_graph.successors(event_name))
         else:
-            log.debug('No dependencies based on %s', node)
+            log.debug('No outgoing events based on %s', event_name)
 
-        if node not in visited:
-            for ev in events.get(node, ()):
-                ev.insert(stack, changes_graph)
+        if event_name not in visited:
+            for parent, child, data in events_graph.edges(event_name, data=True):
+                succ_ev = data['event']
+                succ_ev.insert(stack, changes_graph)
 
-        visited.append(node)
+        visited.add(event_name)
     return changes_graph
