@@ -132,15 +132,19 @@ def test_rmq(rmq_deps):
 def test_riak():
 
     events = {
-        'riak_service1': [evapi.React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
-                          evapi.React('riak_service1', 'run', 'success', 'riak_service3', 'join')],
-        'riak_service3': [evapi.React('riak_service3', 'join', 'success', 'riak_service1', 'commit')],
-        'riak_service2': [evapi.React('riak_service2', 'join', 'success', 'riak_service1', 'commit')],
+        'riak_service1': [
+            evapi.React('riak_service1', 'run', 'success', 'riak_service2', 'run'),
+            evapi.React('riak_service1', 'run', 'success', 'riak_service3', 'run')],
+        'riak_service3': [
+            evapi.React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
+            evapi.React('riak_service3', 'run', 'success', 'riak_service3', 'join')],
+        'riak_service2': [
+            evapi.React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+            evapi.React('riak_service2', 'join', 'success', 'riak_service1', 'commit')],
 
     }
     changed = ['riak_service1']
     changes_graph = nx.DiGraph()
     changes_graph.add_node('riak_service1.run')
     evapi.build_edges(changed, changes_graph, events)
-    assert nx.topological_sort(changes_graph) == [
-        'riak_service1.run', 'riak_service2.join', 'riak_service3.join', 'riak_service1.commit']
+    assert set(changes_graph.predecessors('riak_service1.commit')) == {'riak_service2.join', 'riak_service3.join'}
