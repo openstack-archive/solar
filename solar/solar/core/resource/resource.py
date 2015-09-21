@@ -99,11 +99,8 @@ class Resource(object):
 
     def transports(self):
         inputs = self.resource_inputs()
-        location_id = inputs['transports_id']
-        print 'tu'
-        print location_id.backtrack_value(lazy_val='transports')
-        print 'tu2'
-
+        transports_id = inputs['transports_id']
+        return transports_id.backtrack_value(other_val='transports')
 
     @property
     def actions(self):
