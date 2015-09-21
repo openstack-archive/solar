@@ -55,6 +55,7 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
+    # List args init with empty list. Elements will be added later
     args = {key: (value if not isinstance(value, list) else []) for key, value in args.items()}
     r = resource.Resource(
         name, base_path, args=args, tags=[], virtual_resource=virtual_resource
@@ -66,7 +67,7 @@ def create_virtual_resource(vr_name, template):
     template_resources = template['resources']
     template_events = template.get('events', {})
 
-    created_resources = parse_resources(template_resources)
+    created_resources = create_resources(template_resources)
     events = parse_events(template_events)
     for event in events:
         add_event(event)
@@ -107,11 +108,10 @@ def is_virtual(path):
     return os.path.isfile(path)
 
 
-def parse_resources(resources):
+def create_resources(resources):
     created_resources = []
     cwd = os.getcwd()
     for r in resources:
-        connections = []
         resource_name = r['id']
         base_path = os.path.join(cwd, r['from'])
         args = r['values']
@@ -119,26 +119,9 @@ def parse_resources(resources):
         created_resources += new_resources
 
         if not is_virtual(base_path):
-            for receiver_input, arg in args.items():
-                if isinstance(arg, list):
-                    for item in arg:
-                        connections.append(parse_connection(resource_name,
-                                                            receiver_input,
-                                                            item))
-                else:
-                    connections.append(parse_connection(resource_name,
-                                                        receiver_input,
-                                                        arg))
-
-        connections = [c for c in connections if c is not None]
-        for c in connections:
-            emitter = resource.load(c['emitter'])
-            receiver = resource.load(c['receiver'])
-            events = c['events']
-            mapping = {c['emitter_input'] : c['receiver_input']}
-            signals.connect(emitter, receiver, mapping, events)
-
+            add_connections(resource_name, args)
     return created_resources
+
 
 def parse_events(events):
     parsed_events = []
@@ -156,6 +139,27 @@ def parse_events(events):
         parsed_events.append(event)
     return parsed_events
 
+
+def add_connections(resource_name, args):
+    connections = []
+    for receiver_input, arg in args.items():
+        if isinstance(arg, list):
+            for item in arg:
+                c = parse_connection(resource_name, receiver_input, item)
+                connections.append(c)
+        else:
+           c = parse_connection(resource_name, receiver_input, arg)
+           connections.append(c)
+
+    connections = [c for c in connections if c is not None]
+    for c in connections:
+        emitter = resource.load(c['emitter'])
+        receiver = resource.load(c['receiver'])
+        events = c['events']
+        mapping = {c['emitter_input'] : c['receiver_input']}
+        signals.connect(emitter, receiver, mapping, events)
+
+
 def parse_connection(receiver, receiver_input, element):
     if isinstance(element, basestring) and '::' in element:
         emitter, src = element.split('::', 1)
@@ -171,4 +175,3 @@ def parse_connection(receiver, receiver_input, element):
                 'emitter_input': src,
                 'events' : events
                 }
-        #return (emitter, name, {src: key}, events)
