@@ -17,6 +17,7 @@ import networkx as nx
 from pytest import fixture
 
 from solar.events import api as evapi
+from solar.interfaces import orm
 
 from .base import BaseResourceTest
 
@@ -31,19 +32,25 @@ def events_example():
 
 
 def test_add_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
+
     evapi.add_events('e1', events_example)
     assert set(evapi.all_events('e1')) == set(events_example)
 
 
 def test_set_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     partial = events_example[:2]
     evapi.add_events('e1', events_example[:2])
     evapi.set_events('e1', events_example[2:])
-
     assert evapi.all_events('e1') == events_example[2:]
 
 
 def test_remove_events(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     to_be_removed = events_example[2]
     evapi.add_events('e1', events_example)
     evapi.remove_event(to_be_removed)
@@ -51,6 +58,8 @@ def test_remove_events(events_example):
 
 
 def test_single_event(events_example):
+    r = orm.DBResource(id='e1', name='e1', base_path='x')
+    r.save()
     evapi.add_events('e1', events_example[:2])
     evapi.add_event(events_example[2])
     assert set(evapi.all_events('e1')) == set(events_example)
@@ -67,11 +76,10 @@ def nova_deps():
 
 
 def test_nova_api_run_after_nova(nova_deps):
-    changed = ['nova', 'nova_api']
     changes_graph = nx.DiGraph()
     changes_graph.add_node('nova.run')
     changes_graph.add_node('nova_api.run')
-    evapi.build_edges(changed, changes_graph, nova_deps)
+    evapi.build_edges(changes_graph, nova_deps)
 
     assert changes_graph.successors('nova.run') == ['nova_api.run']
 
@@ -80,10 +88,9 @@ def test_nova_api_react_on_update(nova_deps):
     """Test that nova_api:update will be called even if there is no changes
     in nova_api
     """
-    changed = ['nova']
     changes_graph = nx.DiGraph()
     changes_graph.add_node('nova.update')
-    evapi.build_edges(changed, changes_graph, nova_deps)
+    evapi.build_edges(changes_graph, nova_deps)
 
     assert changes_graph.successors('nova.update') == ['nova_api.update']
 
@@ -106,7 +113,6 @@ def rmq_deps():
 
 
 def test_rmq(rmq_deps):
-    changed = ['rmq.1', 'rmq.2', 'rmq.3', 'rmq_cluster.1', 'rmq_cluster.2', 'rmq_cluster.3']
     changes_graph = nx.DiGraph()
     changes_graph.add_node('rmq.1.run')
     changes_graph.add_node('rmq.2.run')
@@ -114,7 +120,7 @@ def test_rmq(rmq_deps):
     changes_graph.add_node('rmq_cluster.1.create')
     changes_graph.add_node('rmq_cluster.2.join')
     changes_graph.add_node('rmq_cluster.3.join')
-    evapi.build_edges(changed, changes_graph, rmq_deps)
+    evapi.build_edges(changes_graph, rmq_deps)
 
     assert set(changes_graph.successors('rmq_cluster.1.create')) == {
         'rmq_cluster.2.join', 'rmq_cluster.3.join'}
@@ -123,15 +129,19 @@ def test_rmq(rmq_deps):
 def test_riak():
 
     events = {
-        'riak_service1': [evapi.React('riak_service1', 'run', 'success', 'riak_service2', 'join'),
-                          evapi.React('riak_service1', 'run', 'success', 'riak_service3', 'join')],
-        'riak_service3': [evapi.React('riak_service3', 'join', 'success', 'riak_service1', 'commit')],
-        'riak_service2': [evapi.React('riak_service2', 'join', 'success', 'riak_service1', 'commit')],
+        'riak_service1': [
+            evapi.React('riak_service1', 'run', 'success', 'riak_service2', 'run'),
+            evapi.React('riak_service1', 'run', 'success', 'riak_service3', 'run')],
+        'riak_service3': [
+            evapi.React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
+            evapi.React('riak_service3', 'run', 'success', 'riak_service3', 'join')],
+        'riak_service2': [
+            evapi.React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+            evapi.React('riak_service2', 'join', 'success', 'riak_service1', 'commit')],
 
     }
-    changed = ['riak_service1']
-    changes_graph = nx.DiGraph()
+
+    changes_graph = nx.MultiDiGraph()
     changes_graph.add_node('riak_service1.run')
-    evapi.build_edges(changed, changes_graph, events)
-    assert nx.topological_sort(changes_graph) == [
-        'riak_service1.run', 'riak_service2.join', 'riak_service3.join', 'riak_service1.commit']
+    evapi.build_edges(changes_graph, events)
+    assert set(changes_graph.predecessors('riak_service1.commit')) == {'riak_service2.join', 'riak_service3.join'}

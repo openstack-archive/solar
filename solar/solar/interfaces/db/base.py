@@ -132,7 +132,7 @@ class BaseGraphDB(object):
     DEFAULT_COLLECTION=COLLECTIONS.resource
     RELATION_TYPES = Enum(
         'RelationTypes',
-        'input_to_input resource_input plan_edge graph_to_node'
+        'input_to_input resource_input plan_edge graph_to_node resource_event'
     )
     DEFAULT_RELATION=RELATION_TYPES.resource_input
 
@@ -171,6 +171,10 @@ class BaseGraphDB(object):
     @abc.abstractmethod
     def create(self, name, properties={}, collection=DEFAULT_COLLECTION):
         """Create element (node) with given name, args, of type `collection`."""
+
+    @abc.abstractmethod
+    def delete(self, name, collection=DEFAULT_COLLECTION):
+        """Delete element with given name. of type `collection`."""
 
     @abc.abstractmethod
     def create_relation(self,

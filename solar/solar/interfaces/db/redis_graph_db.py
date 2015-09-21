@@ -38,6 +38,9 @@ class RedisGraphDB(BaseGraphDB):
         elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_input.name:
             source_collection = BaseGraphDB.COLLECTIONS.resource
             dest_collection = BaseGraphDB.COLLECTIONS.input
+        elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_event.name:
+            source_collection = BaseGraphDB.COLLECTIONS.resource
+            dest_collection = BaseGraphDB.COLLECTIONS.events
 
         source = self.get(relation_db['source'], collection=source_collection)
         dest = self.get(relation_db['dest'], collection=dest_collection)
@@ -151,6 +154,11 @@ class RedisGraphDB(BaseGraphDB):
             return json.loads(item)
         except TypeError:
             raise KeyError
+
+    def delete(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
+        keys = self._r.keys(self._make_collection_key(collection, name))
+        if keys:
+            self._r.delete(*keys)
 
     def get_or_create(self,
                       name,

@@ -382,6 +382,12 @@ class DBObject(object):
             collection=self._collection
         )
 
+    def delete(self):
+        db.delete(
+            self._db_key,
+            collection=self._collection
+        )
+
 
 class DBResourceInput(DBObject):
     __metaclass__ = DBObjectMeta
@@ -483,6 +489,29 @@ class DBResourceInput(DBObject):
         return self.parse_backtracked_value(self.backtrack_value_emitter())
 
 
+class DBEvent(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.events
+
+    id = db_field(is_primary=True)
+    parent = db_field(schema='str!')
+    parent_action = db_field(schema='str!')
+    etype = db_field('str!')
+    state = db_field('str')
+    child = db_field('str')
+    child_action = db_field('str')
+
+    def delete(self):
+        db.delete_relations(
+            dest=self._db_node,
+            type_=base.BaseGraphDB.RELATION_TYPES.resource_event
+        )
+        super(DBEvent, self).delete()
+
+
+
 class DBResource(DBObject):
     __metaclass__ = DBObjectMeta
 
@@ -501,6 +530,8 @@ class DBResource(DBObject):
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
+    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
+                              DBEvent)
 
     def add_input(self, name, schema, value):
         # NOTE: Inputs need to have uuid added because there can be many
@@ -515,6 +546,18 @@ class DBResource(DBObject):
         input.save()
 
         self.inputs.add(input)
+
+    def add_event(self, action, state, etype, child, child_action):
+        event = DBEvent(
+            parent=self.name,
+            parent_action=action,
+            state=state,
+            etype=etype,
+            child=child,
+            child_action=child_action
+            )
+        event.save()
+        self.events.add(event)
 
 
 # TODO: remove this

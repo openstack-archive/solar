@@ -226,7 +226,6 @@ class TestResourceORM(BaseResourceTest):
         r.save()
 
         r.add_input('ip', 'str!', '10.0.0.2')
-
         self.assertEqual(len(r.inputs.as_set()), 1)
 
 
@@ -421,3 +420,63 @@ input:
         signals.disconnect(sample2, sample_dict_list)
         self.assertEqual(vi.backtrack_value_emitter(),
                          [{'a': sample1.resource_inputs()['value']}])
+
+
+class TestEventORM(BaseResourceTest):
+
+    def test_return_emtpy_set(self):
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r.save()
+        self.assertEqual(r.events.as_set(), set())
+
+    def test_save_and_load_by_parent(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+
+        rst = orm.DBEvent.load(ev.id)
+        self.assertEqual(rst, ev)
+
+    def test_save_several(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+        ev1 = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n3',
+            etype='dependency')
+        ev1.save()
+        self.assertEqual(len(orm.DBEvent.load_all()), 2)
+
+    def test_removal_of_event(self):
+        r = orm.DBResource(id='n1', name='n1', base_path='x')
+        r.save()
+
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+        r.events.add(ev)
+
+        self.assertEqual(r.events.as_set(), {ev})
+        ev.delete()
+
+        r = orm.DBResource.load('n1')
+        self.assertEqual(r.events.as_set(), set())
