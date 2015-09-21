@@ -36,38 +36,41 @@ class Event(object):
 
     etype = None
 
-    def __init__(self, parent_node, parent_action,
-                 state='', depend_node='', depend_action=''):
-        self.parent_node = parent_node
+    def __init__(self, parent, parent_action,
+                 state='', child='', child_action=''):
+        self.parent = parent
         self.parent_action = parent_action
         self.state = state
-        self.depend_node = depend_node
-        self.depend_action = depend_action
+        self.child = child
+        self.child_action = child_action
 
     @property
-    def parent(self):
-        return '{}.{}'.format(self.parent_node, self.parent_action)
+    def parent_node(self):
+        return '{}.{}'.format(self.parent, self.parent_action)
 
     @property
-    def dependent(self):
-        return '{}.{}'.format(self.depend_node, self.depend_action)
+    def child_node(self):
+        return '{}.{}'.format(self.child, self.child_action)
 
     def to_dict(self):
-        rst = {'etype': self.etype}
-        rst.update(self.__dict__)
-        return rst
+        return {'etype': self.etype,
+                'child': self.child,
+                'parent': self.parent,
+                'parent_action': self.parent_action,
+                'child_action': self.child_action,
+                'state': self.state}
 
     def __eq__(self, inst):
         if inst.__class__ != self.__class__:
             return False
         return all((
-            self.parent == inst.parent,
+            self.parent_node == inst.parent_node,
             self.state == inst.state,
-            self.dependent == inst.dependent))
+            self.child_node == inst.child_node))
 
     def __repr__(self):
         return '{}: {} -> {} -> {}'.format(
-            self.etype, self.parent, self.state, self.dependent)
+            self.etype, self.parent_node, self.state, self.child_node)
 
     def __hash__(self):
         return hash(repr(self))
@@ -78,10 +81,10 @@ class Dependency(Event):
     etype = 'depends_on'
 
     def insert(self, changed_resources, changes_graph):
-        if (self.parent in changes_graph and
-            self.dependent in changes_graph):
+        if (self.parent_node in changes_graph and
+            self.child_node in changes_graph):
             changes_graph.add_edge(
-                self.parent, self.dependent, state=self.state)
+                self.parent_node, self.child_node, state=self.state)
 
 Dep = Dependency
 
@@ -91,15 +94,16 @@ class React(Event):
 
     def insert(self, changed_resources, changes_graph):
 
-        if self.parent in changes_graph:
-            if self.dependent not in changes_graph:
+        if self.parent_node in changes_graph:
+            if self.child_node not in changes_graph:
                 changes_graph.add_node(
-                    self.dependent, status='PENDING',
+                    self.child_node, status='PENDING',
                     errmsg=None, type='solar_resource',
-                    args=[self.depend_node, self.depend_action])
+                    args=[self.child, self.child_action])
 
-            changes_graph.add_edge(self.parent, self.dependent, state=self.state)
-            changed_resources.append(self.depend_node)
+            changes_graph.add_edge(
+                self.parent_node, self.child_node, state=self.state)
+            changed_resources.append(self.child_node)
 
 
 class StateChange(Event):
@@ -109,6 +113,6 @@ class StateChange(Event):
     def insert(self, changed_resources, changes_graph):
         changed_resources.append(self.parent)
         changes_graph.add_node(
-            self.parent, status='PENDING',
+            self.parent_node, status='PENDING',
             errmsg=None, type='solar_resource',
-            args=[self.parent_node, self.parent_action])
+            args=[self.parent, self.parent_action])

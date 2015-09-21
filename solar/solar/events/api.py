@@ -18,34 +18,36 @@ __all__ = ['add_dep', 'add_react']
 import networkx as nx
 
 from solar.core.log import log
-from solar.interfaces.db import get_db
+from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
 
-db = get_db()
-
-
 def create_event(event_dict):
-    etype = event_dict.pop('etype')
+    etype = event_dict['etype']
+    kwargs = {'child': event_dict['child'],
+              'parent': event_dict['parent'],
+              'child_action': event_dict['child_action'],
+              'parent_action': event_dict['parent_action'],
+              'state': event_dict['state']}
     if etype == React.etype:
-        return React(**event_dict)
+        return React(**kwargs)
     elif etype == Dep.etype:
-        return Dep(**event_dict)
+        return Dep(**kwargs)
     else:
         raise Exception('No support for type %s', etype)
 
 
 def add_event(ev):
-    rst = all_events(ev.parent_node)
+    rst = all_events(ev.parent)
     for rev in rst:
         if ev == rev:
             break
     else:
         rst.append(ev)
-        db.create(
-            ev.parent_node,
-            [i.to_dict() for i in rst],
-            collection=db.COLLECTIONS.events)
+        resource_db = orm.DBResource.load(ev.parent)
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
+        resource_db.events.add(event_db)
 
 
 def add_dep(parent, dep, actions, state='success'):
@@ -59,36 +61,40 @@ def add_dep(parent, dep, actions, state='success'):
 def add_react(parent, dep, actions, state='success'):
     for act in actions:
         r = React(parent, act, state=state,
-                depend_node=dep, depend_action=act)
+                  depend_node=dep, depend_action=act)
         add_event(r)
         log.debug('Added event: %s', r)
 
 
+def add_events(resource, lst):
+    db_resource = orm.DBResource.load(resource)
+    for ev in lst:
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
+        db_resource.events.add(event_db)
+
+
 def set_events(resource, lst):
-    db.create(
-        resource,
-        [i.to_dict() for i in lst],
-        collection=db.COLLECTIONS.events)
+    db_resource = orm.DBResource.load(resource)
+    for ev in db_resource.events.as_set():
+        ev.delete()
+    for ev in lst:
+        event_db = orm.DBEvent(**ev.to_dict())
+        event_db.save()
+        db_resource.events.add(event_db)
 
 
 def remove_event(ev):
-    rst = all_events(ev.parent_node)
-    set_events(ev.parent_node, [it for it in rst if not it == ev])
-
-
-def add_events(resource, lst):
-    rst = all_events(resource)
-    rst.extend(lst)
-    set_events(resource, rst)
+    event_db = orm.DBEvent(**ev.to_dict())
+    event_db.delete()
 
 
 def all_events(resource):
-    events = db.get(resource, collection=db.COLLECTIONS.events,
-                    return_empty=True)
+    events = orm.DBResource.load(resource).events.as_set()
 
     if not events:
         return []
-    return [create_event(i) for i in events.properties]
+    return [create_event(i.to_dict()) for i in events]
 
 
 def bft_events_graph(start):
@@ -105,41 +111,47 @@ def bft_events_graph(start):
         current_events = all_events(item)
 
         for ev in current_events:
-            dg.add_edge(ev.parent, ev.dependent, label=ev.state)
+            dg.add_edge(ev.parent_node, ev.child_node, label=ev.state)
 
-            if ev.depend_node in visited:
+            if ev.child in visited:
                 continue
 
             # it is possible to have events leading to same resource but
             # different action
-            if ev.depend_node in stack:
+            if ev.child in stack:
                 continue
 
-            stack.append(ev.depend_node)
-        visited.add(ev.parent_node)
+            stack.append(ev.child)
+        visited.add(ev.parent)
     return dg
 
 
 
-def build_edges(changed_resources, changes_graph, events):
+def build_edges(changes_graph, events):
     """
-    :param changed_resources: list of resource names that were changed
     :param changes_graph: nx.DiGraph object with actions to be executed
     :param events: {res: [controls.Event objects]}
     """
-    stack = changed_resources[:]
-    visited = []
+    events_graph = nx.MultiDiGraph()
+
+    for res_evts in events.values():
+        for ev in res_evts:
+            events_graph.add_edge(ev.parent_node, ev.child_node, event=ev)
+
+    stack = changes_graph.nodes()
+    visited = set()
     while stack:
-        node = stack.pop()
+        event_name = stack.pop(0)
 
-        if node in events:
-            log.debug('Events %s for resource %s', events[node], node)
+        if event_name in events_graph:
+            log.debug('Next events after %s are %s', event_name, events_graph.successors(event_name))
         else:
-            log.debug('No dependencies based on %s', node)
+            log.debug('No outgoing events based on %s', event_name)
 
-        if node not in visited:
-            for ev in events.get(node, ()):
-                ev.insert(stack, changes_graph)
+        if event_name not in visited:
+            for parent, child, data in events_graph.edges(event_name, data=True):
+                succ_ev = data['event']
+                succ_ev.insert(stack, changes_graph)
 
-        visited.append(node)
+        visited.add(event_name)
     return changes_graph

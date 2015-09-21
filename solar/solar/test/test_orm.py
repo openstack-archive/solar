@@ -15,6 +15,7 @@
 from .base import BaseResourceTest
 
 from solar.core import resource
+from solar.core import signals
 from solar import errors
 from solar.interfaces import orm
 from solar.interfaces.db import base
@@ -225,5 +226,257 @@ class TestResourceORM(BaseResourceTest):
         r.save()
 
         r.add_input('ip', 'str!', '10.0.0.2')
-
         self.assertEqual(len(r.inputs.as_set()), 1)
+
+
+class TestResourceInputORM(BaseResourceTest):
+    def test_backtrack_simple(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'y'}
+        )
+        sample3 = self.create_resource(
+            'sample3', sample_meta_dir, {'value': 'z'}
+        )
+        vi = sample2.resource_inputs()['value']
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+        # sample1 -> sample2
+        signals.connect(sample1, sample2)
+        self.assertEqual(vi.backtrack_value_emitter(),
+                         sample1.resource_inputs()['value'])
+
+        # sample3 -> sample1 -> sample2
+        signals.connect(sample3, sample1)
+        self.assertEqual(vi.backtrack_value_emitter(),
+                         sample3.resource_inputs()['value'])
+
+        # sample2 disconnected
+        signals.disconnect(sample1, sample2)
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+    def test_backtrack_list(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+        sample_list_meta_dir = self.make_resource_meta("""
+id: sample_list
+handler: ansible
+version: 1.0.0
+input:
+  values:
+    schema: [str!]
+    value:
+        """)
+
+        sample_list = self.create_resource(
+            'sample_list', sample_list_meta_dir
+        )
+        vi = sample_list.resource_inputs()['values']
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'y'}
+        )
+        sample3 = self.create_resource(
+            'sample3', sample_meta_dir, {'value': 'z'}
+        )
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+        # [sample1] -> sample_list
+        signals.connect(sample1, sample_list, {'value': 'values'})
+        self.assertEqual(vi.backtrack_value_emitter(),
+                         [sample1.resource_inputs()['value']])
+
+        # [sample3, sample1] -> sample_list
+        signals.connect(sample3, sample_list, {'value': 'values'})
+        self.assertSetEqual(set(vi.backtrack_value_emitter()),
+                            set([sample1.resource_inputs()['value'],
+                                 sample3.resource_inputs()['value']]))
+
+        # sample2 disconnected
+        signals.disconnect(sample1, sample_list)
+        self.assertEqual(vi.backtrack_value_emitter(),
+                         [sample3.resource_inputs()['value']])
+
+    def test_backtrack_dict(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+        sample_dict_meta_dir = self.make_resource_meta("""
+id: sample_dict
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: {a: str!}
+    value:
+        """)
+
+        sample_dict = self.create_resource(
+            'sample_dict', sample_dict_meta_dir
+        )
+        vi = sample_dict.resource_inputs()['value']
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'z'}
+        )
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+        # {a: sample1} -> sample_dict
+        signals.connect(sample1, sample_dict, {'value': 'value:a'})
+        self.assertDictEqual(vi.backtrack_value_emitter(),
+                             {'a': sample1.resource_inputs()['value']})
+
+        # {a: sample2} -> sample_dict
+        signals.connect(sample2, sample_dict, {'value': 'value:a'})
+        self.assertDictEqual(vi.backtrack_value_emitter(),
+                             {'a': sample2.resource_inputs()['value']})
+
+        # sample2 disconnected
+        signals.disconnect(sample2, sample_dict)
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+    def test_backtrack_dict_list(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: str!
+    value:
+        """)
+        sample_dict_list_meta_dir = self.make_resource_meta("""
+id: sample_dict_list
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: [{a: str!}]
+    value:
+        """)
+
+        sample_dict_list = self.create_resource(
+            'sample_dict', sample_dict_list_meta_dir
+        )
+        vi = sample_dict_list.resource_inputs()['value']
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 'x'}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {'value': 'y'}
+        )
+        sample3 = self.create_resource(
+            'sample3', sample_meta_dir, {'value': 'z'}
+        )
+        self.assertEqual(vi.backtrack_value_emitter(), vi)
+
+        # [{a: sample1}] -> sample_dict_list
+        signals.connect(sample1, sample_dict_list, {'value': 'value:a'})
+        self.assertListEqual(vi.backtrack_value_emitter(),
+                             [{'a': sample1.resource_inputs()['value']}])
+
+        # [{a: sample1}, {a: sample3}] -> sample_dict_list
+        signals.connect(sample3, sample_dict_list, {'value': 'value:a'})
+        self.assertItemsEqual(vi.backtrack_value_emitter(),
+                              [{'a': sample1.resource_inputs()['value']},
+                               {'a': sample3.resource_inputs()['value']}])
+
+        # [{a: sample1}, {a: sample2}] -> sample_dict_list
+        signals.connect(sample2, sample_dict_list, {'value': 'value:a|sample3'})
+        self.assertItemsEqual(vi.backtrack_value_emitter(),
+                              [{'a': sample1.resource_inputs()['value']},
+                               {'a': sample2.resource_inputs()['value']}])
+
+        # sample2 disconnected
+        signals.disconnect(sample2, sample_dict_list)
+        self.assertEqual(vi.backtrack_value_emitter(),
+                         [{'a': sample1.resource_inputs()['value']}])
+
+
+class TestEventORM(BaseResourceTest):
+
+    def test_return_emtpy_set(self):
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r.save()
+        self.assertEqual(r.events.as_set(), set())
+
+    def test_save_and_load_by_parent(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+
+        rst = orm.DBEvent.load(ev.id)
+        self.assertEqual(rst, ev)
+
+    def test_save_several(self):
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+        ev1 = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n3',
+            etype='dependency')
+        ev1.save()
+        self.assertEqual(len(orm.DBEvent.load_all()), 2)
+
+    def test_removal_of_event(self):
+        r = orm.DBResource(id='n1', name='n1', base_path='x')
+        r.save()
+
+        ev = orm.DBEvent(
+            parent='n1',
+            parent_action='run',
+            state='success',
+            child_action='run',
+            child='n2',
+            etype='dependency')
+        ev.save()
+        r.events.add(ev)
+
+        self.assertEqual(r.events.as_set(), {ev})
+        ev.delete()
+
+        r = orm.DBResource.load('n1')
+        self.assertEqual(r.events.as_set(), set())

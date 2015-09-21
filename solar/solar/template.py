@@ -90,22 +90,23 @@ class ResourceTemplate(BaseTemplate):
             )
         )
 
-    def connect_list(self, resources, args={}):
+    def connect_list(self, resources, mapping=None):
         """Connect this resource to a ResourceListTemplate object.
 
-        args - optional connect mapping. This mapping can have the
+        mapping - optional connect mapping. This mapping can have the
           "{receiver_num}" string which enumerates each resrouce in resources
           list.
         """
+        mapping = mapping or {}
 
         for receiver_num, resource in enumerate(resources.resources):
             kwargs = {
                 'receiver_num': receiver_num,
             }
 
-            args_fmt = self.args_fmt(args, kwargs)
+            mapping_fmt = self.args_fmt(mapping, kwargs)
 
-            signals.connect(self.resource, resource, args_fmt)
+            signals.connect(self.resource, resource, mapping_fmt)
 
 
 class ResourceListTemplate(BaseTemplate):
@@ -117,14 +118,21 @@ class ResourceListTemplate(BaseTemplate):
         self.resources = resources
 
     @classmethod
-    def create(cls, count, resource_path, args={}):
+    def create(cls,
+               count,
+               resource_path,
+               name='{resource_path_name}-{num}',
+               args=None):
         """Create a number of resources of the same type, with optional args.
 
+        name -- optional resource name
         args -- an optional dict with create arguments. You can use
           "{num}" -- index of resource in the list
           "{resource_path_name}" -- name of resource from the `resource_path`
             argument
         """
+
+        args = args or {}
 
         created_resources = []
 
@@ -135,11 +143,11 @@ class ResourceListTemplate(BaseTemplate):
                 'num': num,
                 'resource_path_name': resource_path_name,
             }
-            kwargs['name'] = '{resource_path_name}-{num}'.format(**kwargs)
+            kwargs['name'] = name.format(**kwargs)
 
             args_fmt = cls.args_fmt(args, kwargs)
 
-            r = vr.create('{name}'.format(**kwargs),
+            r = vr.create(kwargs['name'],
                           resource_path,
                           args_fmt)[0]
 
@@ -200,15 +208,16 @@ class ResourceListTemplate(BaseTemplate):
 
         return ResourceListTemplate(resources)
 
-    def connect_list(self, resources, args={}, events=None):
+    def connect_list(self, resources, mapping=None, events=None):
         """Connect self.resources to given resources in a 1-1 fashion.
 
         First resource in self.resources is connected to first resource in
         resources, second to second, etc.
 
-        args -- optional list of arguments
+        mapping -- optional mapping
           "{num}" -- substitutes for resource's index in args
         """
+        mapping = mapping or {}
 
         for num, er in enumerate(zip(self.resources, resources.resources)):
             emitter, receiver = er
@@ -217,19 +226,22 @@ class ResourceListTemplate(BaseTemplate):
                 'num': num,
             }
 
-            args_fmt = self.args_fmt(args, kwargs)
+            mapping_fmt = self.args_fmt(mapping, kwargs)
 
-            signals.connect(emitter, receiver, mapping=args_fmt, events=events)
+            signals.connect(
+                emitter, receiver, mapping=mapping_fmt, events=events
+            )
 
-    def connect_list_to_each(self, resources, args={}, events=None):
+    def connect_list_to_each(self, resources, mapping=None, events=None):
         """Connect each resource in self.resources to each resource in resources.
 
-        args -- optional list of arguments
-          "{emitter_num}" -- substitutes for emitter's index in args (from
+        mapping -- optional mapping
+          "{emitter_num}" -- substitutes for emitter's index in mapping (from
             self.resources)
-          "{receiver_num}" -- substitutes for receiver's index in args (from
+          "{receiver_num}" -- substitutes for receiver's index in mapping (from
             resources argument)
         """
+        mapping = mapping or {}
 
         for emitter_num, emitter in enumerate(self.resources):
             for receiver_num, receiver in enumerate(resources.resources):
@@ -238,23 +250,24 @@ class ResourceListTemplate(BaseTemplate):
                     'receiver_num': receiver_num,
                 }
 
-                args_fmt = self.args_fmt(args, kwargs)
+                mapping_fmt = self.args_fmt(mapping, kwargs)
 
                 signals.connect(
                     emitter,
                     receiver,
-                    mapping=args_fmt,
+                    mapping=mapping_fmt,
                     events=events
                 )
 
-    def on_each(self, resource_path, args={}):
+    def on_each(self, resource_path, args=None):
         """Create resource form resource_path on each resource in self.resources.
         """
+        args = args or {}
 
         created_resources = ResourceListTemplate.create(
             len(self.resources),
             resource_path,
-            args
+            args=args
         )
 
         for i, resource in enumerate(self.resources):
