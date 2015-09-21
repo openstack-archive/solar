@@ -71,9 +71,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "modifyvm", :id,
         "--memory", MASTER_RAM,
         "--cpus", MASTER_CPUS,
-        "--paravirtprovider", "kvm", # for linux guest
         "--ioapic", "on",
       ]
+      if PARAVIRT_PROVIDER
+        v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+      end
       v.name = "solar-dev"
     end
 
