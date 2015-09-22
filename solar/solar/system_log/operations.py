@@ -18,7 +18,7 @@ from dictdiffer import patch
 
 def set_error(log_action, *args, **kwargs):
     sl = data.SL()
-    item = sl.get(log_action)
+    item = next((i for i in sl if i.log_action == log_action), None)
     if item:
         item.state = data.STATES.error
         sl.update(item)
@@ -26,10 +26,11 @@ def set_error(log_action, *args, **kwargs):
 
 def move_to_commited(log_action, *args, **kwargs):
     sl = data.SL()
-    item = sl.pop(log_action)
+    item = next((i for i in sl if i.log_action == log_action), None)
+    sl.pop(item.uid)
     if item:
         commited = data.CD()
-        staged_data = patch(item.diff, commited.get(item.log_action, {}))
+        staged_data = patch(item.diff, commited.get(item.res, {}))
         cl = data.CL()
         item.state = data.STATES.success
         cl.append(item)

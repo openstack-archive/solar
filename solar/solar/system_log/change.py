@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from dictdiffer import diff
+import dictdiffer
 import networkx as nx
 
 from solar.core.log import log
@@ -39,7 +39,7 @@ def guess_action(from_, to):
 
 
 def create_diff(staged, commited):
-    return list(diff(commited, staged))
+    return list(dictdiffer.diff(commited, staged))
 
 
 def _stage_changes(staged_resources, commited_resources, staged_log):
@@ -102,3 +102,19 @@ def parameters(res, action, data):
             'type': 'solar_resource',
             # unique identifier for a node should be passed
             'target': data.get('ip')}
+
+
+def revert_uids(uids):
+    commited = data.CD()
+    history = data.CL()
+    for uid in uids:
+        item = history.get(uid)
+        res_db = resource.load(item.res)
+        args_to_update = dictdiffer.revert(
+            item.diff, commited.get(item.res, {}))
+        res_db.update(args_to_update)
+
+
+def revert(uid):
+    return revert_uids([uid])
+
