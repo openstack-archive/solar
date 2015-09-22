@@ -128,12 +128,12 @@ def parse_events(events):
     for event in events:
         event_type = event['type']
         parent, parent_action = event['parent_action'].split('.')
-        depend, depend_action = event['depend_action'].split('.')
+        child, child_action = event['depend_action'].split('.')
         state = event['state']
         if event_type == Dep.etype:
-            event = Dep(parent, parent_action, state, depend, depend_action)
+            event = Dep(parent, parent_action, state, child, child_action)
         elif event_type == React.etype:
-            event = React(parent, parent_action, state, depend, depend_action)
+            event = React(parent, parent_action, state, child, child_action)
         else:
             raise Exception('Invalid event type: {0}'.format(event_type))
         parsed_events.append(event)
@@ -153,11 +153,11 @@ def add_connections(resource_name, args):
 
     connections = [c for c in connections if c is not None]
     for c in connections:
-        emitter = resource.load(c['emitter'])
-        receiver = resource.load(c['receiver'])
+        parent = resource.load(c['parent'])
+        child = resource.load(c['child'])
         events = c['events']
-        mapping = {c['emitter_input'] : c['receiver_input']}
-        signals.connect(emitter, receiver, mapping, events)
+        mapping = {c['parent_input'] : c['child_input']}
+        signals.connect(parent, child, mapping, events)
 
 
 def parse_connection(receiver, receiver_input, element):
@@ -169,9 +169,9 @@ def parse_connection(receiver, receiver_input, element):
                 events = False
         except ValueError:
             events = None
-        return {'receiver': receiver,
-                'receiver_input': receiver_input,
-                'emitter' : emitter,
-                'emitter_input': src,
+        return {'child': receiver,
+                'child_input': receiver_input,
+                'parent' : emitter,
+                'parent_input': src,
                 'events' : events
                 }
