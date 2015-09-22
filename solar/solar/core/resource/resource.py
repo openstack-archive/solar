@@ -102,6 +102,11 @@ class Resource(object):
         transports_id = inputs['transports_id']
         return transports_id.backtrack_value(other_val='transports')
 
+    def ip(self):
+        inputs = self.resource_inputs()
+        transports_id = inputs['location_id']
+        return transports_id.backtrack_value(other_val='ip')
+
     @property
     def actions(self):
         ret = {
