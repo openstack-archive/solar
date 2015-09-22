@@ -148,12 +148,13 @@ class RedisGraphDB(BaseGraphDB):
         """Fetch element with given name and collection type."""
 
         try:
-            item = self._r.get(self._make_collection_key(collection, name))
+            collection_key = self._make_collection_key(collection, name)
+            item = self._r.get(collection_key)
             if not item and return_empty:
                 return item
             return json.loads(item)
         except TypeError:
-            raise KeyError
+            raise KeyError(collection_key)
 
     def delete(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
         keys = self._r.keys(self._make_collection_key(collection, name))
