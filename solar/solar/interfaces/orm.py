@@ -181,6 +181,18 @@ class DBRelatedField(object):
 
         return ret
 
+    def as_list(self):
+        relations = self.all()
+
+        ret = []
+
+        for rel in relations:
+            ret.append(
+                self.destination_db_class(**rel.end_node.properties)
+            )
+
+        return ret
+
     def sources(self, destination_db_object):
         """
         Reverse of self.as_set, i.e. for given destination_db_object,
@@ -424,6 +436,18 @@ class DBResourceInput(DBObject):
         )
         super(DBResourceInput, self).delete()
 
+    def edges(self):
+        out = db.get_relations(
+                source=self._db_node,
+                type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
+        incoming = db.get_relations(
+                dest=self._db_node,
+                type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
+        for r in out + incoming:
+            source = DBResourceInput(**r.start_node.properties)
+            dest = DBResourceInput(**r.end_node.properties)
+            yield source, dest
+
     def check_other_val(self, other_val=None):
         if not other_val:
             return self
@@ -433,7 +457,6 @@ class DBResourceInput(DBObject):
         inps = {i.name: i for i in res.inputs.as_set()}
         correct_input = inps[other_val]
         return correct_input.backtrack_value()
-
 
     def backtrack_value_emitter(self, level=None, other_val=None):
         # TODO: this is actually just fetching head element in linked list
@@ -597,6 +620,11 @@ class DBResource(DBObject):
             input.delete()
         super(DBResource, self).delete()
 
+    def graph(self):
+        mdg = networkx.MultiDiGraph()
+        for input in self.inputs.as_list():
+            mdg.add_edges_from(input.edges())
+        return mdg
 
 # TODO: remove this
 if __name__ == '__main__':
