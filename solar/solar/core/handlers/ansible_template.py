@@ -62,12 +62,9 @@ class AnsibleTemplate(TempFileHandler):
         return inventory_path
 
     def _render_inventory(self, r):
-        # inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh ansible_ssh_user={2} ansible_ssh_private_key_file={3} {4}'
-        # host, user, ssh_key = r.args['ip'].value, r.args['ssh_user'].value, r.args['ssh_key'].value
-
-        # XXX: r.args['ssh_user'] should be something different in this case probably
         inventory = '{0} ansible_connection=local user={1} {2}'
-        host, user = 'localhost', r.args['ssh_user']
+        user = self.transport_run.get_transport_data(r)['user']
+        host = 'localhost'
         args = []
         for arg in r.args:
             args.append('{0}="{1}"'.format(arg, r.args[arg]))
