@@ -1,2 +1,4 @@
 -r requirements.txt
 pytest-mock
+tox
+hacking==0.7
