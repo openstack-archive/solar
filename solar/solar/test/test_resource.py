@@ -93,3 +93,29 @@ input:
 
         self.assertDictEqual(sample.args, sample_l.args)
         self.assertListEqual(sample.tags, sample_l.tags)
+
+    def test_removal(self):
+        """Test that connection removed with resource."""
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
+
+        sample1 = self.create_resource(
+            'sample1', sample_meta_dir, {'value': 1}
+        )
+        sample2 = self.create_resource(
+            'sample2', sample_meta_dir, {}
+        )
+        signals.connect(sample1, sample2)
+        self.assertEqual(sample1.args['value'], sample2.args['value'])
+
+        sample1 = resource.load('sample1')
+        sample2 = resource.load('sample2')
+        sample1.delete()
+        self.assertEqual(sample2.args['value'], 0)
