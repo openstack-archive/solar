@@ -87,8 +87,10 @@ class Resource(object):
         self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
-        # inputs.setdefault('location_id', {'value': md5(self.name + uuid4().hex).hexdigest(),
-        #                                   'schema': 'str!'})
+        # XXX: we didn't agree on `location_id` and `transports_id`
+        # that are added automaticaly to all resources
+        # using inputs for something like that may be not the best idea
+        # maybe we need something like `internal_input`
         inputs.setdefault('location_id', {'value': "",
                                           'schema': 'str!'})
         inputs.setdefault('transports_id', {'value': "",

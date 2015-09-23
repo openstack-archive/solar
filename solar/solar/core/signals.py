@@ -49,6 +49,8 @@ def guess_mapping(emitter, receiver):
 
 def location_and_transports(emitter, receiver, orig_mapping):
 
+    # XXX: we didn't agree on that reverse thign there
+
     def _remove_from_mapping(single):
         if single in orig_mapping:
             if isinstance(orig_mapping, dict):
@@ -61,7 +63,6 @@ def location_and_transports(emitter, receiver, orig_mapping):
         receiver_single = receiver.db_obj.meta_inputs[single]
         emitter_single_reverse = emitter_single.get('reverse')
         receiver_single_reverse = receiver_single.get('reverse')
-        print emitter_single, receiver_single
         # connect in other direction
         if emitter_single_reverse:
             if receiver_single_reverse:
@@ -74,6 +75,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
             return
         if isinstance(orig_mapping, dict):
             orig_mapping[single] = single
+
+    # XXX: should be somehow parametrized (input attribute?)
     for single in ('transports_id', 'location_id'):
         _single(single)
     return
@@ -82,6 +85,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
 def connect(emitter, receiver, mapping=None, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
 
+    # XXX: we didn't agree on that "reverse" there
     location_and_transports(emitter, receiver, mapping)
 
     if isinstance(mapping, set):
