@@ -149,6 +149,20 @@ class Resource(object):
     def delete(self):
         return self.db_obj.delete()
 
+    @property
+    def connections(self):
+        """
+        Gives you all incoming/outgoing connections for current resource,
+        stored as:
+        [(emitter, emitter_input, receiver, receiver_input), ...]
+        """
+        rst = []
+        for emitter, receiver in self.db_obj.graph().edges():
+            rst.append(
+                [emitter.resource.name, emitter.name,
+                 receiver.resource.name, receiver.name])
+        return rst
+
     def resource_inputs(self):
         return {
             i.name: i for i in self.db_obj.inputs.as_set()
@@ -178,6 +192,9 @@ class Resource(object):
             tags_s=click.style('tags', fg=arg_color, bold=True),
             **self.to_dict()
         )
+
+    def load_commited(self):
+        return orm.DBCommitedState.get_or_create(self.name)
 
 
 def load(name):

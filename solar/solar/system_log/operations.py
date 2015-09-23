@@ -14,6 +14,7 @@
 
 from solar.system_log import data
 from dictdiffer import patch
+from solar.interfaces import orm
 
 
 def set_error(log_action, *args, **kwargs):
@@ -29,9 +30,13 @@ def move_to_commited(log_action, *args, **kwargs):
     item = next((i for i in sl if i.log_action == log_action), None)
     sl.pop(item.uid)
     if item:
-        commited = data.CD()
-        staged_data = patch(item.diff, commited.get(item.res, {}))
+        commited = orm.DBCommitedState.get_or_create(item.res)
+        commited.inputs = patch(item.diff, commited.inputs)
+        sorted_connections = sorted(commited.connections)
+        commited.connections = patch(item.signals_diff, sorted_connections)
+        commited.save()
         cl = data.CL()
         item.state = data.STATES.success
         cl.append(item)
-        commited[item.res] = staged_data
+
+

@@ -132,7 +132,7 @@ class BaseGraphDB(object):
     DEFAULT_COLLECTION=COLLECTIONS.resource
     RELATION_TYPES = Enum(
         'RelationTypes',
-        'input_to_input resource_input plan_edge graph_to_node resource_event'
+        'input_to_input resource_input plan_edge graph_to_node resource_event commited'
     )
     DEFAULT_RELATION=RELATION_TYPES.resource_input
 

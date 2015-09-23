@@ -95,11 +95,3 @@ def resources():
               'connections': [['n.1', 'h.1', ['ip', 'ip']]],
               'tags': []}}
     return r
-
-
-def test_stage_changes(resources):
-    commited = {}
-    log = change._stage_changes(resources, commited, [])
-
-    assert len(log) == 3
-    assert {l.res for l in log} == {'n.1', 'r.1', 'h.1'}

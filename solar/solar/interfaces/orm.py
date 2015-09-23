@@ -566,6 +566,24 @@ class DBEvent(DBObject):
         super(DBEvent, self).delete()
 
 
+class DBCommitedState(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.state_data
+
+    id = db_field(schema='str!', is_primary=True)
+    inputs = db_field(schema={}, default_value={})
+    connections = db_field(schema=[], default_value=[])
+
+    @classmethod
+    def get_or_create(cls, name):
+        r = db.get_or_create(
+            name,
+            properties={'id': name},
+            collection=cls._collection)
+        return cls(**r.properties)
+
 
 class DBResource(DBObject):
     __metaclass__ = DBObjectMeta
@@ -625,6 +643,7 @@ class DBResource(DBObject):
         for input in self.inputs.as_list():
             mdg.add_edges_from(input.edges())
         return mdg
+
 
 # TODO: remove this
 if __name__ == '__main__':

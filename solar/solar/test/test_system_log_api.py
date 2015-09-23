@@ -35,7 +35,7 @@ def test_revert_update():
 
     log = data.SL()
     logitem =change.create_logitem(
-        res.name, action, change.create_diff(commit, previous))
+        res.name, action, change.create_diff(commit, previous), [])
     log.append(logitem)
     resource_obj.update(commit)
     operations.move_to_commited(logitem.log_action)

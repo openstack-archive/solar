@@ -23,6 +23,7 @@ from solar.interfaces.db import get_db
 from solar.system_log import data
 from solar.orchestration import graph
 from solar.events import api as evapi
+from solar.interfaces import orm
 
 db = get_db()
 
@@ -42,57 +43,77 @@ def create_diff(staged, commited):
     return list(dictdiffer.diff(commited, staged))
 
 
-def create_logitem(resource, action, diffed):
+def create_logitem(resource, action, diffed, connections_diffed):
     return data.LogItem(
                 utils.generate_uuid(),
                 resource,
                 '{}.{}'.format(resource, action),
-                diffed)
+                diffed,
+                connections_diffed)
 
 
-def _stage_changes(staged_resources, commited_resources, staged_log):
-
-    union = set(staged_resources.keys()) | set(commited_resources.keys())
-    for res_uid in union:
-        commited_data = commited_resources.get(res_uid, {})
-        staged_data = staged_resources.get(res_uid, {})
-
-        df = create_diff(staged_data, commited_data)
-
-        if df:
-            action = guess_action(commited_data, staged_data)
-            log_item = create_logitem(res_uid, action, df)
-            staged_log.append(log_item)
-    return staged_log
+def create_sorted_diff(staged, commited):
+    staged.sort()
+    commited.sort()
+    return create_diff(staged, commited)
 
 
 def stage_changes():
     log = data.SL()
     log.clean()
-    staged = {r.name: r.args for r in resource.load_all()}
-    commited = data.CD()
-    return _stage_changes(staged, commited, log)
+    resources_map = {r.name: r for r in resource.load_all()}
+    commited_map = {r.id for r in orm.DBCommitedState.load_all()}
+
+    for resource_id in set(resources_map.keys()) | set(commited_map.keys()):
+
+        if resource_id not in resource_map:
+            resource_args = {}
+            resource_connections = []
+        else:
+            resource_args = resource_map[resource_id].args
+            resource_connections = resource_map[resource_id].connections
+
+        if resource_id not in commited_map:
+            commited_args = {}
+            commited_connections = []
+        else:
+            commited_args = commited_map[resource_id].inputs
+            commited_connections = commited_map[resource_id].connections
+
+        inputs_diff = create_diff(resource_args, commited_args)
+        connections_diff = create_sorted_diff(
+            resource_connections, commited_connections)
+
+        # if new connection created it will be reflected in inputs
+        # but using inputs to reverse connections is not possible
+        if inputs_diff:
+            log_item = create_logitem(
+                resource_id,
+                guess_action(commited_connections, resource_connections),
+                inputs_diff,
+                connections_diff)
+            log.append(log_item)
+    return log
 
 
 def send_to_orchestration():
     dg = nx.MultiDiGraph()
-    staged = {r.name: r.args for r in resource.load_all()}
-    commited = data.CD()
+
     events = {}
     changed_nodes = []
 
-    for res_uid in staged.keys():
-        commited_data = commited.get(res_uid, {})
-        staged_data = staged.get(res_uid, {})
+    for resource_obj in resource.load_all():
+        commited_db_obj = resource_obj.load_commited()
+        resource_args = resource_obj.args
 
-        df = create_diff(staged_data, commited_data)
+        df = create_diff(resource_args, commited_db_obj.inputs)
 
         if df:
-            events[res_uid] = evapi.all_events(res_uid)
-            changed_nodes.append(res_uid)
-            action = guess_action(commited_data, staged_data)
+            events[resource_obj.name] = evapi.all_events(resource_obj.name)
+            changed_nodes.append(resource_obj.name)
+            action = guess_action(resource_args, commited_db_obj.inputs)
 
-            state_change = evapi.StateChange(res_uid, action)
+            state_change = evapi.StateChange(resource_obj.name, action)
             state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)
@@ -110,13 +131,13 @@ def parameters(res, action, data):
 
 
 def revert_uids(uids):
-    commited = data.CD()
     history = data.CL()
     for uid in uids:
         item = history.get(uid)
         res_db = resource.load(item.res)
+        commited = res_db.load_commited()
         args_to_update = dictdiffer.revert(
-            item.diff, commited.get(item.res, {}))
+            item.diff, commited.inputs)
         res_db.update(args_to_update)
 
 
