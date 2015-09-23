@@ -12,7 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
 import os
+import json
 import yaml
 import tabulate
 
@@ -20,8 +22,6 @@ import click
 
 from solar.core import actions
 from solar.core import resource as sresource
-from solar.core import signals
-from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
