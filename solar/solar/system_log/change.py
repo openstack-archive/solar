@@ -42,6 +42,14 @@ def create_diff(staged, commited):
     return list(dictdiffer.diff(commited, staged))
 
 
+def create_logitem(resource, action, diffed):
+    return data.LogItem(
+                utils.generate_uuid(),
+                resource,
+                '{}.{}'.format(resource, action),
+                diffed)
+
+
 def _stage_changes(staged_resources, commited_resources, staged_log):
 
     for res_uid in staged_resources.keys():
@@ -52,11 +60,7 @@ def _stage_changes(staged_resources, commited_resources, staged_log):
 
         if df:
             action = guess_action(commited_data, staged_data)
-            log_item = data.LogItem(
-                utils.generate_uuid(),
-                res_uid,
-                '{}.{}'.format(res_uid, action),
-                df)
+            log_item = create_logitem(res_uid, action, df)
             staged_log.append(log_item)
     return staged_log
 
