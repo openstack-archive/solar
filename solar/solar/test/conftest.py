@@ -11,11 +11,29 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import os
 
+import pytest
 
-from pytest import fixture
-
+from solar.core.resource import Resource
 from solar.interfaces import db
+
+@pytest.fixture
+def resources():
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+
+    node_path = os.path.join(base_path, 'node')
+    node1 = Resource('node1', node_path, args={'ip':'10.0.0.1'})
+    node2 = Resource('node2', node_path, args={'ip':'10.0.0.2'})
+
+    base_service_path = os.path.join(base_path, 'base_service')
+    service1 = Resource('service1', base_service_path)
+    return {'node1' : node1,
+            'node2' : node2,
+            'service1': service1
+           }
 
 
 def pytest_configure():
@@ -27,7 +45,7 @@ def pytest_configure():
         db.DB = db.get_db(backend=db.CURRENT_DB)
 
 
-@fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def cleanup(request):
 
     def fin():

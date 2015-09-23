@@ -1,0 +1,7 @@
+id: node
+handler: ansible
+version: 1.0.0
+input:
+  ip:
+    schema: str!
+    value:
