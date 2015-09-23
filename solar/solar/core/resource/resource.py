@@ -53,6 +53,7 @@ class Resource(object):
         else:
             metadata = deepcopy(self._metadata)
 
+        self.base_path = base_path
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 

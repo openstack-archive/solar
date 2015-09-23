@@ -38,13 +38,15 @@ CL = partial(state_file, 'commit_log')
 
 class LogItem(object):
 
-    def __init__(self, uid, res, log_action, diff, signals_diff, state=None):
+    def __init__(self, uid, res, log_action, diff,
+                 signals_diff, state=None, base_path=None):
         self.uid = uid
         self.res = res
         self.log_action = log_action
         self.diff = diff
         self.signals_diff = signals_diff
         self.state = state or STATES.pending
+        self.base_path = base_path
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
@@ -55,7 +57,8 @@ class LogItem(object):
                 'log_action': self.log_action,
                 'diff': self.diff,
                 'state': self.state.name,
-                'signals_diff': self.signals_diff}
+                'signals_diff': self.signals_diff,
+                'base_path': self.base_path}
 
     @classmethod
     def from_dict(cls, **kwargs):

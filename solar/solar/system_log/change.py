@@ -91,7 +91,8 @@ def stage_changes():
                 resource_id,
                 guess_action(commited_connections, resource_connections),
                 inputs_diff,
-                connections_diff)
+                connections_diff,
+                base_path=resource_obj.base_path)
             log.append(log_item)
     return log
 
