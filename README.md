@@ -12,9 +12,9 @@ Linux or MacOS
 
 [Vagrant](http://www.vagrantup.com/downloads.html): 1.7.x
 
-Note: You can also use Vagrant 4.x but you will need to comment paravirtprovider setting in `vagrant-settings.yaml`:
+Note: If you are using VirtualBox 5.0 it's worth uncommenting paravirtprovider setting in `vagrant-settings.yaml` for speed improvements:
 ```bash
-#paravirtprovider: kvm
+paravirtprovider: kvm
 ```
 
 For details see Customizing `vagrant-settings.yaml` section.
