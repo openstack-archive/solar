@@ -39,7 +39,7 @@ def validate():
 
 
 @changes.command()
-@click.option('-d', default=False, is_flag=True)
+@click.option('-d', default=False, is_flag=True, help='detailed view')
 def stage(d):
     log = list(change.stage_changes().reverse())
     for item in log:
@@ -75,14 +75,28 @@ def commit(uid):
 
 
 @changes.command()
-@click.option('-n', default=5)
-def history(n):
-    commited = list(data.CL().collection(n))
-    if not commited:
-        click.echo('No history.')
-        return
-    commited.reverse()
-    click.echo(commited)
+@click.option('-n', default=5, help='number of items to show')
+@click.option('-d', default=False, is_flag=True, help='detailed view')
+@click.option('-s', default=False, is_flag=True, help='short view, only uid')
+def history(n, d, s):
+    log = list(data.CL().collection(n))
+    for item in log:
+        if s:
+            click.echo(item.uid)
+            continue
+
+        click.echo(item)
+        if d:
+            for line in item.details:
+                click.echo(' '*4+line)
+    if not log:
+        click.echo('No history')
+
+
+@changes.command()
+@click.argument('uid')
+def revert(uid):
+    change.revert(uid)
 
 
 @changes.command()

@@ -228,6 +228,12 @@ class TestResourceORM(BaseResourceTest):
         r.add_input('ip', 'str!', '10.0.0.2')
         self.assertEqual(len(r.inputs.as_set()), 1)
 
+    def test_delete_resource(self):
+        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r.save()
+
+        r.add_input('ip', 'str!', '10.0.0.2')
+
 
 class TestResourceInputORM(BaseResourceTest):
     def test_backtrack_simple(self):

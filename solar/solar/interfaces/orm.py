@@ -413,6 +413,17 @@ class DBResourceInput(DBObject):
             )[0].start_node.properties
         )
 
+    def delete(self):
+        db.delete_relations(
+            source=self._db_node,
+            type_=base.BaseGraphDB.RELATION_TYPES.input_to_input
+        )
+        db.delete_relations(
+            dest=self._db_node,
+            type_=base.BaseGraphDB.RELATION_TYPES.input_to_input
+        )
+        super(DBResourceInput, self).delete()
+
     def backtrack_value_emitter(self, level=None):
         # TODO: this is actually just fetching head element in linked list
         #       so this whole algorithm can be moved to the db backend probably
@@ -558,6 +569,12 @@ class DBResource(DBObject):
             )
         event.save()
         self.events.add(event)
+
+    def delete(self):
+        for input in self.inputs.as_set():
+            self.inputs.remove(input)
+            input.delete()
+        super(DBResource, self).delete()
 
 
 # TODO: remove this

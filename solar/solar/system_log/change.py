@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from dictdiffer import diff
+import dictdiffer
 import networkx as nx
 
 from solar.core.log import log
@@ -39,12 +39,21 @@ def guess_action(from_, to):
 
 
 def create_diff(staged, commited):
-    return list(diff(commited, staged))
+    return list(dictdiffer.diff(commited, staged))
+
+
+def create_logitem(resource, action, diffed):
+    return data.LogItem(
+                utils.generate_uuid(),
+                resource,
+                '{}.{}'.format(resource, action),
+                diffed)
 
 
 def _stage_changes(staged_resources, commited_resources, staged_log):
 
-    for res_uid in staged_resources.keys():
+    union = set(staged_resources.keys()) | set(commited_resources.keys())
+    for res_uid in union:
         commited_data = commited_resources.get(res_uid, {})
         staged_data = staged_resources.get(res_uid, {})
 
@@ -52,11 +61,7 @@ def _stage_changes(staged_resources, commited_resources, staged_log):
 
         if df:
             action = guess_action(commited_data, staged_data)
-            log_item = data.LogItem(
-                utils.generate_uuid(),
-                res_uid,
-                '{}.{}'.format(res_uid, action),
-                df)
+            log_item = create_logitem(res_uid, action, df)
             staged_log.append(log_item)
     return staged_log
 
@@ -102,3 +107,19 @@ def parameters(res, action, data):
             'type': 'solar_resource',
             # unique identifier for a node should be passed
             'target': data.get('ip')}
+
+
+def revert_uids(uids):
+    commited = data.CD()
+    history = data.CL()
+    for uid in uids:
+        item = history.get(uid)
+        res_db = resource.load(item.res)
+        args_to_update = dictdiffer.revert(
+            item.diff, commited.get(item.res, {}))
+        res_db.update(args_to_update)
+
+
+def revert(uid):
+    return revert_uids([uid])
+
