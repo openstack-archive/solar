@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Mirantis/solar.svg?branch=master)](https://travis-ci.org/Mirantis/solar)
+
 # Requirements
 
 ## Supported development platforms
