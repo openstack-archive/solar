@@ -20,8 +20,9 @@ import yaml
 from jinja2 import Template, Environment, meta
 
 from solar.core import provider
-from solar.core import resource
 from solar.core import signals
+from solar.core.resource import load as load_resource
+from solar.core.resource import Resource
 from solar.events.api import add_event
 from solar.events.controls import React, Dep
 
@@ -57,7 +58,7 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
 
     # List args init with empty list. Elements will be added later
     args = {key: (value if not isinstance(value, list) else []) for key, value in args.items()}
-    r = resource.Resource(
+    r = Resource(
         name, base_path, args=args, tags=[], virtual_resource=virtual_resource
     )
     return r
@@ -65,12 +66,14 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
 
 def create_virtual_resource(vr_name, template):
     template_resources = template['resources']
-    template_events = template.get('events', {})
+    template_events = template.get('events', [])
+    resources_to_update = template.get('updates', {})
 
     created_resources = create_resources(template_resources)
     events = parse_events(template_events)
     for event in events:
         add_event(event)
+    update_resources(resources_to_update)
     return created_resources
 
 
@@ -113,14 +116,34 @@ def create_resources(resources):
     cwd = os.getcwd()
     for r in resources:
         resource_name = r['id']
-        base_path = os.path.join(cwd, r['from'])
         args = r['values']
-        new_resources = create(resource_name, base_path, args)
+        from_path = r.get('from', None)
+        base_path = os.path.join(cwd, from_path)
+        new_resources = create(resource_name, base_path)
         created_resources += new_resources
-
         if not is_virtual(base_path):
-            add_connections(resource_name, args)
+            update_inputs(resource_name, args)
     return created_resources
+
+
+def update_resources(resources):
+    for r in resources:
+        resource_name = r['id']
+        args = r['values']
+        update_inputs(resource_name, args)
+
+
+def update_inputs(child, args):
+    child = load_resource(child)
+    connections, assignments = parse_inputs(args)
+    for c in connections:
+        mapping = {}
+        parent = load_resource(c['parent'])
+        events = c['events']
+        mapping[c['parent_input']] = c['child_input']
+        signals.connect(parent, child, mapping, events)
+
+    child.update(assignments)
 
 
 def parse_events(events):
@@ -140,38 +163,46 @@ def parse_events(events):
     return parsed_events
 
 
-def add_connections(resource_name, args):
+def parse_inputs(args):
     connections = []
-    for receiver_input, arg in args.items():
+    assignments = {}
+    for r_input, arg in args.items():
         if isinstance(arg, list):
-            for item in arg:
-                c = parse_connection(resource_name, receiver_input, item)
-                connections.append(c)
+            c, a = parse_list_input(r_input, arg)
+            connections.extend(c)
+            assignments.update(a)
         else:
-           c = parse_connection(resource_name, receiver_input, arg)
-           connections.append(c)
-
-    connections = [c for c in connections if c is not None]
-    for c in connections:
-        parent = resource.load(c['parent'])
-        child = resource.load(c['child'])
-        events = c['events']
-        mapping = {c['parent_input'] : c['child_input']}
-        signals.connect(parent, child, mapping, events)
+            if isinstance(arg, basestring) and '::' in arg:
+                c = parse_connection(r_input, arg)
+                connections.append(c)
+            else:
+                assignments[r_input] = arg
+    return connections, assignments
 
 
-def parse_connection(receiver, receiver_input, element):
-    if isinstance(element, basestring) and '::' in element:
-        emitter, src = element.split('::', 1)
-        try:
-            src, events = src.split('::')
-            if events == 'NO_EVENTS':
-                events = False
-        except ValueError:
-            events = None
-        return {'child': receiver,
-                'child_input': receiver_input,
-                'parent' : emitter,
-                'parent_input': src,
-                'events' : events
-                }
+def parse_list_input(r_input, args):
+    connections = []
+    assignments = {}
+    for arg in args:
+        if isinstance(arg, basestring) and '::' in arg:
+            c = parse_connection(r_input, arg)
+            connections.append(c)
+        else:
+            # Not supported yet
+            pass
+    return connections, assignments
+
+
+def parse_connection(child_input, element):
+    parent, parent_input = element.split('::', 1)
+    try:
+        parent_input, events = parent_input.split('::')
+        if events == 'NO_EVENTS':
+            events = False
+    except ValueError:
+        events = None
+    return {'child_input': child_input,
+            'parent' : parent,
+            'parent_input': parent_input,
+            'events' : events
+            }
