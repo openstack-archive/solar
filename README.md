@@ -10,12 +10,12 @@ Linux or MacOS
 
 [Vagrant](http://www.vagrantup.com/downloads.html): 1.7.x
 
-Note: You can also use Vagrant 4.x but you will need to uncomment paravirtprovider setting in vagrant-settings.yaml:
+Note: You can also use Vagrant 4.x but you will need to comment paravirtprovider setting in `vagrant-settings.yaml`:
 ```bash
-paravirtprovider: kvm
+#paravirtprovider: kvm
 ```
 
-For details see Customizing vagrant-settings.yaml section.
+For details see Customizing `vagrant-settings.yaml` section.
 
 For automatically installation of VirtualBox Guest Additions you could install
 [vagrant plugin](https://github.com/dotless-de/vagrant-vbguest).
@@ -290,4 +290,4 @@ Full documentation of individual functions is found in the `solar/template.py` f
 
 # Customizing vagrant-settings.yaml
 
-Solar is shipped with sane defaults in vagrant-setting.yaml_defaults. If you need to adjust them for your needs, e.g. changing resource allocation for VirtualBox machines, you should just compy the file to vagrant-setting.yaml and make your modifications.
+Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you need to adjust them for your needs, e.g. changing resource allocation for VirtualBox machines, you should just compy the file to `vagrant-setting.yaml` and make your modifications.
