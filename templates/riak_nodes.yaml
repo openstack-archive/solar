@@ -1,23 +1,48 @@
-id: simple_riak_cluster
+id: simple_riak_with_transports
 resources:
-  - id: node1
+{% for i in range(count|int) %}
+   {% set j = i +1 %}
+  - id: ssh_transport{{j}}
+    from: resources/transport_ssh
+    values:
+      ssh_user: 'vagrant'
+      ssh_key: '/vagrant/.vagrant/machines/solar-dev{{j}}/virtualbox/private_key'
+  - id: transports{{j}}
+    from: resources/transports
+    values:
+      transports:key: ssh_transport{{j}}::ssh_key
+      transports:user: ssh_transport{{j}}::ssh_user
+      transports:port: ssh_transport{{j}}::ssh_port
+      transports:name: ssh_transport{{j}}::name
+  - id: node{{j}}
     from: resources/ro_node
     values:
-      ip: '10.0.0.3'
-      name: 'node1'
-      ssh_key: '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
-      ssh_user: 'vagrant'
-  - id: node2
-    from: resources/ro_node
-    values:
-      ip: '10.0.0.4'
-      name: 'node2'
-      ssh_key: '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key'
-      ssh_user: 'vagrant'
-  - id: node3
-    from: resources/ro_node
-    values:
-      ip: '10.0.0.5'
-      name: 'node3'
-      ssh_key: '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key'
-      ssh_user: 'vagrant'
+      name: node{{j}}
+      ip: '10.0.0.{{i + 3}}'
+      transports_id: transports{{j}}::transports_id
+{% endfor %}
+
+
+# id: simple_riak_cluster
+# resources:
+#   - id: node1
+#     from: resources/ro_node
+#     values:
+#       ip: '10.0.0.3'
+#       name: 'node1'
+#       ssh_key: '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'
+#       ssh_user: 'vagrant'
+#   - id: node2
+#     from: resources/ro_node
+#     values:
+#       ip: '10.0.0.4'
+#       name: 'node2'
+#       ssh_key: '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key'
+#       ssh_user: 'vagrant'
+#   - id: node3
+#     from: resources/ro_node
+#     values:
+#       ip: '10.0.0.5'
+#       name: 'node3'
+#       ssh_key: '/vagrant/.vagrant/machines/solar-dev3/virtualbox/private_key'
+#       ssh_user: 'vagrant'
