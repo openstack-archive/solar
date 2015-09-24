@@ -8,8 +8,9 @@ cache:
 install:
     - pip install pip-accel
     - pip-accel install coveralls
+    - pip-accel install -r solar/test-requirements.txt
 script:
-    - ./run_tests.sh
+    - cd solar && py.test --cov=solar -s solar && cd ..
 services:
     - redis-server
 after_success:
