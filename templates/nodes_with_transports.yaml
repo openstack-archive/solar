@@ -18,4 +18,5 @@ resources:
     values:
       ip: '10.0.0.{{i + 3}}'
       transports_id: transports{{i}}::transports_id
+      name: node{{i}}
 {% endfor %}

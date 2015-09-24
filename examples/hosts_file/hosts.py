@@ -14,32 +14,20 @@ db = get_db()
 def run():
     db.clear()
 
-    node1 = vr.create('node1', 'resources/ro_node', {'name': 'first' + str(time.time()),
-                                                   'ip': '10.0.0.3',
-                                                   'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
-                                                   'ssh_user': 'vagrant'})[0]
-
-    node2 = vr.create('node2', 'resources/ro_node', {'name': 'second' + str(time.time()),
-                                                   'ip': '10.0.0.4',
-                                                   'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key',
-                                                   'ssh_user': 'vagrant'})[0]
-
-
+    resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {'count': 2})
+    nodes = [x for x in resources if x.name.startswith('node')]
+    node1, node2 = nodes
 
     hosts1 = vr.create('hosts_file1', 'resources/hosts_file', {})[0]
     hosts2 = vr.create('hosts_file2', 'resources/hosts_file', {})[0]
     signals.connect(node1, hosts1, {
         'name': 'hosts:name',
-        'ip': ['hosts:ip', 'ip'],
-        'ssh_user': 'ssh_user',
-        'ssh_key': 'ssh_key'
+        'ip': 'hosts:ip',
     })
 
     signals.connect(node2, hosts2, {
         'name': 'hosts:name',
-        'ip': ['hosts:ip', 'ip'],
-        'ssh_user': 'ssh_user',
-        'ssh_key': 'ssh_key'
+        'ip': 'hosts:ip',
     })
 
     signals.connect(node1, hosts2, {
