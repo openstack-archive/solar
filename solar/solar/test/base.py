@@ -34,6 +34,12 @@ class BaseResourceTest(unittest.TestCase):
 
     def make_resource_meta(self, meta_yaml):
         meta = yaml.load(meta_yaml)
+        inps = meta['input']
+        # automaticaly add location_id
+        inps.setdefault('location_id', {'value': '$uuid',
+                                        'reverse': True,
+                                        'schema': 'str!'})
+        meta_yaml = yaml.dump(meta)
 
         path = os.path.join(self.storage_dir, meta['id'])
         os.makedirs(path)
