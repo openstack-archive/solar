@@ -1,5 +1,8 @@
 language: python
 python: 2.7
+cache:
+    directories:
+        - $HOME/.cache/pi
 install:
     - pip install coveralls
 script:
