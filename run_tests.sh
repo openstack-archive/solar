@@ -29,7 +29,7 @@ fi
 
 . $VENV/bin/activate
 
-pip install -r solar/test-requirements.txt --download-cache=/tmp/$JOB_NAME
+pip-accel install -r solar/test-requirements.txt
 
 pushd solar
 
