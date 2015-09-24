@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import mock
 
 from pytest import fixture
 from solar.system_log import change
@@ -35,12 +36,42 @@ def test_revert_update():
 
     log = data.SL()
     logitem =change.create_logitem(
-        res.name, action, change.create_diff(commit, previous), [])
+        res.name, action, change.create_diff(commit, previous), [],
+        base_path=res.base_path)
     log.append(logitem)
     resource_obj.update(commit)
     operations.move_to_commited(logitem.log_action)
 
+    assert logitem.diff == [('change', 'a', ('9', '10'))]
     assert resource_obj.args == commit
 
     change.revert(logitem.uid)
     assert resource_obj.args == previous
+
+
+def test_revert_removal():
+    res = orm.DBResource(id='test1', name='test1', base_path='x')
+    res.save()
+    res.add_input('a', 'str', '9')
+    res.delete()
+    commited = orm.DBCommitedState.get_or_create('test1')
+    commited.inputs = {'a': '9'}
+    commited.save()
+
+    logitem =change.create_logitem(
+        res.name, 'remove', change.create_diff({}, {'a': '9'}), [],
+        base_path=res.base_path)
+    log = data.SL()
+    log.append(logitem)
+    operations.move_to_commited(logitem.log_action)
+
+    resources = orm.DBResource.load_all()
+
+    assert resources == []
+    assert logitem.diff == [('remove', '', [('a', '9')])]
+
+    with mock.patch.object(resource, 'read_meta') as mread:
+        mread.return_value = {'input': {'a': {'schema': 'str!'}}}
+        change.revert(logitem.uid)
+    resource_obj = resource.load('test1')
+    assert resource_obj.args == {'a': '9'}

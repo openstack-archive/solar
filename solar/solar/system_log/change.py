@@ -24,6 +24,7 @@ from solar.system_log import data
 from solar.orchestration import graph
 from solar.events import api as evapi
 from solar.interfaces import orm
+from .consts import CHANGES
 
 db = get_db()
 
@@ -43,13 +44,15 @@ def create_diff(staged, commited):
     return list(dictdiffer.diff(commited, staged))
 
 
-def create_logitem(resource, action, diffed, connections_diffed):
+def create_logitem(resource, action, diffed, connections_diffed,
+                   base_path=None):
     return data.LogItem(
                 utils.generate_uuid(),
                 resource,
-                '{}.{}'.format(resource, action),
+                action,
                 diffed,
-                connections_diffed)
+                connections_diffed,
+                base_path=base_path)
 
 
 def create_sorted_diff(staged, commited):
@@ -135,12 +138,29 @@ def revert_uids(uids):
     history = data.CL()
     for uid in uids:
         item = history.get(uid)
-        res_db = resource.load(item.res)
-        commited = res_db.load_commited()
-        args_to_update = dictdiffer.revert(
-            item.diff, commited.inputs)
-        res_db.update(args_to_update)
+        if item.action == CHANGES.update.name:
+            _revert_update(item)
+        elif item.action == CHANGES.remove.name:
+            _revert_remove(item)
 
+
+def _revert_remove(logitem):
+    """Resource should be created with all previous connections
+    """
+    commited = orm.DBCommitedState.load(logitem.res)
+    args = dictdiffer.revert(
+        logitem.diff, commited.inputs)
+    resource_obj = resource.Resource(
+        logitem.res, logitem.base_path, args=args)
+
+def _revert_update(logitem):
+    """Revert of update should use update inputs and connections
+    """
+    res_db = resource.load(logitem.res)
+    commited = res_db.load_commited()
+    args_to_update = dictdiffer.revert(
+        logitem.diff, commited.inputs)
+    res_db.update(args_to_update)
 
 def revert(uid):
     return revert_uids([uid])
