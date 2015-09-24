@@ -75,3 +75,25 @@ def test_revert_removal():
         change.revert(logitem.uid)
     resource_obj = resource.load('test1')
     assert resource_obj.args == {'a': '9'}
+
+
+def test_revert_create():
+    res = orm.DBResource(id='test1', name='test1', base_path='x')
+    res.save()
+    res.add_input('a', 'str', '9')
+
+    logitem =change.create_logitem(
+        res.name, 'run', change.create_diff({'a': '9'}, {}), [],
+        base_path=res.base_path)
+    log = data.SL()
+    log.append(logitem)
+    assert logitem.diff == [('add', '', [('a', '9')])]
+
+    operations.move_to_commited(logitem.log_action)
+    commited = orm.DBCommitedState.load('test1')
+    assert commited.inputs == {'a': '9'}
+
+    change.revert(logitem.uid)
+
+    resources = orm.DBResource.load_all()
+    assert resources == []

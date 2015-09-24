@@ -142,6 +142,8 @@ def revert_uids(uids):
             _revert_update(item)
         elif item.action == CHANGES.remove.name:
             _revert_remove(item)
+        elif item.action == CHANGES.run.name:
+            _revert_run(item)
 
 
 def _revert_remove(logitem):
@@ -153,14 +155,21 @@ def _revert_remove(logitem):
     resource_obj = resource.Resource(
         logitem.res, logitem.base_path, args=args)
 
+
 def _revert_update(logitem):
     """Revert of update should use update inputs and connections
     """
-    res_db = resource.load(logitem.res)
-    commited = res_db.load_commited()
+    res_obj = resource.load(logitem.res)
+    commited = res_obj.load_commited()
     args_to_update = dictdiffer.revert(
         logitem.diff, commited.inputs)
-    res_db.update(args_to_update)
+    res_obj.update(args_to_update)
+
+
+def _revert_run(logitem):
+    res_obj = resource.load(logitem.res)
+    res_obj.delete()
+
 
 def revert(uid):
     return revert_uids([uid])
