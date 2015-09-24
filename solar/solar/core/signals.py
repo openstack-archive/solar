@@ -58,7 +58,10 @@ def location_and_transports(emitter, receiver, orig_mapping):
             elif isinstance(orig_mapping, set):
                 orig_mapping.remove(single)
 
-    def _single(single):
+    def _single(single, inps_emitter, inps_receiver):
+        if inps_emitter and inps_receiver:
+            log.debug("location and transports different, skipping")
+            return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
         emitter_single_reverse = emitter_single.get('reverse')
@@ -76,9 +79,11 @@ def location_and_transports(emitter, receiver, orig_mapping):
         if isinstance(orig_mapping, dict):
             orig_mapping[single] = single
 
+    inps_emitter = emitter.args
+    inps_receiver = receiver.args
     # XXX: should be somehow parametrized (input attribute?)
     for single in ('transports_id', 'location_id'):
-        _single(single)
+        _single(single, inps_emitter[single], inps_receiver[single])
     return
 
 
