@@ -1,22 +1,22 @@
 # TODO
-- hosts: [{{ip}}]
+- hosts: [{{host}}]
   sudo: yes
   vars:
-    config_dir: {src: {{ config_dir.value['src'] }}, dst: {{ config_dir.value['dst'] }}}
+    config_dir: {src: {{ config_dir['src'] }}, dst: {{ config_dir['dst'] }}}
     haproxy_ip: {{ ip }}
     haproxy_services:
-      {% for service, ports, listen_port, protocol in zip(configs.value, configs_ports.value, listen_ports.value, configs_protocols.value) %}
-      - name: {{ service['emitter_attached_to'] }}
-        listen_port: {{ listen_port['value'] }}
-        protocol: {{ protocol['value'] }}
-        servers:
-          {% for server_ip, server_port in zip(service['value'], ports['value']) %}
-          - name: {{ server_ip['emitter_attached_to'] }}
-            ip: {{ server_ip['value'] }}
-            port: {{ server_port['value'] }}
-          {% endfor %}
+      {% for single in config %}
+        - name: {{ single['name'] }}
+          listen_port: {{ single['listen_port'] }}
+          protocol: {{ single['protocol'] }}
+          servers:
+            {% for backend in single['backends'] %}
+            - name: {{ backend['server'] }}_{{ backend['port'] }}
+              ip: {{ backend['server'] }}
+              port: {{ backend['port'] }}
+            {% endfor %}
       {% endfor %}
   tasks:
-    - file: path={{ config_dir.value['src'] }}/ state=directory
-    - file: path={{ config_dir.value['src'] }}/haproxy.cfg state=touch
+    - file: path={{ config_dir['src'] }}/ state=directory
+    - file: path={{ config_dir['src'] }}/haproxy.cfg state=touch
     - template: src={{templates_dir}}/haproxy.cfg dest=/etc/haproxy/haproxy.cfg

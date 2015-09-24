@@ -17,8 +17,9 @@ from copy import deepcopy
 from multipledispatch import dispatch
 import os
 
-from solar.interfaces import orm
 from solar import utils
+from solar.core import validation
+from solar.interfaces import orm
 
 
 def read_meta(base_path):
@@ -38,7 +39,7 @@ class Resource(object):
     _metadata = {}
 
     # Create
-    @dispatch(str, str)
+    @dispatch(basestring, basestring)
     def __init__(self, name, base_path, args=None, tags=None, virtual_resource=None):
         args = args or {}
         self.name = name
@@ -111,6 +112,9 @@ class Resource(object):
             i.value = v
             i.save()
 
+    def delete(self):
+        return self.db_obj.delete()
+
     def resource_inputs(self):
         return {
             i.name: i for i in self.db_obj.inputs.as_set()
@@ -154,3 +158,16 @@ def load(name):
 # TODO
 def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
+
+
+def validate_resources():
+    resources = load_all()
+
+    ret = []
+
+    for r in resources:
+        e = validation.validate_resource(r)
+        if e:
+            ret.append((r, e))
+
+    return ret

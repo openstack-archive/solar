@@ -51,7 +51,7 @@ def update(uid, plan):
 
 
 @orchestration.command()
-@click.argument('uid', type=SOLARUID)
+@click.argument('uid', type=SOLARUID, default='last')
 def report(uid):
     colors = {
         'PENDING': 'cyan',
@@ -73,6 +73,7 @@ def report(uid):
         click.echo(click.style(msg, fg=colors[item[1]]))
     click.echo('Delta SUM: {}'.format(total))
 
+
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
@@ -89,7 +90,7 @@ def filter(uid, start, end):
 
 
 @orchestration.command(name='run-once')
-@click.argument('uid', type=SOLARUID)
+@click.argument('uid', type=SOLARUID, default='last')
 def run_once(uid):
     tasks.schedule_start.apply_async(
         args=[uid],
@@ -122,14 +123,14 @@ def reset(uid):
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def resume(uid):
-    graph.reset_by_uid(uid, ['SKIPPED'])
+    graph.reset_by_uid(uid, state_list=['SKIPPED'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def retry(uid):
-    graph.reset_by_uid(uid, ['ERROR'])
+    graph.reset_by_uid(uid, state_list=['ERROR'])
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
 
 

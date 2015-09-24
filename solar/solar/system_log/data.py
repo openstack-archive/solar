@@ -115,7 +115,7 @@ class Log(object):
         self.ordered_log = db.get_ordered_hash(path)
 
     def append(self, logitem):
-        self.ordered_log.add([(logitem.log_action, logitem.to_dict())])
+        self.ordered_log.add([(logitem.uid, logitem.to_dict())])
 
     def pop(self, uid):
         item = self.get(uid)
@@ -125,7 +125,7 @@ class Log(object):
         return item
 
     def update(self, logitem):
-        self.ordered_log.update(logitem.log_action, logitem.to_dict())
+        self.ordered_log.update(logitem.uid, logitem.to_dict())
 
     def clean(self):
         self.ordered_log.clean()

@@ -1,0 +1,149 @@
+id: riak_node
+
+resources:
+  - id: riak_service0
+    from: resources/riak_node
+    values:
+      riak_self_name: 'riak0'
+      riak_hostname: 'riak_server0.solar'
+      riak_name: 'riak0@riak_server0.solar'
+      ip: '{{nodes[0]}}::ip'
+      ssh_user: '{{nodes[0]}}::ssh_user'
+      ssh_key: '{{nodes[0]}}::ssh_key'
+
+{% for i in range(1, idx|int) %}
+  - id: riak_service{{i}}
+    from: resources/riak_node
+    values:
+      riak_self_name: 'riak{{i}}'
+      riak_hostname: 'riak_server{{i}}.solar'
+      riak_name: 'riak{{i}}@riak_server{{i}}.solar'
+      join_to: 'riak_service0::riak_name'
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: hosts_file{{i}}
+    from: resources/hosts_file
+    values:
+      hosts:name: 
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::riak_hostname::NO_EVENTS
+        {% endfor %}
+      hosts:ip:
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::ip::NO_EVENTS
+        {% endfor %}
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service_config_http{{i}}
+    from: resources/haproxy_service_config
+    values:
+      listen_port: 8098
+      protocol: 'http'
+      name: 'riak_haproxy_http{{i}}'
+      backends:server:
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::riak_hostname
+        {% endfor %}
+      backends:port:
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::riak_port_http
+        {% endfor %}
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service_config_pb{{i}}
+    from: resources/haproxy_service_config
+    values:
+      listen_port: 8087
+      protocol: 'tcp'
+      name: 'riak_haproxy_pb{{i}}'
+      backends:server:
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::riak_hostname
+        {% endfor %}
+      backends:port:
+        {% for j in range(idx|int) %}
+        - riak_service{{j}}::riak_port_pb
+        {% endfor %}
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_config{{i}}
+    from: resources/haproxy_config
+    values:
+      config:protocol:
+        - haproxy_service_config_http{{i}}::protocol
+        - haproxy_service_config_pb{{i}}::protocol
+      config:listen_port:
+        - haproxy_service_config_http{{i}}::listen_port
+        - haproxy_service_config_pb{{i}}::listen_port
+      config:name:
+        - haproxy_service_config_http{{i}}::name
+        - haproxy_service_config_pb{{i}}::name
+      config:backends:
+        - haproxy_service_config_http{{i}}::backends
+        - haproxy_service_config_pb{{i}}::backends
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+{% for i in range(idx|int) %}
+  - id: haproxy_service{{i}}
+    from: resources/haproxy_service
+    values:
+      ip: '{{nodes[i]}}::ip'
+      ssh_user: '{{nodes[i]}}::ssh_user'
+      ssh_key: '{{nodes[i]}}::ssh_key'
+{% endfor %}
+
+
+events:
+{% for i in range(idx|int) %}
+  - type: depends_on
+    parent_action: 'hosts_file{{i}}.run'
+    state: 'success'
+    depend_action: 'riak_service{{i}}.run'
+{% endfor %}
+
+{% for i in range(1, idx|int) %}
+  - type: react_on
+    parent_action: 'riak_service{{i}}.run'
+    state: 'success'
+    depend_action: 'riak_service{{i}}.join'
+
+  - type: react_on
+    parent_action: 'riak_service{{i}}.leave'
+    state: 'success'
+    depend_action: 'riak_service{{i}}.join'
+
+  - type: react_on
+    parent_action: 'riak_service{{i}}.join'
+    state: 'success'
+    depend_action: 'riak_service0.commit'
+{% endfor %}
+
+{% for i in range(1, idx|int) %}
+  - type: depends_on
+    parent_action: 'haproxy_service{{i}}.run'
+    state: 'success'
+    depend_action: 'haproxy_config{{i}}.run'
+
+  - type: react_on
+    parent_action: 'haproxy_config{{i}}.run'
+    state: 'success'
+    depend_action: 'haproxy_service{{i}}.apply_config'
+
+  - type: react_on
+    parent_action: 'haproxy_config{{i}}.update'
+    state: 'success'
+    depend_action: 'haproxy_service{{i}}.apply_config'
+{% endfor %}

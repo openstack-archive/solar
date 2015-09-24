@@ -1,5 +1,10 @@
+#!/usr/bin/env python
+
 # To run:
 # python example-riaks.py deploy
+# solar changes stage
+# solar changes process
+# solar orch run-once last
 # python example-riaks.py add_haproxies
 # solar changes stage
 # solar changes process
@@ -45,7 +50,7 @@ def setup_riak():
         signals.connect(nodes[i], riak)
 
     for i, riak in enumerate(riak_services[1:]):
-        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'}, events=None)
+        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
 
     hosts_services = []
     for i, riak in enumerate(riak_services):
@@ -58,24 +63,17 @@ def setup_riak():
     for riak in riak_services:
         for hosts_file in hosts_services:
             signals.connect(riak, hosts_file,
-                            {'riak_hostname': 'hosts_names', 'ip': 'hosts_ips'},
+                            {'riak_hostname': 'hosts:name',
+                             'ip': 'hosts:ip'},
                             events=False)
 
+    errors = resource.validate_resources()
+    for r, error in errors:
+        click.echo('ERROR: %s: %s' % (r.name, error))
     has_errors = False
-    for r in locals().values():
 
-        # TODO: handle list
-        if not isinstance(r, resource.Resource):
-            continue
-
-        # print 'Validating {}'.format(r.name)
-        local_errors = validation.validate_resource(r)
-        if local_errors:
-            has_errors = True
-            print 'ERROR: %s: %s' % (r.name, local_errors)
-
-    if has_errors:
-        print "ERRORS"
+    if errors:
+        click.echo("ERRORS")
         sys.exit(1)
 
     events = [
@@ -108,7 +106,7 @@ def setup_riak():
     for event in events:
         add_event(event)
 
-    print 'Use solar changes process & orch'
+    click.echo('Use solar changes process & orch')
     sys.exit(0)
 
 
@@ -143,33 +141,28 @@ def setup_haproxies():
 
     for single_hpsc in hpsc_http:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
-                                                'riak_port_http': 'ports'})
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
+                                                'riak_port_http': 'backends:port'})
 
     for single_hpsc in hpsc_pb:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'servers',
-                                                'riak_port_pb': 'ports'})
+            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
+                                                'riak_port_pb': 'backends:port'})
 
     # haproxy config to haproxy service
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_http):
-        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
-                                                  'listen_port': 'listen_ports',
-                                                  'name': 'configs_names',
-                                                  'servers': 'configs',
-                                                  'ports': 'configs_ports'})
+        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+                                                  "listen_port": "config:listen_port",
+                                                  "protocol": "config:protocol",
+                                                  "name": "config:name"})
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_pb):
-        signals.connect(single_hpsc, single_hpc, {'protocol': 'configs_protocols',
-                                                  'listen_port': 'listen_ports',
-                                                  'name': 'configs_names',
-                                                  'servers': 'configs',
-                                                  'ports': 'configs_ports'})
+        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+                                                  "listen_port": "config:listen_port",
+                                                  "protocol": "config:protocol",
+                                                  "name": "config:name"})
 
-    for single_hps, single_hpc in zip(hps, hpc):
-        signals.connect(single_hpc, single_hps, {'listen_ports': 'ports'},
-                        events=False)
 
     # assign haproxy services to each node
 
@@ -222,6 +215,7 @@ def main():
 @click.command()
 def deploy():
     setup_riak()
+
 
 @click.command()
 def add_haproxies():

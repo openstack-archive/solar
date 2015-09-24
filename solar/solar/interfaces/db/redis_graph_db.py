@@ -38,6 +38,9 @@ class RedisGraphDB(BaseGraphDB):
         elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_input.name:
             source_collection = BaseGraphDB.COLLECTIONS.resource
             dest_collection = BaseGraphDB.COLLECTIONS.input
+        elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_event.name:
+            source_collection = BaseGraphDB.COLLECTIONS.resource
+            dest_collection = BaseGraphDB.COLLECTIONS.events
 
         source = self.get(relation_db['source'], collection=source_collection)
         dest = self.get(relation_db['dest'], collection=dest_collection)
@@ -145,12 +148,18 @@ class RedisGraphDB(BaseGraphDB):
         """Fetch element with given name and collection type."""
 
         try:
-            item = self._r.get(self._make_collection_key(collection, name))
+            collection_key = self._make_collection_key(collection, name)
+            item = self._r.get(collection_key)
             if not item and return_empty:
                 return item
             return json.loads(item)
         except TypeError:
-            raise KeyError
+            raise KeyError(collection_key)
+
+    def delete(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION):
+        keys = self._r.keys(self._make_collection_key(collection, name))
+        if keys:
+            self._r.delete(*keys)
 
     def get_or_create(self,
                       name,
@@ -184,28 +193,53 @@ class RedisGraphDB(BaseGraphDB):
     def delete_relations(self,
                          source=None,
                          dest=None,
-                         type_=BaseGraphDB.DEFAULT_RELATION):
+                         type_=BaseGraphDB.DEFAULT_RELATION,
+                         has_properties=None):
         """Delete all relations of type `type_` from source to dest."""
 
         glob = self._relations_glob(source=source, dest=dest, type_=type_)
         keys = self._r.keys(glob)
 
-        if keys:
+        if not keys:
+            return
+
+        if not has_properties:
             self._r.delete(*keys)
+
+        rels = self.get_relations(
+            source=source, dest=dest, type_=type_, has_properties=has_properties
+        )
+        for r in rels:
+            self.delete_relations(
+                source=r.start_node,
+                dest=r.end_node,
+                type_=type_
+            )
 
     def get_relations(self,
                       source=None,
                       dest=None,
-                      type_=BaseGraphDB.DEFAULT_RELATION):
+                      type_=BaseGraphDB.DEFAULT_RELATION,
+                      has_properties=None):
         """Fetch all relations of type `type_` from source to dest."""
 
         glob = self._relations_glob(source=source, dest=dest, type_=type_)
+
+        def check_has_properties(r):
+            if has_properties:
+                for k, v in has_properties.items():
+                    if not r['properties'].get(k) == v:
+                        return False
+
+            return True
 
         for r in self._all(glob):
             # Glob is primitive, we must filter stuff correctly here
             if source and r['source'] != source.uid:
                 continue
             if dest and r['dest'] != dest.uid:
+                continue
+            if not check_has_properties(r):
                 continue
             yield r
 
@@ -223,9 +257,10 @@ class RedisGraphDB(BaseGraphDB):
     def get_or_create_relation(self,
                                source,
                                dest,
-                               properties={},
+                               properties=None,
                                type_=BaseGraphDB.DEFAULT_RELATION):
         """Fetch or create relation with given properties."""
+        properties = properties or {}
 
         try:
             return self.get_relation(source, dest, type_=type_)

@@ -5,9 +5,6 @@ input:
     ip:
       schema: str!
       value:
-    ports:
-      schema: [[int]]
-      value: []
     ssh_user:
       schema: str!
       value:

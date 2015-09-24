@@ -36,3 +36,6 @@ vagrant-settings.yaml
 .solar_cli_uids
 
 .ssh/
+.cache
+
+.tox
