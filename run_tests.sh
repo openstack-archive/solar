@@ -29,6 +29,7 @@ fi
 
 . $VENV/bin/activate
 
+pip install pip-accel
 pip-accel install -r solar/test-requirements.txt
 
 pushd solar
