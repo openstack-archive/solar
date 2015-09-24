@@ -1,0 +1,11 @@
+id: simple_multinode
+resources:
+  - id: node1
+    from: {resource_path}
+    values:
+      ip: '10.0.0.3'
+
+updates:
+  - id: node1
+    values:
+      ip: '10.0.0.4'
