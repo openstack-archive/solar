@@ -31,6 +31,6 @@ fi
 
 pip install -r solar/test-requirements.txt --download-cache=/tmp/$JOB_NAME
 
-pushd solar/solar
+pushd solar
 
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s test/
+PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar
