@@ -1,6 +1,10 @@
 language: python
 python: 2.7
+install:
+    - pip install coveralls
 script:
-  - ./run_tests.sh
+    - ./run_tests.sh
 services:
-      - redis-server
+    - redis-server
+after_success:
+    coveralls
