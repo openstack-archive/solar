@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Mirantis/solar.svg?branch=master)](https://travis-ci.org/Mirantis/solar)
+[![Build Status](https://travis-ci.org/Mirantis/solar.svg?branch=master)](https://travis-ci.org/Mirantis/solar) [![Coverage Status](https://coveralls.io/repos/Mirantis/solar/badge.svg?branch=master&service=github)](https://coveralls.io/github/Mirantis/solar?branch=master)
 
 # Requirements
 
