@@ -112,6 +112,9 @@ class Resource(object):
             i.value = v
             i.save()
 
+    def delete(self):
+        return self.db_obj.delete()
+
     def resource_inputs(self):
         return {
             i.name: i for i in self.db_obj.inputs.as_set()

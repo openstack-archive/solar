@@ -52,7 +52,8 @@ def create_logitem(resource, action, diffed):
 
 def _stage_changes(staged_resources, commited_resources, staged_log):
 
-    for res_uid in staged_resources.keys():
+    union = set(staged_resources.keys()) | set(commited_resources.keys())
+    for res_uid in union:
         commited_data = commited_resources.get(res_uid, {})
         staged_data = staged_resources.get(res_uid, {})
 
