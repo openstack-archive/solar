@@ -1,4 +1,5 @@
 -r requirements.txt
+hacking==0.7
+pytest-cov
 pytest-mock
 tox
-hacking==0.7
