@@ -2,7 +2,7 @@ language: python
 python: 2.7
 cache:
     directories:
-        - $HOME/.cache/pi
+        - $HOME/.cache/pip
 install:
     - pip install coveralls
 script:
