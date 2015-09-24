@@ -18,6 +18,7 @@ from pytest import fixture
 from solar.system_log import change
 from solar.system_log import data
 from solar.system_log import operations
+from solar.core import signals
 from solar.core.resource import resource
 from solar.interfaces import orm
 
@@ -49,6 +50,47 @@ def test_revert_update():
     assert resource_obj.args == previous
 
 
+def test_revert_update_connected():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+
+    res2 = orm.DBResource(id='test2', name='test2', base_path='x')
+    res2.save()
+    res2.add_input('a', 'str', 0)
+
+    res3 = orm.DBResource(id='test3', name='test3', base_path='x')
+    res3.save()
+    res3.add_input('a', 'str', 0)
+
+    res1 = resource.load('test1')
+    res2 = resource.load('test2')
+    res3 = resource.load('test3')
+    signals.connect(res1, res2)
+    signals.connect(res2, res3)
+
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 3
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+    assert len(staged_log) == 0
+
+    signals.disconnect(res1, res2)
+
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 2
+    to_revert = []
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+        to_revert.append(item.uid)
+
+    change.revert_uids(reversed(to_revert))
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 2
+    for item in staged_log:
+        assert item.diff == [['change', 'a', [0, '9']]]
+
+
 def test_revert_removal():
     res = orm.DBResource(id='test1', name='test1', base_path='x')
     res.save()
@@ -75,6 +117,38 @@ def test_revert_removal():
         change.revert(logitem.uid)
     resource_obj = resource.load('test1')
     assert resource_obj.args == {'a': '9'}
+
+
+def test_revert_removed_child():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+
+    res2 = orm.DBResource(id='test2', name='test2', base_path='x')
+    res2.save()
+    res2.add_input('a', 'str', 0)
+
+    res1 = resource.load('test1')
+    res2 = resource.load('test2')
+    signals.connect(res1, res2)
+
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 2
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+    res2.delete()
+
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 1
+    logitem = next(staged_log.collection())
+    operations.move_to_commited(logitem.log_action)
+
+    with mock.patch.object(resource, 'read_meta') as mread:
+        mread.return_value = {'input': {'a': {'schema': 'str!'}}}
+        change.revert(logitem.uid)
+
+    res2 = resource.load('test2')
+    assert res2.args == {'a': '9'}
 
 
 def test_revert_create():

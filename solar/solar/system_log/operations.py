@@ -34,6 +34,7 @@ def move_to_commited(log_action, *args, **kwargs):
         commited.inputs = patch(item.diff, commited.inputs)
         sorted_connections = sorted(commited.connections)
         commited.connections = patch(item.signals_diff, sorted_connections)
+        commited.base_path = item.base_path
         commited.save()
         cl = data.CL()
         item.state = data.STATES.success

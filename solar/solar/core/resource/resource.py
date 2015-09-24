@@ -83,6 +83,7 @@ class Resource(object):
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
+        self.base_path = resource_db.base_path
         # TODO: tags
         self.tags = []
         self.virtual_resource = None

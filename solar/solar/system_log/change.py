@@ -33,11 +33,11 @@ def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
     # something where this action will be excplicitly specified
     if not from_:
-        return 'run'
+        return CHANGES.run.name
     elif not to:
-        return 'remove'
+        return CHANGES.remove.name
     else:
-        return 'update'
+        return CHANGES.update.name
 
 
 def create_diff(staged, commited):
@@ -65,16 +65,18 @@ def stage_changes():
     log = data.SL()
     log.clean()
     resources_map = {r.name: r for r in resource.load_all()}
-    commited_map = {r.id for r in orm.DBCommitedState.load_all()}
+    commited_map = {r.id: r for r in orm.DBCommitedState.load_all()}
 
     for resource_id in set(resources_map.keys()) | set(commited_map.keys()):
 
-        if resource_id not in resource_map:
+        if resource_id not in resources_map:
             resource_args = {}
             resource_connections = []
+            base_path = commited_map[resource_id].base_path
         else:
-            resource_args = resource_map[resource_id].args
-            resource_connections = resource_map[resource_id].connections
+            resource_args = resources_map[resource_id].args
+            resource_connections = resources_map[resource_id].connections
+            base_path = resources_map[resource_id].base_path
 
         if resource_id not in commited_map:
             commited_args = {}
@@ -95,7 +97,7 @@ def stage_changes():
                 guess_action(commited_connections, resource_connections),
                 inputs_diff,
                 connections_diff,
-                base_path=resource_obj.base_path)
+                base_path=base_path)
             log.append(log_item)
     return log
 
@@ -150,20 +152,33 @@ def _revert_remove(logitem):
     """Resource should be created with all previous connections
     """
     commited = orm.DBCommitedState.load(logitem.res)
-    args = dictdiffer.revert(
-        logitem.diff, commited.inputs)
-    resource_obj = resource.Resource(
-        logitem.res, logitem.base_path, args=args)
+    args = dictdiffer.revert(logitem.diff, commited.inputs)
+    connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
+    resource.Resource(logitem.res, logitem.base_path, args=args)
+    for emitter, emitter_input, receiver, receiver_input in connections:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
+        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
 
 
 def _revert_update(logitem):
-    """Revert of update should use update inputs and connections
+    """Revert of update should update inputs and connections
     """
     res_obj = resource.load(logitem.res)
     commited = res_obj.load_commited()
-    args_to_update = dictdiffer.revert(
-        logitem.diff, commited.inputs)
+    args_to_update = dictdiffer.revert(logitem.diff, commited.inputs)
     res_obj.update(args_to_update)
+
+    for emitter, _, receiver, _ in commited.connections:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
+        signals.disconnect(emmiter_obj, receiver_obj)
+
+    connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
+    for emitter, emitter_input, receiver, receiver_input in connections:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
+        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
 
 
 def _revert_run(logitem):

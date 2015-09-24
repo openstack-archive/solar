@@ -575,6 +575,7 @@ class DBCommitedState(DBObject):
     id = db_field(schema='str!', is_primary=True)
     inputs = db_field(schema={}, default_value={})
     connections = db_field(schema=[], default_value=[])
+    base_path = db_field('str')
 
     @classmethod
     def get_or_create(cls, name):

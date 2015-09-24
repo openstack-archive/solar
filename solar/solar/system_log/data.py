@@ -149,3 +149,6 @@ class Log(object):
 
     def __iter__(self):
         return iter(self.collection())
+
+    def __len__(self):
+        return len(list(self.collection()))
