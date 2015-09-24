@@ -1,10 +1,13 @@
 language: python
 python: 2.7
+env:
+  - PIP_ACCEL_CACHE=$HOME/.pip-accel-cache
 cache:
     directories:
-        - $HOME/.cache/pip
+        - $HOME/.pip-accel-cache
 install:
-    - pip install coveralls
+    - pip install pip-accel
+    - pip-accel install coveralls
 script:
     - ./run_tests.sh
 services:
