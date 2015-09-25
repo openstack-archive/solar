@@ -226,9 +226,10 @@ class SolardIface(object):
         for _to, _size in paths:
             logger.debug("Starting %s size=%d", _to, _size)
             f = SolardIface.file_start(solard_context, _to)
-            rdr = stream_reader(_size)
-            for data in rdr:
-                f.write(data)
+            if _size > 0:
+                rdr = stream_reader(_size)
+                for data in rdr:
+                    f.write(data)
             SolardIface.file_end(solard_context, _to)
             logger.debug("Done %s size=%d", _to, _size)
         return True
