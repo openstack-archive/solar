@@ -46,6 +46,11 @@ def bad_event_type():
 '''
     return yaml.load(StringIO(events))
 
+def test_create_path_does_not_exists():
+    with pytest.raises(Exception) as excinfo:
+        vr.create('node1', '/path/does/not/exists')
+    err = 'Base resource does not exist: /path/does/not/exists'
+    assert str(excinfo.value) == err
 
 def test_create_resource():
     node_path = os.path.join(
@@ -68,6 +73,26 @@ def test_create_virtual_resource(tmpdir):
     resources = vr.create('nodes', str(vr_file))
     assert len(resources) == 2
 
+def test_update(tmpdir):
+    # XXX: make helper for it
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_node_tmpl_path = os.path.join(base_path, 'nodes.yaml.tmpl')
+    vr_update_tmpl_path = os.path.join(base_path, 'update.yaml.tmpl')
+    update_path = os.path.join(base_path, 'update')
+    node_resource_path = os.path.join(base_path, 'node')
+    with open(vr_node_tmpl_path) as f:
+        vr_data = f.read().format(resource_path=node_resource_path)
+    with open(vr_update_tmpl_path) as f:
+        update_data = f.read().format(resource_path=update_path)
+    vr_file = tmpdir.join('nodes.yaml')
+    vr_file.write(vr_data)
+    update_file = tmpdir.join('update.yaml')
+    update_file.write(update_data)
+    resources = vr.create('nodes', str(vr_file))
+    vr.create('updates', str(update_file))
+    assert resources[0].args['ip'] == '10.0.0.4'
 
 def test_parse_events(good_events):
     events =[Dep(parent='service1', parent_action='run',
@@ -92,30 +117,23 @@ def test_add_connections(mocker, resources):
             'servers': ['node1::ip', 'node2::ip'],
             'alias': 'ser1'
            }
-    vr.add_connections('service1', args)
+    vr.update_inputs('service1', args)
     assert mocked_signals.connect.call_count == 3
 
-
 def test_parse_connection():
-    correct_connection = {'child': 'host_file',
-     'child_input': 'ip',
+    correct_connection = {'child_input': 'ip',
      'parent' : 'node1',
      'parent_input': 'ip',
      'events' : None
     }
-    connection = vr.parse_connection('host_file', 'ip', 'node1::ip')
+    connection = vr.parse_connection('ip', 'node1::ip')
     assert correct_connection == connection
 
 def test_parse_connection_disable_events():
-    correct_connection = {'child': 'host_file',
-     'child_input': 'ip',
+    correct_connection = {'child_input': 'ip',
      'parent' : 'node1',
      'parent_input': 'ip',
      'events' : False
     }
-    connection = vr.parse_connection('host_file', 'ip', 'node1::ip::NO_EVENTS')
+    connection = vr.parse_connection('ip', 'node1::ip::NO_EVENTS')
     assert correct_connection == connection
-
-def test_parse_connection_no_connection():
-    connection = vr.parse_connection('host_file', 'ip', '10.0.0.2')
-    assert None == connection
