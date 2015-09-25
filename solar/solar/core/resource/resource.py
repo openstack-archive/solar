@@ -18,8 +18,13 @@ from multipledispatch import dispatch
 import os
 
 from solar import utils
+
 from solar.core import validation
 from solar.interfaces import orm
+
+from uuid import uuid4
+from hashlib import md5
+
 
 
 def read_meta(base_path):
@@ -51,6 +56,10 @@ class Resource(object):
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 
+        inputs = metadata.get('input', {})
+
+        self.auto_extend_inputs(inputs)
+
         self.db_obj = orm.DBResource(**{
             'id': name,
             'name': name,
@@ -60,8 +69,10 @@ class Resource(object):
             'handler': metadata.get('handler', ''),
             'puppet_module': metadata.get('puppet_module', ''),
             'version': metadata.get('version', ''),
-            'meta_inputs': metadata.get('input', {})
+            'meta_inputs': inputs
+
         })
+
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -74,6 +85,29 @@ class Resource(object):
         # TODO: tags
         self.tags = []
         self.virtual_resource = None
+
+    def auto_extend_inputs(self, inputs):
+        # XXX: we didn't agree on `location_id` and `transports_id`
+        # that are added automaticaly to all resources
+        # using inputs for something like that may be not the best idea
+        # maybe we need something like `internal_input`
+        inputs.setdefault('location_id', {'value': "",
+                                          'schema': 'str!'})
+        inputs.setdefault('transports_id', {'value': "",
+                                          'schema': 'str'})
+        for inp in ('transports_id', 'location_id'):
+            if inputs[inp]['value'] == '$uuid':
+                inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
+
+    def transports(self):
+        inputs = self.resource_inputs()
+        transports_id = inputs['transports_id']
+        return transports_id.backtrack_value(other_val='transports')
+
+    def ip(self):
+        inputs = self.resource_inputs()
+        transports_id = inputs['location_id']
+        return transports_id.backtrack_value(other_val='ip')
 
     @property
     def actions(self):

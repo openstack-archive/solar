@@ -424,27 +424,48 @@ class DBResourceInput(DBObject):
         )
         super(DBResourceInput, self).delete()
 
-    def backtrack_value_emitter(self, level=None):
+    def check_other_val(self, other_val=None):
+        if not other_val:
+            return self
+        res = self.resource
+        # TODO: needs to be refactored a lot to be more effective.
+        # We don't have way of getting single input / value for given resource.
+        inps = {i.name: i for i in res.inputs.as_set()}
+        correct_input = inps[other_val]
+        return correct_input.backtrack_value()
+
+
+    def backtrack_value_emitter(self, level=None, other_val=None):
         # TODO: this is actually just fetching head element in linked list
         #       so this whole algorithm can be moved to the db backend probably
         # TODO: cycle detection?
         # TODO: write this as a Cypher query? Move to DB?
+        if level is not None and other_val is not None:
+            raise Exception("Not supported yet")
+
         if level == 0:
             return self
 
         def backtrack_func(i):
             if level is None:
-                return i.backtrack_value_emitter()
+                return i.backtrack_value_emitter(other_val=other_val)
 
-            return i.backtrack_value_emitter(level=level - 1)
+            return i.backtrack_value_emitter(level=level - 1, other_val=other_val)
 
         inputs = self.receivers.sources(self)
         relations = self.receivers.all_by_dest(self)
         source_class = self.receivers.source_db_class
 
         if not inputs:
-            return self
+            return self.check_other_val(other_val)
 
+            # if lazy_val is None:
+            #     return self.value
+            # print self.resource.name
+            # print [x.name for x in self.resource.inputs.as_set()]
+            # _input = next(x for x in self.resource.inputs.as_set() if x.name == lazy_val)
+            # return _input.backtrack_value()
+            # # return self.value
         if self.is_list:
             if not self.is_hash:
                 return [backtrack_func(i) for i in inputs]
@@ -496,8 +517,8 @@ class DBResourceInput(DBObject):
 
         return v
 
-    def backtrack_value(self):
-        return self.parse_backtracked_value(self.backtrack_value_emitter())
+    def backtrack_value(self, other_val=None):
+        return self.parse_backtracked_value(self.backtrack_value_emitter(other_val=other_val))
 
 
 class DBEvent(DBObject):

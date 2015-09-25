@@ -5,12 +5,12 @@ input:
     ip:
       type: str!
       value:
-    ssh_user:
-      type: str!
-      value:
-    ssh_key:
-      type: str!
-      value:
+    # ssh_user:
+    #   type: str!
+    #   value:
+    # ssh_key:
+    #   type: str!
+    #   value:
     default1:
       type: str!
       value: meta

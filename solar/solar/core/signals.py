@@ -47,8 +47,53 @@ def guess_mapping(emitter, receiver):
     return guessed
 
 
+def location_and_transports(emitter, receiver, orig_mapping):
+
+    # XXX: we didn't agree on that reverse thign there
+
+    def _remove_from_mapping(single):
+        if single in orig_mapping:
+            if isinstance(orig_mapping, dict):
+                del orig_mapping[single]
+            elif isinstance(orig_mapping, set):
+                orig_mapping.remove(single)
+
+    def _single(single, inps_emitter, inps_receiver):
+        if inps_emitter and inps_receiver:
+            log.debug("location and transports different, skipping")
+            return
+        emitter_single = emitter.db_obj.meta_inputs[single]
+        receiver_single = receiver.db_obj.meta_inputs[single]
+        emitter_single_reverse = emitter_single.get('reverse')
+        receiver_single_reverse = receiver_single.get('reverse')
+        # connect in other direction
+        if emitter_single_reverse:
+            if receiver_single_reverse:
+                connect_single(receiver, single, emitter, single)
+                _remove_from_mapping(single)
+                return
+        if receiver_single_reverse:
+            connect_single(receiver, single, emitter, single)
+            _remove_from_mapping(single)
+            return
+        if isinstance(orig_mapping, dict):
+            orig_mapping[single] = single
+
+    # XXX: that .args is slow on current backend
+    # would be faster or another
+    inps_emitter = emitter.args
+    inps_receiver = receiver.args
+    # XXX: should be somehow parametrized (input attribute?)
+    for single in ('transports_id', 'location_id'):
+        _single(single, inps_emitter[single], inps_receiver[single])
+    return
+
+
 def connect(emitter, receiver, mapping=None, events=None):
     mapping = mapping or guess_mapping(emitter, receiver)
+
+    # XXX: we didn't agree on that "reverse" there
+    location_and_transports(emitter, receiver, mapping)
 
     if isinstance(mapping, set):
         mapping = {src: src for src in mapping}
@@ -94,7 +139,8 @@ def connect_single(emitter, src, receiver, dst):
     # Check for cycles
     # TODO: change to get_paths after it is implemented in drivers
     if emitter_input in receiver_input.receivers.as_set():
-        raise Exception('Prevented creating a cycle')
+        raise Exception('Prevented creating a cycle on %s::%s' % (emitter.name,
+                                                                  emitter_input.name))
 
     log.debug('Connecting {}::{} -> {}::{}'.format(
         emitter.name, emitter_input.name, receiver.name, receiver_input.name

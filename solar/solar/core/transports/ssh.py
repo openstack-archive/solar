@@ -24,22 +24,24 @@ from solar.core.transports.base import RunTransport, SyncTransport, Executor
 
 class _SSHTransport(object):
 
-    # TODO: maybe static/class method ?
     def _fabric_settings(self, resource):
+        transport = self.get_transport_data(resource)
+        host = resource.ip()
+        user = transport['user']
+        port = transport['port']
+        key = transport['key']
         return {
-            'host_string': self._ssh_command_host(resource),
-            'key_filename': resource.args['ssh_key'],
+            'host_string': "{}@{}:{}".format(user, host, port),
+            'key_filename': key,
         }
-
-    # TODO: maybe static/class method ?
-    def _ssh_command_host(self, resource):
-        return '{}@{}'.format(resource.args['ssh_user'],
-                              resource.args['ip'])
 
 
 class SSHSyncTransport(SyncTransport, _SSHTransport):
 
+    preffered_transport_name = 'ssh'
+
     def __init__(self):
+        _SSHTransport.__init__(self)
         SyncTransport.__init__(self)
 
     def _copy_file(self, resource, _from, _to, use_sudo=False):
@@ -81,6 +83,8 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
 
 
 class SSHRunTransport(RunTransport, _SSHTransport):
+
+    preffered_transport_name = 'ssh'
 
     def run(self, resource, *args, **kwargs):
         log.debug('SSH: %s', args)

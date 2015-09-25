@@ -1,0 +1,22 @@
+id: simple_multinode_with_transports
+resources:
+{% for i in range(count|int) %}
+  - id: ssh_transport{{i}}
+    from: resources/transport_ssh
+    values:
+      ssh_user: 'vagrant'
+      ssh_key: '/vagrant/.vagrant/machines/solar-dev{{i + 1}}/virtualbox/private_key'
+  - id: transports{{i}}
+    from: resources/transports
+    values:
+      transports:key: ssh_transport{{i}}::ssh_key
+      transports:user: ssh_transport{{i}}::ssh_user
+      transports:port: ssh_transport{{i}}::ssh_port
+      transports:name: ssh_transport{{i}}::name
+  - id: node{{i}}
+    from: resources/ro_node
+    values:
+      ip: '10.0.0.{{i + 3}}'
+      transports_id: transports{{i}}::transports_id
+      name: node{{i}}
+{% endfor %}

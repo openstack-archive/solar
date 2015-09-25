@@ -1,0 +1,18 @@
+id: transport_ssh
+input:
+  ssh_key:
+    schema: str!
+    value:
+  ssh_user:
+    schema: str!
+    value:
+  ssh_port:
+    schema: int!
+    value: 22
+  name:
+    schema: str!
+    value: ssh
+  location_id:
+    schema: str!
+    value:
+    reverse: True

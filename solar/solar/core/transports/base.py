@@ -40,12 +40,33 @@ class Executor(object):
             self._executor(transport)
 
 
-class SyncTransport(object):
+class SolarTransport(object):
+
+    def __init__(self):
+        pass
+
+    def get_transport_data(self, resource, name=None):
+        # TODO: naive object local cache
+        try:
+            transport = resource._used_transport
+        except AttributeError:
+            if name is None:
+                name = self.preffered_transport_name
+            transport = next(x for x in resource.transports() if x['name'] == name)
+            setattr(resource, '_used_transport', transport)
+        return transport
+
+
+
+class SyncTransport(SolarTransport):
     """
     Transport that is responsible for file / directory syncing.
     """
 
+    preffered_transport_name = None
+
     def __init__(self):
+        super(SyncTransport, self).__init__()
         self.executors = []
 
     def bind_with(self, other):
@@ -85,13 +106,15 @@ class SyncTransport(object):
         self.executors = []  # clear after all
 
 
-class RunTransport(object):
+class RunTransport(SolarTransport):
     """
     Transport that is responsible for executing remote commands, rpc like thing.
     """
 
+    preffered_transport_name = None
+
     def __init__(self):
-        pass
+        super(RunTransport, self).__init__()
 
     def bind_with(self, other):
         # we migth add there something later

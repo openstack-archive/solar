@@ -2,8 +2,8 @@
   sudo: yes
   tasks:
     # those below are mostly for tests
-    # - shell: killall -u riak
-    #   ignore_errors: yes
+    - shell: killall -u riak
+      ignore_errors: yes
     # remove above when non tests
 
     # we install ubuntu repo there,

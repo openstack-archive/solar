@@ -32,7 +32,8 @@ db = get_db()
 def setup_riak():
     db.clear()
 
-    nodes = vr.create('nodes', 'templates/riak_nodes.yaml', {})
+    resources = vr.create('nodes', 'templates/riak_nodes.yaml', {'count': 3})
+    nodes = [x for x in resources if x.name.startswith('node')]
     node1, node2, node3 = nodes
 
     riak_services = []

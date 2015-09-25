@@ -54,7 +54,10 @@ def setup_resources():
     if PROFILE:
         pr.enable()
 
-    node1, node2 = vr.create('nodes', 'templates/nodes.yaml', {})
+    resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {"count": 2})
+    nodes = [x for x in resources if x.name.startswith('node')]
+    node1, node2 = nodes
+
 
     # MARIADB
     mariadb_service1 = vr.create('mariadb_service1', 'resources/mariadb_service', {
@@ -247,8 +250,6 @@ def setup_resources():
     signals.connect(neutron_keystone_user, neutron_keystone_role)
     signals.connect(keystone_puppet, neutron_keystone_service_endpoint, {
         'ip': ['ip', 'keystone_host'],
-        'ssh_key': 'ssh_key',
-        'ssh_user': 'ssh_user',
         'admin_port': 'keystone_admin_port',
         'admin_token': 'admin_token',
     })
@@ -352,7 +353,6 @@ def setup_resources():
     signals.connect(cinder_keystone_user, cinder_puppet, {'user_name': 'keystone_user', 'tenant_name': 'keystone_tenant', 'user_password': 'keystone_password'})
     signals.connect(mariadb_service1, cinder_puppet, {'ip':'ip'})
     signals.connect(cinder_puppet, cinder_keystone_service_endpoint, {
-        'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',
         'ip': ['ip', 'keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
         'port': ['admin_port', 'internal_port', 'public_port'],})
     signals.connect(keystone_puppet, cinder_keystone_service_endpoint, {
@@ -447,8 +447,7 @@ def setup_resources():
     signals.connect(nova_puppet, nova_keystone_service_endpoint, {
         'ip': ['ip', 'keystone_host', 'public_ip', 'internal_ip', 'admin_ip'],
         'port': ['admin_port', 'internal_port', 'public_port'],
-        'ssh_key': 'ssh_key',
-        'ssh_user': 'ssh_user'})
+    })
 
     # NOVA API
     nova_api_puppet = vr.create('nova_api_puppet', 'resources/nova_api_puppet', {})[0]
@@ -561,7 +560,6 @@ def setup_resources():
         'user_password': 'keystone_password'})
     signals.connect(mariadb_service1, glance_api_puppet, {'ip':'ip'})
     signals.connect(glance_api_puppet, glance_keystone_service_endpoint, {
-        'ssh_key': 'ssh_key', 'ssh_user': 'ssh_user',
         'ip': ['ip', 'keystone_host', 'admin_ip', 'internal_ip', 'public_ip'],
         'bind_port': ['admin_port', 'internal_port', 'public_port'],})
     signals.connect(keystone_puppet, glance_keystone_service_endpoint, {

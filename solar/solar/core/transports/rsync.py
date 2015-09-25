@@ -26,14 +26,17 @@ from solar.core.transports.base import SyncTransport, Executor
 class RsyncSyncTransport(SyncTransport):
 
     def _rsync_props(self, resource):
+        transport = self.get_transport_data(resource)
+        host = resource.ip()
+        user = transport['user']
+        port = transport['port']
+        # TODO: user port somehow
+        key = transport['key']
         return {
-            'ssh_key': resource.args['ssh_key'].value,
-            'ssh_user': resource.args['ssh_user'].value
+            'ssh_key': key,
+            'ssh_user': user,
+            'host_string': '{}@{}'.format(user, host)
         }
-
-    def _rsync_command_host(self, resource):
-        return '{}@{}'.format(resource.args['ssh_user'].value,
-                              resource.args['ip'].value)
 
     def copy(self, resource, _from, _to, use_sudo=False):
         log.debug("RSYNC: %s -> %s", _from, _to)
@@ -47,7 +50,7 @@ class RsyncSyncTransport(SyncTransport):
                      '%(rsync_host)s:%(_to)s') % dict(
                          rsync_path=rsync_path,
                          ssh_key=rsync_props['ssh_key'],
-                         rsync_host=self._rsync_command_host(resource),
+                         rsync_host=rsync_props['host_string'],
                          _from=_from,
                          _to=_to)
 
