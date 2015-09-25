@@ -39,3 +39,5 @@ vagrant-settings.yaml
 .cache
 
 .tox
+
+solar/.coverage
