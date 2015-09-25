@@ -173,7 +173,7 @@ class Resource(object):
         self.db_obj.save()
 
     def to_be_removed(self):
-        return self.db_obj.state == RESOURCE_STATE.error.name
+        return self.db_obj.state == RESOURCE_STATE.removed.name
 
     @property
     def connections(self):
@@ -183,10 +183,16 @@ class Resource(object):
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
         rst = []
-        for emitter, receiver in self.db_obj.graph().edges():
+        for emitter, receiver, meta in self.db_obj.graph().edges(data=True):
+            if meta:
+                receiver_input = '{}:{}|{}'.format(receiver.name,
+                    meta['destination_key'], meta['tag'])
+            else:
+                receiver_input = receiver.name
+
             rst.append(
                 [emitter.resource.name, emitter.name,
-                 receiver.resource.name, receiver.name])
+                 receiver.resource.name, receiver_input])
         return rst
 
     def resource_inputs(self):

@@ -437,16 +437,18 @@ class DBResourceInput(DBObject):
         super(DBResourceInput, self).delete()
 
     def edges(self):
+
         out = db.get_relations(
                 source=self._db_node,
                 type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
         incoming = db.get_relations(
                 dest=self._db_node,
                 type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
-        for r in out + incoming:
-            source = DBResourceInput(**r.start_node.properties)
-            dest = DBResourceInput(**r.end_node.properties)
-            yield source, dest
+        for relation in out + incoming:
+            meta = relation.properties
+            source = DBResourceInput(**relation.start_node.properties)
+            dest = DBResourceInput(**relation.end_node.properties)
+            yield source, dest, meta
 
     def check_other_val(self, other_val=None):
         if not other_val:
@@ -594,7 +596,9 @@ class DBCommitedState(DBObject):
     id = db_field(schema='str!', is_primary=True)
     inputs = db_field(schema={}, default_value={})
     connections = db_field(schema=[], default_value=[])
-    base_path = db_field('str')
+    base_path = db_field(schema='str')
+    tags = db_field(schema=[], default_value=[])
+    state = db_field(schema='str', default_value='removed')
 
     @classmethod
     def get_or_create(cls, name):

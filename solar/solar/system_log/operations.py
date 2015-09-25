@@ -35,19 +35,20 @@ def move_to_commited(log_action, *args, **kwargs):
     if item:
         sl.pop(item.uid)
         resource_obj = resource.load(item.res)
+        commited = orm.DBCommitedState.get_or_create(item.res)
 
         if item.action == CHANGES.remove.name:
             resource_obj.delete()
-        elif item.action == CHANGES.run.name:
+            commited.state = resource.RESOURCE_STATE.removed.name
+        else:
             resource_obj.set_operational()
-        elif item.action == CHANGES.update.name:
-            resource_obj.set_operational()
+            commited.state = resource.RESOURCE_STATE.operational.name
+            commited.inputs = patch(item.diff, commited.inputs)
+            commited.tags = resource_obj.tags
+            sorted_connections = sorted(commited.connections)
+            commited.connections = patch(item.signals_diff, sorted_connections)
+            commited.base_path = item.base_path
 
-        commited = orm.DBCommitedState.get_or_create(item.res)
-        commited.inputs = patch(item.diff, commited.inputs)
-        sorted_connections = sorted(commited.connections)
-        commited.connections = patch(item.signals_diff, sorted_connections)
-        commited.base_path = item.base_path
         commited.save()
         cl = data.CL()
         item.state = data.STATES.success

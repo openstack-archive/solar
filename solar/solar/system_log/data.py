@@ -91,6 +91,9 @@ def details(diff):
         elif type_ == 'change':
             rst.append('-+ {}: {} >> {}'.format(
                 unwrap_change_val(val), change[0], change[1]))
+        elif type_ == 'remove':
+            for key, val in change:
+                rst.append('-- {}: {}'.format(key ,val))
     return rst
 
 

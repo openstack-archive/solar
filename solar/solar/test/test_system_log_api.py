@@ -160,18 +160,21 @@ def test_revert_create():
     res.save()
     res.add_input('a', 'str', '9')
 
-    logitem =change.create_logitem(
-        res.name, 'run', change.create_diff({'a': '9'}, {}), [],
-        base_path=res.base_path)
-    log = data.SL()
-    log.append(logitem)
-    assert logitem.diff == [('add', '', [('a', '9')])]
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 1
+    logitem = next(staged_log.collection())
 
     operations.move_to_commited(logitem.log_action)
+    assert logitem.diff == [['add', '', [['a', '9']]]]
+
     commited = orm.DBCommitedState.load('test1')
     assert commited.inputs == {'a': '9'}
 
     change.revert(logitem.uid)
 
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 1
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
     resources = orm.DBResource.load_all()
     assert resources == []

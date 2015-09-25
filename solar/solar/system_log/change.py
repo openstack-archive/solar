@@ -25,6 +25,7 @@ from solar.orchestration import graph
 from solar.events import api as evapi
 from solar.interfaces import orm
 from .consts import CHANGES
+from solar.core.resource.resource import RESOURCE_STATE
 
 db = get_db()
 
@@ -65,26 +66,23 @@ def create_sorted_diff(staged, commited):
 def stage_changes():
     log = data.SL()
     log.clean()
-    resources_map = {r.name: r for r in resource.load_all()}
-    commited_map = {r.id: r for r in orm.DBCommitedState.load_all()}
 
-    for resource_id in set(resources_map.keys()) | set(commited_map.keys()):
-
-        if resources_map[resource_id].to_be_removed():
+    for resouce_obj in resource.load_all():
+        commited = resouce_obj.load_commited()
+        base_path = resouce_obj.base_path
+        if resouce_obj.to_be_removed():
             resource_args = {}
             resource_connections = []
-            base_path = commited_map[resource_id].base_path
         else:
-            resource_args = resources_map[resource_id].args
-            resource_connections = resources_map[resource_id].connections
-            base_path = resources_map[resource_id].base_path
+            resource_args = resouce_obj.args
+            resource_connections = resouce_obj.connections
 
-        if resource_id not in commited_map:
+        if commited.state == RESOURCE_STATE.removed.name:
             commited_args = {}
             commited_connections = []
         else:
-            commited_args = commited_map[resource_id].inputs
-            commited_connections = commited_map[resource_id].connections
+            commited_args = commited.inputs
+            commited_connections = commited.connections
 
         inputs_diff = create_diff(resource_args, commited_args)
         connections_diff = create_sorted_diff(
@@ -94,7 +92,7 @@ def stage_changes():
         # but using inputs to reverse connections is not possible
         if inputs_diff:
             log_item = create_logitem(
-                resource_id,
+                resouce_obj.name,
                 guess_action(commited_args, resource_args),
                 inputs_diff,
                 connections_diff,
@@ -150,7 +148,7 @@ def _revert_remove(logitem):
     commited = orm.DBCommitedState.load(logitem.res)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
     connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
-    resource.Resource(logitem.res, logitem.base_path, args=args)
+    resource.Resource(logitem.res, logitem.base_path, args=args, tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
@@ -179,7 +177,7 @@ def _revert_update(logitem):
 
 def _revert_run(logitem):
     res_obj = resource.load(logitem.res)
-    res_obj.delete()
+    res_obj.remove()
 
 
 def revert(uid):
