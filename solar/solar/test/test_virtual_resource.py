@@ -74,16 +74,24 @@ def test_create_virtual_resource(tmpdir):
     assert len(resources) == 2
 
 def test_update(tmpdir):
+    # XXX: make helper for it
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'resource_fixtures')
-    vr_tmpl_path = os.path.join(base_path, 'update.yaml.tmpl')
+    vr_node_tmpl_path = os.path.join(base_path, 'nodes.yaml.tmpl')
+    vr_update_tmpl_path = os.path.join(base_path, 'update.yaml.tmpl')
+    update_path = os.path.join(base_path, 'update')
     node_resource_path = os.path.join(base_path, 'node')
-    with open(vr_tmpl_path) as f:
+    with open(vr_node_tmpl_path) as f:
         vr_data = f.read().format(resource_path=node_resource_path)
+    with open(vr_update_tmpl_path) as f:
+        update_data = f.read().format(resource_path=update_path)
     vr_file = tmpdir.join('nodes.yaml')
     vr_file.write(vr_data)
+    update_file = tmpdir.join('update.yaml')
+    update_file.write(update_data)
     resources = vr.create('nodes', str(vr_file))
+    vr.create('updates', str(update_file))
     assert resources[0].args['ip'] == '10.0.0.4'
 
 def test_parse_events(good_events):

@@ -65,9 +65,9 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
 
 
 def create_virtual_resource(vr_name, template):
-    template_resources = template['resources']
+    template_resources = template.get('resources', [])
     template_events = template.get('events', [])
-    resources_to_update = template.get('updates', {})
+    resources_to_update = template.get('updates', [])
 
     created_resources = create_resources(template_resources)
     events = parse_events(template_events)
