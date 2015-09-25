@@ -620,6 +620,7 @@ class DBResource(DBObject):
     version = db_field(schema='str')
     tags = db_field(schema=[], default_value=[])
     meta_inputs = db_field(schema={}, default_value={})
+    state = db_field(schema='str')
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)

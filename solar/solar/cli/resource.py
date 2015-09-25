@@ -222,6 +222,7 @@ def get_inputs(path):
 
 @resource.command()
 @click.argument('name')
-def remove(name):
+@click.option('-f', default=False, help='force removal from database')
+def remove(name, f):
     res = sresource.load(name)
-    res.delete()
+    res.remove(force=f)

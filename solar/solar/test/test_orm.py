@@ -431,7 +431,7 @@ input:
 class TestEventORM(BaseResourceTest):
 
     def test_return_emtpy_set(self):
-        r = orm.DBResource(id='test1', name='test1', base_path='x')
+        r = orm.DBResourceEvents(id='test1')
         r.save()
         self.assertEqual(r.events.as_set(), set())
 
@@ -468,11 +468,11 @@ class TestEventORM(BaseResourceTest):
         self.assertEqual(len(orm.DBEvent.load_all()), 2)
 
     def test_removal_of_event(self):
-        r = orm.DBResource(id='n1', name='n1', base_path='x')
+        r = orm.DBResourceEvents(id='test1')
         r.save()
 
         ev = orm.DBEvent(
-            parent='n1',
+            parent='test1',
             parent_action='run',
             state='success',
             child_action='run',
@@ -484,5 +484,5 @@ class TestEventORM(BaseResourceTest):
         self.assertEqual(r.events.as_set(), {ev})
         ev.delete()
 
-        r = orm.DBResource.load('n1')
+        r = orm.DBResourceEvents.load('test1')
         self.assertEqual(r.events.as_set(), set())

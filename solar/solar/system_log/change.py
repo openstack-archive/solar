@@ -70,7 +70,7 @@ def stage_changes():
 
     for resource_id in set(resources_map.keys()) | set(commited_map.keys()):
 
-        if resource_id not in resources_map:
+        if resources_map[resource_id].to_be_removed():
             resource_args = {}
             resource_connections = []
             base_path = commited_map[resource_id].base_path

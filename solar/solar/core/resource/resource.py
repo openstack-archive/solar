@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from enum import Enum
+
 from copy import deepcopy
 from multipledispatch import dispatch
 import os
@@ -38,6 +40,9 @@ def read_meta(base_path):
     metadata['base_name'] = os.path.split(metadata['base_path'])[-1]
 
     return metadata
+
+
+RESOURCE_STATE = Enum('ResourceState', 'created operational removed error updated')
 
 
 class Resource(object):
@@ -73,7 +78,7 @@ class Resource(object):
             'meta_inputs': inputs
 
         })
-
+        self.db_obj.state = RESOURCE_STATE.created.name
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -141,6 +146,7 @@ class Resource(object):
     def update(self, args):
         # TODO: disconnect input when it is updated and end_node
         #       for some input_to_input relation
+        self.db_obj.state = RESOURCE_STATE.updated.name
         resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
@@ -150,6 +156,24 @@ class Resource(object):
 
     def delete(self):
         return self.db_obj.delete()
+
+    def remove(self, force=False):
+        if force:
+            self.delete()
+        else:
+            self.db_obj.state = RESOURCE_STATE.removed.name
+            self.db_obj.save()
+
+    def set_operational(self):
+        self.db_obj.state = RESOURCE_STATE.operational.name
+        self.db_obj.save()
+
+    def set_error(self):
+        self.db_obj.state = RESOURCE_STATE.error.name
+        self.db_obj.save()
+
+    def to_be_removed(self):
+        return self.db_obj.state == RESOURCE_STATE.error.name
 
     @property
     def connections(self):

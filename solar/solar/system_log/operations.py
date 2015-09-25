@@ -15,12 +15,16 @@
 from solar.system_log import data
 from dictdiffer import patch
 from solar.interfaces import orm
+from solar.core.resource import resource
+from .consts import CHANGES
 
 
 def set_error(log_action, *args, **kwargs):
     sl = data.SL()
     item = next((i for i in sl if i.log_action == log_action), None)
     if item:
+        resource_obj = resource.load(item.res)
+        resource.set_error()
         item.state = data.STATES.error
         sl.update(item)
 
@@ -30,6 +34,15 @@ def move_to_commited(log_action, *args, **kwargs):
     item = next((i for i in sl if i.log_action == log_action), None)
     if item:
         sl.pop(item.uid)
+        resource_obj = resource.load(item.res)
+
+        if item.action == CHANGES.remove.name:
+            resource_obj.delete()
+        elif item.action == CHANGES.run.name:
+            resource_obj.set_operational()
+        elif item.action == CHANGES.update.name:
+            resource_obj.set_operational()
+
         commited = orm.DBCommitedState.get_or_create(item.res)
         commited.inputs = patch(item.diff, commited.inputs)
         sorted_connections = sorted(commited.connections)

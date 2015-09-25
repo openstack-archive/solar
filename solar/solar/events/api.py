@@ -76,7 +76,7 @@ def add_events(resource, lst):
 
 def set_events(resource, lst):
     resource_events = orm.DBResourceEvents.get_or_create(resource)
-    for ev in db_resource.events.as_set():
+    for ev in resource_events.events.as_set():
         ev.delete()
     for ev in lst:
         event_db = orm.DBEvent(**ev.to_dict())
