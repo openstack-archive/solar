@@ -61,6 +61,7 @@ def create_sorted_diff(staged, commited):
     return create_diff(staged, commited)
 
 
+
 def stage_changes():
     log = data.SL()
     log.clean()
@@ -94,7 +95,7 @@ def stage_changes():
         if inputs_diff:
             log_item = create_logitem(
                 resource_id,
-                guess_action(commited_connections, resource_connections),
+                guess_action(commited_args, resource_args),
                 inputs_diff,
                 connections_diff,
                 base_path=base_path)
@@ -104,27 +105,19 @@ def stage_changes():
 
 def send_to_orchestration():
     dg = nx.MultiDiGraph()
-
     events = {}
     changed_nodes = []
 
-    for resource_obj in resource.load_all():
-        commited_db_obj = resource_obj.load_commited()
-        resource_args = resource_obj.args
+    for logitem in data.SL():
+        events[logitem.res] = evapi.all_events(logitem.res)
+        changed_nodes.append(logitem.res)
 
-        df = create_diff(resource_args, commited_db_obj.inputs)
-
-        if df:
-            events[resource_obj.name] = evapi.all_events(resource_obj.name)
-            changed_nodes.append(resource_obj.name)
-            action = guess_action(resource_args, commited_db_obj.inputs)
-
-            state_change = evapi.StateChange(resource_obj.name, action)
-            state_change.insert(changed_nodes, dg)
+        state_change = evapi.StateChange(logitem.res, logitem.action)
+        state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)
 
-    # what it should be?
+    # what `name` should be?
     dg.graph['name'] = 'system_log'
     return graph.create_plan_from_graph(dg)
 
@@ -146,6 +139,9 @@ def revert_uids(uids):
             _revert_remove(item)
         elif item.action == CHANGES.run.name:
             _revert_run(item)
+        else:
+            log.debug('Action %s for resource %s is a side'
+                      ' effect of another action', item.action, item.res)
 
 
 def _revert_remove(logitem):
