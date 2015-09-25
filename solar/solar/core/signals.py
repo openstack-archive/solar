@@ -79,6 +79,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
         if isinstance(orig_mapping, dict):
             orig_mapping[single] = single
 
+    # XXX: that .args is slow on current backend
+    # would be faster or another
     inps_emitter = emitter.args
     inps_receiver = receiver.args
     # XXX: should be somehow parametrized (input attribute?)
