@@ -53,7 +53,7 @@ def add_event(ev):
 def add_dep(parent, dep, actions, state='success'):
     for act in actions:
         d = Dep(parent, act, state=state,
-                depend_node=dep, depend_action=act)
+                child=dep, child_action=act)
         add_event(d)
         log.debug('Added event: %s', d)
 
@@ -61,7 +61,7 @@ def add_dep(parent, dep, actions, state='success'):
 def add_react(parent, dep, actions, state='success'):
     for act in actions:
         r = React(parent, act, state=state,
-                  depend_node=dep, depend_action=act)
+                  child=dep, child_action=act)
         add_event(r)
         log.debug('Added event: %s', r)
 
