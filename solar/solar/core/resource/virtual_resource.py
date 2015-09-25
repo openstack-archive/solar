@@ -189,7 +189,7 @@ def parse_list_input(r_input, args):
             connections.append(c)
         else:
             # Not supported yet
-            pass
+            raise Exception('Only connections are supported in lists')
     return connections, assignments
 
 
