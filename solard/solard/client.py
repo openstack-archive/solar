@@ -7,7 +7,9 @@ class SolardClient(object):
 
     read_buffer = 4096
 
-    def __init__(self, auth, transport_args, transport_class):
+    def __init__(self, auth, transport_args, transport_class=None):
+        if transport_class is None:
+            transport_class = SolardTCPClient
         self.auth = auth
         self.sudo_transport = transport_class(*transport_args)
         self.normal_transport = transport_class(*transport_args)
