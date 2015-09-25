@@ -17,11 +17,14 @@ import handlers
 
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 # from solar.core.transports.rsync import RsyncSyncTransport
+from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
 
 _default_transports = {
-    'sync': SSHSyncTransport,
+    # 'sync': SSHSyncTransport,
     # 'sync': RsyncSyncTransport,
-    'run': SSHRunTransport
+    # 'run': SSHRunTransport
+    'run': SolardRunTransport,
+    'sync': SolardSyncTransport
 }
 
 def resource_action(resource, action):

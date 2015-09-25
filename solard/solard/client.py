@@ -97,10 +97,10 @@ class SolardClient(object):
 if __name__ == '__main__':
     import time
     from solard.tcp_client import SolardTCPClient
-    c = SolardClient(auth={'user': 'pigmej', 'auth': 'password'}, transport_args=('localhost', 5555), transport_class=SolardTCPClient)
+    c = SolardClient(auth={'user': 'vagrant', 'auth': 'password'}, transport_args=('10.0.0.3', 5555), transport_class=SolardTCPClient)
     print c.run('hostname')
     print c.run('whoami')
     print c.run('whoami', use_sudo=True)
-    # print c.copy('/tmp/a', '/tmp/bbb/a.%s' % (time.time()))
+    print c.copy('/vagrant/library', '/tmp')
     # print c.copy('/tmp/a', '/tmp/bbb/b.%s' % (time.time()))
     # print c.copy('/tmp/bbb', '/tmp/s/ccc%s' % (time.time()))

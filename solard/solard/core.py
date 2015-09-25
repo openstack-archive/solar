@@ -221,7 +221,8 @@ class SolardIface(object):
         return True
 
     @staticmethod
-    def copy_files(solard_context, stream_reader, paths):
+    def copy_files(solard_context, stream_reader, paths, total_size):
+        # total_size not used for now
         for _to, _size in paths:
             logger.debug("Starting %s size=%d", _to, _size)
             f = SolardIface.file_start(solard_context, _to)
