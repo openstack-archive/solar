@@ -91,19 +91,27 @@ def show():
     vms = get_vagrant_vms()
     for vm in vms:
         msg = "[{vm}] {snap}"
-        kwargs = {
-            'vm': click.style(vm, fg='green'),
-            'snap': '',
-        }
+        click.echo(click.style(vm, fg='green'))
         try:
             snap = vboxmanage(['snapshot', vm, 'list'], output_dict=True)
-            kwargs['snap'] = '{SnapshotName} (UUID: {SnapshotUUID})'.format(**snap)
+            snap_num = (len(snap.keys()) / 3) - 1
+            if snap_num < 1:
+                click.echo(click.style(
+                    'This machine does not have any snapshots',
+                    fg='red'
+                ))
+            else:
+                s = {}
+                for key, value in snap.items():
+                    if not key.startswith('SnapshotName'):
+                        continue
+                    uuid_key = key.replace("SnapshotName", "SnapshotUUID")
+                    click.echo('\t{name} (UUID {uuid})'.format(name=value, uuid=snap[uuid_key]))
         except CalledProcessError:
-            kwargs['snap'] = click.style(
+            click.echo(click.style(
                 'This machine does not have any snapshots',
                 fg='red'
-            )
-        click.echo(msg.format(**kwargs))
+            ))
         click.echo('-' * 10)
 
 
