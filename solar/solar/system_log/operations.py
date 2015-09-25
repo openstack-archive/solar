@@ -28,8 +28,8 @@ def set_error(log_action, *args, **kwargs):
 def move_to_commited(log_action, *args, **kwargs):
     sl = data.SL()
     item = next((i for i in sl if i.log_action == log_action), None)
-    sl.pop(item.uid)
     if item:
+        sl.pop(item.uid)
         commited = orm.DBCommitedState.get_or_create(item.res)
         commited.inputs = patch(item.diff, commited.inputs)
         sorted_connections = sorted(commited.connections)

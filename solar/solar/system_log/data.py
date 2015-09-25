@@ -42,7 +42,7 @@ class LogItem(object):
                  signals_diff, state=None, base_path=None):
         self.uid = uid
         self.res = res
-        self.log_action = '{}:{}'.format(res, action)
+        self.log_action = '{}.{}'.format(res, action)
         self.action = action
         self.diff = diff
         self.signals_diff = signals_diff

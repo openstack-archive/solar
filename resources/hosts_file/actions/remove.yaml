@@ -1,0 +1,5 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - name: Remove hosts file
+      shell: rm /etc/hosts

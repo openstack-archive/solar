@@ -566,6 +566,25 @@ class DBEvent(DBObject):
         super(DBEvent, self).delete()
 
 
+class DBResourceEvents(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.resource_events
+
+    id = db_field(schema='str!', is_primary=True)
+    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
+                              DBEvent)
+
+    @classmethod
+    def get_or_create(cls, name):
+        r = db.get_or_create(
+            name,
+            properties={'id': name},
+            collection=cls._collection)
+        return cls(**r.properties)
+
+
 class DBCommitedState(DBObject):
 
     __metaclass__ = DBObjectMeta
@@ -604,8 +623,6 @@ class DBResource(DBObject):
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
-    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
-                              DBEvent)
 
     def add_input(self, name, schema, value):
         # NOTE: Inputs need to have uuid added because there can be many
