@@ -8,8 +8,6 @@ resources:
       riak_hostname: 'riak_server0.solar'
       riak_name: 'riak0@riak_server0.solar'
       ip: '{{nodes[0]}}::ip'
-      ssh_user: '{{nodes[0]}}::ssh_user'
-      ssh_key: '{{nodes[0]}}::ssh_key'
 
 {% for i in range(1, idx|int) %}
   - id: riak_service{{i}}
@@ -20,8 +18,6 @@ resources:
       riak_name: 'riak{{i}}@riak_server{{i}}.solar'
       join_to: 'riak_service0::riak_name'
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 {% for i in range(idx|int) %}
@@ -36,9 +32,6 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::ip::NO_EVENTS
         {% endfor %}
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 {% for i in range(idx|int) %}
@@ -92,8 +85,6 @@ resources:
         - haproxy_service_config_http{{i}}::backends
         - haproxy_service_config_pb{{i}}::backends
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 {% for i in range(idx|int) %}
@@ -101,8 +92,6 @@ resources:
     from: resources/haproxy_service
     values:
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 
