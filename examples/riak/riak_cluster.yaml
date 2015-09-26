@@ -37,14 +37,12 @@ resources:
         {% endfor %}
 {% endfor %}
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_http{{i}}
+  - id: haproxy_riak_config_http
     from: resources/haproxy_service_config
-    location: {{nodes[i]}}
     values:
       listen_port: 8098
       protocol: 'http'
-      name: 'riak_haproxy_http{{i}}'
+      name: 'riak_haproxy_http'
       backends:server:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_hostname
@@ -53,16 +51,13 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_port_http
         {% endfor %}
-{% endfor %}
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_pb{{i}}
+  - id: haproxy_riak_config_pb
     from: resources/haproxy_service_config
-    location: {{nodes[i]}}
     values:
       listen_port: 8087
       protocol: 'tcp'
-      name: 'riak_haproxy_pb{{i}}'
+      name: 'riak_haproxy_pb'
       backends:server:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_hostname
@@ -71,7 +66,6 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_port_pb
         {% endfor %}
-{% endfor %}
 
 {% for i in range(idx|int) %}
   - id: haproxy_config{{i}}
@@ -79,17 +73,17 @@ resources:
     location: {{nodes[i]}}
     values:
       config:protocol:
-        - haproxy_service_config_http{{i}}::protocol
-        - haproxy_service_config_pb{{i}}::protocol
+        - haproxy_riak_config_http::protocol
+        - haproxy_riak_config_pb::protocol
       config:listen_port:
-        - haproxy_service_config_http{{i}}::listen_port
-        - haproxy_service_config_pb{{i}}::listen_port
+        - haproxy_riak_config_http::listen_port
+        - haproxy_riak_config_pb::listen_port
       config:name:
-        - haproxy_service_config_http{{i}}::name
-        - haproxy_service_config_pb{{i}}::name
+        - haproxy_riak_config_http::name
+        - haproxy_riak_config_pb::name
       config:backends:
-        - haproxy_service_config_http{{i}}::backends
-        - haproxy_service_config_pb{{i}}::backends
+        - haproxy_riak_config_http::backends
+        - haproxy_riak_config_pb::backends
       ip: '{{nodes[i]}}::ip'
 {% endfor %}
 
