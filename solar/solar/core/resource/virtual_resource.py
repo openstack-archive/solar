@@ -117,11 +117,16 @@ def create_resources(resources):
     for r in resources:
         resource_name = r['id']
         args = r['values']
+        node = r.get('location', None)
         from_path = r.get('from', None)
         base_path = os.path.join(cwd, from_path)
         new_resources = create(resource_name, base_path)
         created_resources += new_resources
         if not is_virtual(base_path):
+            if node:
+                node = load_resource(node)
+                r = load_resource(resource_name)
+                signals.connect(node, r, {})
             update_inputs(resource_name, args)
     return created_resources
 

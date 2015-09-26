@@ -3,6 +3,7 @@ id: riak_node
 resources:
   - id: riak_service0
     from: resources/riak_node
+    location: {{nodes[0]}}
     values:
       riak_self_name: 'riak0'
       riak_hostname: 'riak_server0.solar'
@@ -12,6 +13,7 @@ resources:
 {% for i in range(1, idx|int) %}
   - id: riak_service{{i}}
     from: resources/riak_node
+    location: {{nodes[i]}}
     values:
       riak_self_name: 'riak{{i}}'
       riak_hostname: 'riak_server{{i}}.solar'
@@ -23,6 +25,7 @@ resources:
 {% for i in range(idx|int) %}
   - id: hosts_file{{i}}
     from: resources/hosts_file
+    location: {{nodes[i]}}
     values:
       hosts:name: 
         {% for j in range(idx|int) %}
@@ -37,6 +40,7 @@ resources:
 {% for i in range(idx|int) %}
   - id: haproxy_service_config_http{{i}}
     from: resources/haproxy_service_config
+    location: {{nodes[i]}}
     values:
       listen_port: 8098
       protocol: 'http'
@@ -54,6 +58,7 @@ resources:
 {% for i in range(idx|int) %}
   - id: haproxy_service_config_pb{{i}}
     from: resources/haproxy_service_config
+    location: {{nodes[i]}}
     values:
       listen_port: 8087
       protocol: 'tcp'
@@ -71,6 +76,7 @@ resources:
 {% for i in range(idx|int) %}
   - id: haproxy_config{{i}}
     from: resources/haproxy_config
+    location: {{nodes[i]}}
     values:
       config:protocol:
         - haproxy_service_config_http{{i}}::protocol
@@ -89,6 +95,7 @@ resources:
 
 {% for i in range(idx|int) %}
   - id: haproxy_service{{i}}
+    location: {{nodes[i]}}
     from: resources/haproxy_service
     values:
       ip: '{{nodes[i]}}::ip'
