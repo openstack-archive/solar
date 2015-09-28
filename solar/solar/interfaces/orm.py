@@ -667,7 +667,6 @@ class DBResource(DBObject):
             mdg.add_edges_from(input.edges())
         return mdg
 
-
 # TODO: remove this
 if __name__ == '__main__':
     r = DBResource(name=1)

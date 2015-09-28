@@ -247,6 +247,11 @@ def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
 
 
+def load_by_tags(tags):
+    return [Resource(r) for r in orm.DBResource.load_all()
+            if tags.issubset(set(r.tags))]
+
+
 def validate_resources():
     resources = load_all()
 

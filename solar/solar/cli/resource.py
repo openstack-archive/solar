@@ -131,31 +131,24 @@ def create(args, base_path, name):
         click.echo(res.color_repr())
 
 @resource.command()
-@click.option('--name', default=None)
-@click.option('--tag', default=None)
+@click.argument('name', default=None)
+@click.option('--tag', '-t', multiple=True)
 @click.option('--json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
-def show(**kwargs):
-    resources = []
-
-    for res in sresource.load_all():
-        show = True
-        if kwargs['tag']:
-            if kwargs['tag'] not in res.tags:
-                show = False
-        if kwargs['name']:
-            if res.name != kwargs['name']:
-                show = False
-
-        if show:
-            resources.append(res)
+def show(name, tag, json, color):
+    if name:
+        resources = [sresource.load(name)]
+    elif tag:
+        resources = sresource.load_by_tags(set(tag))
+    else:
+        resources = sresource.load_all()
 
     echo = click.echo_via_pager
-    if kwargs['json']:
+    if json:
         output = json.dumps([r.to_dict() for r in resources], indent=2)
         echo = click.echo
     else:
-        if kwargs['color']:
+        if color:
             formatter = lambda r: r.color_repr()
         else:
             formatter = lambda r: unicode(r)
