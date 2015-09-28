@@ -26,6 +26,7 @@ from solar.events import api as evapi
 from solar.interfaces import orm
 from .consts import CHANGES
 from solar.core.resource.resource import RESOURCE_STATE
+from solar.errors import CannotFindID
 
 db = get_db()
 
@@ -128,9 +129,20 @@ def parameters(res, action, data):
 
 
 def revert_uids(uids):
+    """
+    :param uids: iterable not generator
+    """
     history = data.CL()
+    not_valid = []
+    for uid in uids:
+        if history.get(uid) is None:
+            not_valid.append(uid)
+    if not_valid:
+        raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
+
     for uid in uids:
         item = history.get(uid)
+
         if item.action == CHANGES.update.name:
             _revert_update(item)
         elif item.action == CHANGES.remove.name:

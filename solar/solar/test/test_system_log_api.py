@@ -85,7 +85,7 @@ def test_revert_update_connected():
         operations.move_to_commited(item.log_action)
         to_revert.append(item.uid)
 
-    change.revert_uids(reversed(to_revert))
+    change.revert_uids(sorted(to_revert, reverse=True))
     staged_log = change.stage_changes()
     assert len(staged_log) == 2
     for item in staged_log:
