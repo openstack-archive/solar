@@ -16,3 +16,7 @@ input:
     schema: str!
     value:
     reverse: True
+    is_own: False
+  transports_id:
+    schema: str!
+    value: False

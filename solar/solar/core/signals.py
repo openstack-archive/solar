@@ -58,12 +58,21 @@ def location_and_transports(emitter, receiver, orig_mapping):
             elif isinstance(orig_mapping, set):
                 orig_mapping.remove(single)
 
-    def _single(single, inps_emitter, inps_receiver):
+    def _single(single, emitter, receiver, inps_emitter, inps_receiver):
         if inps_emitter and inps_receiver:
-            log.debug("location and transports different, skipping")
-            return
+            if not inps_emitter == inps_receiver:
+                log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
+                return
+            else:
+                log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
+                return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
+        if emitter_single.get('value') is False:
+            log.debug("Disabled %r mapping for %r", single, emitter.name)
+            return
+        if receiver_single.get('is_own') is False:
+            log.debug("Not is_own %r for %r ", single, emitter.name)
         emitter_single_reverse = emitter_single.get('reverse')
         receiver_single_reverse = receiver_single.get('reverse')
         # connect in other direction
@@ -86,7 +95,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
     # XXX: should be somehow parametrized (input attribute?)
     for single in ('transports_id', 'location_id'):
         if single in inps_emitter and inps_receiver:
-            _single(single, inps_emitter[single], inps_receiver[single])
+            _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'
                         ' emitter %s, receiver %s',

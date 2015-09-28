@@ -20,11 +20,11 @@ from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
 
 _default_transports = {
-    # 'sync': SSHSyncTransport,
     # 'sync': RsyncSyncTransport,
-    # 'run': SSHRunTransport
-    'run': SolardRunTransport,
-    'sync': SolardSyncTransport
+    'sync': SSHSyncTransport,
+    'run': SSHRunTransport
+#     'run': SolardRunTransport,
+#     'sync': SolardSyncTransport
 }
 
 def resource_action(resource, action):
