@@ -85,7 +85,12 @@ def location_and_transports(emitter, receiver, orig_mapping):
     inps_receiver = receiver.args
     # XXX: should be somehow parametrized (input attribute?)
     for single in ('transports_id', 'location_id'):
-        _single(single, inps_emitter[single], inps_receiver[single])
+        if single in inps_emitter and inps_receiver:
+            _single(single, inps_emitter[single], inps_receiver[single])
+        else:
+            log.warning('Unable to create connection for %s with'
+                        ' emitter %s, receiver %s',
+                        single, emitter.name, receiver.name)
     return
 
 

@@ -181,6 +181,18 @@ class DBRelatedField(object):
 
         return ret
 
+    def as_list(self):
+        relations = self.all()
+
+        ret = []
+
+        for rel in relations:
+            ret.append(
+                self.destination_db_class(**rel.end_node.properties)
+            )
+
+        return ret
+
     def sources(self, destination_db_object):
         """
         Reverse of self.as_set, i.e. for given destination_db_object,
@@ -424,6 +436,20 @@ class DBResourceInput(DBObject):
         )
         super(DBResourceInput, self).delete()
 
+    def edges(self):
+
+        out = db.get_relations(
+                source=self._db_node,
+                type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
+        incoming = db.get_relations(
+                dest=self._db_node,
+                type_=base.BaseGraphDB.RELATION_TYPES.input_to_input)
+        for relation in out + incoming:
+            meta = relation.properties
+            source = DBResourceInput(**relation.start_node.properties)
+            dest = DBResourceInput(**relation.end_node.properties)
+            yield source, dest, meta
+
     def check_other_val(self, other_val=None):
         if not other_val:
             return self
@@ -433,7 +459,6 @@ class DBResourceInput(DBObject):
         inps = {i.name: i for i in res.inputs.as_set()}
         correct_input = inps[other_val]
         return correct_input.backtrack_value()
-
 
     def backtrack_value_emitter(self, level=None, other_val=None):
         # TODO: this is actually just fetching head element in linked list
@@ -543,6 +568,46 @@ class DBEvent(DBObject):
         super(DBEvent, self).delete()
 
 
+class DBResourceEvents(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.resource_events
+
+    id = db_field(schema='str!', is_primary=True)
+    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
+                              DBEvent)
+
+    @classmethod
+    def get_or_create(cls, name):
+        r = db.get_or_create(
+            name,
+            properties={'id': name},
+            collection=cls._collection)
+        return cls(**r.properties)
+
+
+class DBCommitedState(DBObject):
+
+    __metaclass__ = DBObjectMeta
+
+    _collection = base.BaseGraphDB.COLLECTIONS.state_data
+
+    id = db_field(schema='str!', is_primary=True)
+    inputs = db_field(schema={}, default_value={})
+    connections = db_field(schema=[], default_value=[])
+    base_path = db_field(schema='str')
+    tags = db_field(schema=[], default_value=[])
+    state = db_field(schema='str', default_value='removed')
+
+    @classmethod
+    def get_or_create(cls, name):
+        r = db.get_or_create(
+            name,
+            properties={'id': name},
+            collection=cls._collection)
+        return cls(**r.properties)
+
 
 class DBResource(DBObject):
     __metaclass__ = DBObjectMeta
@@ -559,11 +624,10 @@ class DBResource(DBObject):
     version = db_field(schema='str')
     tags = db_field(schema=[], default_value=[])
     meta_inputs = db_field(schema={}, default_value={})
+    state = db_field(schema='str')
 
     inputs = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_input,
                               DBResourceInput)
-    events = db_related_field(base.BaseGraphDB.RELATION_TYPES.resource_event,
-                              DBEvent)
 
     def add_input(self, name, schema, value):
         # NOTE: Inputs need to have uuid added because there can be many
@@ -596,6 +660,12 @@ class DBResource(DBObject):
             self.inputs.remove(input)
             input.delete()
         super(DBResource, self).delete()
+
+    def graph(self):
+        mdg = networkx.MultiDiGraph()
+        for input in self.inputs.as_list():
+            mdg.add_edges_from(input.edges())
+        return mdg
 
 
 # TODO: remove this

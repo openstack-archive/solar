@@ -1,0 +1,5 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - name: Remove hosts file
+      shell: echo '# flushed by ansible' > /etc/hosts

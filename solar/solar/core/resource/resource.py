@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from enum import Enum
+
 from copy import deepcopy
 from multipledispatch import dispatch
 import os
@@ -40,6 +42,9 @@ def read_meta(base_path):
     return metadata
 
 
+RESOURCE_STATE = Enum('ResourceState', 'created operational removed error updated')
+
+
 class Resource(object):
     _metadata = {}
 
@@ -53,6 +58,7 @@ class Resource(object):
         else:
             metadata = deepcopy(self._metadata)
 
+        self.base_path = base_path
         self.tags = tags or []
         self.virtual_resource = virtual_resource
 
@@ -72,7 +78,7 @@ class Resource(object):
             'meta_inputs': inputs
 
         })
-
+        self.db_obj.state = RESOURCE_STATE.created.name
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -82,6 +88,7 @@ class Resource(object):
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
+        self.base_path = resource_db.base_path
         # TODO: tags
         self.tags = []
         self.virtual_resource = None
@@ -139,6 +146,7 @@ class Resource(object):
     def update(self, args):
         # TODO: disconnect input when it is updated and end_node
         #       for some input_to_input relation
+        self.db_obj.state = RESOURCE_STATE.updated.name
         resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
@@ -148,6 +156,44 @@ class Resource(object):
 
     def delete(self):
         return self.db_obj.delete()
+
+    def remove(self, force=False):
+        if force:
+            self.delete()
+        else:
+            self.db_obj.state = RESOURCE_STATE.removed.name
+            self.db_obj.save()
+
+    def set_operational(self):
+        self.db_obj.state = RESOURCE_STATE.operational.name
+        self.db_obj.save()
+
+    def set_error(self):
+        self.db_obj.state = RESOURCE_STATE.error.name
+        self.db_obj.save()
+
+    def to_be_removed(self):
+        return self.db_obj.state == RESOURCE_STATE.removed.name
+
+    @property
+    def connections(self):
+        """
+        Gives you all incoming/outgoing connections for current resource,
+        stored as:
+        [(emitter, emitter_input, receiver, receiver_input), ...]
+        """
+        rst = []
+        for emitter, receiver, meta in self.db_obj.graph().edges(data=True):
+            if meta:
+                receiver_input = '{}:{}|{}'.format(receiver.name,
+                    meta['destination_key'], meta['tag'])
+            else:
+                receiver_input = receiver.name
+
+            rst.append(
+                [emitter.resource.name, emitter.name,
+                 receiver.resource.name, receiver_input])
+        return rst
 
     def resource_inputs(self):
         return {
@@ -178,6 +224,9 @@ class Resource(object):
             tags_s=click.style('tags', fg=arg_color, bold=True),
             **self.to_dict()
         )
+
+    def load_commited(self):
+        return orm.DBCommitedState.get_or_create(self.name)
 
 
 def load(name):

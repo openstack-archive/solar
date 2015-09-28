@@ -30,23 +30,24 @@ STATES = Enum('States', 'error inprogress pending success')
 def state_file(name):
     if 'log' in name:
         return Log(name)
-    elif 'data' in name:
-        return Data(name)
 
 
-CD = partial(state_file, 'commited_data')
 SL = partial(state_file, 'stage_log')
 CL = partial(state_file, 'commit_log')
 
 
 class LogItem(object):
 
-    def __init__(self, uid, res, log_action, diff, state=None):
+    def __init__(self, uid, res, action, diff,
+                 signals_diff, state=None, base_path=None):
         self.uid = uid
         self.res = res
-        self.log_action = log_action
+        self.log_action = '{}.{}'.format(res, action)
+        self.action = action
         self.diff = diff
+        self.signals_diff = signals_diff
         self.state = state or STATES.pending
+        self.base_path = base_path
 
     def to_yaml(self):
         return utils.yaml_dump(self.to_dict())
@@ -54,9 +55,11 @@ class LogItem(object):
     def to_dict(self):
         return {'uid': self.uid,
                 'res': self.res,
-                'log_action': self.log_action,
                 'diff': self.diff,
-                'state': self.state.name}
+                'state': self.state.name,
+                'signals_diff': self.signals_diff,
+                'base_path': self.base_path,
+                'action': self.action}
 
     @classmethod
     def from_dict(cls, **kwargs):
@@ -88,6 +91,9 @@ def details(diff):
         elif type_ == 'change':
             rst.append('-+ {}: {} >> {}'.format(
                 unwrap_change_val(val), change[0], change[1]))
+        elif type_ == 'remove':
+            for key, val in change:
+                rst.append('-- {}: {}'.format(key ,val))
     return rst
 
 
@@ -147,35 +153,5 @@ class Log(object):
     def __iter__(self):
         return iter(self.collection())
 
-
-class Data(collections.MutableMapping):
-
-    def __init__(self, path):
-        self.path = path
-        r = db.get(path, collection=db.COLLECTIONS.state_data,
-                   return_empty=True, db_convert=False)
-
-        if r:
-            self.store = r.get('properties', {})
-        else:
-            self.store = {}
-
-    def __getitem__(self, key):
-        return self.store[key]
-
-    def __setitem__(self, key, value):
-        self.store[key] = value
-        db.create(self.path, self.store, collection=db.COLLECTIONS.state_data)
-
-    def __delitem__(self, key):
-        self.store.pop(key)
-        db.create(self.path, self.store, collection=db.COLLECTIONS.state_data)
-
-    def __iter__(self):
-        return iter(self.store)
-
     def __len__(self):
-        return len(self.store)
-
-    def clean(self):
-        db.create(self.path, {}, collection=db.COLLECTIONS.state_data)
+        return len(list(self.collection()))

@@ -16,6 +16,7 @@ import sys
 
 import click
 
+from solar import errors
 from solar.core import testing
 from solar.core import resource
 from solar.system_log import change
@@ -96,8 +97,10 @@ def history(n, d, s):
 @changes.command()
 @click.argument('uid')
 def revert(uid):
-    change.revert(uid)
-
+    try:
+        change.revert(uid)
+    except errors.SolarError as er:
+        raise click.BadParameter(str(er))
 
 @changes.command()
 @click.option('--name', default=None)

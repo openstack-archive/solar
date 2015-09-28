@@ -39,7 +39,7 @@ class RedisGraphDB(BaseGraphDB):
             source_collection = BaseGraphDB.COLLECTIONS.resource
             dest_collection = BaseGraphDB.COLLECTIONS.input
         elif relation_db['type_'] == BaseGraphDB.RELATION_TYPES.resource_event.name:
-            source_collection = BaseGraphDB.COLLECTIONS.resource
+            source_collection = BaseGraphDB.COLLECTIONS.resource_events
             dest_collection = BaseGraphDB.COLLECTIONS.events
 
         source = self.get(relation_db['source'], collection=source_collection)
@@ -146,7 +146,6 @@ class RedisGraphDB(BaseGraphDB):
     def get(self, name, collection=BaseGraphDB.DEFAULT_COLLECTION,
             return_empty=False):
         """Fetch element with given name and collection type."""
-
         try:
             collection_key = self._make_collection_key(collection, name)
             item = self._r.get(collection_key)
