@@ -103,6 +103,11 @@ def revert(uid):
         raise click.BadParameter(str(er))
 
 @changes.command()
+def discard():
+    change.discard_all()
+
+
+@changes.command()
 @click.option('--name', default=None)
 def test(name):
     if name:

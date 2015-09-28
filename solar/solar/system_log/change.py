@@ -195,3 +195,34 @@ def _revert_run(logitem):
 def revert(uid):
     return revert_uids([uid])
 
+
+def _discard_remove(item):
+    resource_obj = resource.load(item.res)
+    resource_obj.set_created()
+
+_discard_update = _revert_update
+_discard_run = _revert_run
+
+
+def discard_uids(uids):
+    staged_log = data.SL()
+    for uid in uids:
+        item = staged_log.get(uid)
+        if item.action == CHANGES.update.name:
+            _discard_update(item)
+        elif item.action == CHANGES.remove.name:
+            _discard_remove(item)
+        elif item.action == CHANGES.run.name:
+            _discard_run(item)
+        else:
+            log.debug('Action %s for resource %s is a side'
+                      ' effect of another action', item.action, item.res)
+        staged_log.pop(uid)
+
+
+def discard_uid(uid):
+    return discard_uids([uid])
+
+def discard_all():
+    staged_log = data.SL()
+    return discard_uids([l.uid for l in staged_log])
