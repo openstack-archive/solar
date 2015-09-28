@@ -41,11 +41,11 @@ class SolardClient(object):
         transport = self.transport(use_sudo)
         for root, _, files in os.walk(_from):
             for name in files:
-                _from = os.path.join(root, name)
-                _to = os.path.join(root.replace(_from, _to), name)
-                size = os.stat(_from).st_size
-                to_cp_files.append((_from, _to, size))
-        tos = [(x[1], size) for x in to_cp_files]
+                single_from = os.path.join(root, name)
+                _to = os.path.join(root.replace(single_from, _to), name)
+                size = os.stat(single_from).st_size
+                to_cp_files.append((single_from, _to, size))
+        tos = [(x[1], x[2]) for x in to_cp_files]
         total_size = sum((x[1] for x in tos))
         data = {'m': 'copy_files',
                 'args': (tos, total_size),
