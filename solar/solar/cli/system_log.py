@@ -103,9 +103,16 @@ def revert(uid):
         raise click.BadParameter(str(er))
 
 @changes.command()
-def discard():
-    change.discard_all()
-
+@click.argument('uids', nargs=-1)
+@click.option('--all', is_flag=True, default=True)
+def discard(uids, all):
+    """
+    uids argument should be of a higher priority than all flag
+    """
+    if uids:
+        change.discard_uids(uids)
+    elif all:
+        change.discard_all()
 
 @changes.command()
 @click.option('--name', default=None)
