@@ -3,6 +3,8 @@ import os
 
 # TODO: handle errors
 
+
+
 class SolardClient(object):
 
     read_buffer = 4096

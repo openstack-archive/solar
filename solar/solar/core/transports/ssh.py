@@ -20,6 +20,7 @@ from fabric.contrib import project as fabric_project
 
 from solar.core.log import log
 from solar.core.transports.base import RunTransport, SyncTransport, Executor
+from solar.core.transports.base import SolarRunResult
 
 
 class _SSHTransport(object):
@@ -86,6 +87,15 @@ class SSHRunTransport(RunTransport, _SSHTransport):
 
     preffered_transport_name = 'ssh'
 
+    def get_result(self, output):
+        """
+        Needed for compatibility with other handlers / transports
+        """
+        if output.failed:
+            return SolarRunResult(output, failed=True)
+        return SolarRunResult(output, failed=False)
+
+
     def run(self, resource, *args, **kwargs):
         log.debug('SSH: %s', args)
 
@@ -109,4 +119,5 @@ class SSHRunTransport(RunTransport, _SSHTransport):
             managers.append(fabric_api.warn_only())
 
         with nested(*managers):
-            return executor(' '.join(args))
+            res = executor(' '.join(args))
+            return self.get_result(res)

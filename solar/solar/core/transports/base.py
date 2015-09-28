@@ -58,6 +58,21 @@ class SolarTransport(object):
 
 
 
+class SolarRunResult(object):
+
+    def __init__(self, result, failed=False):
+        self._result = result
+        self._failed = failed
+
+    @property
+    def failed(self):
+        return self._failed
+
+    @property
+    def result(self):
+        return self._result
+
+
 class SyncTransport(SolarTransport):
     """
     Transport that is responsible for file / directory syncing.
@@ -115,6 +130,9 @@ class RunTransport(SolarTransport):
 
     def __init__(self):
         super(RunTransport, self).__init__()
+
+    def get_result(self, *args, **kwargs):
+        raise NotImplementedError()
 
     def bind_with(self, other):
         # we migth add there something later

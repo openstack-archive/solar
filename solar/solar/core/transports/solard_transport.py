@@ -15,7 +15,7 @@
 
 from solard.client import SolardClient
 
-from solar.core.transports.base import RunTransport, SyncTransport, Executor
+from solar.core.transports.base import RunTransport, SyncTransport, Executor, SolarRunResult
 from solar.core.log import log
 
 
@@ -50,13 +50,19 @@ class SolardSyncTransport(SyncTransport, SolardTransport):
         self.executors.append(executor)
 
 
-
 class SolardRunTransport(RunTransport, SolardTransport):
 
     preffered_transport_name = 'solard'
 
+    def get_result(self, result, failed=False):
+        return SolarRunResult(result, failed)
+
     def run(self, resource, *args, **kwargs):
         log.debug("Solard run: %s", args)
         client = self.get_client(resource)
-        return client.run(' '.join(args), **kwargs)
+        try:
+            res = client.run(' '.join(args), **kwargs)
+            return self.get_result(res, failed=False)
+        except Exception as ex:
+            return self.get_result(ex, failed=True)
 
