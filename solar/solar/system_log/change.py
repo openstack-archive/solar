@@ -167,24 +167,32 @@ def _revert_remove(logitem):
         signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
 
 
+def _update_inputs_connections(res_obj, args, old_connections, new_connections):
+    res_obj.update(args)
+
+    for emitter, _, receiver, _ in old_connections:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
+        signals.disconnect(emmiter_obj, receiver_obj)
+
+
+    for emitter, emitter_input, receiver, receiver_input in new_connections:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
+        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
+
+
 def _revert_update(logitem):
     """Revert of update should update inputs and connections
     """
     res_obj = resource.load(logitem.res)
     commited = res_obj.load_commited()
+
     args_to_update = dictdiffer.revert(logitem.diff, commited.inputs)
-    res_obj.update(args_to_update)
-
-    for emitter, _, receiver, _ in commited.connections:
-        emmiter_obj = resource.load(emitter)
-        receiver_obj = resource.load(receiver)
-        signals.disconnect(emmiter_obj, receiver_obj)
-
     connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
-    for emitter, emitter_input, receiver, receiver_input in connections:
-        emmiter_obj = resource.load(emitter)
-        receiver_obj = resource.load(receiver)
-        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
+
+    _update_inputs_connections(
+        res_obj, args_to_update, commited.connections, connections)
 
 
 def _revert_run(logitem):
@@ -200,11 +208,21 @@ def _discard_remove(item):
     resource_obj = resource.load(item.res)
     resource_obj.set_created()
 
-_discard_update = _revert_update
-_discard_run = _revert_run
+
+def _discard_update(item):
+    resource_obj = resource.load(item.res)
+    old_connections = resource_obj.connections
+    new_connections = dictdiffer.revert(item.signals_diff, old_connections)
+    args = dictdiffer.revert(item.diff, resource_obj.args)
+    _update_inputs_connections(
+        resource_obj, args, old_connections, new_connections)
+
+def _discard_run(item):
+    resource.load(item.res).remove(force=True)
 
 
 def discard_uids(uids):
+
     staged_log = data.SL()
     for uid in uids:
         item = staged_log.get(uid)
