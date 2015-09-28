@@ -1,0 +1,5 @@
+- hosts: [{{ host }}]
+  sudo: yes
+  tasks:
+    - shell: pip install -e /vagrant/solard
+    - shell: start-stop-daemon -b --name solard --start --make-pidfile --pidfile /tmp/solard.pid --chdir /vagrant/solard --exec /usr/bin/python -- solard/tcp_server.py

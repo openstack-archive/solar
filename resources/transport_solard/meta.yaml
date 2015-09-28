@@ -1,0 +1,22 @@
+id: transport_solard
+handler: ansible
+input:
+  solard_user:
+    schema: str!
+    value:
+  solard_password:
+    schema: str!
+    value:
+  # solard_transport_class:
+  #   schema: str!
+  #   value: 
+  solard_port:
+    schema: int!
+    value: 5555
+  name:
+    schema: str!
+    value: solard
+  location_id:
+    schema: str!
+    value:
+    reverse: True
