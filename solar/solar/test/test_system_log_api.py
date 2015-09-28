@@ -96,9 +96,11 @@ def test_revert_removal():
     res = orm.DBResource(id='test1', name='test1', base_path='x')
     res.save()
     res.add_input('a', 'str', '9')
+    res.add_input('location_id', 'str', '1')
+    res.add_input('transports_id', 'str', '1')
 
     commited = orm.DBCommitedState.get_or_create('test1')
-    commited.inputs = {'a': '9'}
+    commited.inputs = {'a': '9', 'location_id': '1', 'transports_id': '1'}
     commited.save()
 
     logitem =change.create_logitem(
@@ -119,7 +121,7 @@ def test_revert_removal():
         mread.return_value = {'input': {'a': {'schema': 'str!'}}}
         change.revert(logitem.uid)
     resource_obj = resource.load('test1')
-    assert resource_obj.args == {'a': '9'}
+    assert resource_obj.args == {'a': '9', 'location_id': '1', 'transports_id': '1'}
 
 
 @mark.xfail(reason='With current approach child will be notice changes after parent is removed')
