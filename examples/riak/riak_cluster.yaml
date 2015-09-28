@@ -3,30 +3,29 @@ id: riak_node
 resources:
   - id: riak_service0
     from: resources/riak_node
+    location: {{nodes[0]}}
     values:
       riak_self_name: 'riak0'
       riak_hostname: 'riak_server0.solar'
       riak_name: 'riak0@riak_server0.solar'
       ip: '{{nodes[0]}}::ip'
-      ssh_user: '{{nodes[0]}}::ssh_user'
-      ssh_key: '{{nodes[0]}}::ssh_key'
 
 {% for i in range(1, idx|int) %}
   - id: riak_service{{i}}
     from: resources/riak_node
+    location: {{nodes[i]}}
     values:
       riak_self_name: 'riak{{i}}'
       riak_hostname: 'riak_server{{i}}.solar'
       riak_name: 'riak{{i}}@riak_server{{i}}.solar'
       join_to: 'riak_service0::riak_name'
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 {% for i in range(idx|int) %}
   - id: hosts_file{{i}}
     from: resources/hosts_file
+    location: {{nodes[i]}}
     values:
       hosts:name: 
         {% for j in range(idx|int) %}
@@ -36,18 +35,14 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::ip::NO_EVENTS
         {% endfor %}
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_http{{i}}
+  - id: haproxy_riak_config_http
     from: resources/haproxy_service_config
     values:
       listen_port: 8098
       protocol: 'http'
-      name: 'riak_haproxy_http{{i}}'
+      name: 'riak_haproxy_http'
       backends:server:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_hostname
@@ -56,15 +51,13 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_port_http
         {% endfor %}
-{% endfor %}
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_pb{{i}}
+  - id: haproxy_riak_config_pb
     from: resources/haproxy_service_config
     values:
       listen_port: 8087
       protocol: 'tcp'
-      name: 'riak_haproxy_pb{{i}}'
+      name: 'riak_haproxy_pb'
       backends:server:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_hostname
@@ -73,36 +66,33 @@ resources:
         {% for j in range(idx|int) %}
         - riak_service{{j}}::riak_port_pb
         {% endfor %}
-{% endfor %}
 
 {% for i in range(idx|int) %}
   - id: haproxy_config{{i}}
     from: resources/haproxy_config
+    location: {{nodes[i]}}
     values:
       config:protocol:
-        - haproxy_service_config_http{{i}}::protocol
-        - haproxy_service_config_pb{{i}}::protocol
+        - haproxy_riak_config_http::protocol
+        - haproxy_riak_config_pb::protocol
       config:listen_port:
-        - haproxy_service_config_http{{i}}::listen_port
-        - haproxy_service_config_pb{{i}}::listen_port
+        - haproxy_riak_config_http::listen_port
+        - haproxy_riak_config_pb::listen_port
       config:name:
-        - haproxy_service_config_http{{i}}::name
-        - haproxy_service_config_pb{{i}}::name
+        - haproxy_riak_config_http::name
+        - haproxy_riak_config_pb::name
       config:backends:
-        - haproxy_service_config_http{{i}}::backends
-        - haproxy_service_config_pb{{i}}::backends
+        - haproxy_riak_config_http::backends
+        - haproxy_riak_config_pb::backends
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 {% for i in range(idx|int) %}
   - id: haproxy_service{{i}}
+    location: {{nodes[i]}}
     from: resources/haproxy_service
     values:
       ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
 {% endfor %}
 
 

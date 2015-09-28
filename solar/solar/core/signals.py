@@ -90,7 +90,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
 
 
 def connect(emitter, receiver, mapping=None, events=None):
-    mapping = mapping or guess_mapping(emitter, receiver)
+    if mapping is None:
+        mapping = guess_mapping(emitter, receiver)
 
     # XXX: we didn't agree on that "reverse" there
     location_and_transports(emitter, receiver, mapping)
