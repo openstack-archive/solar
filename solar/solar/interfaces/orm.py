@@ -667,6 +667,14 @@ class DBResource(DBObject):
             mdg.add_edges_from(input.edges())
         return mdg
 
+    def add_tags(self, *tags):
+        self.tags = list(set(self.tags) + set(tags))
+        self.save()
+
+    def remove_tags(self, *tags):
+        self.tags = list(set(self.tags) - set(tags))
+        self.save()
+
 # TODO: remove this
 if __name__ == '__main__':
     r = DBResource(name=1)

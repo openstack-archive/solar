@@ -179,6 +179,12 @@ class Resource(object):
     def to_be_removed(self):
         return self.db_obj.state == RESOURCE_STATE.removed.name
 
+    def add_tags(self, *tags):
+        self.db_obj.add_tags(*tags)
+
+    def remove_tags(self, *tags):
+        self.db_obj.remove_tags(*tags)
+
     @property
     def connections(self):
         """
