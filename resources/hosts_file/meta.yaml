@@ -5,3 +5,6 @@ version: 1.0.0
 input:
     hosts:
       schema: [{name: str!, ip: str!}]
+      value: []
+
+tags: [resource=hosts_file]

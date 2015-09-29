@@ -1,4 +1,4 @@
-id: haproxy_general_config
+id: haproxy_service_config
 handler: none
 version: 1.0.0
 input:
@@ -20,4 +20,4 @@ input:
     #   schema: [str]
     #   value: []
 
-tags: [resources/haproxy, resource/haproxy_general_config]
+tags: [resources=haproxy]
