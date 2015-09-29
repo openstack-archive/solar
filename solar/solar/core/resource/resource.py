@@ -251,7 +251,7 @@ class Resource(object):
             self.db_obj.tags.remove(tag)
             self.db_obj.save()
 
-    def get_tags(self, tag):
+    def get_tags(self):
         return self.db_obj.tags
 >>>>>>> Restore tags support in resources
 
