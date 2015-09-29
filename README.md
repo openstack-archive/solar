@@ -12,7 +12,7 @@ Linux or MacOS
 
 [Vagrant](http://www.vagrantup.com/downloads.html): 1.7.x
 
-Note: Make sure that Vagrant VirtualBox Guest plugin is installed `vagrant plugin install vagrant-vbguest`
+Note: Make sure that [Vagrant VirtualBox Guest plugin](https://github.com/dotless-de/vagrant-vbguest) is installed `vagrant plugin install vagrant-vbguest`
 
 Note: If you are using VirtualBox 5.0 it's worth uncommenting paravirtprovider setting in `vagrant-settings.yaml` for speed improvements:
 ```bash
@@ -20,9 +20,6 @@ paravirtprovider: kvm
 ```
 
 For details see Customizing `vagrant-settings.yaml` section.
-
-For automatically installation of VirtualBox Guest Additions you could install
-[vagrant plugin](https://github.com/dotless-de/vagrant-vbguest).
 
 # Setup development env
 
