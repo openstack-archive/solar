@@ -1,0 +1,11 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    {% for val in hosts %}
+    - name: Create hosts entries for {{val['name']}} => {{val['ip']}}
+      lineinfile:
+        dest: /etc/hosts
+        regexp: ".*{{val['name']}}$"
+        line: "{{val['ip']}} {{val['name']}}"
+        state: present
+    {% endfor %}
