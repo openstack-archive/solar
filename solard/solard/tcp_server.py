@@ -11,11 +11,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from gevent import monkey
-monkey.patch_all()
+# from gevent import monkey
+# monkey.patch_all()
 
 
-from gevent.server import StreamServer
+# from gevent.server import StreamServer
+
+from SocketServer import ThreadingTCPServer, BaseRequestHandler
 import socket
 
 import msgpack
@@ -167,10 +169,15 @@ class SolardTCPHandler(object):
             os.setgid(pw_gid)
             os.setuid(pw_uid)
             logger.debug("Child forked %d", os.getpid())
+            self._fix_env(pw_uid)
             self.forked = True
             self._write_ok(True)
             return True
         return None
+
+    def _fix_env(self, pw_uid):
+        pw_dir = pwd.getpwuid(pw_uid).pw_dir
+        os.environ['HOME'] = pw_dir
 
 
     def process(self):
@@ -241,16 +248,12 @@ class SolardTCPHandler(object):
             logger.exception("Got exception")
 
 
+class SolardReqHandler(BaseRequestHandler):
 
-class SolardTCPServer(StreamServer):
-
-    allow_reuse_address = True
-
-    def __init__(self, *args, **kwargs):
-        StreamServer.__init__(self, *args, **kwargs)
-
-    def handle(self, sock, address):
+    def handle(self):
         close = True
+        sock = self.request
+        address = self.client_address
         h = SolardTCPHandler(sock, address)
         try:
             logger.debug("New from %s:%d" % address)
@@ -276,9 +279,19 @@ class SolardTCPServer(StreamServer):
             sock.close()
             if h.forked:
                 # if forked we can safely exit now
-                sys.exit()
+                os._exit(0)
+
+
+class SolardTCPServer(ThreadingTCPServer):
+
+    allow_reuse_address = True
+
+    def __init__(self, *args, **kwargs):
+        # StreamServer.__init__(self, *args, **kwargs)
+        ThreadingTCPServer.__init__(self, *args, **kwargs)
+
 
 
 if __name__ == '__main__':
-    s = SolardTCPServer(('0.0.0.0', 5555))
+    s = SolardTCPServer(('0.0.0.0', 5555), SolardReqHandler)
     s.serve_forever()
