@@ -74,9 +74,6 @@ class SolardTCPHandler(object):
         try:
             return msgpack.unpackb(''.join(d))
         except:
-            print '--------------------'
-            print repr(d)
-            print '--------------------'
             raise
 
     def _read_stream(self, size=None):
