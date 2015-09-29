@@ -136,19 +136,14 @@ def create(args, base_path, name):
 @click.option('--json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
 def show(**kwargs):
-    resources = []
+    resources = sresource.load_all()
 
-    for res in sresource.load_all():
-        show = True
-        if kwargs['tag']:
-            if kwargs['tag'] not in res.tags:
-                show = False
-        if kwargs['name']:
-            if res.name != kwargs['name']:
-                show = False
-
-        if show:
-            resources.append(res)
+    if kwargs['tag']:
+        tags = kwargs['tag'].split(' ')
+        resources = filter(lambda r: r.has_tags(tags), resources)
+    if kwargs['name']:
+        name = kwargs['name']
+        resources = filter(lambda r: r.name == name, resources)
 
     echo = click.echo_via_pager
     if kwargs['json']:
@@ -169,13 +164,13 @@ def show(**kwargs):
 @click.argument('tag_name')
 @click.option('--add/--delete', default=True)
 def tag(add, tag_name, resource_name):
-    click.echo('Tag {} with {} {}'.format(resource_name, tag_name, add))
     r = sresource.load(resource_name)
     if add:
         r.add_tag(tag_name)
+        click.echo('Tag {} added to {}'.format(tag_name, resource_name))
     else:
         r.remove_tag(tag_name)
-    # TODO: the above functions should save resource automatically to the DB
+        click.echo('Tag {} removed from {}'.format(tag_name, resource_name))
 
 @resource.command()
 @click.argument('name')
