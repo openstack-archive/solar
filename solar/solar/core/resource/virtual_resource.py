@@ -123,7 +123,7 @@ def create_resources(resources, tags=None):
         from_path = r.get('from', None)
         tags = r.get('tags', [])
         base_path = os.path.join(cwd, from_path)
-        new_resources = create(resource_name, base_path, tags=tags)
+        new_resources = create(resource_name, base_path, args=args, tags=tags)
         created_resources += new_resources
         if not is_virtual(base_path):
             if node:
