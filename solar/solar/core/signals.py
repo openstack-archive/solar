@@ -59,6 +59,13 @@ def location_and_transports(emitter, receiver, orig_mapping):
                 orig_mapping.remove(single)
 
     def _single(single, emitter, receiver, inps_emitter, inps_receiver):
+        # this function is responsible for doing magic with transports_id and location_id
+        # it tries to be safe and smart as possible
+        # it connects only when 100% that it can and should
+        # user can always use direct mappings,
+        # we also use direct mappings in VR
+        # when we will remove location_id and transports_id from inputs then this function,
+        #     will be deleted too
         if inps_emitter and inps_receiver:
             if not inps_emitter == inps_receiver:
                 log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
@@ -68,13 +75,24 @@ def location_and_transports(emitter, receiver, orig_mapping):
                 return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
+        emitter_single_reverse = emitter_single.get('reverse')
+        receiver_single_reverse = receiver_single.get('reverse')
+        if inps_receiver is None and inps_emitter is not None:
+            # we don't connect automaticaly when receiver is None and emitter is not None
+            # for cases when we connect existing transports to other data containers
+            if receiver_single_reverse:
+                log.info("Didn't connect automaticaly %s::%s -> %s::%s",
+                         receiver.name,
+                         single,
+                         emitter.name,
+                         single)
+                return
         if emitter_single.get('value') is False:
             log.debug("Disabled %r mapping for %r", single, emitter.name)
             return
         if receiver_single.get('is_own') is False:
             log.debug("Not is_own %r for %r ", single, emitter.name)
-        emitter_single_reverse = emitter_single.get('reverse')
-        receiver_single_reverse = receiver_single.get('reverse')
+            return
         # connect in other direction
         if emitter_single_reverse:
             if receiver_single_reverse:
