@@ -128,7 +128,7 @@ def create_resources(resources, tags=None):
         if not is_virtual(base_path):
             if node:
                 node = load_resource(node)
-                r = load_resource(resource_name)
+                r = new_resources[0]
                 signals.connect(node, r, {})
                 r.add_tag('location={}'.format(node.name))
             update_inputs(resource_name, args)
