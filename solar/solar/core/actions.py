@@ -15,17 +15,22 @@
 
 import handlers
 
-from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
+# from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 # from solar.core.transports.rsync import RsyncSyncTransport
-from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+# from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+
+from solar.core.transports.bat import BatRunTransport, BatSyncTransport
 
 _default_transports = {
     # 'sync': RsyncSyncTransport,
-    'sync': SSHSyncTransport,
-    'run': SSHRunTransport
-#     'run': SolardRunTransport,
-#     'sync': SolardSyncTransport
+    # 'sync': SSHSyncTransport,
+    # 'run': SSHRunTransport,
+    # 'run': SolardRunTransport,
+    # 'sync': SolardSyncTransport
+    'run': BatRunTransport,
+    'sync': BatSyncTransport
 }
+
 
 def resource_action(resource, action):
     handler = resource.db_obj.handler or 'none'

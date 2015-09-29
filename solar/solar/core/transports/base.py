@@ -42,6 +42,8 @@ class Executor(object):
 
 class SolarTransport(object):
 
+    _mode = None
+
     def __init__(self):
         pass
 
@@ -60,7 +62,7 @@ class SolarTransport(object):
 
 class SolarRunResult(object):
 
-    def __init__(self, result, failed=False):
+    def __init__(self, result, failed=True):
         self._result = result
         self._failed = failed
 
@@ -72,6 +74,11 @@ class SolarRunResult(object):
     def result(self):
         return self._result
 
+    def __str__(self):
+        if self.failed:
+            return str(self.failed)
+        return str(self.result)
+
 
 class SyncTransport(SolarTransport):
     """
@@ -79,6 +86,7 @@ class SyncTransport(SolarTransport):
     """
 
     preffered_transport_name = None
+    _mode = 'sync'
 
     def __init__(self):
         super(SyncTransport, self).__init__()
@@ -127,6 +135,7 @@ class RunTransport(SolarTransport):
     """
 
     preffered_transport_name = None
+    _mode = 'run'
 
     def __init__(self):
         super(RunTransport, self).__init__()
