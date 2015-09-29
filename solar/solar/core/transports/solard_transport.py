@@ -21,7 +21,6 @@ from solar.core.log import log
 
 class SolardTransport(object):
 
-
     def get_client(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()
@@ -64,5 +63,6 @@ class SolardRunTransport(RunTransport, SolardTransport):
             res = client.run(' '.join(args), **kwargs)
             return self.get_result(res, failed=False)
         except Exception as ex:
+            log.exception("Exception during solard run")
             return self.get_result(ex, failed=True)
 
