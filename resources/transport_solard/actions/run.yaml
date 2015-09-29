@@ -2,4 +2,4 @@
   sudo: yes
   tasks:
     - shell: pip install -e /vagrant/solard
-    - shell: start-stop-daemon -b --name solard --start --make-pidfile --pidfile /tmp/solard.pid --chdir /vagrant/solard --exec /usr/bin/python -- solard/tcp_server.py
+    - shell: start-stop-daemon -b --start --make-pidfile --pidfile /tmp/solard.pid --chdir /vagrant/solard --startas /bin/bash -- -c "exec python /vagrant/solard/solard/tcp_server.py > /tmp/solard.log 2>&1"
