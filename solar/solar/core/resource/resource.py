@@ -23,6 +23,8 @@ from solar import utils
 
 from solar.core import validation
 from solar.interfaces import orm
+from solar.core import signals
+from solar.events import api
 
 from uuid import uuid4
 from hashlib import md5
@@ -247,6 +249,15 @@ class Resource(object):
 
     def load_commited(self):
         return orm.DBCommitedState.get_or_create(self.name)
+
+    def connect_with_events(self, receiver, mapping=None, events=None,
+        use_defaults=False):
+        signals.connect(emitter, receiver, mapping=mapping)
+        if use_defaults:
+            api.add_default_events(self, receiver)
+        if events:
+            api.add_events(self.name, events)
+
 
 
 def load(name):

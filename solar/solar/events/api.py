@@ -37,6 +37,14 @@ def create_event(event_dict):
         raise Exception('No support for type %s', etype)
 
 
+def add_default_events(emitter, receiver):
+    events_to_add = [
+        Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
+        Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
+    ]
+    add_events(emitter.name, events_to_add)
+
+
 def add_event(ev):
     rst = all_events(ev.parent)
     for rev in rst:

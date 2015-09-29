@@ -16,8 +16,6 @@
 import networkx
 
 from solar.core.log import log
-from solar.events.api import add_events
-from solar.events.controls import Dependency
 from solar.interfaces import orm
 
 
@@ -129,9 +127,9 @@ def location_and_transports(emitter, receiver, orig_mapping):
     return
 
 
-def connect(emitter, receiver, mapping=None, events=None):
-    if mapping is None:
-        mapping = guess_mapping(emitter, receiver)
+
+def connect(emitter, receiver, mapping=None):
+    mapping = mapping or guess_mapping(emitter, receiver)
 
     # XXX: we didn't agree on that "reverse" there
     location_and_transports(emitter, receiver, mapping)
@@ -145,18 +143,6 @@ def connect(emitter, receiver, mapping=None, events=None):
 
         for d in dst:
             connect_single(emitter, src, receiver, d)
-
-    events_to_add = [
-        Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
-        Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
-    ]
-    if isinstance(events, dict):
-        for k, v in events.items():
-            if v is not False:
-                events_to_add = filter(lambda x: x.parent_action == k, events_to_add)
-        add_events(emitter.name, events_to_add)
-    elif events is not False:
-        add_events(emitter.name, events_to_add)
 
 
 def connect_single(emitter, src, receiver, dst):
