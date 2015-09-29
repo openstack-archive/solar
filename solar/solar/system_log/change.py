@@ -174,13 +174,24 @@ def _revert_remove(logitem):
 def _update_inputs_connections(res_obj, args, old_connections, new_connections):
     res_obj.update(args)
 
-    for emitter, _, receiver, _ in old_connections:
+
+    removed = []
+    for item in old_connections:
+        if item not in new_connections:
+            removed.append(item)
+
+    added = []
+    for item in new_connections:
+        if item not in old_connections:
+            added.append(item)
+
+    for emitter, _, receiver, _ in removed:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
         signals.disconnect(emmiter_obj, receiver_obj)
 
 
-    for emitter, emitter_input, receiver, receiver_input in new_connections:
+    for emitter, emitter_input, receiver, receiver_input in added:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
         signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
