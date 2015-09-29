@@ -135,7 +135,7 @@ def create_resources(resources, tags=None):
     return created_resources
 
 
-def update_resources(template_resources):
+def extend_resources(template_resources):
     resources = []
     for r in template_resources:
         if r.get('id'):
@@ -150,6 +150,10 @@ def update_resources(template_resources):
                 log.debug('Resource {} for tags {} found'.format(r, tags))
             if not filtered:
                 log.debug('Warrning: no resources with tags: {}'.format(tags))
+    return resources
+
+def update_resources(template_resources):
+    resources = extend_resources(template_resources)
     for r in resources:
         resource_name = r['id']
         args = r['values']
@@ -169,8 +173,7 @@ def update_inputs(child, args):
     child.update(assignments)
 
 
-def parse_events(template_events):
-    #extend events
+def extend_events(template_events):
     events = []
     for e in template_events:
         if e.get('parent_action', None):
@@ -187,9 +190,11 @@ def parse_events(template_events):
                          'parent_action': parent_action
                          }
                 events.append(event)
+    return events
 
-    ###
+def parse_events(template_events):
     parsed_events = []
+    events = extend_events(template_events)
     for event in events:
         event_type = event['type']
         parent, parent_action = event['parent_action'].split('.')
