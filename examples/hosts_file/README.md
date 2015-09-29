@@ -74,7 +74,22 @@ solar changes run-once last
 watch -n 1 solar changes report last
 ```
 
+How to discard pending changes ?
 
+After database was populated by some example, lets say
+```
+python examples/hosts_file/hosts.py deploy
+```
 
+User is able to discard all changes with
+```
+solar ch discard
+```
 
+Or any particular change with
+```
+solar ch stage
+log task=hosts_file1.run uid=a5990538-c9c6-49e4-8d58-29fae9c7aaed
+solar ch discard a5990538-c9c6-49e4-8d58-29fae9c7aaed
+```
 

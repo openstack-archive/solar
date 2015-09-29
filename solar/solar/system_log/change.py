@@ -128,17 +128,21 @@ def parameters(res, action, data):
             'target': data.get('ip')}
 
 
+def check_uids_present(log, uids):
+    not_valid = []
+    for uid in uids:
+        if log.get(uid) is None:
+            not_valid.append(uid)
+    if not_valid:
+        raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
+
+
 def revert_uids(uids):
     """
     :param uids: iterable not generator
     """
     history = data.CL()
-    not_valid = []
-    for uid in uids:
-        if history.get(uid) is None:
-            not_valid.append(uid)
-    if not_valid:
-        raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
+    check_uids_present(history, uids)
 
     for uid in uids:
         item = history.get(uid)
@@ -222,8 +226,8 @@ def _discard_run(item):
 
 
 def discard_uids(uids):
-
     staged_log = data.SL()
+    check_uids_present(staged_log, uids)
     for uid in uids:
         item = staged_log.get(uid)
         if item.action == CHANGES.update.name:
