@@ -44,7 +44,7 @@ def move_to_commited(log_action, *args, **kwargs):
             resource_obj.set_operational()
             commited.state = resource.RESOURCE_STATE.operational.name
             commited.inputs = patch(item.diff, commited.inputs)
-            commited.tags = resource_obj.tags
+            commited.tags = resource_obj.get_tags()
             sorted_connections = sorted(commited.connections)
             commited.connections = patch(item.signals_diff, sorted_connections)
             commited.base_path = item.base_path
