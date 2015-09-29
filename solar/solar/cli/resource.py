@@ -216,7 +216,7 @@ def get_inputs(path):
 @resource.command()
 @click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
-@click.option('-f', default=False, help='force removal from database')
+@click.option('-f', default=False, is_flag=True, help='force removal from database')
 def remove(name, tag, f):
     if name:
         resources = [sresource.load(name)]

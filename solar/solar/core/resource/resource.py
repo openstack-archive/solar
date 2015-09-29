@@ -59,7 +59,6 @@ class Resource(object):
             metadata = deepcopy(self._metadata)
 
         self.base_path = base_path
-        self.tags = tags or []
         self.virtual_resource = virtual_resource
 
         inputs = metadata.get('input', {})
@@ -79,6 +78,7 @@ class Resource(object):
 
         })
         self.db_obj.state = RESOURCE_STATE.created.name
+        self.db_obj.tags = tags or []
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -90,7 +90,6 @@ class Resource(object):
         self.name = resource_db.name
         self.base_path = resource_db.base_path
         # TODO: tags
-        self.tags = []
         self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
@@ -178,6 +177,10 @@ class Resource(object):
 
     def to_be_removed(self):
         return self.db_obj.state == RESOURCE_STATE.removed.name
+
+    @property
+    def tags(self):
+        return self.db_obj.tags
 
     def add_tags(self, *tags):
         self.db_obj.add_tags(*tags)

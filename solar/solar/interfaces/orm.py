@@ -668,7 +668,7 @@ class DBResource(DBObject):
         return mdg
 
     def add_tags(self, *tags):
-        self.tags = list(set(self.tags) + set(tags))
+        self.tags = list(set(self.tags) | set(tags))
         self.save()
 
     def remove_tags(self, *tags):
