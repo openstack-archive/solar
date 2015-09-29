@@ -253,7 +253,6 @@ class Resource(object):
 
     def get_tags(self):
         return self.db_obj.tags
->>>>>>> Restore tags support in resources
 
 def load(name):
     r = orm.DBResource.load(name)
