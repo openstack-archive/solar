@@ -131,7 +131,7 @@ def create(args, base_path, name):
         click.echo(res.color_repr())
 
 @resource.command()
-@click.argument('name', default=None)
+@click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
 @click.option('--json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
@@ -159,16 +159,15 @@ def show(name, tag, json, color):
 
 @resource.command()
 @click.argument('resource_name')
-@click.argument('tag_name')
+@click.argument('tags', nargs=-1)
 @click.option('--add/--delete', default=True)
-def tag(add, tag_name, resource_name):
-    click.echo('Tag {} with {} {}'.format(resource_name, tag_name, add))
+def tag(add, tags, resource_name):
+    click.echo('Tag {} with {} {}'.format(resource_name, tags, add))
     r = sresource.load(resource_name)
     if add:
-        r.add_tag(tag_name)
+        r.add_tags(*tags)
     else:
-        r.remove_tag(tag_name)
-    # TODO: the above functions should save resource automatically to the DB
+        r.remove_tags(*tags)
 
 @resource.command()
 @click.argument('name')
@@ -213,9 +212,21 @@ def get_inputs(path):
         content = f.read()
     click.echo(vr.get_inputs(content))
 
+
 @resource.command()
-@click.argument('name')
+@click.option('--name', '-n', default=None)
+@click.option('--tag', '-t', multiple=True)
 @click.option('-f', default=False, help='force removal from database')
-def remove(name, f):
-    res = sresource.load(name)
-    res.remove(force=f)
+def remove(name, tag, f):
+    if name:
+        resources = [sresource.load(name)]
+    elif tag:
+        resources = sresource.load_by_tags(set(tag))
+    else:
+        resources = sresource.load_all()
+    for res in resources:
+        res.remove(force=f)
+        if f:
+            click.echo('Resource %s removed from database' % res.name)
+        else:
+            click.echo('Resource %s will be removed after commiting changes.' % res.name)
