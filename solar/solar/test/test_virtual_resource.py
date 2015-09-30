@@ -157,4 +157,4 @@ def test_setting_location(tmpdir):
     location_file.write(location_data)
     vr.create('nodes', str(vr_file))
     resources = vr.create('updates', str(location_file))
-    assert 'location=node1' in resources[0].get_tags()
+    assert 'location=node1' in resources[0].tags

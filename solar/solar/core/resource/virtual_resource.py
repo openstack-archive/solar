@@ -23,7 +23,7 @@ from solar.core import provider
 from solar.core import signals
 from solar.core.log import log
 from solar.core.resource import load as load_resource
-from solar.core.resource import Resource, filter_resources
+from solar.core.resource import Resource, load_by_tags
 from solar.events.api import add_event
 from solar.events.controls import React, Dep
 
@@ -130,7 +130,7 @@ def create_resources(resources, tags=None):
                 node = load_resource(node)
                 r = new_resources[0]
                 signals.connect(node, r, {})
-                r.add_tag('location={}'.format(node.name))
+                r.add_tags('location={}'.format(node.name))
             update_inputs(resource_name, args)
     return created_resources
 
@@ -142,7 +142,7 @@ def extend_resources(template_resources):
             resources.append(r)
         if r.get('with_tags'):
             tags = r.get('with_tags')
-            filtered = filter_resources(tags)
+            filtered = load_by_tags(tags)
             for f in filtered:
                 r = {'id': f.name,
                      'values': r['values']}
@@ -181,7 +181,7 @@ def extend_events(template_events):
         elif e.get('parent', None):
             parent = e.get('parent')
             tags = parent.get('with_tags')
-            resources = filter_resources(tags)
+            resources = load_by_tags(tags)
             for r in resources:
                 parent_action = '{}.{}'.format(r.name, parent['action'])
                 event = {'type' : e['type'],

@@ -59,6 +59,7 @@ class Resource(object):
             metadata = deepcopy(self._metadata)
 
         self.base_path = base_path
+
         if tags is None:
             tags = []
         m_tags = metadata.get('tags', [])
@@ -85,6 +86,7 @@ class Resource(object):
 
         })
         self.db_obj.state = RESOURCE_STATE.created.name
+        self.db_obj.tags = tags or []
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -184,6 +186,16 @@ class Resource(object):
         return self.db_obj.state == RESOURCE_STATE.removed.name
 
     @property
+    def tags(self):
+        return self.db_obj.tags
+
+    def add_tags(self, *tags):
+        self.db_obj.add_tags(*tags)
+
+    def remove_tags(self, *tags):
+        self.db_obj.remove_tags(*tags)
+
+    @property
     def connections(self):
         """
         Gives you all incoming/outgoing connections for current resource,
@@ -236,27 +248,6 @@ class Resource(object):
     def load_commited(self):
         return orm.DBCommitedState.get_or_create(self.name)
 
-    # XXX: Make tags faster, use db for it
-    def has_tags(self, tags):
-        db_tags = self.db_obj.tags
-        found_tags = []
-        for tag in tags:
-            if tag in db_tags:
-                found_tags.append(tag)
-        return found_tags == tags
-
-    def add_tag(self, tag):
-        if tag not in self.db_obj.tags:
-            self.db_obj.tags.append(tag)
-            self.db_obj.save()
-
-    def remove_tag(self, tag):
-        if tag in self.db_obj.tags:
-            self.db_obj.tags.remove(tag)
-            self.db_obj.save()
-
-    def get_tags(self):
-        return self.db_obj.tags
 
 def load(name):
     r = orm.DBResource.load(name)
@@ -271,9 +262,10 @@ def load(name):
 def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
 
-def filter_resources(tags):
-    # XXX: should it be a class method?
-    return [r for r in load_all() if r.has_tags(tags)]
+def load_by_tags(tags):
+    return [Resource(r) for r in orm.DBResource.load_all()
+            if tags.issubset(set(r.tags))]
+
 
 def validate_resources():
     resources = load_all()

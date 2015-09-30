@@ -92,7 +92,7 @@ input:
         sample_l = resource.load('sample')
 
         self.assertDictEqual(sample.args, sample_l.args)
-        self.assertListEqual(sample.get_tags(), sample_l.get_tags())
+        self.assertListEqual(sample.tags, sample_l.tags)
 
     def test_removal(self):
         """Test that connection removed with resource."""
