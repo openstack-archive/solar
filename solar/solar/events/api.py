@@ -39,8 +39,8 @@ def create_event(event_dict):
 
 def add_default_events(emitter, receiver):
     events_to_add = [
-        Dependency(emitter.name, 'run', 'success', receiver.name, 'run'),
-        Dependency(emitter.name, 'update', 'success', receiver.name, 'update')
+        Dep(emitter.name, 'run', 'success', receiver.name, 'run'),
+        Dep(emitter.name, 'update', 'success', receiver.name, 'update')
     ]
     add_events(emitter.name, events_to_add)
 

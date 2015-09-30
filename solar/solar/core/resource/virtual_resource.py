@@ -168,7 +168,7 @@ def update_inputs(child, args):
         parent = load_resource(c['parent'])
         events = c['events']
         mapping[c['parent_input']] = c['child_input']
-        signals.connect(parent, child, mapping, events)
+        parent.connect_with_events(child, mapping, events)
 
     child.update(assignments)
 

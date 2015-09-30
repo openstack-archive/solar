@@ -251,12 +251,16 @@ class Resource(object):
         return orm.DBCommitedState.get_or_create(self.name)
 
     def connect_with_events(self, receiver, mapping=None, events=None,
-        use_defaults=False):
-        signals.connect(emitter, receiver, mapping=mapping)
+            use_defaults=False):
+        signals.connect(self, receiver, mapping=mapping)
         if use_defaults:
             api.add_default_events(self, receiver)
         if events:
             api.add_events(self.name, events)
+
+    def connect_with_defaults(self, receiver, mapping=None, events=None):
+        return self.connect_with_events(
+            receiver, mapping=mapping, events=events, use_defaults=True)
 
 
 
