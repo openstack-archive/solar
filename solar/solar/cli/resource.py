@@ -195,7 +195,7 @@ def update(name, args):
 @resource.command()
 @click.option('--check-missing-connections', default=False, is_flag=True)
 def validate(check_missing_connections):
-    errors = vr.validate_resources()
+    errors = sresource.validate_resources()
     for r, error in errors:
         click.echo('ERROR: %s: %s' % (r.name, error))
 
