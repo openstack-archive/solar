@@ -17,10 +17,10 @@ input:
     schema: str!
     value: solard
   location_id:
-    schema: str!
+    schema: str
     value:
     reverse: True
     is_own: False
   transports_id:
-    schema: str!
-    value: False
+    schema: str
+    is_emit: False

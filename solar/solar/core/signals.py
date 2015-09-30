@@ -87,10 +87,16 @@ def location_and_transports(emitter, receiver, orig_mapping):
                          emitter.name,
                          single)
                 return
-        if emitter_single.get('value') is False:
+        if emitter_single.get('is_emit') is False:
+            # this case is when we connect resource to transport itself
+            # like adding ssh_transport for solard_transport and we don't want then
+            # transports_id to be messed
+            # it forbids passing this value around
             log.debug("Disabled %r mapping for %r", single, emitter.name)
             return
         if receiver_single.get('is_own') is False:
+            # this case is when we connect resource which has location_id but that is
+            # from another resource
             log.debug("Not is_own %r for %r ", single, emitter.name)
             return
         # connect in other direction
