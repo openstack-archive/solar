@@ -178,5 +178,80 @@ def test_revert_create():
     assert len(staged_log) == 1
     for item in staged_log:
         operations.move_to_commited(item.log_action)
-    resources = orm.DBResource.load_all()
-    assert resources == []
+    assert orm.DBResource.load_all() == []
+
+
+def test_discard_all_pending_changes_resources_created():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+
+    res2 = orm.DBResource(id='test2', name='test2', base_path='x')
+    res2.save()
+    res2.add_input('a', 'str', 0)
+
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 2
+
+    change.discard_all()
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 0
+    assert orm.DBResource.load_all() == []
+
+
+def test_discard_connection():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+
+    res2 = orm.DBResource(id='test2', name='test2', base_path='x')
+    res2.save()
+    res2.add_input('a', 'str', '0')
+
+    staged_log = change.stage_changes()
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+
+    res1 = resource.load('test1')
+    res2 = resource.load('test2')
+    signals.connect(res1, res2)
+    staged_log = change.stage_changes()
+    assert len(staged_log) == 1
+    assert res2.args == {'a': '9'}
+    change.discard_all()
+    assert res2.args == {'a': '0'}
+    assert len(change.stage_changes()) == 0
+
+
+def test_discard_removed():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+    staged_log = change.stage_changes()
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+    res1 = resource.load('test1')
+    res1.remove()
+    assert len(change.stage_changes()) == 1
+    assert res1.to_be_removed()
+
+    change.discard_all()
+
+    assert len(change.stage_changes()) == 0
+    assert not resource.load('test1').to_be_removed()
+
+
+def test_discard_update():
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1.save()
+    res1.add_input('a', 'str', '9')
+    staged_log = change.stage_changes()
+    for item in staged_log:
+        operations.move_to_commited(item.log_action)
+    res1 = resource.load('test1')
+    res1.update({'a': '11'})
+    assert len(change.stage_changes()) == 1
+    assert res1.args == {'a': '11'}
+
+    change.discard_all()
+    assert res1.args == {'a': '9'}

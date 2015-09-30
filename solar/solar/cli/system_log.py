@@ -103,6 +103,18 @@ def revert(uid):
         raise click.BadParameter(str(er))
 
 @changes.command()
+@click.argument('uids', nargs=-1)
+@click.option('--all', is_flag=True, default=True)
+def discard(uids, all):
+    """
+    uids argument should be of a higher priority than all flag
+    """
+    if uids:
+        change.discard_uids(uids)
+    elif all:
+        change.discard_all()
+
+@changes.command()
 @click.option('--name', default=None)
 def test(name):
     if name:
@@ -131,3 +143,7 @@ def test(name):
 def clean_history():
     data.CL().clean()
     data.CD().clean()
+
+@changes.command(help='USE ONLY FOR TESTING')
+def commit():
+    change.commit_all()
