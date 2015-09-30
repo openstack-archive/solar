@@ -227,7 +227,7 @@ def _discard_remove(item):
 def _discard_update(item):
     resource_obj = resource.load(item.res)
     old_connections = resource_obj.connections
-    new_connections = dictdiffer.revert(item.signals_diff, old_connections)
+    new_connections = dictdiffer.revert(item.signals_diff, sorted(old_connections))
     args = dictdiffer.revert(item.diff, resource_obj.args)
     _update_inputs_connections(
         resource_obj, args, old_connections, new_connections)
@@ -259,3 +259,11 @@ def discard_uid(uid):
 def discard_all():
     staged_log = data.SL()
     return discard_uids([l.uid for l in staged_log])
+
+
+def commit_all():
+    """Helper mainly for ease of testing
+    """
+    from .operations import move_to_commited
+    for item in data.SL():
+        move_to_commited(item.log_action)

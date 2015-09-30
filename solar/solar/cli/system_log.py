@@ -143,3 +143,7 @@ def test(name):
 def clean_history():
     data.CL().clean()
     data.CD().clean()
+
+@changes.command(help='USE ONLY FOR TESTING')
+def commit():
+    change.commit_all()
