@@ -35,10 +35,6 @@ vagrant ssh
 solar --help
 ```
 
-Launch standard deployment:
-```bash
-python examples/openstack/openstack.py
-```
 
 Get ssh details for running slave nodes (vagrant/vagrant):
 ```bash
