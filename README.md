@@ -56,6 +56,8 @@ with the `snapshotter.py` script:
 
 # Solar usage
 
+For now  all commands should be executed from `solar-dev` machine from `/vagrant` directory.
+
 Basic flow is:
 
 1. Create some resources (look at `examples/openstack/openstack.py`) and connect
