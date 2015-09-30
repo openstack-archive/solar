@@ -176,6 +176,10 @@ class Resource(object):
         self.db_obj.state = RESOURCE_STATE.error.name
         self.db_obj.save()
 
+    def set_created(self):
+        self.db_obj.state = RESOURCE_STATE.created.name
+        self.db_obj.save()
+
     def to_be_removed(self):
         return self.db_obj.state == RESOURCE_STATE.removed.name
 
