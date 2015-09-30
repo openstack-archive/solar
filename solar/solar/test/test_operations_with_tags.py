@@ -12,4 +12,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from .resource import Resource, load, load_all, validate_resources, load_by_tags
+from pytest import fixture
+
+from solar.core import resource
+
+
+@fixture
+def tagged_resources(resources):
+    assert len(resources) == 3
+    for res in resources.values():
+        res.add_tags('n1', 'n2', 'n3')
+    return resources
+
+
+def test_add_remove_tags(tagged_resources):
+    assert len(resource.load_by_tags({'n1', 'n2'})) == 3
+
+    for res in tagged_resources.values():
+        res.remove_tags('n1')
+
+    assert len(resource.load_by_tags(set(['n1']))) == 0
+    assert len(resource.load_by_tags(set(['n2']))) == 3

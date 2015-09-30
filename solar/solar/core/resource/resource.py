@@ -59,7 +59,6 @@ class Resource(object):
             metadata = deepcopy(self._metadata)
 
         self.base_path = base_path
-        self.tags = tags or []
         self.virtual_resource = virtual_resource
 
         inputs = metadata.get('input', {})
@@ -79,6 +78,7 @@ class Resource(object):
 
         })
         self.db_obj.state = RESOURCE_STATE.created.name
+        self.db_obj.tags = tags or []
         self.db_obj.save()
 
         self.create_inputs(args)
@@ -90,7 +90,6 @@ class Resource(object):
         self.name = resource_db.name
         self.base_path = resource_db.base_path
         # TODO: tags
-        self.tags = []
         self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
@@ -180,6 +179,16 @@ class Resource(object):
         return self.db_obj.state == RESOURCE_STATE.removed.name
 
     @property
+    def tags(self):
+        return self.db_obj.tags
+
+    def add_tags(self, *tags):
+        self.db_obj.add_tags(*tags)
+
+    def remove_tags(self, *tags):
+        self.db_obj.remove_tags(*tags)
+
+    @property
     def connections(self):
         """
         Gives you all incoming/outgoing connections for current resource,
@@ -245,6 +254,11 @@ def load(name):
 # TODO
 def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
+
+
+def load_by_tags(tags):
+    return [Resource(r) for r in orm.DBResource.load_all()
+            if tags.issubset(set(r.tags))]
 
 
 def validate_resources():
