@@ -12,4 +12,4 @@ input:
     #   schema: str!
     #   value:
 
-tags: [resources/haproxy, resource/haproxy_service]
+tags: [resources=haproxy]

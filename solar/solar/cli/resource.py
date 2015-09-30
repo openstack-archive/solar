@@ -162,12 +162,13 @@ def show(name, tag, json, color):
 @click.argument('tags', nargs=-1)
 @click.option('--add/--delete', default=True)
 def tag(add, tags, resource_name):
-    click.echo('Tag {} with {} {}'.format(resource_name, tags, add))
     r = sresource.load(resource_name)
     if add:
         r.add_tags(*tags)
+        click.echo('Tag(s) {} added to {}'.format(tags, resource_name))
     else:
         r.remove_tags(*tags)
+        click.echo('Tag(s) {} removed from {}'.format(tags, resource_name))
 
 @resource.command()
 @click.argument('name')

@@ -118,7 +118,7 @@ def test_revert_removal():
     assert logitem.diff == [('remove', '', [('a', '9')])]
 
     with mock.patch.object(resource, 'read_meta') as mread:
-        mread.return_value = {'input': {'a': {'schema': 'str!'}}}
+        mread.return_value = {'input': {'a': {'schema': 'str!'}}, 'id': 'mocked'}
         change.revert(logitem.uid)
     resource_obj = resource.load('test1')
     assert resource_obj.args == {'a': '9', 'location_id': '1', 'transports_id': '1'}

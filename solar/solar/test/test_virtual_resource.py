@@ -137,3 +137,24 @@ def test_parse_connection_disable_events():
     }
     connection = vr.parse_connection('ip', 'node1::ip::NO_EVENTS')
     assert correct_connection == connection
+
+def test_setting_location(tmpdir):
+    # XXX: make helper for it
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_node_tmpl_path = os.path.join(base_path, 'nodes.yaml.tmpl')
+    vr_location_tmpl_path = os.path.join(base_path, 'with_location.yaml.tmpl')
+    base_service_path = os.path.join(base_path, 'base_service')
+    node_resource_path = os.path.join(base_path, 'node')
+    with open(vr_node_tmpl_path) as f:
+        vr_data = f.read().format(resource_path=node_resource_path)
+    with open(vr_location_tmpl_path) as f:
+        location_data = f.read().format(resource_path=base_service_path)
+    vr_file = tmpdir.join('nodes.yaml')
+    vr_file.write(vr_data)
+    location_file = tmpdir.join('with_location.yaml')
+    location_file.write(location_data)
+    vr.create('nodes', str(vr_file))
+    resources = vr.create('updates', str(location_file))
+    assert 'location=node1' in resources[0].tags

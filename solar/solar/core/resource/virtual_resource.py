@@ -21,13 +21,14 @@ from jinja2 import Template, Environment, meta
 
 from solar.core import provider
 from solar.core import signals
+from solar.core.log import log
 from solar.core.resource import load as load_resource
-from solar.core.resource import Resource
+from solar.core.resource import Resource, load_by_tags
 from solar.events.api import add_event
 from solar.events.controls import React, Dep
 
 
-def create(name, base_path, args=None, virtual_resource=None):
+def create(name, base_path, args=None, tags=None, virtual_resource=None):
     args = args or {}
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
@@ -40,18 +41,19 @@ def create(name, base_path, args=None, virtual_resource=None):
     if is_virtual(base_path):
         template = _compile_file(name, base_path, args)
         yaml_template = yaml.load(StringIO(template))
-        rs = create_virtual_resource(name, yaml_template)
+        rs = create_virtual_resource(name, yaml_template, tags)
     else:
         r = create_resource(name,
                             base_path,
                             args=args,
+                            tags=tags,
                             virtual_resource=virtual_resource)
         rs = [r]
 
     return rs
 
 
-def create_resource(name, base_path, args=None, virtual_resource=None):
+def create_resource(name, base_path, args=None, tags=None, virtual_resource=None):
     args = args or {}
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
@@ -59,17 +61,17 @@ def create_resource(name, base_path, args=None, virtual_resource=None):
     # List args init with empty list. Elements will be added later
     args = {key: (value if not isinstance(value, list) else []) for key, value in args.items()}
     r = Resource(
-        name, base_path, args=args, tags=[], virtual_resource=virtual_resource
+        name, base_path, args=args, tags=tags, virtual_resource=virtual_resource
     )
     return r
 
 
-def create_virtual_resource(vr_name, template):
+def create_virtual_resource(vr_name, template, tags=None):
     template_resources = template.get('resources', [])
     template_events = template.get('events', [])
     resources_to_update = template.get('updates', [])
 
-    created_resources = create_resources(template_resources)
+    created_resources = create_resources(template_resources, tags=tags)
     events = parse_events(template_events)
     for event in events:
         add_event(event)
@@ -111,27 +113,47 @@ def is_virtual(path):
     return os.path.isfile(path)
 
 
-def create_resources(resources):
+def create_resources(resources, tags=None):
     created_resources = []
     cwd = os.getcwd()
     for r in resources:
         resource_name = r['id']
-        args = r['values']
+        args = r.get('values', {})
         node = r.get('location', None)
         from_path = r.get('from', None)
+        tags = r.get('tags', [])
         base_path = os.path.join(cwd, from_path)
-        new_resources = create(resource_name, base_path)
+        new_resources = create(resource_name, base_path, args=args, tags=tags)
         created_resources += new_resources
         if not is_virtual(base_path):
             if node:
                 node = load_resource(node)
-                r = load_resource(resource_name)
+                r = new_resources[0]
                 signals.connect(node, r, {})
+                r.add_tags('location={}'.format(node.name))
             update_inputs(resource_name, args)
     return created_resources
 
 
-def update_resources(resources):
+def extend_resources(template_resources):
+    resources = []
+    for r in template_resources:
+        if r.get('id'):
+            resources.append(r)
+        if r.get('with_tags'):
+            tags = r.get('with_tags')
+            filtered = load_by_tags(tags)
+            for f in filtered:
+                r = {'id': f.name,
+                     'values': r['values']}
+                resources.append(r)
+                log.debug('Resource {} for tags {} found'.format(r, tags))
+            if not filtered:
+                log.debug('Warrning: no resources with tags: {}'.format(tags))
+    return resources
+
+def update_resources(template_resources):
+    resources = extend_resources(template_resources)
     for r in resources:
         resource_name = r['id']
         args = r['values']
@@ -151,8 +173,28 @@ def update_inputs(child, args):
     child.update(assignments)
 
 
-def parse_events(events):
+def extend_events(template_events):
+    events = []
+    for e in template_events:
+        if e.get('parent_action', None):
+            events.append(e)
+        elif e.get('parent', None):
+            parent = e.get('parent')
+            tags = parent.get('with_tags')
+            resources = load_by_tags(tags)
+            for r in resources:
+                parent_action = '{}.{}'.format(r.name, parent['action'])
+                event = {'type' : e['type'],
+                         'state': e['state'],
+                         'depend_action': e['depend_action'],
+                         'parent_action': parent_action
+                         }
+                events.append(event)
+    return events
+
+def parse_events(template_events):
     parsed_events = []
+    events = extend_events(template_events)
     for event in events:
         event_type = event['type']
         parent, parent_action = event['parent_action'].split('.')

@@ -59,6 +59,13 @@ class Resource(object):
             metadata = deepcopy(self._metadata)
 
         self.base_path = base_path
+
+        if tags is None:
+            tags = []
+        m_tags = metadata.get('tags', [])
+        tags.extend(m_tags)
+        tags.append('resource={}'.format(metadata['id']))
+
         self.virtual_resource = virtual_resource
 
         inputs = metadata.get('input', {})
@@ -74,7 +81,8 @@ class Resource(object):
             'handler': metadata.get('handler', ''),
             'puppet_module': metadata.get('puppet_module', ''),
             'version': metadata.get('version', ''),
-            'meta_inputs': inputs
+            'meta_inputs': inputs,
+            'tags': tags
 
         })
         self.db_obj.state = RESOURCE_STATE.created.name
@@ -89,7 +97,6 @@ class Resource(object):
         self.db_obj = resource_db
         self.name = resource_db.name
         self.base_path = resource_db.base_path
-        # TODO: tags
         self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
@@ -255,8 +262,8 @@ def load(name):
 def load_all():
     return [Resource(r) for r in orm.DBResource.load_all()]
 
-
 def load_by_tags(tags):
+    tags = set(tags)
     return [Resource(r) for r in orm.DBResource.load_all()
             if tags.issubset(set(r.tags))]
 
