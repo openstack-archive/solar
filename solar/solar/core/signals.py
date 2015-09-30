@@ -49,7 +49,9 @@ def guess_mapping(emitter, receiver):
 
 def location_and_transports(emitter, receiver, orig_mapping):
 
-    # XXX: we didn't agree on that reverse thign there
+    # XXX: we definitely need to change this
+    # inputs shouldn't carry is_own, or is_emit flags
+    # but for now we don't have anything better
 
     def _remove_from_mapping(single):
         if single in orig_mapping:
