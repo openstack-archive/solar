@@ -111,7 +111,6 @@ solar resource show --name 'resource_name' --json | jq .
 To clear all resources/connections:
 ```bash
 solar resource clear_all
-solar connections clear_all
 ```
 
 Show the connections/graph:
