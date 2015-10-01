@@ -83,7 +83,7 @@ solar connect mariadb_service keystone_db '{"root_password": "login_password", "
 solar connect keystone_db keystone_db_user
 
 solar changes stage
-solar changes proccess
+solar changes process
 # <uid>
 solar orch run-once <uid> # or solar orch run-once last
 watch 'solar orch report <uid>' # or solar orch report last
