@@ -70,7 +70,7 @@ Some very simple cluster setup:
 ```bash
 cd /vagrant
 
-solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
+solar resource create nodes templates/nodes.yaml '{"count": 2}'
 solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
 solar resource create keystone_db resources/mariadb_db/ '{"db_name": "keystone_db", "login_user": "root"}'
 solar resource create keystone_db_user resources/mariadb_user/ user_name=keystone user_password=keystone  # another valid format
