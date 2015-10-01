@@ -65,7 +65,11 @@ class SolarUIDParameterType(click.types.StringParamType):
 
     def convert(self, value, param, ctx):
         value = click.types.StringParamType.convert(self, value, param, ctx)
-        value = get_uid(value)
+        try:
+            value = get_uid(value)
+        except IOError:
+            raise click.BadParameter("Unable to locate file %r so"
+                                     "you can't use 'last' shortcuts" % UIDS_HISTORY)
         return value
 
 
