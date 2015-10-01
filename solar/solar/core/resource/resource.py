@@ -109,7 +109,7 @@ class Resource(object):
         inputs.setdefault('transports_id', {'value': "",
                                           'schema': 'str'})
         for inp in ('transports_id', 'location_id'):
-            if inputs[inp]['value'] == '$uuid':
+            if inputs[inp].get('value') == '$uuid':
                 inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
 
     def transports(self):

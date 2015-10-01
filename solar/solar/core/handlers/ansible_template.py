@@ -20,7 +20,6 @@ from solar.core.log import log
 from solar.core.handlers.base import TempFileHandler
 from solar import errors
 
-
 # otherwise fabric will sys.exit(1) in case of errors
 env.warn_only = True
 
@@ -29,6 +28,7 @@ env.warn_only = True
 # we would not need to render it there
 # for now we redender it locally, sync to remote, run ansible on remote host as local
 class AnsibleTemplate(TempFileHandler):
+
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
         playbook_file = self._create_playbook(resource, action_name)

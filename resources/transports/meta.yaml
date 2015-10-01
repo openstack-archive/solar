@@ -8,6 +8,6 @@ input:
     value: $uuid
     reverse: True
   location_id:
-    schema: str!
+    schema: str
     value: 
     reverse: True
