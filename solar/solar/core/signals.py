@@ -49,7 +49,9 @@ def guess_mapping(emitter, receiver):
 
 def location_and_transports(emitter, receiver, orig_mapping):
 
-    # XXX: we didn't agree on that reverse thign there
+    # XXX: we definitely need to change this
+    # inputs shouldn't carry is_own, or is_emit flags
+    # but for now we don't have anything better
 
     def _remove_from_mapping(single):
         if single in orig_mapping:
@@ -58,14 +60,47 @@ def location_and_transports(emitter, receiver, orig_mapping):
             elif isinstance(orig_mapping, set):
                 orig_mapping.remove(single)
 
-    def _single(single, inps_emitter, inps_receiver):
+    def _single(single, emitter, receiver, inps_emitter, inps_receiver):
+        # this function is responsible for doing magic with transports_id and location_id
+        # it tries to be safe and smart as possible
+        # it connects only when 100% that it can and should
+        # user can always use direct mappings,
+        # we also use direct mappings in VR
+        # when we will remove location_id and transports_id from inputs then this function,
+        #     will be deleted too
         if inps_emitter and inps_receiver:
-            log.debug("location and transports different, skipping")
-            return
+            if not inps_emitter == inps_receiver:
+                log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
+                return
+            else:
+                log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
+                return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
         emitter_single_reverse = emitter_single.get('reverse')
         receiver_single_reverse = receiver_single.get('reverse')
+        if inps_receiver is None and inps_emitter is not None:
+            # we don't connect automaticaly when receiver is None and emitter is not None
+            # for cases when we connect existing transports to other data containers
+            if receiver_single_reverse:
+                log.info("Didn't connect automaticaly %s::%s -> %s::%s",
+                         receiver.name,
+                         single,
+                         emitter.name,
+                         single)
+                return
+        if emitter_single.get('is_emit') is False:
+            # this case is when we connect resource to transport itself
+            # like adding ssh_transport for solard_transport and we don't want then
+            # transports_id to be messed
+            # it forbids passing this value around
+            log.debug("Disabled %r mapping for %r", single, emitter.name)
+            return
+        if receiver_single.get('is_own') is False:
+            # this case is when we connect resource which has location_id but that is
+            # from another resource
+            log.debug("Not is_own %r for %r ", single, emitter.name)
+            return
         # connect in other direction
         if emitter_single_reverse:
             if receiver_single_reverse:
@@ -86,7 +121,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
     # XXX: should be somehow parametrized (input attribute?)
     for single in ('transports_id', 'location_id'):
         if single in inps_emitter and inps_receiver:
-            _single(single, inps_emitter[single], inps_receiver[single])
+            _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'
                         ' emitter %s, receiver %s',

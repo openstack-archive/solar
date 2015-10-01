@@ -208,6 +208,31 @@ def setup_haproxies():
         add_event(event)
 
 
+@click.command()
+@click.argument('i', type=int, required=True)
+def add_solard(i):
+    solard_transport  = vr.create('solard_transport%s' % i, 'resources/transport_solard',
+                                  {'solard_user': 'vagrant',
+                                   'solard_password': 'password'})[0]
+    transports = resource.load('transports%s' % i)
+    ssh_transport = resource.load('ssh_transport%s' % i)
+    transports_for_solard = vr.create('transports_for_solard%s' % i, 'resources/transports')[0]
+
+    # install solard with ssh
+    signals.connect(transports_for_solard, solard_transport, {})
+
+    signals.connect(ssh_transport, transports_for_solard, {'ssh_key': 'transports:key',
+                                                           'ssh_user': 'transports:user',
+                                                           'ssh_port': 'transports:port',
+                                                           'name': 'transports:name'})
+
+    # add solard to transports on this node
+    signals.connect(solard_transport, transports, {'solard_user': 'transports:user',
+                                                   'solard_port': 'transports:port',
+                                                   'solard_password': 'transports:password',
+                                                   'name': 'transports:name'})
+
+
 @click.group()
 def main():
     pass
@@ -231,6 +256,7 @@ def undeploy():
 main.add_command(deploy)
 main.add_command(undeploy)
 main.add_command(add_haproxies)
+main.add_command(add_solard)
 
 
 if __name__ == '__main__':

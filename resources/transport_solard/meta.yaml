@@ -1,17 +1,21 @@
-id: transport_ssh
+id: transport_solard
+handler: ansible
 input:
-  ssh_key:
+  solard_user:
     schema: str!
     value:
-  ssh_user:
+  solard_password:
     schema: str!
     value:
-  ssh_port:
+  # solard_transport_class:
+  #   schema: str!
+  #   value: 
+  solard_port:
     schema: int!
-    value: 22
+    value: 5555
   name:
     schema: str!
-    value: ssh
+    value: solard
   location_id:
     schema: str
     value:
@@ -19,5 +23,4 @@ input:
     is_own: False
   transports_id:
     schema: str
-    value:
     is_emit: False

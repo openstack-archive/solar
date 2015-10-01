@@ -42,6 +42,8 @@ class Executor(object):
 
 class SolarTransport(object):
 
+    _mode = None
+
     def __init__(self):
         pass
 
@@ -58,12 +60,33 @@ class SolarTransport(object):
 
 
 
+class SolarRunResult(object):
+
+    def __init__(self, result, failed=True):
+        self._result = result
+        self._failed = failed
+
+    @property
+    def failed(self):
+        return self._failed
+
+    @property
+    def result(self):
+        return self._result
+
+    def __str__(self):
+        if self.failed:
+            return str(self.failed)
+        return str(self.result)
+
+
 class SyncTransport(SolarTransport):
     """
     Transport that is responsible for file / directory syncing.
     """
 
     preffered_transport_name = None
+    _mode = 'sync'
 
     def __init__(self):
         super(SyncTransport, self).__init__()
@@ -112,9 +135,13 @@ class RunTransport(SolarTransport):
     """
 
     preffered_transport_name = None
+    _mode = 'run'
 
     def __init__(self):
         super(RunTransport, self).__init__()
+
+    def get_result(self, *args, **kwargs):
+        raise NotImplementedError()
 
     def bind_with(self, other):
         # we migth add there something later
