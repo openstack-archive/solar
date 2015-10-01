@@ -72,13 +72,13 @@ Some very simple cluster setup:
 cd /vagrant
 
 solar resource create nodes templates/nodes.yaml '{"count": 2}'
-solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306, "ip": "db_host"}'
+solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
 solar resource create keystone_db resources/mariadb_db/ '{"db_name": "keystone_db", "login_user": "root"}'
 solar resource create keystone_db_user resources/mariadb_user/ user_name=keystone user_password=keystone  # another valid format
 
 solar connect node1 mariadb_service
 solar connect node1 keystone_db
-solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port", "ip": "db_host"}'
 # solar connect mariadb_service keystone_db_user 'root_password->login_password port->login_port'  # another valid format
 solar connect keystone_db keystone_db_user
 
