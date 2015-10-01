@@ -78,7 +78,7 @@ solar resource create keystone_db_user resources/mariadb_user/ user_name=keyston
 
 solar connect node1 mariadb_service
 solar connect node1 keystone_db
-solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port", "ip": "db_host"}'
 # solar connect mariadb_service keystone_db_user 'root_password->login_password port->login_port'  # another valid format
 solar connect keystone_db keystone_db_user
 

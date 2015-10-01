@@ -107,17 +107,19 @@ def init_cli_connect():
     @click.argument('receiver')
     @click.argument('mapping', default='')
     def connect(mapping, receiver, emitter):
-        mapping_parsed = {}
-
-        click.echo('Connect {} to {}'.format(emitter, receiver))
+        mapping_parsed = None
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
-        try:
-            mapping_parsed.update(json.loads(mapping))
-        except ValueError:
-            for m in mapping.split():
-                k, v = m.split('->')
-                mapping_parsed.update({k: v})
+        click.echo('Connect {} to {}'.format(emitter, receiver))
+
+        if mapping:
+            mapping_parsed = {}
+            try:
+                mapping_parsed.update(json.loads(mapping))
+            except ValueError:
+                for m in mapping.split():
+                    k, v = m.split('->')
+                    mapping_parsed.update({k: v})
         signals.connect(emitter, receiver, mapping=mapping_parsed)
 
         show_emitter_connections(emitter)
