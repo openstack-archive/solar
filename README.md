@@ -49,6 +49,7 @@ with the `snapshotter.py` script:
 ./snapshotter.py show
 ./snapshotter.py restore -n my-snapshot
 ```
+`snapshoter.py` to run requires python module `click`. On debian based systems you can install it via `sudo apt-get install python-click-cli`
 
 # Solar usage
 
