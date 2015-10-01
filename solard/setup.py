@@ -44,5 +44,8 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=find_requires(),
-    include_package_data=True
+    include_package_data=True,
+    entry_points={
+          'console_scripts':
+        ['solard = solard.server:cli']}
 )

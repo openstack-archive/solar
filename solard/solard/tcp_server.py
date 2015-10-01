@@ -20,7 +20,10 @@
 from SocketServer import ThreadingTCPServer, BaseRequestHandler
 import socket
 
+import threading
+import errno
 import msgpack
+import time
 import struct
 import errno
 import sys
@@ -29,6 +32,7 @@ import pwd
 import os
 
 from types import GeneratorType
+
 from solard.logger import logger
 from solard.core import SolardContext, SolardIface
 from solard.tcp_core import *
@@ -251,7 +255,6 @@ class SolardTCPHandler(object):
 class SolardReqHandler(BaseRequestHandler):
 
     def handle(self):
-        close = True
         sock = self.request
         address = self.client_address
         h = SolardTCPHandler(sock, address)
@@ -263,7 +266,7 @@ class SolardReqHandler(BaseRequestHandler):
                 return
             if auth_state is None:
                 # child forked
-                close = False
+                # we don't wait there, but in recycler
                 return
             while True:
                 if not h.process():
@@ -290,8 +293,28 @@ class SolardTCPServer(ThreadingTCPServer):
         # StreamServer.__init__(self, *args, **kwargs)
         ThreadingTCPServer.__init__(self, *args, **kwargs)
 
+    def dummy_recycle_childs(self):
+        # dummy child recycler, turns each 3 seconds
+        def child_recycler():
+            while True:
+                try:
+                    pid, status = os.waitpid(-1, 0)
+                    logger.debug("Child %r ended with status=%d", pid, status)
+                except OSError as e:
+                    if e.errno != errno.ECHILD:
+                        raise
+                    time.sleep(3)
+        th = threading.Thread(target=child_recycler)
+        th.daemon = True
+        th.start()
+
+    @staticmethod
+    def run_solard(port):
+        s = SolardTCPServer(('0.0.0.0', port), SolardReqHandler)
+        s.dummy_recycle_childs()
+        return s.serve_forever()
+
 
 
 if __name__ == '__main__':
-    s = SolardTCPServer(('0.0.0.0', 5555), SolardReqHandler)
-    s.serve_forever()
+    SolardTCPServer.run_solard(5555)
