@@ -21,7 +21,8 @@
   - htop
   - jq
   - tmux
-  - vim
+  - vim-nox
+  - mc
   # Dev
   - ipython
   - python-pudb
