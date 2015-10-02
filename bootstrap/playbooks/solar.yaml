@@ -4,4 +4,4 @@
   sudo: yes
   tasks:
     # Setup development env for solar
-    - shell: python setup.py develop chdir=/vagrant/solar
+    - shell: pip install -e . chdir=/vagrant/solar
