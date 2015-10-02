@@ -50,6 +50,7 @@ with the `snapshotter.py` script:
 ./snapshotter.py restore -n my-snapshot
 ```
 `snapshoter.py` to run requires python module `click`.
+
 1. On debian based systems you can install it via `sudo aptitude install python-click-cli`,
 2. On fedora 22 you can install it via `sudo dnf install python-click`,
 3. If you use virtualenv or similar tool then you can install it just with `pip install click`,
