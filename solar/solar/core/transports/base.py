@@ -74,9 +74,6 @@ class SolarRunResult(object):
             return str(self.stderr)
         return str(self.stdout)
 
-    def split(self, *args, **kwargs):
-        return self.stdout.split(*args, **kwargs)
-
 
 class SolarTransport(object):
 

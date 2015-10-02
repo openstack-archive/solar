@@ -49,7 +49,7 @@ class LibrarianPuppet(object):
             branch=git['branch']
         )
 
-        modules = puppetlabs.split('\n')
+        modules = puppetlabs.stdout.split('\n')
 
         # remove forge entry
         modules = [module for module in modules if not module.startswith('forge')]
