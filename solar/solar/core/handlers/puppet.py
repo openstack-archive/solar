@@ -49,7 +49,7 @@ class LibrarianPuppet(object):
             branch=git['branch']
         )
 
-        modules = puppetlabs.result.split('\n')
+        modules = puppetlabs.split('\n')
 
         # remove forge entry
         modules = [module for module in modules if not module.startswith('forge')]
@@ -117,10 +117,10 @@ class Puppet(TempFileHandler):
             warn_only=True
         )
         # 0 - no changes, 2 - successfull changes
-        if cmd.failed:
+        if cmd.return_code not in [0, 2]:
             raise errors.SolarError(
                 'Puppet for {} failed with {}'.format(
-                    resource.name, cmd.result))
+                    resource.name, cmd.return_code))
         return cmd
 
     def clone_manifests(self, resource):

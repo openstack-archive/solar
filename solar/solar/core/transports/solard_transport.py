@@ -53,16 +53,12 @@ class SolardRunTransport(RunTransport, SolardTransport):
 
     preffered_transport_name = 'solard'
 
-    def get_result(self, result, failed=False):
-        return SolarRunResult(result, failed)
+    def get_result(self, result):
+        return SolarRunResult(result)
 
     def run(self, resource, *args, **kwargs):
         log.debug("Solard run: %s", args)
         client = self.get_client(resource)
-        try:
-            res = client.run(' '.join(args), **kwargs)
-            return self.get_result(res, failed=False)
-        except Exception as ex:
-            log.exception("Exception during solard run")
-            return self.get_result(ex, failed=True)
+        res = client.run(' '.join(args), **kwargs)
+        return self.get_result(res)
 

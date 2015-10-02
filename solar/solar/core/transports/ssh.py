@@ -91,10 +91,7 @@ class SSHRunTransport(RunTransport, _SSHTransport):
         """
         Needed for compatibility with other handlers / transports
         """
-        if output.failed:
-            return SolarRunResult(output, failed=True)
-        return SolarRunResult(output, failed=False)
-
+        return SolarRunResult(output)
 
     def run(self, resource, *args, **kwargs):
         log.debug('SSH: %s', args)

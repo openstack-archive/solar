@@ -202,14 +202,17 @@ class SolardIface(object):
         if env:
             managers.append(fabric_api.shell_env(**kwargs['env']))
 
-        if kwargs.get('warn_only', False):
-            managers.append(fabric_api.warn_only())
+        # we just warn, don't exit on solard
+        # correct data is returned
+        managers.append(fabric_api.warn_only())
 
         with nested(*managers):
             out = executor(cmd, capture=True)
-            if out.failed:
-                raise Exception("Remote failed")
-            return out.stdout
+            result = {}
+            for name in ('failed', 'return_code', 'stdout', 'stderr',
+                         'succeeded', 'command', 'real_command'):
+                result[name] = getattr(out, name)
+            return result
 
     @staticmethod
     def copy_file(solard_context, stream_reader, path, size=None):
