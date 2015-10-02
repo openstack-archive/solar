@@ -1,0 +1,14 @@
+required_plugins = %w(vagrant-vbguest)
+
+requires_restart = false
+
+required_plugins.each do |plugin|
+  unless Vagrant.has_plugin? plugin
+    system "vagrant plugin install #{plugin}"
+    requires_restart = true
+  end
+end 
+
+if requires_restart
+  exec "vagrant #{ARGV.join' '}"
+end
