@@ -5,3 +5,4 @@
   tasks:
     # Setup development env for solar
     - shell: pip install -e . chdir=/vagrant/solar
+    - shell: pip install -e . chdir=/vagrant/solard
