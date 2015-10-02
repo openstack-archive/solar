@@ -64,6 +64,9 @@ class SolarRunResult(object):
     failed = SolarRunResultWrp('failed')
     stdout = SolarRunResultWrp('stdout')
     stderr = SolarRunResultWrp('stderr')
+    succeeded = SolarRunResultWrp('succeeded')
+    command = SolarRunResultWrp('command')
+    real_command = SolarRunResultWrp('real_command')
     return_code = SolarRunResultWrp('return_code')
 
     def __str__(self):
