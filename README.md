@@ -49,7 +49,12 @@ with the `snapshotter.py` script:
 ./snapshotter.py show
 ./snapshotter.py restore -n my-snapshot
 ```
-`snapshoter.py` to run requires python module `click`. On debian based systems you can install it via `sudo apt-get install python-click-cli`
+`snapshoter.py` to run requires python module `click`.
+1. On debian based systems you can install it via `sudo aptitude install python-click-cli`,
+2. On fedora 22 you can install it via `sudo dnf install python-click`,
+3. If you use virtualenv or similar tool then you can install it just with `pip install click`,
+4. If you don't have virtualenv and your operating system does not provide package for it then `sudo pip install click`.
+5. If you don't have `pip` then [install it](https://pip.pypa.io/en/stable/installing/) and then execute command step 4.
 
 # Solar usage
 
