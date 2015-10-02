@@ -40,6 +40,41 @@ class Executor(object):
             self._executor(transport)
 
 
+class SolarRunResultWrp(object):
+
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, obj, objtype):
+        res = obj._result
+        if isinstance(res, dict):
+            try:
+                return res[self.name]
+            except KeyError:
+                # Let's keep the same exceptions
+                raise AttributeError(self.name)
+        return getattr(obj._result, self.name)
+
+
+class SolarRunResult(object):
+
+    def __init__(self, result):
+        self._result = result
+
+    failed = SolarRunResultWrp('failed')
+    stdout = SolarRunResultWrp('stdout')
+    stderr = SolarRunResultWrp('stderr')
+    succeeded = SolarRunResultWrp('succeeded')
+    command = SolarRunResultWrp('command')
+    real_command = SolarRunResultWrp('real_command')
+    return_code = SolarRunResultWrp('return_code')
+
+    def __str__(self):
+        if self.failed:
+            return str(self.stderr)
+        return str(self.stdout)
+
+
 class SolarTransport(object):
 
     _mode = None
@@ -57,27 +92,6 @@ class SolarTransport(object):
             transport = next(x for x in resource.transports() if x['name'] == name)
             setattr(resource, '_used_transport', transport)
         return transport
-
-
-
-class SolarRunResult(object):
-
-    def __init__(self, result, failed=True):
-        self._result = result
-        self._failed = failed
-
-    @property
-    def failed(self):
-        return self._failed
-
-    @property
-    def result(self):
-        return self._result
-
-    def __str__(self):
-        if self.failed:
-            return str(self.failed)
-        return str(self.result)
 
 
 class SyncTransport(SolarTransport):
