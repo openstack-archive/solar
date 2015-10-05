@@ -112,7 +112,7 @@ def test_parse_bad_event(bad_event_type):
 
 
 def test_add_connections(mocker, resources):
-    mocked_signals = mocker.patch('solar.core.resource.virtual_resource.signals')
+    mocked_signals = mocker.patch('solar.core.resource.resource.signals')
     args = {'ip': 'node1::ip',
             'servers': ['node1::ip', 'node2::ip'],
             'alias': 'ser1'

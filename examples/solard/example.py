@@ -32,29 +32,27 @@ def run():
                                   {'solard_user': 'vagrant',
                                    'solard_password': 'password'})[0]
 
-    signals.connect(transports_for_solard, solard_transport, {})
-
-    signals.connect(ssh_transport, transports_for_solard, {'ssh_key': 'transports:key',
-                                                               'ssh_user': 'transports:user',
-                                                               'ssh_port': 'transports:port',
-                                                               'name': 'transports:name'})
+    transports_for_solard.connect(solard_transport, {})
+    ssh_transport.connect(transports_for_solard,{'ssh_key': 'transports:key',
+                                                 'ssh_user': 'transports:user',
+                                                 'ssh_port': 'transports:port',
+                                                 'name': 'transports:name'})
     # set transports_id
-    signals.connect(transports, node, {})
+    transports.connect(node, {})
 
     # it uses reverse mappings
-    signals.connect(ssh_transport, transports, {'ssh_key': 'transports:key',
-                                                'ssh_user': 'transports:user',
-                                                'ssh_port': 'transports:port',
-                                                'name': 'transports:name'})
-
-    signals.connect(solard_transport, transports, {'solard_user': 'transports:user',
-                                                   'solard_port': 'transports:port',
-                                                   'solard_password': 'transports:password',
-                                                   'name': 'transports:name'})
+    ssh_transport.connect(transports, {'ssh_key': 'transports:key',
+                                        'ssh_user': 'transports:user',
+                                        'ssh_port': 'transports:port',
+                                        'name': 'transports:name'})
+    solard_transport.connect(transports, {'solard_user': 'transports:user',
+                                           'solard_port': 'transports:port',
+                                           'solard_password': 'transports:password',
+                                           'name': 'transports:name'})
 
 
     hosts = vr.create('hosts_file', 'resources/hosts_file', {})[0]
-    signals.connect(node, hosts, {
+    node.connect(hosts, {
         'ip': 'hosts:ip',
         'name': 'hosts:name'
     })

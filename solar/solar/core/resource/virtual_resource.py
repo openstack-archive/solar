@@ -129,7 +129,7 @@ def create_resources(resources, tags=None):
             if node:
                 node = load_resource(node)
                 r = new_resources[0]
-                signals.connect(node, r, {})
+                node.connect(r, mapping={})
                 r.add_tags('location={}'.format(node.name))
             update_inputs(resource_name, args)
     return created_resources
@@ -167,8 +167,10 @@ def update_inputs(child, args):
         mapping = {}
         parent = load_resource(c['parent'])
         events = c['events']
+        use_defaults = not c['events'] is False
         mapping[c['parent_input']] = c['child_input']
-        signals.connect(parent, child, mapping, events)
+        parent.connect_with_events(
+            child, mapping, events, use_defaults=use_defaults)
 
     child.update(assignments)
 

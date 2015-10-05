@@ -48,10 +48,10 @@ def setup_riak():
         riak_services.append(r)
 
     for i, riak in enumerate(riak_services):
-        signals.connect(nodes[i], riak)
+        nodes[i].connect(riak)
 
     for i, riak in enumerate(riak_services[1:]):
-        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
+        riak_services[0].connect(riak, {'riak_name': 'join_to'})
 
     hosts_services = []
     for i, riak in enumerate(riak_services):
@@ -59,14 +59,13 @@ def setup_riak():
         hosts_file = vr.create('hosts_file%d' % num,
                                'resources/hosts_file', {})[0]
         hosts_services.append(hosts_file)
-        signals.connect(nodes[i], hosts_file)
+        nodes[i].connect(hosts_file)
 
     for riak in riak_services:
         for hosts_file in hosts_services:
-            signals.connect(riak, hosts_file,
-                            {'riak_hostname': 'hosts:name',
-                             'ip': 'hosts:ip'},
-                            events=False)
+            riak.connect_with_events(hosts_file,
+                {'riak_hostname': 'hosts:name',
+                 'ip': 'hosts:ip'})
 
     errors = resource.validate_resources()
     for r, error in errors:
@@ -142,24 +141,26 @@ def setup_haproxies():
 
     for single_hpsc in hpsc_http:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
-                                                'riak_port_http': 'backends:port'})
+            riak.connect(single_hpsc, {
+                'riak_hostname': 'backends:server',
+                'riak_port_http': 'backends:port'})
 
     for single_hpsc in hpsc_pb:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
-                                                'riak_port_pb': 'backends:port'})
+            riak.connect(single_hpsc,
+                {'riak_hostname': 'backends:server',
+                 'riak_port_pb': 'backends:port'})
 
     # haproxy config to haproxy service
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_http):
-        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+        single_hpsc.connect(single_hpc, {"backends": "config:backends",
                                                   "listen_port": "config:listen_port",
                                                   "protocol": "config:protocol",
                                                   "name": "config:name"})
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_pb):
-        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+        single_hpsc.connect(single_hpc, {"backends": "config:backends",
                                                   "listen_port": "config:listen_port",
                                                   "protocol": "config:protocol",
                                                   "name": "config:name"})
@@ -173,10 +174,10 @@ def setup_haproxies():
     nodes = [node1, node2, node3]
 
     for single_node, single_hps in zip(nodes, hps):
-        signals.connect(single_node, single_hps)
+        single_node.connect(single_hps)
 
     for single_node, single_hpc in zip(nodes, hpc):
-        signals.connect(single_node, single_hpc)
+        single_node.connect(single_hpc)
 
     has_errors = False
     for r in locals().values():
