@@ -1,7 +1,5 @@
 ---
 
-- shell: apt-get update
-- shell: apt-get -y upgrade
 - shell: add-apt-repository -y cloud-archive:juno
 - shell: apt-get update
-- shell: apt-get update --fix-missing
+- shell: apt-get -y dist-upgrade
