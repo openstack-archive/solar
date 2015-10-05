@@ -3,8 +3,8 @@
 
 slaves_count: 2
 slaves_ram: 1024
-master_image: cgenie/solar-master
-slaves_image: cgenie/solar-master
+master_image: solar-project/solar-master
+slaves_image: solar-project/solar-master
 master_ram: 1024
 master_cpus: 1
 slaves_cpus: 1
