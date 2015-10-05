@@ -20,22 +20,22 @@ def run():
 
     hosts1 = vr.create('hosts_file1', 'resources/hosts_file', {})[0]
     hosts2 = vr.create('hosts_file2', 'resources/hosts_file', {})[0]
-    node1.connect_with_defaults(hosts1, {
+    node1.connect(hosts1, {
         'name': 'hosts:name',
         'ip': 'hosts:ip',
     })
 
-    node2.connect_with_defaults(hosts1, {
+    node2.connect(hosts1, {
         'name': 'hosts:name',
         'ip': 'hosts:ip',
     })
 
-    node1.connect_with_defaults(hosts2, {
+    node1.connect(hosts2, {
         'name': 'hosts:name',
         'ip': 'hosts:ip',
     })
 
-    node2.connect_with_defaults(hosts2, {
+    node2.connect(hosts2, {
         'name': 'hosts:name',
         'ip': 'hosts:ip',
     })

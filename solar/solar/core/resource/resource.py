@@ -258,7 +258,7 @@ class Resource(object):
         if events:
             api.add_events(self.name, events)
 
-    def connect_with_defaults(self, receiver, mapping=None, events=None):
+    def connect(self, receiver, mapping=None, events=None):
         return self.connect_with_events(
             receiver, mapping=mapping, events=events, use_defaults=True)
 
