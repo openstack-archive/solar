@@ -73,3 +73,23 @@ def test_reset_only_provided(simple):
 
     assert simple.node['just_fail']['status'] == states.PENDING.name
     assert simple.node['echo_stuff']['status'] == states.SUCCESS.name
+
+
+def test_wait_finish(simple):
+    for n in simple:
+        simple.node[n]['status'] = states.SUCCESS.name
+    graph.save_graph(simple)
+
+    assert list(graph.wait_finish(simple.graph['uid'], 10)) == [(0, 2)]
+
+
+def test_several_updates(simple):
+    simple.node['just_fail']['status'] = states.ERROR.name
+    graph.save_graph(simple)
+
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == (1, 2)
+
+    simple.node['echo_stuff']['status'] = states.ERROR.name
+    graph.save_graph(simple)
+
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == (0, 2)

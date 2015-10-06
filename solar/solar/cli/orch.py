@@ -56,12 +56,16 @@ def wait_report(uid, timeout):
     try:
         if timeout:
             for not_finished, total in graph.wait_finish(uid, timeout=timeout):
-                click.echo('\rTasks {} / {}'.format(total - not_finished, total), nl=False)
+                click.echo(
+                    '\rTasks {} / {}'.format(total - not_finished, total),
+                    nl=False)
                 sys.stdout.flush()
     except errors.SolarError as err:
+        click.echo('')
         click_report(uid)
         sys.exit(1)
     else:
+        click.echo('')
         click_report(uid)
 
 
