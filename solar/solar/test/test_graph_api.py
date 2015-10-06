@@ -80,16 +80,16 @@ def test_wait_finish(simple):
         simple.node[n]['status'] = states.SUCCESS.name
     graph.save_graph(simple)
 
-    assert list(graph.wait_finish(simple.graph['uid'], 10)) == [(0, 2)]
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 2, 'NOOP': 0, 'ERROR': 0, 'INPROGRESS': 0, 'PENDING': 0}
 
 
 def test_several_updates(simple):
     simple.node['just_fail']['status'] = states.ERROR.name
     graph.save_graph(simple)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == (1, 2)
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 1, 'INPROGRESS': 0, 'PENDING': 1}
 
     simple.node['echo_stuff']['status'] = states.ERROR.name
     graph.save_graph(simple)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == (0, 2)
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 2, 'INPROGRESS': 0, 'PENDING': 0}

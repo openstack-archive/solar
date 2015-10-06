@@ -22,6 +22,7 @@ from solar.orchestration import tasks
 from solar.orchestration import filters
 from solar.orchestration import utils
 from solar.cli.uids_history import SOLARUID, remember_uid
+from solar import errors
 
 
 @click.group(name='orch')
@@ -55,10 +56,12 @@ def update(uid, plan):
 def wait_report(uid, timeout):
     try:
         if timeout:
-            for not_finished, total in graph.wait_finish(uid, timeout=timeout):
-                click.echo(
-                    '\rTasks {} / {}'.format(total - not_finished, total),
-                    nl=False)
+            for summary in graph.wait_finish(uid, timeout=timeout):
+
+                stringified_summary = '\r' + ' '.join(
+                    ['{}: {}'.format(state, count) for state, count in summary.items()])
+                length = len(stringified_summary)
+                click.echo(stringified_summary, nl=False)
                 sys.stdout.flush()
     except errors.SolarError as err:
         click.echo('')

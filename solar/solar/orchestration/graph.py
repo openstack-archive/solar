@@ -13,11 +13,14 @@
 #    under the License.
 
 import uuid
+import time
 
 import networkx as nx
 
 from solar import utils
 from .traversal import states
+
+from collections import Counter
 
 
 from solar.interfaces.db import get_db
@@ -167,10 +170,12 @@ def wait_finish(uid, timeout, interval=3):
 
     while start_time + timeout >= time.time():
         dg = get_graph(uid)
-        not_finished = [n for n in dg if dg.node[n]['status']
-                        in (states.PENDING.name, states.INPROGRESS.name)]
-        yield len(not_finished), len(dg.nodes())
-        if not_finished == []: return
+        summary = Counter()
+        summary.update({s.name: 0 for s in states})
+        summary.update([s['status'] for s in dg.node.values()])
+        yield summary
+        if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
+            return
         time.sleep(interval)
     else:
         raise errors.ExecutionTimeout(
