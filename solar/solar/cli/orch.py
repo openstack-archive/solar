@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
+
 import click
 
 from solar.orchestration import graph
@@ -50,9 +52,20 @@ def update(uid, plan):
     graph.update_plan(uid, plan)
 
 
-@orchestration.command()
-@click.argument('uid', type=SOLARUID, default='last')
-def report(uid):
+def wait_report(uid, timeout):
+    try:
+        if timeout:
+            for not_finished, total in graph.wait_finish(uid, timeout=timeout):
+                click.echo('\rTasks {} / {}'.format(total - not_finished, total), nl=False)
+                sys.stdout.flush()
+    except errors.SolarError as err:
+        click_report(uid)
+        sys.exit(1)
+    else:
+        click_report(uid)
+
+
+def click_report(uid):
     colors = {
         'PENDING': 'cyan',
         'ERROR': 'red',
@@ -75,6 +88,13 @@ def report(uid):
 
 
 @orchestration.command()
+@click.argument('uid', type=SOLARUID, default='last')
+@click.option('-w', 'wait', default=0)
+def report(uid, wait):
+    wait_report(uid, wait)
+
+
+@orchestration.command()
 @click.argument('uid', type=SOLARUID)
 @click.option('--start', '-s', multiple=True)
 @click.option('--end', '-e', multiple=True)
@@ -91,17 +111,21 @@ def filter(uid, start, end):
 
 @orchestration.command(name='run-once')
 @click.argument('uid', type=SOLARUID, default='last')
-def run_once(uid):
+@click.option('-w', 'wait', default=0)
+def run_once(uid, wait):
     tasks.schedule_start.apply_async(
         args=[uid],
         queue='scheduler')
+    wait_report(uid, wait)
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
-def restart(uid):
+@click.option('-w', 'wait', default=0)
+def restart(uid, wait):
     graph.reset_by_uid(uid)
     tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+    wait_report(uid, wait)
 
 
 @orchestration.command()
