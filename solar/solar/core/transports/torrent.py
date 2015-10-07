@@ -14,8 +14,10 @@ from uuid import uuid4
 
 
 # TODO: settings?
-TRACKERS = ['udp://192.168.4.140:8000',
-            'http://192.168.4.140:8000/announce']
+# TRACKERS = ['udp://192.168.4.140:8000',
+#             'http://192.168.4.140:8000/announce']
+
+TRACKERS = ['http://tracker01-bud.infra.mirantis.net:8080']
 
 
 # def common_path(paths, sep=os.path.sep):
