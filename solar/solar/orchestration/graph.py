@@ -13,11 +13,14 @@
 #    under the License.
 
 import uuid
+import time
 
 import networkx as nx
 
 from solar import utils
 from .traversal import states
+
+from collections import Counter
 
 
 from solar.interfaces.db import get_db
@@ -157,3 +160,22 @@ def report_topo(uid):
             data.get('end_time')])
 
     return report
+
+
+def wait_finish(uid, timeout):
+    """Wait finish will periodically load graph and check if there is no
+    PENDING or INPROGRESS
+    """
+    start_time = time.time()
+
+    while start_time + timeout >= time.time():
+        dg = get_graph(uid)
+        summary = Counter()
+        summary.update({s.name: 0 for s in states})
+        summary.update([s['status'] for s in dg.node.values()])
+        yield summary
+        if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
+            return
+    else:
+        raise errors.ExecutionTimeout(
+            'Next tasks wasnt able to finish: %s' % not_finished)
