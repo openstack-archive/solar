@@ -14,6 +14,7 @@
 #    under the License.
 
 import sys
+import time
 
 import click
 
@@ -21,6 +22,7 @@ from solar.orchestration import graph
 from solar.orchestration import tasks
 from solar.orchestration import filters
 from solar.orchestration import utils
+from solar.orchestration.traversal import states
 from solar.cli.uids_history import SOLARUID, remember_uid
 from solar import errors
 
@@ -53,16 +55,17 @@ def update(uid, plan):
     graph.update_plan(uid, plan)
 
 
-def wait_report(uid, timeout):
+def wait_report(uid, timeout, interval=3):
     try:
         if timeout:
             for summary in graph.wait_finish(uid, timeout=timeout):
-
                 stringified_summary = '\r' + ' '.join(
                     ['{}: {}'.format(state, count) for state, count in summary.items()])
                 length = len(stringified_summary)
                 click.echo(stringified_summary, nl=False)
                 sys.stdout.flush()
+                if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
+                    time.sleep(interval)
     except errors.SolarError as err:
         click.echo('')
         click_report(uid)

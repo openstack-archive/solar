@@ -162,7 +162,7 @@ def report_topo(uid):
     return report
 
 
-def wait_finish(uid, timeout, interval=3):
+def wait_finish(uid, timeout):
     """Wait finish will periodically load graph and check if there is no
     PENDING or INPROGRESS
     """
@@ -176,7 +176,6 @@ def wait_finish(uid, timeout, interval=3):
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return
-        time.sleep(interval)
     else:
         raise errors.ExecutionTimeout(
             'Next tasks wasnt able to finish: %s' % not_finished)
