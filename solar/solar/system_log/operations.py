@@ -24,7 +24,7 @@ def set_error(log_action, *args, **kwargs):
     item = next((i for i in sl if i.log_action == log_action), None)
     if item:
         resource_obj = resource.load(item.res)
-        resource.set_error()
+        resource_obj.set_error()
         item.state = data.STATES.error
         sl.update(item)
 
