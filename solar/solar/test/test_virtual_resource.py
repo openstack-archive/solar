@@ -73,6 +73,22 @@ def test_create_virtual_resource(tmpdir):
     resources = vr.create('nodes', str(vr_file))
     assert len(resources) == 2
 
+def test_create_virtual_resource_with_list(tmpdir):
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_tmpl_path = os.path.join(base_path, 'resource_with_list.yaml.tmpl')
+    base_resource_path = os.path.join(base_path, 'base_service')
+    with open(vr_tmpl_path) as f:
+        vr_data = f.read().format(resource_path=base_resource_path)
+    vr_file = tmpdir.join('base.yaml')
+    vr_file.write(vr_data)
+    resources = vr.create('base', str(vr_file))
+    assert len(resources) == 1
+    res = resources[0]
+    assert res.args['servers'] == [1, 2]
+
+
 def test_update(tmpdir):
     # XXX: make helper for it
     base_path = os.path.join(
@@ -119,6 +135,17 @@ def test_add_connections(mocker, resources):
            }
     vr.update_inputs('service1', args)
     assert mocked_signals.connect.call_count == 3
+
+
+def test_add_list_values(mocker, resources):
+    mocked_signals = mocker.patch('solar.core.resource.resource.signals')
+    args = {'ip': 'node1::ip',
+            'servers': ['server1', 'server2'],
+            'alias': 'ser1'
+           }
+    vr.update_inputs('service1', args)
+    assert mocked_signals.connect.call_count == 1
+
 
 def test_parse_connection():
     correct_connection = {'child_input': 'ip',
