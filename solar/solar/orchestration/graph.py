@@ -19,6 +19,7 @@ import networkx as nx
 
 from solar import utils
 from .traversal import states
+from solar import errors
 
 from collections import Counter
 
@@ -178,4 +179,4 @@ def wait_finish(uid, timeout):
             return
     else:
         raise errors.ExecutionTimeout(
-            'Next tasks wasnt able to finish: %s' % not_finished)
+            'Run %s wasnt able to finish' % uid)

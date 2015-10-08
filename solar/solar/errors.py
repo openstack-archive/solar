@@ -35,3 +35,7 @@ class LexError(SolarError):
 
 class ParseError(SolarError):
     pass
+
+
+class ExecutionTimeout(SolarError):
+    pass
