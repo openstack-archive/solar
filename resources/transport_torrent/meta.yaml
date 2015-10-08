@@ -1,5 +1,9 @@
 id: transport_torrent
+handler: ansible
 input:
+  trackers:
+    schema: [str!]
+    value: []
   name:
     schema: str!
     value: torrent

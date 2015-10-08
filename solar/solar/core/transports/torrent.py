@@ -64,15 +64,15 @@ class TorrentSyncTransport(SyncTransport):
                             params=(_from, _to, use_sudo))
         self.executors.append(executor)
 
-    def _create_single_torrent(self, _from, _to, use_sudo):
+    def _create_single_torrent(self, resource, _from, _to, use_sudo):
         fs = lt.file_storage()
         lt.add_files(fs, _from)
-        self._create_torrent(fs, _from)
+        self._create_torrent(resource, fs, _from)
 
     def _create_torrent_name(self):
         return os.path.join(self._torrent_path, uuid4().hex + '.torrent')
 
-    def _create_torrent(self, fs, root='.', use_sudo=False):
+    def _create_torrent(self, resource, fs, root='.', use_sudo=False):
         t = lt.create_torrent(fs)
         for tracker in TRACKERS:
             t.add_tracker(tracker)
@@ -124,7 +124,7 @@ class TorrentSyncTransport(SyncTransport):
 
     def preprocess(self, executor):
         _from, _to, use_sudo = executor.params
-        self._create_single_torrent(_from, _to, use_sudo)
+        self._create_single_torrent(executor.resource, _from, _to, use_sudo)
 
     def run_all(self):
         self._start_seeding()
