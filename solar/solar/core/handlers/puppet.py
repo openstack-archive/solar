@@ -16,6 +16,8 @@
 import os
 import yaml
 
+from fabric import api as fabric_api
+
 from solar.core.log import log
 from solar.core.handlers.base import TempFileHandler
 from solar.core.provider import GitProvider
@@ -131,9 +133,7 @@ class Puppet(TempFileHandler):
 
     def upload_hiera_resource(self, resource):
         with open('/tmp/puppet_resource.yaml', 'w') as f:
-            f.write(yaml.dump({
-                resource.name: resource.to_dict()
-            }))
+            f.write(yaml.safe_dump(resource.args))
 
         self.transport_sync.copy(
             resource,
@@ -154,9 +154,17 @@ class Puppet(TempFileHandler):
     def upload_library(self, resource):
         git = resource.args['library']
         p = GitProvider(git['repository'], branch=git['branch'])
+
+        #fabric_ai.local('cd {}/deployment && ./update_modules.sh'.format(
+        #   p.directory))
+
+        fabric_api.local(
+            'ansible-playbook -i "localhost," -c local /tmp/git-provider.yaml'
+        )
+
         modules_path = os.path.join(p.directory, git['puppet_modules'])
 
-        fuel_modules = '/etc/fuel/modules'
+        fuel_modules = '/etc/puppet/modules'
         self.transport_run.run(
             resource, 'sudo', 'mkdir', '-p', fuel_modules
         )

@@ -1,0 +1,43 @@
+id: ceph_mon
+handler: puppet
+version: 1.0.0
+
+
+input:
+    library:
+      schema: {repository: str!, branch: str!, puppet_modules: str}
+      value: {repository: 'https://github.com/stackforge/fuel-library',
+              branch: 'stable/7.0',
+              puppet_modules: 'deployment/puppet'}
+    ip:
+      schema: str!
+      value:
+    public_vip:
+      schema: str!
+      value:
+    management_vip:
+      schema: str!
+      value:
+    use_syslog:
+      schema: bool
+      value: true
+    keystone:
+      schema: {'admin_token': 'str'}
+      value: {}
+    ceph_monitor_nodes:
+      schema: []
+      value: []
+    ceph_primary_monitor_node:
+      schema: []
+      value: []
+    storage:
+      schema: {}
+      value: {}
+    network_scheme:
+      schema: {}
+      value: {}
+    role:
+      schema: str!
+      value:
+
+tags: []
