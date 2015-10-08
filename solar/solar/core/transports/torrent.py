@@ -117,7 +117,7 @@ class TorrentSyncTransport(SyncTransport):
         to_get = ["%s|%s" % (os.path.abspath(os.path.join(x[2], '..')), x[1]) for x in torrents]
         get_args = ';'.join(to_get)
         cmd = ['/usr/bin/python',
-               '/vagrant/solar/solar/core/transports/helpers/solar_torrent.py',
+               '/var/tmp/solar_torrent.py',
                'g',
                '"%s"' % get_args]
         self.other.run(resource, *cmd, use_sudo=use_sudo)
