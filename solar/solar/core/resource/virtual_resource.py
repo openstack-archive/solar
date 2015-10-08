@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 #    Copyright 2015 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -59,7 +59,12 @@ def create_resource(name, base_path, args=None, tags=None, virtual_resource=None
         base_path = base_path.directory
 
     # List args init with empty list. Elements will be added later
-    args = {key: (value if not isinstance(value, list) else []) for key, value in args.items()}
+    def _filter(value):
+        if not isinstance(value, list):
+            return value
+        return filter(lambda res: not is_connection(res), value)
+
+    args = {key: _filter(value) for key, value in args.items()}
     r = Resource(
         name, base_path, args=args, tags=tags, virtual_resource=virtual_resource
     )
@@ -212,6 +217,8 @@ def parse_events(template_events):
     return parsed_events
 
 
+
+
 def parse_inputs(args):
     connections = []
     assignments = {}
@@ -221,7 +228,7 @@ def parse_inputs(args):
             connections.extend(c)
             assignments.update(a)
         else:
-            if isinstance(arg, basestring) and '::' in arg:
+            if is_connection(arg):
                 c = parse_connection(r_input, arg)
                 connections.append(c)
             else:
@@ -233,13 +240,21 @@ def parse_list_input(r_input, args):
     connections = []
     assignments = {}
     for arg in args:
-        if isinstance(arg, basestring) and '::' in arg:
+        if is_connection(arg):
             c = parse_connection(r_input, arg)
             connections.append(c)
         else:
-            # Not supported yet
-            raise Exception('Only connections are supported in lists')
+            try:
+                assignments[r_input].append(arg)
+            except KeyError:
+                assignments[r_input] = [arg]
     return connections, assignments
+
+
+def is_connection(arg):
+    if isinstance(arg, basestring) and '::' in arg:
+        return True
+    return False
 
 
 def parse_connection(child_input, element):
