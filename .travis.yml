@@ -15,5 +15,3 @@ services:
     - redis-server
 after_success:
     cd solar && coveralls
-notifications:
-  slack: miracloud:3hmpAUNQsEEN8ekwRMuaQQ2n
