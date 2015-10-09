@@ -1,0 +1,50 @@
+---
+
+- name: Setup dhcp server with bootstrap image
+  hosts: all
+  sudo: yes
+  vars:
+    tftp_root: /var/lib/tftp
+    dhcp_range_start: 10.0.0.42
+    dhcp_range_end: 10.0.0.53
+    dhcp_interface: eth1
+    pxe_netboot_image: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/pxelinux.0
+    pxe_netboot_menu: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/boot-screens/vesamenu.c32
+    insecure_pub_key: https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub
+    insecure_pub_key_path: /tmp/ssh_insecure.pub
+    image_builder_path: /tmp/image_builder
+    http_ip: 10.0.0.2
+    http_port: 8000
+
+  tasks:
+    # Istall and configure dnsmasq
+    - apt: name=dnsmasq state=present
+    - file: path={{tftp_root}} state=directory
+    - template: src=files/dnsmasq_pxe.conf dest=/etc/dnsmasq.d/pxe.conf
+    - service: name=dnsmasq state=restarted
+    - file: path="{{tftp_root}}/pxelinux.cfg" state=directory
+    - template: src=files/pxelinux.cfg dest="{{tftp_root}}/pxelinux.cfg/default"
+
+    # Prepare pxe configs and download pxe image
+    - get_url: url={{pxe_netboot_image}} dest="{{tftp_root}}/pxelinux.0"
+    - get_url: url={{pxe_netboot_menu}} dest="{{tftp_root}}/vesamenu.c32"
+
+    # Build image
+    - get_url: url={{insecure_pub_key}} dest={{insecure_pub_key_path}}
+    - apt: name=debootstrap state=present
+    - file: path={{tftp_root}}/ubuntu state=directory
+    - git: repo=https://github.com/rustyrobot/fuel-bootstrap-image-builder dest={{image_builder_path}}
+    - shell: "{{image_builder_path}}/bin/fuel-bootstrap-image 2>&1 | tee /tmp/image_build.log"
+      environment:
+        BOOTSTRAP_SSH_KEYS: "{{insecure_pub_key_path}}"
+        DESTDIR: "{{tftp_root}}/ubuntu"
+    - file: path="{{tftp_root}}/ubuntu/{{item}}" mode=0644 state=file
+      with_items:
+        - initramfs.img
+        - linux
+        - root.squashfs
+
+    # Configure http server to load root
+    - apt: name=nginx state=present
+    - template: src=files/nginx.cfg dest=/etc/nginx/conf.d/pxe_image.conf
+    - service: name=nginx state=restarted

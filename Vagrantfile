@@ -39,6 +39,7 @@ SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
 PARAVIRT_PROVIDER = cfg.fetch('paravirtprovider', false)
+PREPROVISIONED = cfg.fetch('preprovisioned', true)
 
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
@@ -52,6 +53,9 @@ master_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "slave"]
 
 slave_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "master"])
 
+master_pxe = ansible_playbook_command("pxe.yaml")
+
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
@@ -59,6 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_celery, privileged: true
+    config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.network "private_network", ip: "10.0.0.2"
@@ -101,17 +106,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     index = i + 1
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
-      # standard box with all stuff preinstalled
-      config.vm.box = SLAVES_IMAGE
 
-      config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-      config.vm.provision "shell", inline: slave_script, privileged: true
-      config.vm.provision "shell", inline: solar_script, privileged: true
-      config.vm.provision "shell", inline: slave_celery, privileged: true
-      config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
+      # Standard box with all stuff preinstalled
+      config.vm.box = SLAVES_IMAGE
       config.vm.host_name = "solar-dev#{index}"
 
+      if PREPROVISIONED
+        config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
+        config.vm.provision "shell", inline: slave_script, privileged: true
+        config.vm.provision "shell", inline: solar_script, privileged: true
+        config.vm.provision "shell", inline: slave_celery, privileged: true
+        config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
+      else
+        config.vm.network "private_network", adapter: 1, ip: "10.0.0.#{ip_index}"
+        config.vbguest.no_install = true
+        config.ssh.username = 'root'
+        config.ssh.insert_key = false
+      end
+
       config.vm.provider :virtualbox do |v|
+        boot_order(v, ['net', 'disk'])
         v.customize [
             "modifyvm", :id,
             "--memory", SLAVES_RAM,
@@ -133,14 +147,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         libvirt.volume_cache = 'unsafe'
       end
 
-      if SYNC_TYPE == 'nfs'
-        config.vm.synced_folder ".", "/vagrant", type: "nfs"
-      end
-      if SYNC_TYPE == 'rsync'
-        config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+      if PREPROVISIONED
+        if SYNC_TYPE == 'nfs'
+          config.vm.synced_folder ".", "/vagrant", type: "nfs"
+        end
+        if SYNC_TYPE == 'rsync'
+          config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
           rsync__args: ["--verbose", "--archive", "--delete", "-z"]
+        end
       end
+
     end
   end
 
+end
+
+def boot_order(virt_config, order)
+  # Boot order is specified with special flag:
+  # --boot<1-4> none|floppy|dvd|disk|net
+  4.times do |idx|
+    device = order[idx] || 'none'
+    virt_config.customize ['modifyvm', :id, "--boot#{idx + 1}", device]
+  end
 end
