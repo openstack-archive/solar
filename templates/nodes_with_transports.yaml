@@ -5,7 +5,7 @@ resources:
     from: resources/transport_ssh
     values:
       ssh_user: 'vagrant'
-      ssh_key: '/vagrant/.vagrant/machines/solar-dev{{i + 1}}/virtualbox/private_key'
+      ssh_key: '/vagrant/.vagrant/machines/solar-dev{{i + 1}}/libvirt/private_key'
   - id: transports{{i}}
     from: resources/transports
     values:

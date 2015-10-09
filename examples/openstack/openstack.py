@@ -57,7 +57,7 @@ def setup_resources():
     resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {"count": 2})
     nodes = [x for x in resources if x.name.startswith('node')]
     node1, node2 = nodes
-    resources = vr.create('nodes_network', 'templates/nodes_network.yml', {"count": 2})
+    resources = vr.create('nodes_network', 'templates/nodes_network.yaml', {"count": 2})
     nodes_sdn = [x for x in resources if x.name.startswith('node')]
     node1_sdn, node2_sdn = nodes_sdn
 
