@@ -26,27 +26,6 @@ For details see Customizing `vagrant-settings.yaml` section.
 Setup environment:
 ```bash
 cd solar
-```
-* 1. Configure vagrant-settings.yml, for example:
-```
-vagrant_provider: virtualbox
-vagrant_box: cgenie/solar-master
-slaves_count: 2
-slaves_ram: 2048
-slaves_cpu: 2
-slaves_ips:
-  - 10.0.0.
-  - 10.1.0.
-  - 192.168.121.
-master_ram: 2048
-master_cpu: 2
-master_ips:
-  - 10.0.0.2
-  - 10.1.0.2
-  - 192.168.121.12
-```
-* 2. Provision the env
-```
 vagrant up
 ```
 

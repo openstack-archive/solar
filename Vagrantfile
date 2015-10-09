@@ -82,10 +82,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         "--cpus", MASTER_CPUS,
         "--ioapic", "on",
       ]
-
       if PARAVIRT_PROVIDER
         v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
       end
+      v.name = "solar-dev"
     end
 
     config.vm.provider :libvirt do |libvirt|
@@ -156,10 +156,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             "--cpus", SLAVES_CPUS,
             "--ioapic", "on",
         ]
-
         if PARAVIRT_PROVIDER
           v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
         end
+        v.name = "solar-dev#{index}"
       end
 
       config.vm.provider :libvirt do |libvirt|
@@ -182,7 +182,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       index = 0
-      SLAVE_IPS.each do |ip|
+      SLAVES_IPS.each do |ip|
         begin
           # try to configure libvirt network
           config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{index}", :mode => 'nat'

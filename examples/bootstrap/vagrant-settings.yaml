@@ -1,17 +1,5 @@
 # rename it to vagrant-settings.yml then Vagrantfile
 # will use values from this file
-vagrant_provider: virtualbox
-vagrant_box: cgenie/solar-master
-slaves_count: 2
-slaves_ram: 1024
-slaves_cpu: 1
-slaves_ips:
-  - 10.0.0.
-  - 10.1.0.
-  - 192.168.121.
-master_ram: 1024
-master_cpu: 1
-master_ips:
-  - 10.0.0.2
-  - 10.1.0.2
-  - 192.168.121.12
+
+slaves_count: 3
+slaves_image: ubuntu/trusty64
