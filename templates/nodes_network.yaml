@@ -1,7 +1,7 @@
 id: simple_multinode_gre
 # eth2 - private 10.1.0.0/24 with JUMBO frames,
 # eth1 - mgmt 10.0.0.0/24,
-# eth0 - ext 192.168.121.0/24
+# eth3 - ext 10.2.0.0/24
 resources:
   - id: node1_sdn
     from: resources/node_network_puppet
@@ -11,7 +11,7 @@ resources:
         version: '1.1'
         provider: lnx
         interfaces:
-          eth0:
+          eth3:
             mtu: 1500
           eth1:
             mtu: 1500
@@ -35,7 +35,7 @@ resources:
           name: br-mesh
         - action: add-port
           bridge: br-ex
-          name: eth0
+          name: eth3
         - action: add-port
           bridge: br-mgmt
           name: eth1
@@ -56,11 +56,11 @@ resources:
               - eth1
           br-ex:
             IP:
-            - 192.168.121.13/24
+            - 10.2.0.3/24
             vendor_specific:
               phy_interfaces:
-              - eth0
-            gateway: 192.168.121.1
+              - eth3
+            gateway: 10.2.0.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
@@ -76,7 +76,7 @@ resources:
         version: '1.1'
         provider: lnx
         interfaces:
-          eth0:
+          eth3:
             mtu: 1500
           eth1:
             mtu: 1500
@@ -100,7 +100,7 @@ resources:
           name: br-mesh
         - action: add-port
           bridge: br-ex
-          name: eth0
+          name: eth3
         - action: add-port
           bridge: br-mgmt
           name: eth1
@@ -121,11 +121,11 @@ resources:
               - eth1
           br-ex:
             IP:
-            - 192.168.121.14/24
+            - 10.2.0.4/24
             vendor_specific:
               phy_interfaces:
-              - eth0
-            gateway: 192.168.121.1
+              - eth3
+            gateway: 10.2.0.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
