@@ -41,6 +41,8 @@ def deploy():
     library = vr.create('library1', 'resources/fuel_library', {})[0]
     first_node.connect(library)
 
+    keys = vr.create('ceph_key', 'resources/ceph_keys', {})[0]
+    first_node.connect(keys)
     # TODO(use library resource)
     # ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
     #     {'storage': STORAGE,
