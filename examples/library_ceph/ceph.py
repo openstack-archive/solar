@@ -20,15 +20,15 @@ NETWORK_SCHEMA = {
     }
 
 NETWORK_METADATA = yaml.load("""
-    node-1:
+    solar-dev1:
       uid: '1'
-      fqdn: node-1
+      fqdn: solar-dev1
       network_roles:
         ceph/public: 10.0.0.3
         ceph/replication: 10.0.0.3
       node_roles:
         - ceph-mon
-      name: node-1
+      name: solar-dev1
 
     """)
 
@@ -38,17 +38,20 @@ def deploy():
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 1})
     first_node = next(x for x in resources if x.name.startswith('node'))
 
-    ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
-        {'storage': STORAGE,
-         'keystone': KEYSTONE,
-         'network_scheme': NETWORK_SCHEMA,
-         'ceph_monitor_nodes': NETWORK_METADATA,
-         'ceph_primary_monitor_node': NETWORK_METADATA,
-         'role': 'controller',
-         })[0]
-    first_node.connect(ceph_mon)
-    first_node.connect(ceph_mon, {'ip': 'public_vip'})
-    first_node.connect(ceph_mon, {'ip': 'management_vip'})
+    library = vr.create('library1', 'resources/fuel_library', {})[0]
+    first_node.connect(library)
+
+    # TODO(use library resource)
+    # ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
+    #     {'storage': STORAGE,
+    #      'keystone': KEYSTONE,
+    #      'network_scheme': NETWORK_SCHEMA,
+    #      'ceph_monitor_nodes': NETWORK_METADATA,
+    #      'ceph_primary_monitor_node': NETWORK_METADATA,
+    #      'role': 'controller',
+    #      })[0]
+    # first_node.connect(ceph_mon,
+    #     {'ip': ['ip', 'public_vip', 'management_vip']})
 
 
 if __name__ == '__main__':

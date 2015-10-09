@@ -1,8 +1,6 @@
 id: ceph_mon
 handler: puppet
 version: 1.0.0
-
-
 input:
     library:
       schema: {repository: str!, branch: str!, puppet_modules: str}
@@ -39,5 +37,4 @@ input:
     role:
       schema: str!
       value:
-
 tags: []

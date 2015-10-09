@@ -133,7 +133,7 @@ class Puppet(TempFileHandler):
 
     def upload_hiera_resource(self, resource):
         with open('/tmp/puppet_resource.yaml', 'w') as f:
-            f.write(yaml.safe_dump(resource.args))
+            f.write(yaml.safe_dump({resource.name: resource.args}))
 
         self.transport_sync.copy(
             resource,
@@ -146,38 +146,8 @@ class Puppet(TempFileHandler):
     def upload_manifests(self, resource):
         if 'forge' in resource.args and resource.args['forge']:
             self.upload_manifests_forge(resource)
-        elif 'library' in resource.args and resource.args['library']:
-            self.upload_library(resource)
         else:
             self.upload_manifests_librarian(resource)
-
-    def upload_library(self, resource):
-        git = resource.args['library']
-        p = GitProvider(git['repository'], branch=git['branch'])
-
-        #fabric_ai.local('cd {}/deployment && ./update_modules.sh'.format(
-        #   p.directory))
-
-        fabric_api.local(
-            'ansible-playbook -i "localhost," -c local /tmp/git-provider.yaml'
-        )
-
-        modules_path = os.path.join(p.directory, git['puppet_modules'])
-
-        fuel_modules = '/etc/puppet/modules'
-        self.transport_run.run(
-            resource, 'sudo', 'mkdir', '-p', fuel_modules
-        )
-
-        self.transport_sync.copy(resource, modules_path, '/tmp')
-        self.transport_sync.sync_all()
-
-        self.transport_run.run(
-            resource,
-            'sudo', 'mv',
-            '/tmp/{}/*'.format(os.path.split(modules_path)[1]),
-            fuel_modules
-        )
 
     def upload_manifests_forge(self, resource):
         forge = resource.args['forge']

@@ -1,0 +1,18 @@
+id: fuel_library
+handler: shell
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    git:
+        schema: {repository: str!, branch: str!}
+        value: {repository: 'https://github.com/stackforge/fuel-library',
+              branch: 'stable/7.0'}
+    temp_directory:
+        schema: str!
+        value: /tmp/solar
+    puppet_modules:
+        schema: str!
+        value: /etc/fuel/modules
+tags: []
