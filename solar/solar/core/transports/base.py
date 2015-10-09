@@ -109,7 +109,10 @@ class SyncTransport(SolarTransport):
     def bind_with(self, other):
         # we migth add there something later
         # like compat checking etc
-        self.other = other
+        self._other = other
+
+    def other(self, resource):
+        return self._other
 
     def copy(self, resource, *args, **kwargs):
         pass

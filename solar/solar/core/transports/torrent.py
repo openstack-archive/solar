@@ -120,7 +120,11 @@ class TorrentSyncTransport(SyncTransport):
                '/var/tmp/solar_torrent.py',
                'g',
                '"%s"' % get_args]
-        self.other.run(resource, *cmd, use_sudo=use_sudo)
+        self.other(resource).run(resource, *cmd, use_sudo=use_sudo)
+
+    def other(self, resource):
+        # TODO: implement it
+        pass
 
     def preprocess(self, executor):
         _from, _to, use_sudo = executor.params
