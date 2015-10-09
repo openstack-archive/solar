@@ -15,10 +15,3 @@ services:
     - redis-server
 after_success:
     cd solar && coveralls
-notifications:
-  slack:
-      rooms:
-        - miracloud:3hmpAUNQsEEN8ekwRMuaQQ2n#solar-dev
-      on_success: changed
-      on_failure: changed
-      on_start: never
