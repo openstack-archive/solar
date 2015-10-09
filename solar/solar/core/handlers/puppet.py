@@ -137,9 +137,12 @@ class Puppet(TempFileHandler):
 
         return p.directory
 
+    def _make_args(self, resource):
+        return {resource.name: resource.to_dict()}
+
     def upload_hiera_resource(self, resource):
         with open('/tmp/puppet_resource.yaml', 'w') as f:
-            f.write(yaml.safe_dump(resource.args))
+            f.write(yaml.safe_dump(self._make_args(resource)))
 
         self.transport_sync.copy(
             resource,
@@ -207,3 +210,10 @@ class Puppet(TempFileHandler):
             '/tmp/{}/*'.format(os.path.split(manifests_path)[1]),
             module_directory
         )
+
+
+class PuppetV2(Puppet):
+
+    def _make_args(self, resource):
+        return resource.args
+

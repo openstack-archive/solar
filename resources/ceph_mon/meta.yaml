@@ -1,5 +1,5 @@
 id: ceph_mon
-handler: puppet
+handler: puppetv2
 version: 1.0.0
 input:
     library:
