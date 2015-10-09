@@ -109,9 +109,15 @@ class Puppet(TempFileHandler):
         self.transport_sync.copy(resource, action_file, '/tmp/action.pp')
         self.transport_sync.sync_all()
 
+        cmd_args = ['puppet', 'apply', '-vd',
+                    '/tmp/action.pp', '--detailed-exitcodes']
+        if 'puppet_modules' in resource.args:
+            cmd_args.append('--modulepath={}'.format(
+                resource.args['puppet_modules']))
+
         cmd = self.transport_run.run(
             resource,
-            'puppet', 'apply', '-vd', '/tmp/action.pp', '--detailed-exitcodes',
+            *cmd_args,
             env={
                 'FACTER_resource_name': resource.name,
             },
@@ -133,7 +139,7 @@ class Puppet(TempFileHandler):
 
     def upload_hiera_resource(self, resource):
         with open('/tmp/puppet_resource.yaml', 'w') as f:
-            f.write(yaml.safe_dump({resource.name: resource.args}))
+            f.write(yaml.safe_dump(resource.args))
 
         self.transport_sync.copy(
             resource,
@@ -146,7 +152,7 @@ class Puppet(TempFileHandler):
     def upload_manifests(self, resource):
         if 'forge' in resource.args and resource.args['forge']:
             self.upload_manifests_forge(resource)
-        else:
+        elif 'git' in resource.args and resource.args['git']:
             self.upload_manifests_librarian(resource)
 
     def upload_manifests_forge(self, resource):

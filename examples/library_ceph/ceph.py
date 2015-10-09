@@ -43,17 +43,20 @@ def deploy():
 
     keys = vr.create('ceph_key', 'resources/ceph_keys', {})[0]
     first_node.connect(keys)
-    # TODO(use library resource)
-    # ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
-    #     {'storage': STORAGE,
-    #      'keystone': KEYSTONE,
-    #      'network_scheme': NETWORK_SCHEMA,
-    #      'ceph_monitor_nodes': NETWORK_METADATA,
-    #      'ceph_primary_monitor_node': NETWORK_METADATA,
-    #      'role': 'controller',
-    #      })[0]
-    # first_node.connect(ceph_mon,
-    #     {'ip': ['ip', 'public_vip', 'management_vip']})
+
+    ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
+        {'storage': STORAGE,
+         'keystone': KEYSTONE,
+         'network_scheme': NETWORK_SCHEMA,
+         'ceph_monitor_nodes': NETWORK_METADATA,
+         'ceph_primary_monitor_node': NETWORK_METADATA,
+         'role': 'controller',
+         })[0]
+
+    keys.connect(ceph_mon, {})
+    first_node.connect(ceph_mon,
+        {'ip': ['ip', 'public_vip', 'management_vip']})
+    library.connect(ceph_mon, {'puppet_modules': 'puppet_modules'})
 
 
 if __name__ == '__main__':

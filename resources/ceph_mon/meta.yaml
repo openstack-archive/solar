@@ -37,4 +37,7 @@ input:
     role:
       schema: str!
       value:
+    puppet_modules:
+      schema: str!
+      value:
 tags: []
