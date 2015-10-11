@@ -1,0 +1,14 @@
+id: librarian
+handler: ansible
+version: 0.0.1
+input:
+    modules:
+      schema: [str]
+      value: []
+      reverse: True
+    config_dir:
+      schema: str!
+      value: /etc/puppet
+    forge:
+      schema: str!
+      value: https://forgeapi.puppetlabs.com

@@ -1,0 +1,24 @@
+forge "{{forge}}"
+
+{%- for module in modules %}
+
+ {% if 'type' not in module or module.type == 'forge' -%}
+mod '{{module.name}}'
+   {%- if 'version' in module -%}
+, '{{module.version}}'
+   {%- endif -%}
+ {%- endif -%}
+
+ {%- if 'type' in module and module.type == 'git' -%}
+mod '{{module.name}}'
+   {%- if 'url' in module -%}
+,
+   :git => '{{module.url}}'
+   {%- endif -%}
+   {%- if 'ref' in module -%}
+,
+   :ref => '{{module.ref}}'
+   {%- endif -%}
+ {%- endif -%}
+
+{%- endfor -%}

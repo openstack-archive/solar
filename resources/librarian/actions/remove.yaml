@@ -1,0 +1,6 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    #XXX: should we remove modules also?
+    - file: path={{config_dir}}/Puppetfile state=absent
+    - shell: gem uninstall librarian-puppet
