@@ -16,8 +16,6 @@
 import os
 import yaml
 
-from fabric import api as fabric_api
-
 from solar.core.log import log
 from solar.core.handlers.base import TempFileHandler
 from solar.core.provider import GitProvider

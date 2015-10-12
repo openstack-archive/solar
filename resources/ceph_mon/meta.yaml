@@ -2,11 +2,6 @@ id: ceph_mon
 handler: puppetv2
 version: 1.0.0
 input:
-    library:
-      schema: {repository: str!, branch: str!, puppet_modules: str}
-      value: {repository: 'https://github.com/stackforge/fuel-library',
-              branch: 'stable/7.0',
-              puppet_modules: 'deployment/puppet'}
     ip:
       schema: str!
       value:
