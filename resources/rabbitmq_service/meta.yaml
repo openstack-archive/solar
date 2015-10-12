@@ -17,10 +17,9 @@ input:
   management_port:
     schema: int! 
     value: 15672
-  git:
-    schema: {repository: str!, branch: str!}
-    value: {repository: 'https://github.com/puppetlabs/puppetlabs-rabbitmq.git', branch: '5.1.0'}
+  module:
+    schema: {name: str!, type: str, url: str, ref: str}
+    value: {name: 'rabbitmq', type: 'git', url: 'https://github.com/puppetlabs/puppetlabs-rabbitmq.git', ref: '5.1.0'}
 
-puppet_module: 'rabbitmq'
 tags: []
 version: 1.0.0
