@@ -11,11 +11,3 @@
 # Make paths puppet 4 compatible
 - file: path=/etc/puppetlabs/code/ state=directory
 - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
-- file: path=/var/tmp/puppet/modules state=directory owner=puppet
-- file: path=/var/tmp/puppet/Puppetfile state=touch owner=puppet
-- file: path=/etc/puppet/modules state=absent
-- file: path=/etc/puppetlabs/code/modules state=absent
-- file: path=/etc/puppetlabs/code/hieradata state=absent
-- file: src=/var/tmp/puppet/modules dest=/etc/puppet/modules state=link
-- file: src=/var/tmp/puppet/modules dest=/etc/puppetlabs/code/modules state=link
-- file: src=/etc/puppet/hieradata dest=/etc/puppetlabs/code/hieradata state=link
