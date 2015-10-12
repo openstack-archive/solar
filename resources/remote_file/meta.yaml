@@ -1,0 +1,23 @@
+id: remote_file
+handler: shell
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    remote_ip:
+        schema: str!
+        value:
+    remote_user:
+        schema: {}
+        value:
+    remote_path:
+        schema: str!
+        value:
+    remote_key:
+        schema: str!
+        value:
+    dest:
+        schema: str!
+        value:
+tags: []
