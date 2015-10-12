@@ -105,16 +105,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         rsync__args: ["--verbose", "--archive", "--delete", "-z"]
     end
 
-    index = 0
+    ind = 0
     MASTER_IPS.each do |ip|
       begin
         # try to configure libvirt network
-        config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{index}", :mode => 'nat'
+        config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
       rescue
         # fallback to vbox network on error
         config.vm.network "private_network", ip: "#{ip}"
       end
-      index = index + 1
+      ind = ind + 1
     end
   end
 
@@ -181,16 +181,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         end
       end
 
-      index = 0
+      ind = 0
       SLAVES_IPS.each do |ip|
         begin
           # try to configure libvirt network
-          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{index}", :mode => 'nat'
+          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
         rescue
            # fallback to vbox network on error
            config.vm.network "private_network", ip: "#{ip}#{ip_index}"
         end
-        index = index + 1
+        ind = ind + 1
       end
     end
   end
