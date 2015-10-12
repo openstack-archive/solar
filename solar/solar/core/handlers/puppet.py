@@ -103,12 +103,14 @@ class Puppet(TempFileHandler):
 
         self.upload_manifests(resource)
 
+        action_file_name = '/tmp/{}.pp'.format(resource.name)
         self.prepare_templates_and_scripts(resource, action_file, '')
-        self.transport_sync.copy(resource, action_file, '/tmp/action.pp')
+        self.transport_sync.copy(resource, action_file, action_file_name)
         self.transport_sync.sync_all()
 
         cmd_args = ['puppet', 'apply', '-vd',
-                    '/tmp/action.pp', '--detailed-exitcodes']
+                    action_file_name,
+                    '--detailed-exitcodes']
         if 'puppet_modules' in resource.args:
             cmd_args.append('--modulepath={}'.format(
                 resource.args['puppet_modules']))

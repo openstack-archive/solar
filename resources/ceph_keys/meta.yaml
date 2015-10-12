@@ -7,7 +7,7 @@ input:
         value:
     target_directory:
         schema: str!
-        value: /var/lib/astute
+        value: /var/lib/astute/
     key_name:
         schema: str!
         value: ceph

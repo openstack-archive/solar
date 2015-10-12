@@ -24,11 +24,12 @@ class Shell(TempFileHandler):
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)
 
-        self.transport_sync.copy(resource, action_file, '/tmp/action.sh')
+        action_file_name = '/tmp/{}.sh'.format(resource.name)
+        self.transport_sync.copy(resource, action_file, action_file_name)
         self.transport_sync.sync_all()
         cmd = self.transport_run.run(
             resource,
-            'bash', '/tmp/action.sh',
+            'bash', action_file_name,
             use_sudo=True,
             warn_only=True
         )
