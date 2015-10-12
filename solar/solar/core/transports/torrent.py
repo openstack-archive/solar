@@ -122,10 +122,6 @@ class TorrentSyncTransport(SyncTransport):
                '"%s"' % get_args]
         self.other(resource).run(resource, *cmd, use_sudo=use_sudo)
 
-    def other(self, resource):
-        # TODO: implement it
-        pass
-
     def preprocess(self, executor):
         _from, _to, use_sudo = executor.params
         self._create_single_torrent(executor.resource, _from, _to, use_sudo)

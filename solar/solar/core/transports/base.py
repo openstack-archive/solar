@@ -83,15 +83,22 @@ class SolarTransport(object):
         pass
 
     def get_transport_data(self, resource, name=None):
+        key = '_used_transport_%s' % self._mode
         # TODO: naive object local cache
         try:
-            transport = resource._used_transport
+            transport = getattr(resource, key)
         except AttributeError:
             if name is None:
                 name = self.preffered_transport_name
             transport = next(x for x in resource.transports() if x['name'] == name)
-            setattr(resource, '_used_transport', transport)
+            setattr(resource, key, transport)
         return transport
+
+    def other(self, resource):
+        return self._other
+
+    def bind_with(self, other):
+        self._other = other
 
 
 class SyncTransport(SolarTransport):
@@ -105,14 +112,6 @@ class SyncTransport(SolarTransport):
     def __init__(self):
         super(SyncTransport, self).__init__()
         self.executors = []
-
-    def bind_with(self, other):
-        # we migth add there something later
-        # like compat checking etc
-        self._other = other
-
-    def other(self, resource):
-        return self._other
 
     def copy(self, resource, *args, **kwargs):
         pass
@@ -159,11 +158,6 @@ class RunTransport(SolarTransport):
 
     def get_result(self, *args, **kwargs):
         raise NotImplementedError()
-
-    def bind_with(self, other):
-        # we migth add there something later
-        # like compat checking etc
-        self.other = other
 
     def run(self, resource, *args, **kwargs):
         pass

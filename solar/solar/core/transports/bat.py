@@ -52,15 +52,20 @@ class BatTransport(SolarTransport):
             if not selected:
                 raise Exception("No valid transport found")
             instance = self._bat_transports[selected['name']]()
-            setattr(resource, '_used_transport', selected)
+            setattr(resource, '_used_transport_%s' % instance._mode, selected)
             setattr(resource, key_name, instance)
             self._used_transports.append(instance)
+            instance.bind_with(self._other_remember)
             return instance
             # return self._bat_transports[selected['name']]
 
     def get_transport_data(self, resource, *args, **kwargs):
         self.select_valid_transport(resource)
         return super(BatTransport, self).get_transport_data(resource, *args, **kwargs)
+
+    def bind_with(self, other):
+        self._other_remember = other
+
 
 class BatSyncTransport(SyncTransport, BatTransport):
 
