@@ -5,7 +5,6 @@ input:
     modules:
       schema: [str]
       value: []
-      reverse: True
     config_dir:
       schema: str!
       value: /etc/puppet
