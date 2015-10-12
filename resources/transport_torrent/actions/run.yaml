@@ -1,0 +1,9 @@
+- hosts: [{{ host }}]
+  sudo: yes
+  tasks:
+    - apt:
+        name: python-libtorrent
+        state: present
+    - copy:
+        src: {{scripts_dir}}/solar_torrent.py
+        dest: /var/tmp/solar_torrent.py
