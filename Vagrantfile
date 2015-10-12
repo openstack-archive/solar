@@ -41,6 +41,9 @@ SLAVES_CPUS = cfg["slaves_cpus"]
 PARAVIRT_PROVIDER = cfg.fetch('paravirtprovider', false)
 PREPROVISIONED = cfg.fetch('preprovisioned', true)
 
+# Initialize noop plugins only in case of PXE boot
+require_relative 'bootstrap/vagrant_plugins/noop' unless PREPROVISIONED
+
 def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
 end
@@ -118,10 +121,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.provision "shell", inline: slave_celery, privileged: true
         config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
       else
+        # Disable attempts to install guest os and check that node is booted using ssh,
+        # because nodes will have ip addresses from dhcp, and vagrant doesn't know
+        # which ip to use to perform connection
+        config.vm.communicator = :noop
+        config.vm.guest = :noop_guest
+        # Configure network to boot vm using pxe
         config.vm.network "private_network", adapter: 1, ip: "10.0.0.#{ip_index}"
         config.vbguest.no_install = true
-        config.ssh.username = 'root'
-        config.ssh.insert_key = false
+        config.vbguest.auto_update = false
       end
 
       config.vm.provider :virtualbox do |v|
@@ -161,6 +169,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
 end
+
 
 def boot_order(virt_config, order)
   # Boot order is specified with special flag:
