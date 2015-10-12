@@ -26,13 +26,9 @@ input:
       schema: int!
       value: 5000
 
-    git:
-      schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-keystone', branch: '5.1.0'}
-
-#    forge:
-#      schema: str!
-#      value: 'stackforge-keystone'
+    module:
+      schema: {name: str!, type: str, url: str, branch: str}
+      value: {name:, 'keystone', type: 'git', url: 'https://github.com/openstack/puppet-keystone', ref: '5.1.0'}
 
     ip:
       schema: str!
