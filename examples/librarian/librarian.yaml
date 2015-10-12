@@ -1,0 +1,20 @@
+id: librarian_examples
+
+resources:
+  - id: librarian
+    location: {{node}}
+    from: resources/librarian
+    values:
+      modules:
+        - name: puppetlabs-ntp
+          version: 4.1.0
+        - name: puppet-keystone
+          type: git
+          url: https://github.com/openstack/puppet-keystone
+          ref: 5.1.0
+
+events:
+  - type: depends_on
+    parent_action: librarian.run
+    state: success
+    depend_action: rabbitmq_service1.run
