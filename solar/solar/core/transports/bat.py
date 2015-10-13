@@ -1,21 +1,37 @@
 from solar.core.transports.base import SyncTransport, RunTransport, SolarTransport
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 from solar.core.transports.rsync import RsyncSyncTransport
-from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
-from solar.core.transports.torrent import TorrentSyncTransport
+try:
+    from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+except ImportError:
+    _solard_available = False
+else:
+    _solard_available = True
+
+try:
+    from solar.core.transports.torrent import TorrentSyncTransport
+except ImportError:
+    _torrent_available = False
+else:
+    _torrent_available = True
+
 
 KNOWN_SYNC_TRANSPORTS = {
-    'torrent': TorrentSyncTransport,
-    'solard': SolardSyncTransport,
     'rsync': RsyncSyncTransport,
     'ssh': SSHSyncTransport
 }
 
 
 KNOWN_RUN_TRANSPORTS = {
-    'solard': SolardRunTransport,
     'ssh': SSHRunTransport
 }
+
+
+if _torrent_available:
+    KNOWN_SYNC_TRANSPORTS['torrent'] = TorrentSyncTransport
+if _solard_available:
+    KNOWN_SYNC_TRANSPORTS['solard'] = SolardSyncTransport
+    KNOWN_RUN_TRANSPORTS['solard'] = SolardRunTransport
 
 
 class OnAll(object):
