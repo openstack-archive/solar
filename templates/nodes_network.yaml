@@ -60,7 +60,7 @@ resources:
             vendor_specific:
               phy_interfaces:
               - eth3
-            gateway: 10.2.0.1
+            #gateway: 10.2.0.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
@@ -125,7 +125,7 @@ resources:
             vendor_specific:
               phy_interfaces:
               - eth3
-            gateway: 10.2.0.1
+            #gateway: 10.2.0.1
         roles:
           management: br-mgmt
           neutron/mesh: br-mesh
