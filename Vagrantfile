@@ -62,8 +62,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.network "private_network", ip: "10.0.0.2"
-    config.vm.network "private_network", ip: "10.1.0.2"
-    config.vm.network "private_network", ip: "192.168.121.12"
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
@@ -111,8 +109,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.provision "shell", inline: solar_script, privileged: true
       config.vm.provision "shell", inline: slave_celery, privileged: true
       config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
-      config.vm.network "private_network", ip: "10.1.0.#{ip_index}"
-      config.vm.network "private_network", ip: "192.168.121.1#{ip_index}"
       config.vm.host_name = "solar-dev#{index}"
 
       config.vm.provider :virtualbox do |v|
