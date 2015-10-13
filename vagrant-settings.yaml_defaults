@@ -17,3 +17,11 @@ slaves_cpus: 1
 # Uncomment following option to change it.
 # Possible options are: rsync, nfs
 # sync_type: nfs
+
+# Use vagrant image in order to perform provisioning
+preprovisioned: true
+
+# Use pxe bootstrap in order to bootstrap nodes
+# it should be used in order to provision nodes
+# by solar
+# preprovisioned: false
