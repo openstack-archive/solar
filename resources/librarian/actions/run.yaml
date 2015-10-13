@@ -3,7 +3,8 @@
   tasks:
     # XXX: check apt package http://packages.ubuntu.com/trusty/ruby/librarian-puppet
     - shell: gem install librarian-puppet --no-ri --no-rdoc
+    - file: path={{modules_dir}} state=directory
     - template:
         src={{templates_dir}}/Puppetfile
-        dest={{config_dir}}/Puppetfile
-    - shell: librarian-puppet install chdir={{config_dir}}
+        dest={{modules_dir}}/../Puppetfile
+    - shell: librarian-puppet install chdir={{modules_dir}}

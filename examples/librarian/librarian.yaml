@@ -5,6 +5,7 @@ resources:
     location: {{node}}
     from: resources/librarian
     values:
+      modules_dir: /tmp/x/x/modules
       modules:
         - name: puppetlabs-ntp
           version: 4.1.0

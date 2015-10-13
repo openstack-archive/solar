@@ -5,9 +5,9 @@ input:
     modules:
       schema: [str]
       value: []
-    config_dir:
+    modules_dir:
       schema: str!
-      value: /etc/puppet
+      value: /etc/puppet/modules
     forge:
       schema: str!
       value: https://forgeapi.puppetlabs.com
