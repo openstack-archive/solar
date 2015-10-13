@@ -33,12 +33,13 @@ def run():
 
     hosts = vr.create('hosts_file', 'resources/hosts_file', {})[0]
 
-    # let's add torrent transport for hosts file deployment (useless in real
-    # life)
+    # let's add torrent transport for hosts file deployment (useless in real life)
 
     torrent_transport = vr.create('torrent_transport',
                                   'resources/transport_torrent',
-                                  {'trackers': ['http://tracker01-bud.infra.mirantis.net:8080']})[0]
+                                  {'trackers': ['udp://open.demonii.com:1337',
+                                                'udp://tracker.openbittorrent.com:80']})[0]
+    # you could use any trackers as you want
 
     transports_for_torrent = vr.create(
         'transports_for_torrent', 'resources/transports')[0]
