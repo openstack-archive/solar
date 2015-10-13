@@ -2,8 +2,10 @@ from solar.core.transports.base import SyncTransport, RunTransport, SolarTranspo
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 from solar.core.transports.rsync import RsyncSyncTransport
 from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+from solar.core.transports.torrent import TorrentSyncTransport
 
 KNOWN_SYNC_TRANSPORTS = {
+    'torrent': TorrentSyncTransport,
     'solard': SolardSyncTransport,
     'rsync': RsyncSyncTransport,
     'ssh': SSHSyncTransport
@@ -50,9 +52,10 @@ class BatTransport(SolarTransport):
             if not selected:
                 raise Exception("No valid transport found")
             instance = self._bat_transports[selected['name']]()
-            setattr(resource, '_used_transport', selected)
+            setattr(resource, '_used_transport_%s' % instance._mode, selected)
             setattr(resource, key_name, instance)
             self._used_transports.append(instance)
+            instance.bind_with(self._other_remember)
             return instance
             # return self._bat_transports[selected['name']]
 
@@ -60,11 +63,14 @@ class BatTransport(SolarTransport):
         self.select_valid_transport(resource)
         return super(BatTransport, self).get_transport_data(resource, *args, **kwargs)
 
+    def bind_with(self, other):
+        self._other_remember = other
+
 
 class BatSyncTransport(SyncTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ('solard', 'rsync', 'ssh')
+    _order = ('torrent', 'solard', 'rsync', 'ssh')
     _bat_transports = KNOWN_SYNC_TRANSPORTS
 
     def __init__(self, *args, **kwargs):
