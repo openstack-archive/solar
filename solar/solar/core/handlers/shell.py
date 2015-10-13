@@ -15,6 +15,7 @@
 
 from solar.core.log import log
 from solar import errors
+import os
 
 from solar.core.handlers.base import TempFileHandler
 
@@ -24,10 +25,12 @@ class Shell(TempFileHandler):
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)
 
-        action_file_name = '/tmp/{}.sh'.format(resource.name)
-        self.prepare_templates_and_scripts(resource, action_name, '')
-        self.transport_sync.copy(resource, action_file, action_file_name)
+        action_file_name = os.path.join(self.dirs[resource.name], action_file)
+        self._copy_templates_and_scripts(resource, action_name)
+
+        self.transport_sync.copy(resource, self.dst, '/tmp')
         self.transport_sync.sync_all()
+
         cmd = self.transport_run.run(
             resource,
             'bash', action_file_name,
