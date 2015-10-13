@@ -1,3 +1,10 @@
-mkdir -p {{remote_path}}
+mkdir -p {{dest}}
 
-scp -i {{remote_key}} -r {{remote_user}}@{{remote_ip}}:/{{remote_path}} {{dest}}
+{% for transport in remote %}
+    {% if transport.name == 'ssh' %}
+scp -i {{transport.key}} -r {{transport.user}}@{{remote_ip}}:/{{remote_path}} {{dest}}
+exit 0
+    {% endif %}
+{% endfor %}
+echo 'No suitable transport.'
+exit 2

@@ -5,16 +5,13 @@ input:
     ip:
         schema: str!
         value:
+    remote:
+        schema: {}
+        value:
     remote_ip:
         schema: str!
         value:
-    remote_user:
-        schema: {}
-        value:
     remote_path:
-        schema: str!
-        value:
-    remote_key:
         schema: str!
         value:
     dest:
