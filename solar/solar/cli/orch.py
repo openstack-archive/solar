@@ -64,7 +64,7 @@ def wait_report(uid, timeout, interval=3):
                 length = len(stringified_summary)
                 click.echo(stringified_summary, nl=False)
                 sys.stdout.flush()
-                if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
+                if summary[states.PENDING.name] + summary[states.INPROGRESS.name] != 0:
                     time.sleep(interval)
     except errors.SolarError as err:
         click.echo('')
