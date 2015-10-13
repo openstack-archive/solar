@@ -1,0 +1,10 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    # XXX: check apt package http://packages.ubuntu.com/trusty/ruby/librarian-puppet
+    - shell: gem install librarian-puppet --no-ri --no-rdoc
+    - file: path={{modules_path}} state=directory
+    - template:
+        src={{templates_dir}}/Puppetfile
+        dest={{modules_path}}/../Puppetfile
+    - shell: librarian-puppet install chdir={{modules_path}}
