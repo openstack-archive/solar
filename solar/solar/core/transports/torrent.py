@@ -11,14 +11,6 @@ import libtorrent as lt
 import os
 from uuid import uuid4
 
-
-# TODO: settings?
-# TRACKERS = ['udp://192.168.4.140:8000',
-#             'http://192.168.4.140:8000/announce']
-
-TRACKERS = ['http://tracker01-bud.infra.mirantis.net:8080']
-
-
 # def common_path(paths, sep=os.path.sep):
 #     dirs = zip(*(p for p in paths))
 #     return [x[0] for x in takewhile(lambda x: all(n == x[0] for n in x[1:]), dirs)]
@@ -73,7 +65,10 @@ class TorrentSyncTransport(SyncTransport):
 
     def _create_torrent(self, resource, fs, root='.', use_sudo=False):
         t = lt.create_torrent(fs)
-        for tracker in TRACKERS:
+        transports = resource.transports()
+        torrent_transport = next((x for x in transports if x['name'] == 'torrent'))
+        trackers = torrent_transport['trackers']
+        for tracker in trackers:
             t.add_tracker(tracker)
         lt.set_piece_hashes(t, os.path.join(root, '..'))
         torrent = t.generate()
