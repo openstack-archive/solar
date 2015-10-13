@@ -88,6 +88,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       v.name = "solar-dev"
     end
 
+    # FIXME(bogdando) a hack to preserve default vbox route via NAT interface
+    config.vm.provision "shell", privileged: true,
+      run: "always",
+      inline: "eval `route -n | awk '{ if ($8 ==\"eth0\" && $2 == \"10.0.2.2\") print \"ip ro replace default via 10.0.2.2 metric 1\"; }'`"
+
     config.vm.provider :libvirt do |libvirt|
       libvirt.driver = 'kvm'
       libvirt.memory = MASTER_RAM
@@ -107,13 +112,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     ind = 0
     MASTER_IPS.each do |ip|
-      begin
-        # try to configure libvirt network
-        config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
-      rescue
-        # fallback to vbox network on error
-        config.vm.network "private_network", ip: "#{ip}"
-      end
+      config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
       ind = ind + 1
     end
   end
@@ -144,9 +143,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vbguest.no_install = true
         config.vbguest.auto_update = false
       end
-      SLAVES_IPS.each do |ip|
-        config.vm.network "private_network", ip: "#{ip}#{ip_index}"
-      end
+
+      # FIXME(bogdando) a hack to preserve default vbox route via NAT interface
+      config.vm.provision "shell", privileged: true,
+        run: "always",
+        inline: "eval `route -n | awk '{ if ($8 ==\"eth0\" && $2 == \"10.0.2.2\") print \"ip ro replace default via 10.0.2.2 metric 1\"; }'`"
 
       config.vm.provider :virtualbox do |v|
         boot_order(v, ['net', 'disk'])
@@ -183,13 +184,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       ind = 0
       SLAVES_IPS.each do |ip|
-        begin
-          # try to configure libvirt network
-          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
-        rescue
-           # fallback to vbox network on error
-           config.vm.network "private_network", ip: "#{ip}#{ip_index}"
-        end
+        config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
         ind = ind + 1
       end
     end
