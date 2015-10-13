@@ -3,8 +3,7 @@ from solar.core.transports.ssh import (SSHSyncTransport,
                                        SSHRunTransport)
 from solar.core.transports.base import SyncTransport, Executor
 
-# from functools import partial
-# from itertools import takewhile
+import errno
 from collections import defaultdict
 from operator import attrgetter, itemgetter
 
@@ -80,8 +79,16 @@ class TorrentSyncTransport(SyncTransport):
         torrent = t.generate()
         torrent['priv'] = True  # private torrent, no DHT, only trackers
         name = self._create_torrent_name()
-        with open(name, 'wb') as f:
-            f.write(lt.bencode(torrent))
+        try:
+            # not checking for path existence
+            with open(name, 'wb') as f:
+                f.write(lt.bencode(torrent))
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            os.makedirs(self._torrent_path)
+            with open(name, 'wb') as f:
+                f.write(lt.bencode(torrent))
         log.debug("Created torrent file %s", name)
         magnet_uri = lt.make_magnet_uri(lt.torrent_info(name))
         # self._torrents[root] = (name, magnet_uri)
