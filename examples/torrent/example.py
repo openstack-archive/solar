@@ -1,11 +1,3 @@
-# To run:
-# python example-riaks.py deploy
-# python example-riaks.py add_haproxies
-# solar changes stage
-# solar changes process
-# solar orch run-once last
-
-
 import time
 
 from solar.core.resource import virtual_resource as vr
