@@ -126,7 +126,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.provision "shell", inline: slave_script, privileged: true
         config.vm.provision "shell", inline: solar_script, privileged: true
         config.vm.provision "shell", inline: slave_celery, privileged: true
-        config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
+        #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
+        ind = 0
+        SLAVES_IPS.each do |ip|
+          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
+          ind = ind + 1
+        end
       else
         # Disable attempts to install guest os and check that node is booted using ssh,
         # because nodes will have ip addresses from dhcp, and vagrant doesn't know
@@ -170,12 +175,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
           rsync__args: ["--verbose", "--archive", "--delete", "-z"]
         end
-      end
-
-      ind = 0
-      SLAVES_IPS.each do |ip|
-        config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
-        ind = ind + 1
       end
     end
   end
