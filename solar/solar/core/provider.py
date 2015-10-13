@@ -44,7 +44,7 @@ class GitProvider(BaseProvider):
         super(GitProvider, self).__init__(*args, **kwargs)
 
         self.repository = repository
-        self.branch = 'master'
+        self.branch = branch
         self.path = path
 
         directory = self._directory()

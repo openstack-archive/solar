@@ -103,13 +103,21 @@ class Puppet(TempFileHandler):
 
         self.upload_manifests(resource)
 
+        action_file_name = '/tmp/{}.pp'.format(resource.name)
         self.prepare_templates_and_scripts(resource, action_file, '')
-        self.transport_sync.copy(resource, action_file, '/tmp/action.pp')
+        self.transport_sync.copy(resource, action_file, action_file_name)
         self.transport_sync.sync_all()
+
+        cmd_args = ['puppet', 'apply', '-vd',
+                    action_file_name,
+                    '--detailed-exitcodes']
+        if 'puppet_modules' in resource.args:
+            cmd_args.append('--modulepath={}'.format(
+                resource.args['puppet_modules']))
 
         cmd = self.transport_run.run(
             resource,
-            'puppet', 'apply', '-vd', '/tmp/action.pp', '--detailed-exitcodes',
+            *cmd_args,
             env={
                 'FACTER_resource_name': resource.name,
             },
@@ -129,11 +137,12 @@ class Puppet(TempFileHandler):
 
         return p.directory
 
+    def _make_args(self, resource):
+        return {resource.name: resource.to_dict()}
+
     def upload_hiera_resource(self, resource):
         with open('/tmp/puppet_resource.yaml', 'w') as f:
-            f.write(yaml.dump({
-                resource.name: resource.to_dict()
-            }))
+            f.write(yaml.safe_dump(self._make_args(resource)))
 
         self.transport_sync.copy(
             resource,
@@ -146,7 +155,7 @@ class Puppet(TempFileHandler):
     def upload_manifests(self, resource):
         if 'forge' in resource.args and resource.args['forge']:
             self.upload_manifests_forge(resource)
-        else:
+        elif 'git' in resource.args and resource.args['git']:
             self.upload_manifests_librarian(resource)
 
     def upload_manifests_forge(self, resource):
@@ -201,3 +210,10 @@ class Puppet(TempFileHandler):
             '/tmp/{}/*'.format(os.path.split(manifests_path)[1]),
             module_directory
         )
+
+
+class PuppetV2(Puppet):
+
+    def _make_args(self, resource):
+        return resource.args
+
