@@ -11,27 +11,6 @@ import libtorrent as lt
 import os
 from uuid import uuid4
 
-# def common_path(paths, sep=os.path.sep):
-#     dirs = zip(*(p for p in paths))
-#     return [x[0] for x in takewhile(lambda x: all(n == x[0] for n in x[1:]), dirs)]
-
-
-# def prepare_paths(paths):
-#     sep=os.path.sep
-#     _deny_common = ('', '/')
-#     _deny_common = [x.split(sep) for x in _deny_common]
-#     paths = sorted(x.split(sep) for x in paths)
-#     parents = []
-#     current = paths[0]
-#     parents.append(current)
-#     for path in paths[1:]:
-#         cp = common_path((parents[-1], path))
-#         if cp not in _deny_common:
-#             parents[-1] = cp
-#         else:
-#             parents.append(path)
-#     return map(sep.join, parents)
-
 
 class TorrentSyncTransport(SyncTransport):
 
