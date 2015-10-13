@@ -5,7 +5,7 @@ input:
     modules:
       schema: [str]
       value: []
-    modules_dir:
+    modules_path:
       schema: str!
       value: /etc/puppet/modules
     forge:
