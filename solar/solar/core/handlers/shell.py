@@ -25,6 +25,7 @@ class Shell(TempFileHandler):
         log.debug('action_file: %s', action_file)
 
         action_file_name = '/tmp/{}.sh'.format(resource.name)
+        self.prepare_templates_and_scripts(resource, action_name, '')
         self.transport_sync.copy(resource, action_file, action_file_name)
         self.transport_sync.sync_all()
         cmd = self.transport_run.run(
