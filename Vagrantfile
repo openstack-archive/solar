@@ -32,8 +32,10 @@ end
 
 SLAVES_COUNT = cfg["slaves_count"]
 SLAVES_RAM = cfg["slaves_ram"]
+SLAVES_IPS = cfg["slaves_ips"]
 SLAVES_IMAGE = cfg["slaves_image"]
 MASTER_RAM = cfg["master_ram"]
+MASTER_IPS = cfg["master_ips"]
 MASTER_IMAGE = cfg["master_image"]
 SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
@@ -69,7 +71,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-    config.vm.network "private_network", ip: "10.0.0.2"
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
@@ -103,6 +104,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
         rsync__args: ["--verbose", "--archive", "--delete", "-z"]
     end
+
+    ind = 0
+    MASTER_IPS.each do |ip|
+      config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
+      ind = ind + 1
+    end
   end
 
   SLAVES_COUNT.times do |i|
@@ -119,7 +126,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.provision "shell", inline: slave_script, privileged: true
         config.vm.provision "shell", inline: solar_script, privileged: true
         config.vm.provision "shell", inline: slave_celery, privileged: true
-        config.vm.network "private_network", ip: "10.0.0.#{ip_index}"
+        #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
+        ind = 0
+        SLAVES_IPS.each do |ip|
+          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
+          ind = ind + 1
+        end
       else
         # Disable attempts to install guest os and check that node is booted using ssh,
         # because nodes will have ip addresses from dhcp, and vagrant doesn't know
@@ -164,7 +176,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           rsync__args: ["--verbose", "--archive", "--delete", "-z"]
         end
       end
-
     end
   end
 
