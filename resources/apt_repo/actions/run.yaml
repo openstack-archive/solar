@@ -1,0 +1,9 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - apt_repository: repo={{repo}} validate_certs=no
+    - file: path=/etc/apt/preferences.d/{{name}}.pref state=touch
+    - template:
+        src: {{templates_dir}}/preferences
+        dest: /etc/apt/preferences.d/{{name}}.pref
+    - shell: apt-get update

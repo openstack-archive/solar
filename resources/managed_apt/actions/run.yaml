@@ -1,0 +1,6 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - shell: echo 'Managed by solar' > /etc/apt/sources.list
+      when: {{ensure_other_removed}}
+    - shell: apt-get update
