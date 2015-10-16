@@ -179,7 +179,7 @@ def dg(uid, start, end):
         if errors:
             raise click.ClickException('\n'.join(errors))
     utils.write_graph(plan)
-    click.echo('Created {name}.png'.format(name=plan.graph['name']))
+    click.echo('Created {name}.svg'.format(name=plan.graph['name']))
 
 
 @orchestration.command()
