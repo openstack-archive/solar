@@ -27,7 +27,7 @@ input:
       value: 5000
 
     module:
-      schema: {name: str!, type: str, url: str, branch: str}
+      schema: {name: str!, type: str, url: str, ref: str}
       value: {name:, 'keystone', type: 'git', url: 'https://github.com/openstack/puppet-keystone', ref: '5.1.0'}
 
     ip:
