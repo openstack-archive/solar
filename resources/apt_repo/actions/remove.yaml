@@ -1,0 +1,9 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - shell: rm -f {{item}}
+      with_items:
+        - /etc/apt/sources.list.d/{{name}}.list
+        - /etc/apt/preferences.d/{{name}}.pref
+    - shell: apt-get update
+      when: {{validate_integrity}}

@@ -18,5 +18,8 @@ input:
         schema: str
         value:
     pin_priority:
-        schema: str
+        schema: int
         value:
+    validate_integrity:
+        schema: bool
+        value: true

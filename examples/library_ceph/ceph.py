@@ -53,11 +53,15 @@ def deploy():
          'role': 'controller',
          })[0]
 
+    managed_apt = vr.create(
+      'managed_apt1', 'templates/mos_repos.yaml',
+      {'node': first_node.name, 'index': 0})[-1]
+
     keys.connect(ceph_mon, {})
     first_node.connect(ceph_mon,
         {'ip': ['ip', 'public_vip', 'management_vip']})
     library.connect(ceph_mon, {'puppet_modules': 'puppet_modules'})
-
+    managed_apt.connect(ceph_mon, {})
 
 if __name__ == '__main__':
     deploy()
