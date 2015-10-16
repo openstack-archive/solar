@@ -28,7 +28,7 @@ input:
 
     module:
       schema: {name: str!, type: str, url: str, ref: str}
-      value: {name:, 'keystone', type: 'git', url: 'https://github.com/openstack/puppet-keystone', ref: '5.1.0'}
+      value: {name: 'keystone', type: 'git', url: 'https://github.com/openstack/puppet-keystone', ref: '5.1.0'}
 
     ip:
       schema: str!
