@@ -17,7 +17,7 @@ class {'keystone':
   database_connection  => "mysql://$db_user:$db_password@$db_host/$db_name",
   public_port          => "$port",
   admin_port           => "$admin_port",
-  token_driver         => 'keystone.token.backends.kvs.Token'
+  token_driver         => 'keystone.token.persistence.backends.sql.Token'
 }
 
 #file { '/etc/keystone/keystone-exports':
