@@ -34,5 +34,5 @@ def write_graph(plan):
 
     nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
-        'tred {name}.dot | dot -Tpng -o {name}.png'.format(name=plan.graph['name']),
+        'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(name=plan.graph['name']),
         shell=True)
