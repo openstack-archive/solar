@@ -1,0 +1,17 @@
+# This resource will clean
+id: apt_repo_manager
+handler: ansible
+version: 1.0.0
+input:
+    ip:
+      schema: str!
+      value:
+    repos:
+        schema: [str!]
+        value:
+    names:
+        schema: [str!]
+        value:
+    ensure_other_removed:
+        schema: bool
+        value: true
