@@ -26,7 +26,7 @@ master_node = filter(lambda n: n.name == 'node_master', node_resources)[0]
 # Dnsmasq resources
 for node in nodes_list:
     dnsmasq = vr.create('dnsmasq_{0}'.format(node['mac'].replace(':', '_')), 'resources/dnsmasq', {})[0]
-    node = filter(lambda n: n.name.endswith('node{0}'.format(node['mac']).replace(':', '_')), node_resources)[0]
+    node = filter(lambda n: n.name.endswith('node_{0}'.format(node['mac']).replace(':', '_')), node_resources)[0]
     master_node.connect(dnsmasq)
     node.connect(dnsmasq, {'admin_mac': 'exclude_mac_pxe'})
 

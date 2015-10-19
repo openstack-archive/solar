@@ -1,24 +1,25 @@
 id: not_provisioned_nodes
 resources:
 {% for node in nodes %}
-  - id: ssh_transport{{ node.mac | replace(':', '_') }}
+  {% set mac = node.mac | replace(':', '_') %}
+  - id: ssh_transport{{ mac }}
     from: resources/transport_ssh
     values:
       ssh_user: 'root'
       ssh_key: '/vagrant/tmp/keys/ssh_private'
-  - id: transports{{node.mac | replace(':', '_') }}
+  - id: transports{{mac}}
     from: resources/transports
     values:
-      transports:key: ssh_transport{{node.mac | replace(':', '_') }}::ssh_key
-      transports:user: ssh_transport{{node.mac | replace(':', '_') }}::ssh_user
-      transports:port: ssh_transport{{node.mac | replace(':', '_') }}::ssh_port
-      transports:name: ssh_transport{{node.mac | replace(':', '_') }}::name
-  - id: node{{node.mac | replace(':', '_') }}
+      transports:key: ssh_transport{{mac}}::ssh_key
+      transports:user: ssh_transport{{mac}}::ssh_user
+      transports:port: ssh_transport{{mac}}::ssh_port
+      transports:name: ssh_transport{{mac}}::name
+  - id: node_{{mac}}
     from: resources/not_provisioned_node
     values:
       ip: {{node.ip}}
-      transports_id: transports{{node.mac | replace(':', '_') }}::transports_id
-      name: node{{node.mac | replace(':', '_') }}
+      transports_id: transports{{mac}}::transports_id
+      name: node_{{mac}}
       admin_mac: {{node.mac}}
 {% endfor %}
 
