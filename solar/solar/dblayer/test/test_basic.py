@@ -5,7 +5,6 @@ from solar.dblayer.model import (Field, IndexField,
                                  DBLayerNoRiakObj,
                                  DBLayerException)
 
-
 class M1(Model):
 
     f1 = Field(str)
@@ -104,4 +103,3 @@ def test_update(rk):
     clear_cache()
     m11 = M1.get(key)
     assert m11.f1 == 'updated'
-

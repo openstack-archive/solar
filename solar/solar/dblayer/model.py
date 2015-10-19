@@ -139,13 +139,13 @@ class Field(FieldBase):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance._riak_object.data[self.fname]
+        return instance._data_container[self.fname]
 
     def __set__(self, instance, value):
         if not isinstance(value, self._type):
             raise Exception("Invalid type %r for %r" % (type(value), self.fname))
-        instance._modified_fields.add(self.fname)
-        instance._riak_object.data[self.fname] = value
+        instance._field_changed(self)
+        instance._data_container[self.fname] = value
 
     def __str__(self):
         return "<%s:%r>" % (self.__class__.__name__, self.fname)
@@ -168,7 +168,7 @@ class IndexFieldWrp(object):
         return "<%s for field %s>" % (self.__class__.__name__, self._field_obj)
 
     def _get_field_val(self, name):
-        return self._instance._riak_object.data[self.fname][name]
+        return self._instance._data_container[self.fname][name]
 
     def __getitem__(self, name):
         return self._get_field_val(name)
@@ -179,7 +179,7 @@ class IndexFieldWrp(object):
 
     def __delitem__(self, name):
         inst = self._instance
-        del inst._riak_object.data[self.fname][name]
+        del inst._data_container[self.fname][name]
         indexes = inst._riak_object.indexes
 
         # TODO: move this to backend layer
@@ -212,7 +212,7 @@ class IndexField(FieldBase):
 
     def __set__(self, instance, value):
         wrp = getattr(instance, self.fname)
-        instance._riak_object.data[self.fname] = self.default
+        instance._data_container[self.fname] = self.default
         for f_name, f_value in value.iteritems():
             wrp[f_name] = f_value
 
@@ -281,6 +281,55 @@ class ModelMeta(type):
         mcs.riak_client = riak_client
 
 
+class NestedField(FieldBase):
+
+    def __init__(self, _class, fname=None, default=NONE):
+        self._class = _class
+        super(NestedField, self).__init__(fname=fname, default=default)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        cached = getattr(instance, '_real_obj_%s' % self.fname, None)
+        if cached:
+            return cached
+        obj = self._class(self, instance)
+        setattr(instance, '_real_obj_%s' % self.fname, obj)
+        return obj
+
+    def __set__(self, instance, value):
+        obj = getattr(instance, self.fname)
+        obj.from_dict(value)
+
+
+class NestedModel(object):
+
+    __metaclass__ = ModelMeta
+
+    def __init__(self, field, parent):
+        self._field = field
+        self._parent = parent
+
+    def from_dict(self, data):
+        for field in self._model_fields:
+            fname = field.fname
+            gname = field.gname
+            val = data.get(fname, NONE)
+            default = field.default
+            if val is NONE and default is not NONE:
+                setattr(self, gname, default)
+            elif val is not NONE:
+                setattr(self, gname, val)
+        return
+
+    @property
+    def _data_container(self):
+        return self._parent._data_container
+
+    def _field_changed(self, field):
+        return self._parent._modified_fields
+
+
 class Model(object):
 
     __metaclass__ = ModelMeta
@@ -320,6 +369,10 @@ class Model(object):
             raise DBLayerException("Already have _riak_object")
         self._real_riak_object = value
 
+    @property
+    def _data_container(self):
+        return self._riak_object.data
+
     @changes_state_for('index')
     def _set_index(self, *args, **kwargs):
         return self._riak_object.set_index(*args, **kwargs)
@@ -348,6 +401,9 @@ class Model(object):
     def get_bucket_name(cls):
         # XXX: should be changed and more smart
         return cls.__name__
+
+    def _field_changed(self, field):
+        self._modified_fields.add(field.fname)
 
     def changed(self):
         return True if self._modified_fields else False
