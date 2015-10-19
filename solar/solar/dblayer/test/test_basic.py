@@ -1,23 +1,32 @@
 import pytest
 from solar.dblayer.model import (Field, IndexField,
                                  clear_cache, Model,
-                                 DBLayerNotFound, DBLayerNoRiakObj)
+                                 DBLayerNotFound,
+                                 DBLayerNoRiakObj,
+                                 DBLayerException)
 
 
 class M1(Model):
 
     f1 = Field(str)
     f2 = Field(int)
+    f3 = Field(int, fname='some_field')
+
     ind = IndexField(default=dict)
 
 
 def test_from_dict(rk):
     key = next(rk)
-    m1 = M1.from_dict(key, {'f1': 'blah', 'f2': 150})
+
+    with pytest.raises(DBLayerException):
+        M1.from_dict({'f1': 'blah', 'f2': 150, 'some_field': 250})
+
+    m1 = M1.from_dict({'key': key, 'f1': 'blah', 'f2': 150, 'some_field': 250})
 
     m1.save()
     m11 = M1.get(key)
     assert m1.key == key
+    assert m1.f3 == 250
     assert m1 is m11
 
 

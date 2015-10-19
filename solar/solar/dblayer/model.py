@@ -132,9 +132,9 @@ class FieldBase(object):
 
 class Field(FieldBase):
 
-    def __init__(self, _type, default=NONE):
+    def __init__(self, _type, fname=None, default=NONE):
         self._type = _type
-        super(Field, self).__init__(fname=None, default=default)
+        super(Field, self).__init__(fname=fname, default=default)
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -250,11 +250,12 @@ class ModelMeta(type):
     def __new__(mcs, name, bases, attrs):
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         model_fields = set((name for (name, attr) in attrs.items()
-                            if isinstance(attr, FieldBase)))
+                            if isinstance(attr, FieldBase) and not name.startswith('_')))
         for f in model_fields:
             field = getattr(cls, f)
             if hasattr(field, 'fname') and field.fname is None:
                 setattr(field, 'fname', f)
+            setattr(field, 'gname', f)
             # need to set declared_in because `with_tag`
             # no need to wrap descriptor with another object then
             setattr(field, '_declared_in', cls)
@@ -269,7 +270,8 @@ class ModelMeta(type):
                     model_fields.add(given)
 
         # set the fields just in case
-        cls._model_fields = model_fields
+        cls._model_fields = [getattr(cls, x) for x in model_fields]
+
         cls.bucket = Replacer('bucket', get_bucket, mcs)
         return cls
 
@@ -370,19 +372,30 @@ class Model(object):
         return obj
 
     @classmethod
-    def from_dict(cls, key, data):
+    def from_dict(cls, key, data=None):
+        if isinstance(key, dict) and data is None:
+            data = key
+            try:
+                key = data['key']
+            except KeyError:
+                raise DBLayerException("No key specified")
+        if key and 'key' in data and data['key'] != key:
+            raise DBLayerException("Different key values detected")
+        data['key'] = key
         riak_obj = cls.bucket.new(key, data={})
         obj = cls.from_riakobj(riak_obj)
         obj._new = True
         for field in cls._model_fields:
-            val = data.get(field, NONE)
-            default = getattr(cls, field).default
-            # if val is NONE and default is NONE:
-            #     continue
+            # if field is cls._pkey_field:
+            #     continue  # pkey already set
+            fname = field.fname
+            gname = field.gname
+            val = data.get(fname, NONE)
+            default = field.default
             if val is NONE and default is not NONE:
-                setattr(obj, field, default)
+                setattr(obj, gname, default)
             elif val is not NONE:
-                setattr(obj, field, val)
+                setattr(obj, gname, val)
         return obj
 
     @classmethod
