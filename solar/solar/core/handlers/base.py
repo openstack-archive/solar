@@ -16,11 +16,17 @@
 import os
 import shutil
 import tempfile
+import errno
 
 from jinja2 import Template
 
 from solar.core.log import log
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
+
+
+tempfile.gettempdir()
+
+SOLAR_TEMP_LOCAL_LOCATION = os.path.join(tempfile.tempdir, 'solar_local')
 
 
 class BaseHandler(object):
@@ -46,9 +52,17 @@ class BaseHandler(object):
 class TempFileHandler(BaseHandler):
     def __init__(self, resources, handlers=None):
         super(TempFileHandler, self).__init__(resources, handlers)
-        self.dst = tempfile.mkdtemp()
+        self.dst = None
 
     def __enter__(self):
+        try:
+            self.dst = tempfile.mkdtemp(dir=SOLAR_TEMP_LOCAL_LOCATION)
+        except OSError as ex:
+            if ex.errno == errno.ENOENT:
+                os.makedirs(SOLAR_TEMP_LOCAL_LOCATION)
+                self.dst = tempfile.mkdtemp(dir=SOLAR_TEMP_LOCAL_LOCATION)
+            else:
+                raise
         self.dirs = {}
         for resource in self.resources:
             resource_dir = tempfile.mkdtemp(suffix=resource.name, dir=self.dst)
