@@ -1,0 +1,6 @@
+- hosts: [{{host}}]
+  sudo: yes
+
+  tasks:
+    - lineinfile: create=yes dest=/etc/dnsmasq.d/no_pxe_{{exclude_mac_pxe | replace(':', '_')}}.conf line="dhcp-host={{exclude_mac_pxe}},set:nopxe"
+    - shell: service dnsmasq restart

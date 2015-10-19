@@ -1,0 +1,25 @@
+id: not_provisioned_node
+handler: shell
+version: 1.0.0
+
+actions:
+  provision: provision.sh
+  run: run.sh
+  reboot: reboot.sh
+
+input:
+    ip:
+      schema: str!
+      value:
+    admin_mac:
+      schema: str!
+      value:
+    name:
+      schema: str
+      value: a node
+    location_id:
+      schema: str!
+      value: $uuid
+      reverse: True
+
+tags: [resources=node]

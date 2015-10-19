@@ -47,4 +47,6 @@
     # Configure http server to load root
     - apt: name=nginx state=present
     - template: src=files/nginx.cfg dest=/etc/nginx/conf.d/pxe_image.conf
+    # Configure http server in order serve file in '/vagrant' directory
+    - template: src=files/nginx_vagrant_dir.cfg dest=/etc/nginx/conf.d/vagrant_dir.conf
     - service: name=nginx state=restarted

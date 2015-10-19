@@ -1,0 +1,42 @@
+id: not_provisioned_nodes
+resources:
+{% for node in nodes %}
+  - id: ssh_transport{{ node.mac | replace(':', '_') }}
+    from: resources/transport_ssh
+    values:
+      ssh_user: 'root'
+      ssh_key: '/vagrant/tmp/keys/ssh_private'
+  - id: transports{{node.mac | replace(':', '_') }}
+    from: resources/transports
+    values:
+      transports:key: ssh_transport{{node.mac | replace(':', '_') }}::ssh_key
+      transports:user: ssh_transport{{node.mac | replace(':', '_') }}::ssh_user
+      transports:port: ssh_transport{{node.mac | replace(':', '_') }}::ssh_port
+      transports:name: ssh_transport{{node.mac | replace(':', '_') }}::name
+  - id: node{{node.mac | replace(':', '_') }}
+    from: resources/not_provisioned_node
+    values:
+      ip: {{node.ip}}
+      transports_id: transports{{node.mac | replace(':', '_') }}::transports_id
+      name: node{{node.mac | replace(':', '_') }}
+      admin_mac: {{node.mac}}
+{% endfor %}
+
+  - id: ssh_transport_master
+    from: resources/transport_ssh
+    values:
+      ssh_user: 'vagrant'
+      ssh_key: '/vagrant/.vagrant/machines/solar-dev/virtualbox/private_key'
+  - id: transports_master
+    from: resources/transports
+    values:
+      transports:key: ssh_transport_master::ssh_key
+      transports:user: ssh_transport_master::ssh_user
+      transports:port: ssh_transport_master::ssh_port
+      transports:name: ssh_transport_master::name
+  - id: node_master
+    from: resources/ro_node
+    values:
+      name: node_master
+      ip: '10.0.2.15'
+      transports_id: transports_master::transports_id
