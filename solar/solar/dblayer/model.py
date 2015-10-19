@@ -283,8 +283,9 @@ class ModelMeta(type):
 
 class NestedField(FieldBase):
 
-    def __init__(self, _class, fname=None, default=NONE):
+    def __init__(self, _class, fname=None, default=NONE, hash_key=None):
         self._class = _class
+        self._hash_key = hash_key
         super(NestedField, self).__init__(fname=fname, default=default)
 
     def __get__(self, instance, owner):
@@ -293,7 +294,10 @@ class NestedField(FieldBase):
         cached = getattr(instance, '_real_obj_%s' % self.fname, None)
         if cached:
             return cached
-        obj = self._class(self, instance)
+        if self._hash_key is not None:
+            obj = NestedModelHash(self, instance, self._class, self._hash_key)
+        else:
+            obj = self._class(self, instance)
         setattr(instance, '_real_obj_%s' % self.fname, obj)
         return obj
 
@@ -301,10 +305,16 @@ class NestedField(FieldBase):
         obj = getattr(instance, self.fname)
         obj.from_dict(value)
 
+    def __delete__(self, instance):
+        obj = getattr(instance, self.fname)
+        obj.delete()
+
 
 class NestedModel(object):
 
     __metaclass__ = ModelMeta
+
+    _nested_value = None
 
     def __init__(self, field, parent):
         self._field = field
@@ -324,10 +334,60 @@ class NestedModel(object):
 
     @property
     def _data_container(self):
-        return self._parent._data_container
+        pdc = self._parent._data_container
+        try:
+            ppdc = pdc[self._field.fname]
+        except KeyError:
+            ppdc = pdc[self._field.fname] = {}
+        if self._field._hash_key is None:
+            return ppdc
+        else:
+            try:
+                ret = ppdc[self._nested_value]
+            except KeyError:
+                ret = ppdc[self._nested_value] = {}
+            return ret
 
     def _field_changed(self, field):
-        return self._parent._modified_fields
+        return self._parent._modified_fields.add(self._field.fname)
+
+    def delete(self):
+        if self._field._hash_key is None:
+            del self._parent._data_container[self._field.fname]
+
+
+
+class NestedModelHash(object):
+
+    def __init__(self, field, parent, _class, hash_key):
+        self._field = field
+        self._parent = parent
+        self._class = _class
+        self._hash_key = hash_key
+        self._cache = {}
+
+    def __getitem__(self, name):
+        try:
+            return self._cache[name]
+        except KeyError:
+            obj = self._class(self._field, self._parent)
+            obj._nested_value = name
+            self._cache[name] = obj
+            return obj
+
+    def __setitem__(self, name, value):
+        obj = self[name]
+        return obj.from_dict(value)
+
+    def __delitem__(self, name):
+        obj = self[name]
+        obj.delete()
+        del self._cache[name]
+
+    def from_dict(self, data):
+        hk = data[self._hash_key]
+        self[hk] = data
+
 
 
 class Model(object):
@@ -478,3 +538,6 @@ class Model(object):
             return res
         else:
             raise DBLayerException("No changes")
+
+    def delete(self):
+        raise NotImplementedError()

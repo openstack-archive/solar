@@ -114,22 +114,24 @@ class InputsFieldWrp(IndexFieldWrp):
         return res
 
     def _get_raw_field_val(self, name):
-        return self._instance._riak_object.data[self.fname][name]
+        return self._instance._data_container[self.fname][name]
 
     def __getitem__(self, name):
         return self._get_field_val(name)
 
     def __delitem__(self, name):
         self._has_own_input(name)
+        self._instance._field_changed(self)
         try:
             del self._cache[name]
         except KeyError:
             pass
         inst = self._instance
         inst._riak_object.remove_index('%s_bin' % self.fname, '{}|{}'.format(self._instance.key, name))
-        del inst._riak_object.data[self.fname][name]
+        del inst._data_container[self.fname][name]
 
     def __setitem__(self, name, value):
+        self._instance._field_changed(self)
         return self._set_field_value(name, value)
 
     def _set_field_value(self, name, value):
@@ -162,7 +164,7 @@ class InputsField(IndexField):
 
     def __set__(self, instance, value):
         wrp = getattr(instance, self.fname)
-        instance._riak_object.data[self.fname] = self.default
+        instance._data_container[self.fname] = self.default
         for inp_name, inp_value in value.iteritems():
             wrp[inp_name] = inp_value
 
@@ -179,7 +181,7 @@ class TagsFieldWrp(IndexFieldWrp):
         raise TypeError('You cannot set tags like this')
 
     def __iter__(self):
-        return iter(self._instance._riak_object.data[self.fname])
+        return iter(self._instance._data_container[self.fname])
 
     def set(self, name, value=None):
         if '=' in name and value is None:
@@ -191,9 +193,9 @@ class TagsFieldWrp(IndexFieldWrp):
 
         inst._add_index('{}_bin'.format(self.fname), '{}~{}'.format(name, value))
         try:
-            fld = inst._riak_object.data[self.fname]
+            fld = inst._data_container[self.fname]
         except IndexError:
-            fld = inst._riak_object.data[self.fname] = []
+            fld = inst._data_container[self.fname] = []
         full_value = '{}={}'.format(name, value)
         try:
             fld.append(full_value)
@@ -202,7 +204,7 @@ class TagsFieldWrp(IndexFieldWrp):
         return True
 
     def has_tag(self, name, subval=None):
-        fld = self._instance._riak_object.data[self.fname]
+        fld = self._instance._data_container[self.fname]
         if not name in fld:
             return False
         if subval is not None:
@@ -216,7 +218,7 @@ class TagsFieldWrp(IndexFieldWrp):
         if value is None:
             value = ''
         inst = self._instance
-        fld = inst._riak_object.data[self.fname]
+        fld = inst._data_container[self.fname]
         full_value = '{}={}'.format(name, value)
         try:
             vals = fld.remove(full_value)
@@ -228,13 +230,12 @@ class TagsFieldWrp(IndexFieldWrp):
 
 
 
-
 class TagsField(IndexField):
     _wrp_class = TagsFieldWrp
 
     def __set__(self, instance, value):
         wrp = getattr(instance, self.fname)
-        instance._riak_object.data[self.fname] = self.default
+        instance._data_container[self.fname] = self.default
         for val in value:
             wrp.set(val)
 
@@ -264,9 +265,28 @@ class TagsField(IndexField):
         return set(map(itemgetter(1), res))
 
 
+# class MetaInput(NestedModel):
+
+#     name = Field(str)
+#     schema = Field(str)
+#     value = None  # TODO: implement it
+#     is_list = Field(bool)
+#     is_hash = Field(bool)
+
+
 class Resource(Model):
 
     name = Field(str)
+
+    version = Field(str)
+    base_name = Field(str)
+    base_path = Field(str)
+    actions_path = Field(str)
+    handler = Field(str)
+    puppet_module = Field(str)  # remove
+    meta_inputs = Field(dict, default=dict)
+    state = Field(str)  # on_set/on_get would be useful
+
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
 
