@@ -50,3 +50,7 @@
     # Configure http server in order serve file in '/vagrant' directory
     - template: src=files/nginx_vagrant_dir.cfg dest=/etc/nginx/conf.d/vagrant_dir.conf
     - service: name=nginx state=restarted
+
+    # Install discovery service
+    - shell: pip install git+https://github.com/rustyrobot/discovery.git
+    - shell: 'discovery &'
