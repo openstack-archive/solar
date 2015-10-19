@@ -83,3 +83,25 @@ def test_normal_index(rk):
     assert M1.ind.filter('blah=something2') == set([key2])
 
 
+def test_update(rk):
+    key = next(rk)
+
+    m1 = M1.from_dict(key, {'f1': 'blah', 'f2': 150})
+    assert m1.changed() is True
+    m1.save()
+
+    assert m1.changed() is False
+    with pytest.raises(DBLayerException):
+        m1.save()
+
+    m1.f1 = 'updated'
+    assert m1.changed() is True
+
+    m1.save()
+
+    assert m1.f1 == 'updated'
+
+    clear_cache()
+    m11 = M1.get(key)
+    assert m11.f1 == 'updated'
+

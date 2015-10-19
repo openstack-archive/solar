@@ -410,9 +410,15 @@ class Model(object):
                 obj = cls.from_riakobj(riak_object)
                 return obj
 
+    def _reset_state(self):
+        self._new = False
+        self._modified_fields.clear()
+
     @clears_state_for('index')
     def save(self, force=False):
         if self.changed() or force or self._new:
-            return self._riak_object.store()
+            res = self._riak_object.store()
+            self._reset_state()
+            return res
         else:
-            raise Exception("No changes")
+            raise DBLayerException("No changes")
