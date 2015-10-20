@@ -35,14 +35,22 @@ NETWORK_METADATA = yaml.load("""
 
 def deploy():
     db.clear()
-    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 1})
-    first_node = next(x for x in resources if x.name.startswith('node'))
+    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 2})
+    first_node, second_node = [x for x in resources if x.name.startswith('node')]
+    first_transp = next(x for x in resources if x.name.startswith('transport'))
 
     library = vr.create('library1', 'resources/fuel_library', {})[0]
     first_node.connect(library)
 
     keys = vr.create('ceph_key', 'resources/ceph_keys', {})[0]
     first_node.connect(keys)
+
+    remote_file = vr.create('ceph_key2', 'resources/remote_file',
+      {'dest': '/var/lib/astute/'})[0]
+    second_node.connect(remote_file)
+    keys.connect(remote_file, {'ip': 'remote_ip', 'path': 'remote_path'})
+    first_transp.connect(remote_file, {'transports': 'remote'})
+
 
     ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
         {'storage': STORAGE,
