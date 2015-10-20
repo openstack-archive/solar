@@ -296,3 +296,14 @@ Full documentation of individual functions is found in the `solar/template.py` f
 # Customizing vagrant-settings.yaml
 
 Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you need to adjust them for your needs, e.g. changing resource allocation for VirtualBox machines, you should just compy the file to `vagrant-setting.yaml` and make your modifications.
+
+# Image based provisioning with Solar
+
+* In `vagrant-setting.yaml_defaults` or `vagrant-settings.yaml` file uncomment `preprovisioned: false` line.
+* Run `vagrant up`, it will take some time because it builds image for bootstrap.
+* Currently in order to perform provisioning, pre-built images from Fuel can be used
+ * Download images [using this link](https://drive.google.com/file/d/0B7I3b5vI7ZYXM0FPTDJEdjg0Qnc/view).
+ * Login into vm `vagrant ssh solar-dev`
+ * Go to `cd /vagrant/tmp/` directory
+ * Untar the images `tar vxf targetimages.tar`
+* Now you can run provisioning `/vagrant/examples/provisioning/provision.sh`
