@@ -299,7 +299,7 @@ Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you n
 
 # Image based provisioning with Solar
 
-* In `vagrant-setting.yaml_defaults` file uncomment `preprovisioned: false` line.
+* In `vagrant-setting.yaml_defaults` or `vagrant-settings.yaml` file uncomment `preprovisioned: false` line.
 * Run `vagrant up`, it will take some time because it builds image for bootstrap.
 * Currently in order to perform provisioning, pre-built images from Fuel can be used
  * Download images [using this link](https://drive.google.com/file/d/0B7I3b5vI7ZYXM0FPTDJEdjg0Qnc/view).
