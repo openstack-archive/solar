@@ -13,9 +13,7 @@ from solar.events.api import add_event
 
 discovery_service = 'http://0.0.0.0:8881'
 
-# DEBUG use a single node
-nodes_list = [requests.get(discovery_service).json()[0]]
-
+nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
 node_resources = vr.create('nodes', 'templates/not_provisioned_nodes.yaml', {'nodes': nodes_list})
