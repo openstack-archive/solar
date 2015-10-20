@@ -6,19 +6,8 @@
 - shell: apt-get update
 
 - apt: name=puppet state=present
-- git: repo=https://github.com/CGenie/hiera-redis dest=/root/hiera-redis
-- shell: gem build hiera-redis.gemspec && gem install hiera-redis-3.0.0.gem chdir=/root/hiera-redis
 - template: src=files/hiera.yaml dest=/etc/puppet/hiera.yaml
 - file: path=/etc/puppet/hieradata state=directory
 # Make paths puppet 4 compatible
 - file: path=/etc/puppetlabs/code/ state=directory
 - file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
-- file: path=/var/tmp/puppet/modules state=directory owner=puppet
-- file: path=/var/tmp/puppet/Puppetfile state=touch owner=puppet
-- file: path=/etc/puppet/modules state=absent
-- file: path=/etc/puppetlabs/code/modules state=absent
-- file: path=/etc/puppetlabs/code/hieradata state=absent
-- file: src=/var/tmp/puppet/modules dest=/etc/puppet/modules state=link
-- file: src=/var/tmp/puppet/modules dest=/etc/puppetlabs/code/modules state=link
-- file: src=/etc/puppet/hieradata dest=/etc/puppetlabs/code/hieradata state=link
-- shell: gem install librarian-puppet --no-ri --no-rdoc

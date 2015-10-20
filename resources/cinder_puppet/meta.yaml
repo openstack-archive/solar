@@ -1,6 +1,5 @@
 id: cinder_puppet
 handler: puppet
-puppet_module: cinder
 version: 1.0.0
 input:
     database_connection:
@@ -174,9 +173,9 @@ input:
       schema: int!
       value: 8776
 
-    git:
-      schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-cinder', branch: '5.1.0'}
+    module:
+      schema: {name: str!, type: str, url: str, ref: str}
+      value: {name: 'cinder', type: 'git', url: 'https://github.com/openstack/puppet-cinder', ref: '5.1.0'}
 
     keystone_host:
       schema: str!

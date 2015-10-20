@@ -233,9 +233,9 @@ input:
       schema: int!
       value: 8774
 
-    git:
+    module:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
+      value: {name: 'nova', type: 'git', url: 'https://github.com/openstack/puppet-nova', ref: '5.1.0'}
 
     ip:
       schema: str!

@@ -49,9 +49,9 @@ input:
         roles: {},
       }
 
-    git:
+    module:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/xenolog/l23network', branch: '50098cfa1f0f8e8d58e6a6b77a22f1380aa5c426'}
+      value: {name: 'l23network', type: 'git', url: 'https://github.com/xenolog/l23network', ref: '50098cfa1f0f8e8d58e6a6b77a22f1380aa5c426'}
 
     ip:
       schema: str!

@@ -120,7 +120,7 @@ def init_cli_connect():
                 for m in mapping.split():
                     k, v = m.split('->')
                     mapping_parsed.update({k: v})
-        signals.connect(emitter, receiver, mapping=mapping_parsed)
+        emitter.connect(receiver, mapping=mapping_parsed)
 
         show_emitter_connections(emitter)
 

@@ -124,9 +124,9 @@ input:
       schema: str
       value:
 
-    git:
+    module:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-glance', branch: '5.1.0'}
+      value: {name: 'glance', type: 'git', url: 'https://github.com/openstack/puppet-glance', ref: '5.1.0'}
 
     ip:
       schema: str!
