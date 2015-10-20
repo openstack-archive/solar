@@ -25,7 +25,7 @@ from collections import Counter
 
 
 from solar.interfaces.db import get_db
-
+from solar.core import resource
 db = get_db()
 
 
@@ -40,6 +40,9 @@ def save_graph(graph):
         db.create_relation_str(uid, n, type_=db.RELATION_TYPES.graph_to_node)
 
     for u, v, properties in graph.edges(data=True):
+        if not 'target' in properties:
+            resource_name = u.split('.', 1)[0]
+            properties['target'] = resource.load(resource_name).args['location_id']
         type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
         db.create_relation_str(u, v, properties, type_=type_)
 
