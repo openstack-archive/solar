@@ -17,7 +17,7 @@ from fabric.state import env
 import os
 
 from solar.core.log import log
-from solar.core.handlers.base import TempFileHandler
+from solar.core.handlers.base import TempFileHandler, SOLAR_TEMP_LOCAL_LOCATION
 from solar import errors
 
 # otherwise fabric will sys.exit(1) in case of errors
@@ -41,7 +41,11 @@ class AnsibleTemplate(TempFileHandler):
         self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
         self.transport_sync.sync_all()
 
-        call_args = ['ansible-playbook', '--module-path', '/tmp/library', '-i', inventory_file, playbook_file]
+        # remote paths are not nested inside solar_local
+        remote_playbook_file = playbook_file.replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_inventory_file = inventory_file.replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+
+        call_args = ['ansible-playbook', '--module-path', '/tmp/library', '-i', remote_inventory_file, remote_playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         out = self.transport_run.run(resource, *call_args)

@@ -49,6 +49,9 @@ def setup_base():
     resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {"count": 2})
     nodes = [x for x in resources if x.name.startswith('node')]
     node1, node2 = nodes
+    resources = vr.create('nodes_network', 'templates/nodes_network.yaml', {"count": 2})
+    nodes_sdn = [x for x in resources if x.name.startswith('node')]
+    node1_sdn, node2_sdn = nodes_sdn
 
     # LIBRARIAN
     librarian_node1 = vr.create('librarian_node1', 'resources/librarian', {})[0]
@@ -56,6 +59,16 @@ def setup_base():
 
     node1.connect(librarian_node1, {})
     node2.connect(librarian_node2, {})
+
+    # NETWORKING
+    # TODO(bogdando) node's IPs should be populated as br-mgmt IPs, but now are hardcoded in templates
+    signals.connect(node1, node1_sdn)
+    node1_sdn.connect_with_events(librarian_node1, {'module': 'modules'}, {})
+    evapi.add_dep(librarian_node1.name, node1_sdn.name, actions=('run',))
+
+    signals.connect(node2, node2_sdn)
+    node2_sdn.connect_with_events(librarian_node2, {'module': 'modules'}, {})
+    evapi.add_dep(librarian_node2.name, node2_sdn.name, actions=('run',))
 
     # MARIADB
     mariadb_service = vr.create('mariadb_service1', 'resources/mariadb_service', {
@@ -89,6 +102,8 @@ def setup_base():
     })
     return {'node1': node1,
             'node2': node2,
+            'node1_sdn': node1_sdn,
+            'node2_sdn': node2_sdn,
             'librarian_node1': librarian_node1,
             'librarian_node2': librarian_node2,
             'mariadb_service': mariadb_service,

@@ -1,0 +1,18 @@
+id: transport_torrent
+handler: ansible
+input:
+  trackers:
+    schema: [str!]
+    value: []
+  name:
+    schema: str!
+    value: torrent
+  location_id:
+    schema: str
+    value:
+    reverse: True
+    is_own: False
+  transports_id:
+    schema: str
+    value:
+    is_emit: False

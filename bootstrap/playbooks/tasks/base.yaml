@@ -30,6 +30,8 @@
   - python-virtualenv
   # Required by packer
   - build-essential
+  # for torrent transport
+  - python-libtorrent
 
 # PIP
 #- apt: name=python-pip state=absent

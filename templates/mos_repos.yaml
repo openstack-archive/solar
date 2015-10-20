@@ -1,0 +1,43 @@
+id: mos_repos
+resources:
+  - id: mos_holdback_{{index}}
+    from: resources/apt_repo
+    location: {{node}}
+    values:
+      name: mos-holdback
+      package: '*'
+      repo: deb http://mirror.fuel-infra.org/mos-repos/ubuntu/7.0/ mos7.0-holdback main restricted
+      pin: release o=Mirantis,n=mos7.0,a=mos7.0-holdback,l=mos7.0
+      pin_priority: 1100
+  - id: mos_security_{{index}}
+    from: resources/apt_repo
+    location: {{node}}
+    values:
+      name: mos
+      package: '*'
+      repo: deb http://mirror.fuel-infra.org/mos-repos/ubuntu/7.0/ mos7.0-security main restricted
+      pin: release o=Mirantis,n=mos7.0,a=mos7.0-security,l=mos7.0
+      pin_priority: 1050
+  - id: mos_updates_{{index}}
+    from: resources/apt_repo
+    location: {{node}}
+    values:
+      name: mos_update
+      package: '*'
+      repo: deb http://mirror.fuel-infra.org/mos-repos/ubuntu/7.0/ mos7.0-updates main restricted
+      pin: release o=Mirantis,a=mos7.0-updates,l=mos7.0,n=mos7.0
+      pin_priority: 1050
+  - id: managed_apt_{{index}}
+    from: resources/managed_apt
+    location: {{node}}
+    values:
+      names:
+        - mos_holdback_{{index}}::name
+        - mos_security_{{index}}::name
+        - mos_updates_{{index}}::name
+      repos:
+        - mos_holdback_{{index}}::repo
+        - mos_security_{{index}}::repo
+        - mos_updates_{{index}}::repo
+      ensure_other_removed: false
+

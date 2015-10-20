@@ -1,0 +1,11 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - template:
+        src: {{templates_dir}}/source
+        dest: /etc/apt/sources.list.d/{{name}}.list
+    - template:
+        src: {{templates_dir}}/preferences
+        dest: /etc/apt/preferences.d/{{name}}.pref
+    - shell: apt-get update
+      when: {{validate_integrity}}
