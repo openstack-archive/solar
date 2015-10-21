@@ -166,6 +166,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         libvirt.nested = true
         libvirt.cpu_mode = 'host-passthrough'
         libvirt.volume_cache = 'unsafe'
+        libvirt.disk_bus = "virtio"
       end
 
       if PREPROVISIONED
