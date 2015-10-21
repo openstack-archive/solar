@@ -54,3 +54,7 @@
     # Install discovery service
     - shell: pip install git+https://github.com/rustyrobot/discovery.git
     - shell: 'discovery &'
+
+    # Install bareon-api
+    - shell: pip install git+https://github.com/Mirantis/bareon-api.git
+    - shell: 'bareon-api &'
