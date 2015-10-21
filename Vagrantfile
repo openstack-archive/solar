@@ -152,6 +152,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             "--memory", SLAVES_RAM,
             "--cpus", SLAVES_CPUS,
             "--ioapic", "on",
+            "--macaddress1", "auto",
         ]
         if PARAVIRT_PROVIDER
           v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
