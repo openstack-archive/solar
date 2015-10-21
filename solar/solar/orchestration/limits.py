@@ -72,5 +72,5 @@ def target_based_rule(dg, inprogress, item, limit=1):
     return limit > target_count
 
 
-def items_rule(dg, inprogress, item, limit=1):
+def items_rule(dg, inprogress, item, limit=100):
     return len(inprogress) < limit
