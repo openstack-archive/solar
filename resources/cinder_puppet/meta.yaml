@@ -168,6 +168,9 @@ input:
     db_host:
       schema: str!
       value: 
+    db_port:
+      schema: int!
+      value: 
 
     port:
       schema: int!

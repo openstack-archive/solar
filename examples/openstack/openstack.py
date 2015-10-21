@@ -201,7 +201,10 @@ def setup_keystone(node, librarian, mariadb_service, openstack_rabbitmq_user):
     keystone_db_user.connect(keystone_puppet, {
         'user_name': 'db_user',
         'user_password': 'db_password',
-        'db_host' : 'db_host'
+    })
+    mariadb_service.connect(keystone_puppet, {
+        'ip': 'db_host',
+        'port': 'db_port',
     })
     return {'keystone_puppet': keystone_puppet,
             'keystone_db': keystone_db,
@@ -293,6 +296,9 @@ def setup_neutron_api(node, mariadb_service, admin_user, keystone_puppet, servic
         'db_name':'db_name',
         'user_password':'db_password',
         'db_host' : 'db_host'})
+    mariadb_service.connect(neutron_server_puppet, {
+        'port': 'db_port',
+        'ip' : 'db_host'})
     node.connect(neutron_server_puppet)
     admin_user.connect(neutron_server_puppet, {
         'user_name': 'auth_user',
@@ -434,8 +440,10 @@ def setup_cinder(node, librarian, rabbitmq_service, mariadb_service, keystone_pu
     cinder_db_user.connect(cinder_puppet, {
         'user_name':'db_user',
         'db_name':'db_name',
-        'user_password':'db_password',
-        'db_host' : 'db_host'})
+        'user_password':'db_password'})
+    mariadb_service.connect(cinder_puppet, {
+        'port': 'db_port',
+        'ip': 'db_host'})
     keystone_puppet.connect(cinder_puppet, {'ip': 'keystone_host', 'admin_port': 'keystone_port'}) #or non admin port?
     services_tenant.connect(cinder_keystone_user)
     cinder_keystone_user.connect(cinder_keystone_role)
@@ -470,6 +478,7 @@ def setup_cinder_api(node, cinder_puppet):
     cinder_puppet.connect(cinder_api_puppet, {
         'keystone_host': 'keystone_auth_host',
         'keystone_port': 'keystone_auth_port'})
+    evapi.add_react(cinder_puppet.name, cinder_api_puppet.name, actions=('update',))
     return {'cinder_api_puppet': cinder_api_puppet}
 
 def setup_cinder_scheduler(node, cinder_puppet):
@@ -477,6 +486,7 @@ def setup_cinder_scheduler(node, cinder_puppet):
     cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     node.connect(cinder_scheduler_puppet)
     cinder_puppet.connect(cinder_scheduler_puppet)
+    evapi.add_react(cinder_puppet.name, cinder_scheduler_puppet.name, actions=('update',))
     return {'cinder_scheduler_puppet': cinder_scheduler_puppet}
 
 def setup_cinder_volume(node, cinder_puppet):
@@ -484,6 +494,7 @@ def setup_cinder_volume(node, cinder_puppet):
     cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
     node.connect(cinder_volume_puppet)
     cinder_puppet.connect(cinder_volume_puppet)
+    evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
     return {'cinder_volume_puppet': cinder_volume_puppet}
 
 def setup_nova(node, librarian, mariadb_service, rabbitmq_service, admin_user, openstack_vhost, services_tenant, keystone_puppet, openstack_rabbitmq_user):
@@ -545,12 +556,12 @@ def setup_nova(node, librarian, mariadb_service, rabbitmq_service, admin_user, o
         'admin_port': 'keystone_admin_port',
         'admin_token': 'admin_token'})
     mariadb_service.connect(nova_puppet, {
-        'ip':'db_host'})
+        'ip':'db_host',
+        'port': 'db_port'})
     nova_db_user.connect(nova_puppet, {
         'user_name':'db_user',
         'db_name':'db_name',
-        'user_password':'db_password',
-        'db_host' : 'db_host'})
+        'user_password':'db_password'})
     nova_puppet.connect(nova_keystone_service_endpoint, {
         'ip': ['ip', 'keystone_host', 'public_ip', 'internal_ip', 'admin_ip'],
         'port': ['admin_port', 'internal_port', 'public_port'],
@@ -572,6 +583,7 @@ def setup_nova_api(node, nova_puppet, neutron_agents_metadata):
         'keystone_password': 'admin_password',
         'keystone_host': 'auth_host',
         'keystone_port': 'auth_port'})
+    evapi.add_react(nova_puppet.name, nova_api_puppet.name, actions=('update',))
     nova_api_puppet.connect(neutron_agents_metadata, {'ip': 'metadata_ip'})
     return {'nova_api_puppet': nova_api_puppet}
 
@@ -581,6 +593,7 @@ def setup_nova_conductor(node, nova_puppet, nova_api_puppet):
     node.connect(nova_conductor_puppet)
     nova_puppet.connect(nova_conductor_puppet)
     evapi.add_dep(nova_api_puppet.name, nova_conductor_puppet.name, actions=('run',))
+    evapi.add_react(nova_puppet.name, nova_conductor_puppet.name, actions=('update',))
     return {'nova_conductor': nova_conductor_puppet}
 
 def setup_nova_scheduler(node, nova_puppet, nova_api_puppet):
@@ -593,6 +606,7 @@ def setup_nova_scheduler(node, nova_puppet, nova_api_puppet):
     node.connect(nova_scheduler_puppet)
     evapi.add_dep(nova_puppet.name, nova_scheduler_puppet.name, actions=('run',))
     evapi.add_dep(nova_api_puppet.name, nova_scheduler_puppet.name, actions=('run',))
+    evapi.add_react(nova_puppet.name, nova_scheduler_puppet.name, actions=('update',))
     return {'nova_scheduler_puppet': nova_scheduler_puppet}
 
 def setup_nova_compute(node, librarian, nova_puppet, nova_api_puppet, neutron_server_puppet, neutron_keystone_service_endpoint):
@@ -694,6 +708,9 @@ def setup_glance_api(node, librarian, mariadb_service, admin_user, keystone_pupp
         'db_name':'db_name',
         'user_password':'db_password',
         'db_host' : 'db_host'})
+    mariadb_service.connect(glance_api_puppet,{
+        'port': 'db_port',
+        'ip': 'db_host'})
     keystone_puppet.connect(glance_api_puppet, {'ip': 'keystone_host', 'admin_port': 'keystone_port'}) #or non admin port?
     services_tenant.connect(glance_keystone_user)
     glance_keystone_user.connect(glance_keystone_role)
@@ -729,6 +746,7 @@ def setup_glance_registry(node, glance_api_puppet):
     glance_registry_puppet = vr.create('glance_registry_puppet', 'resources/glance_registry_puppet', {})[0]
     node.connect(glance_registry_puppet)
     glance_api_puppet.connect(glance_registry_puppet)
+    evapi.add_react(glance_api_puppet.name, glance_registry_puppet.name, actions=('update',))
     # API and registry should not listen same ports
     # should not use the same log destination and a pipeline,
     # so disconnect them and restore the defaults
@@ -760,7 +778,7 @@ def validate():
 
 
 @click.command()
-def deploy():
+def create():
     r= {}
     r.update(setup_base())
     r.update(setup_keystone(r['node1'], r['librarian_node1'],
@@ -794,7 +812,7 @@ def deploy():
 
 
 if __name__ == '__main__':
-    main.add_command(deploy)
+    main.add_command(create)
     main()
 
     if PROFILE:
