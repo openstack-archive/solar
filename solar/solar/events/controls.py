@@ -98,7 +98,13 @@ class React(Event):
             if self.child_node not in changes_graph:
                 # TODO: solve this circular import problem
                 from solar.core import resource
-                location_id = resource.load(self.child).args['location_id']
+                try:
+                    loaded_resource = resource.load(self.parent)
+                except KeyError:
+                    # orm throws this error when we're NOT using resource there
+                    location_id = None
+                else:
+                    location_id = loaded_resource.args['location_id']
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
                     target=location_id,
@@ -118,7 +124,13 @@ class StateChange(Event):
         changed_resources.append(self.parent)
         # TODO: solve this circular import problem
         from solar.core import resource
-        location_id = resource.load(self.parent).args['location_id']
+        try:
+            loaded_resource = resource.load(self.parent)
+        except KeyError:
+            # orm throws this error when we're NOT using resource there
+            location_id = None
+        else:
+            location_id = loaded_resource.args['location_id']
         changes_graph.add_node(
             self.parent_node, status='PENDING',
             target=location_id,
