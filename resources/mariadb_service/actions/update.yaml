@@ -1,0 +1,21 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - file: path=/var/lib/docker/data/{{resource_name}} state=directory
+    - name: mariadb container
+      docker:
+        name: {{ resource_name }}
+        image: {{ image }}
+        state: reloaded
+        ports:
+        - {{ port }}:3306
+        env:
+          MYSQL_ROOT_PASSWORD: {{ root_password }}
+        volumes:
+        - /var/lib/docker/data/{{resource_name}}:/var/lib/mysql
+
+    - shell: docker exec -t {{ resource_name }} mysql -p{{ root_password }} -uroot -e "SELECT 1"
+      register: result
+      until: result.rc == 0
+      retries: 30
+      delay: 0.5
