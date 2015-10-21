@@ -279,6 +279,8 @@ class ModelMeta(type):
     @classmethod
     def setup(mcs, riak_client):
         mcs.riak_client = riak_client
+        mcs.session_start = riak_client.session_start
+        mcs.session_end = riak_client.session_end
 
 
 class NestedField(FieldBase):

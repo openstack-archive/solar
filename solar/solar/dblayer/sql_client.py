@@ -3,14 +3,18 @@ from collections import deque
 import inspect
 import os
 import uuid
-import json
 import sys
+
 from peewee import CharField, BlobField, IntegerField, \
     ForeignKeyField, Model, BooleanField, TextField, Field, Database
 
+from solar.dblayer.model import clear_cache
 from threading import RLock
 
 
+# msgpack is way faster but less readable
+# using json for easier debug
+import json
 encoder = json.dumps
 decoder = json.loads
 
@@ -384,3 +388,16 @@ class SqlClient(object):
     @property
     def sql_session(self):
         return self._sql_session
+
+    def session_start(self):
+        clear_cache()
+        sess = self._sql_session
+        sess.begin()
+
+    def session_end(self, result=True):
+        sess = self._sql_session
+        if result:
+            sess.commit()
+        else:
+            sess.rollback()
+        clear_cache()

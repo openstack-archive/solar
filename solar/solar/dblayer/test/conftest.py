@@ -1,5 +1,4 @@
-from riak import RiakClient
-from solar.dblayer.model import *
+from solar.dblayer.model import Model, ModelMeta
 import pytest
 import time
 import string
@@ -40,13 +39,25 @@ def rt(request):
 
     return obj
 
+
+
+def pytest_runtest_teardown(item, nextitem):
+    ModelMeta.session_end(result=True)
+    return nextitem
+
+def pytest_runtest_call(item):
+    ModelMeta.session_start()
+
+
 Model.get_bucket_name = classmethod(patched_get_bucket_name)
 
-from solar.dblayer.sql import SqlClient
+from solar.dblayer.sql_client import SqlClient
 client = SqlClient(':memory:', threadlocals=False, autocommit=False)
-# client = SqlClient('blah.db', threadlocals=True,
+# client = SqlClient('/tmp/blah.db', threadlocals=True,
 #                    autocommit=False, pragmas=(('journal_mode', 'WAL'),
 #                                               ('synchronous', 'NORMAL')))
+
+# from solar.dblayer.riak_client import RiakClient
 # client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
 # client = RiakClient(protocol='http', host='10.0.0.3', http_port=18098)
 
