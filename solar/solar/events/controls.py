@@ -96,6 +96,7 @@ class React(Event):
 
         if self.parent_node in changes_graph:
             if self.child_node not in changes_graph:
+                # TODO: solve this circular import problem
                 from solar.core import resource
                 location_id = resource.load(self.child).args['location_id']
                 changes_graph.add_node(
@@ -115,6 +116,7 @@ class StateChange(Event):
 
     def insert(self, changed_resources, changes_graph):
         changed_resources.append(self.parent)
+        # TODO: solve this circular import problem
         from solar.core import resource
         location_id = resource.load(self.parent).args['location_id']
         changes_graph.add_node(
