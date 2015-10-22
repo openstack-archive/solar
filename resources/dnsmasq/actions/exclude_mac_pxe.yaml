@@ -3,15 +3,4 @@
 
   tasks:
     - lineinfile: create=yes dest=/etc/dnsmasq.d/no_pxe_{{exclude_mac_pxe | replace(':', '_')}}.conf line="dhcp-host={{exclude_mac_pxe}},set:nopxe"
-      # FIXME: currently there is no way to specify
-      # policy not to run several tasks in parallel,
-      # so when we deploy several nodes in parallel
-      # it causes the problems when two tasks try
-      # to restart supervisor at the same time, and
-      # fail to do it.
-    - command: service dnsmasq status
-      register: log
-      until: log.stdout.find('running') > -1
-      retries: 5
-      delay: 2
     - shell: service dnsmasq restart
