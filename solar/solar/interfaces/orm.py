@@ -51,12 +51,11 @@ def cache_me(store):
                 return store[obj.id]
             except KeyError:
                 pass
-            else:
-                val = f(obj, *args, **kwargs)
-                if not val:
-                    return
-                store[obj.id] = val
-                return val
+            val = f(obj, *args, **kwargs)
+            if not val:
+                return
+            store[obj.id] = val
+            return val
         if USE_CACHE:
             return _inner2
         else:
@@ -78,10 +77,9 @@ def cache_me(store):
 #                 return sc[arg0]
 #             except KeyError:
 #                 pass
-#             else:
-#                 val = f(obj, *args, **kwargs)
-#                 sc[arg0] = val
-#                 return val
+#             val = f(obj, *args, **kwargs)
+#             sc[arg0] = val
+#             return val
 #         return _inner2
 #     return _inner
 
