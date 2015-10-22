@@ -53,6 +53,8 @@ def cache_me(store):
                 pass
             else:
                 val = f(obj, *args, **kwargs)
+                if not val:
+                    return
                 store[obj.id] = val
                 return val
         if USE_CACHE:
