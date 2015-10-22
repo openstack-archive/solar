@@ -1,9 +1,9 @@
 ---
 
 # Puppet
-- shell: wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -O /root/puppetlabs-release-trusty.deb
-- shell: dpkg -i /root/puppetlabs-release-trusty.deb
-- shell: apt-get update
+- shell: sudo wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb -O /root/puppetlabs-release-trusty.deb
+- shell: sudo dpkg -i /root/puppetlabs-release-trusty.deb
+- shell: sudo apt-get update
 
 - apt: name=puppet state=present
 - template: src=files/hiera.yaml dest=/etc/puppet/hiera.yaml
