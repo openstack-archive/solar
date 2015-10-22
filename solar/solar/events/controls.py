@@ -99,7 +99,7 @@ class React(Event):
                 # TODO: solve this circular import problem
                 from solar.core import resource
                 try:
-                    loaded_resource = resource.load(self.parent)
+                    loaded_resource = resource.load(self.child)
                 except KeyError:
                     # orm throws this error when we're NOT using resource there
                     location_id = None
