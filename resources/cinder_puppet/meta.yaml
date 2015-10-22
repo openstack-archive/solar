@@ -1,5 +1,8 @@
 id: cinder_puppet
 handler: puppet
+actions:
+    run: run.pp
+    update: run.pp
 version: 1.0.0
 input:
     database_connection:
