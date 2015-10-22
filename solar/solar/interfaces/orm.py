@@ -22,6 +22,8 @@ from solar.interfaces.db import base
 from solar.interfaces.db import get_db
 
 import os
+
+# USE_CACHE could be set only from CLI
 USE_CACHE = int(os.getenv("USE_CACHE", 0))
 
 
@@ -30,8 +32,19 @@ db = get_db()
 
 from functools import wraps
 
+def _delete_from(store):
+    def _wrp(key):
+        try:
+            del store[key]
+        except KeyError:
+            pass
+    return _wrp
+
 def cache_me(store):
     def _inner(f):
+        # attaching to functions even when no cache enabled for consistency
+        f._cache_store = store
+        f._cache_del = _delete_from(store)
         @wraps(f)
         def _inner2(obj, *args, **kwargs):
             try:
@@ -470,6 +483,10 @@ class DBResourceInput(DBObject):
             )[0].start_node.properties
         )
 
+    def save(self):
+        self.backtrack_value_emitter._cache_del(self.id)
+        return super(DBResourceInput, self).save()
+
     def delete(self):
         db.delete_relations(
             source=self._db_node,
@@ -479,6 +496,7 @@ class DBResourceInput(DBObject):
             dest=self._db_node,
             type_=base.BaseGraphDB.RELATION_TYPES.input_to_input
         )
+        self.backtrack_value_emitter._cache_del(self.id)
         super(DBResourceInput, self).delete()
 
     def edges(self):
