@@ -13,7 +13,11 @@
 #    under the License.
 
 from enum import Enum
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
+
 import redis
 import fakeredis
 

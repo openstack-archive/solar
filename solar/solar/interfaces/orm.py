@@ -21,8 +21,54 @@ from solar.core import validation
 from solar.interfaces.db import base
 from solar.interfaces.db import get_db
 
+import os
+USE_CACHE = int(os.getenv("USE_CACHE", 0))
+
 
 db = get_db()
+
+
+from functools import wraps
+
+def cache_me(store):
+    def _inner(f):
+        @wraps(f)
+        def _inner2(obj, *args, **kwargs):
+            try:
+                return store[obj.id]
+            except KeyError:
+                pass
+            else:
+                val = f(obj, *args, **kwargs)
+                store[obj.id] = val
+                return val
+        if USE_CACHE:
+            return _inner2
+        else:
+            return f
+    return _inner
+
+
+# def cache_me_cls(store):
+#     def _inner(f):
+#         @wraps(f)
+#         def _inner2(cls, arg0, *args, **kwargs):
+#             try:
+#                 sc = store[cls.__name__]
+#             except KeyError:
+#                 pass
+#             else:
+#                 sc = store[cls.__name__] = {}
+#             try:
+#                 return sc[arg0]
+#             except KeyError:
+#                 pass
+#             else:
+#                 val = f(obj, *args, **kwargs)
+#                 sc[arg0] = val
+#                 return val
+#         return _inner2
+#     return _inner
 
 
 class DBField(object):
@@ -378,7 +424,6 @@ class DBObject(object):
     @classmethod
     def load(cls, key):
         r = db.get(key, collection=cls._collection)
-
         return cls(**r.properties)
 
     @classmethod
@@ -460,6 +505,7 @@ class DBResourceInput(DBObject):
         correct_input = inps[other_val]
         return correct_input.backtrack_value()
 
+    @cache_me({})
     def backtrack_value_emitter(self, level=None, other_val=None):
         # TODO: this is actually just fetching head element in linked list
         #       so this whole algorithm can be moved to the db backend probably
