@@ -1,5 +1,8 @@
 handler: puppet
 id: 'neutron_server_puppet'
+actions:
+    run: run.pp
+    update: run.pp
 input:
   ip:
     schema: str!

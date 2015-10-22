@@ -2,6 +2,9 @@ id: nova
 handler: puppet
 puppet_module: nova
 version: 1.0.0
+actions:
+    run: run.pp
+    update: run.pp
 input:
     ensure_package:
       schema: str
