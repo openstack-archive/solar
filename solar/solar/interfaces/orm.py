@@ -52,8 +52,14 @@ def cache_me(store):
             except KeyError:
                 pass
             val = f(obj, *args, **kwargs)
+            if obj.id.startswith('location_id'):
+                if not val.value:
+                    return val
+            if obj.id.startswith('transports_id'):
+                if not val.value:
+                    return val
             if not val:
-                return
+                return val
             store[obj.id] = val
             return val
         if USE_CACHE:
