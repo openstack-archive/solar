@@ -1,6 +1,10 @@
 id: librarian
 handler: ansible
 version: 0.0.1
+actions:
+    run: run.yaml
+    update: run.yaml
+    remove: remove.yaml
 input:
     modules:
       schema: [str]

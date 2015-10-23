@@ -643,6 +643,7 @@ def setup_nova_compute(node, librarian, nova_puppet, nova_api_puppet, neutron_se
     node.connect(nova_compute_puppet)
     evapi.add_dep(nova_puppet2.name, nova_compute_puppet.name, actions=('run',))
     evapi.add_dep(nova_api_puppet.name, nova_compute_puppet.name, actions=('run',))
+    evapi.add_react(nova_puppet2.name, nova_compute_puppet.name, actions=('run', 'update'))
 
     # NOVA COMPUTE LIBVIRT, NOVA_NEUTRON
     # NOTE(bogdando): changes nova config, so should notify nova compute service
