@@ -40,6 +40,7 @@ def _delete_from(store):
             pass
     return _wrp
 
+
 def cache_me(store):
     def _inner(f):
         # attaching to functions even when no cache enabled for consistency
@@ -58,8 +59,11 @@ def cache_me(store):
             if obj.id.startswith('transports_id'):
                 if not val.value:
                     return val
-            if not val:
+            if isinstance(val, list):
                 return val
+            else:
+                if not val.value:
+                    return val
             store[obj.id] = val
             return val
         if USE_CACHE:
@@ -67,27 +71,6 @@ def cache_me(store):
         else:
             return f
     return _inner
-
-
-# def cache_me_cls(store):
-#     def _inner(f):
-#         @wraps(f)
-#         def _inner2(cls, arg0, *args, **kwargs):
-#             try:
-#                 sc = store[cls.__name__]
-#             except KeyError:
-#                 pass
-#             else:
-#                 sc = store[cls.__name__] = {}
-#             try:
-#                 return sc[arg0]
-#             except KeyError:
-#                 pass
-#             val = f(obj, *args, **kwargs)
-#             sc[arg0] = val
-#             return val
-#         return _inner2
-#     return _inner
 
 
 class DBField(object):
