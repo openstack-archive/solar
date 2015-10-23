@@ -6,3 +6,10 @@
     # Setup development env for solar
     - shell: pip install -e . chdir=/vagrant/solar
     - shell: pip install -e . chdir=/vagrant/solard
+
+- hosts: all
+  tasks:
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: eval "$(_SOLAR_COMPLETE=source solar)"
+        state: present
