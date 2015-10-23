@@ -21,8 +21,56 @@ from solar.core import validation
 from solar.interfaces.db import base
 from solar.interfaces.db import get_db
 
+import os
+
+# USE_CACHE could be set only from CLI
+USE_CACHE = int(os.getenv("USE_CACHE", 0))
+
 
 db = get_db()
+
+
+from functools import wraps
+
+def _delete_from(store):
+    def _wrp(key):
+        try:
+            del store[key]
+        except KeyError:
+            pass
+    return _wrp
+
+
+def cache_me(store):
+    def _inner(f):
+        # attaching to functions even when no cache enabled for consistency
+        f._cache_store = store
+        f._cache_del = _delete_from(store)
+        @wraps(f)
+        def _inner2(obj, *args, **kwargs):
+            try:
+                return store[obj.id]
+            except KeyError:
+                pass
+            val = f(obj, *args, **kwargs)
+            if obj.id.startswith('location_id'):
+                if not val.value:
+                    return val
+            if obj.id.startswith('transports_id'):
+                if not val.value:
+                    return val
+            if isinstance(val, list):
+                return val
+            else:
+                if not val.value:
+                    return val
+            store[obj.id] = val
+            return val
+        if USE_CACHE:
+            return _inner2
+        else:
+            return f
+    return _inner
 
 
 class DBField(object):
@@ -378,7 +426,6 @@ class DBObject(object):
     @classmethod
     def load(cls, key):
         r = db.get(key, collection=cls._collection)
-
         return cls(**r.properties)
 
     @classmethod
@@ -425,6 +472,10 @@ class DBResourceInput(DBObject):
             )[0].start_node.properties
         )
 
+    def save(self):
+        self.backtrack_value_emitter._cache_del(self.id)
+        return super(DBResourceInput, self).save()
+
     def delete(self):
         db.delete_relations(
             source=self._db_node,
@@ -434,6 +485,7 @@ class DBResourceInput(DBObject):
             dest=self._db_node,
             type_=base.BaseGraphDB.RELATION_TYPES.input_to_input
         )
+        self.backtrack_value_emitter._cache_del(self.id)
         super(DBResourceInput, self).delete()
 
     def edges(self):
@@ -460,6 +512,7 @@ class DBResourceInput(DBObject):
         correct_input = inps[other_val]
         return correct_input.backtrack_value()
 
+    @cache_me({})
     def backtrack_value_emitter(self, level=None, other_val=None):
         # TODO: this is actually just fetching head element in linked list
         #       so this whole algorithm can be moved to the db backend probably
