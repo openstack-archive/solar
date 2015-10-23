@@ -78,6 +78,7 @@ class Resource(object):
             'id': name,
             'name': name,
             'actions_path': metadata.get('actions_path', ''),
+            'actions': metadata.get('actions', ''),
             'base_name': metadata.get('base_name', ''),
             'base_path': metadata.get('base_path', ''),
             'handler': metadata.get('handler', ''),
@@ -126,6 +127,11 @@ class Resource(object):
 
     @property
     def actions(self):
+        if self.db_obj.actions:
+            return {action: os.path.join(
+                self.db_obj.actions_path, name)
+                for action, name in self.db_obj.actions.items()}
+        # else
         ret = {
             os.path.splitext(p)[0]: os.path.join(
                 self.db_obj.actions_path, p
