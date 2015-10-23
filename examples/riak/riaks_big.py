@@ -22,7 +22,7 @@ db = get_db()
 
 NODES = 3
 
-def setup_riak(nodes_num=None):
+def setup_riak(nodes_num=None, hosts_mapping=False):
 
     if nodes_num is None:
         nodes_num = NODES
@@ -56,11 +56,12 @@ def setup_riak(nodes_num=None):
         hosts_services.append(hosts_file)
         nodes[i].connect(hosts_file)
 
-    for riak in riak_services:
-        for hosts_file in hosts_services:
-            riak.connect_with_events(hosts_file,
-                {'riak_hostname': 'hosts:name',
-                 'ip': 'hosts:ip'})
+    if hosts_mapping:
+        for riak in riak_services:
+            for hosts_file in hosts_services:
+                riak.connect_with_events(hosts_file,
+                    {'riak_hostname': 'hosts:name',
+                     'ip': 'hosts:ip'})
 
     res_errors = resource.validate_resources()
     for r, error in res_errors:
@@ -74,7 +75,8 @@ def setup_riak(nodes_num=None):
     events = []
     for x in xrange(nodes_num):
         i = x + 1
-        events.append(Dep('hosts_file%d' % i, 'run', 'success', 'riak_service%d' % i, 'run'))
+        if hosts_mapping:
+            events.append(Dep('hosts_file%d' % i, 'run', 'success', 'riak_service%d' % i, 'run'))
         if i >= 2:
             events.append(React('riak_service%d' % i, 'run', 'success', 'riak_service%d' % i, 'join'))
         events.append(React('riak_service%d' % i, 'join', 'success', 'riak_service1', 'commit'))
@@ -93,11 +95,12 @@ def main():
 
 @click.command()
 @click.argument('nodes_count', type=int)
-def deploy(nodes_count):
+@click.argument('hosts_mapping', type=bool)
+def deploy(nodes_count, hosts_mapping):
     click.secho("With big nodes_count, this example is DB heavy, it creates NxN connections, continue ? [y/N] ", fg='red', nl=False)
     c= click.getchar()
     if c in ('y', 'Y'):
-        setup_riak(nodes_count)
+        setup_riak(nodes_count, hosts_mapping)
     else:
         click.echo("Aborted")
 
