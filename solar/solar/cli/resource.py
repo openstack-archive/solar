@@ -93,7 +93,7 @@ def backtrack_inputs(resource):
 @resource.command()
 @click.argument('resource')
 @click.argument('input_name')
-def effective_iv(resource, input_name):
+def effective_input_value(resource, input_name):
     r = sresource.load(resource)
     inp = r.resource_inputs()[input_name]
     click.echo(yaml.safe_dump(backtrack_single(inp), default_flow_style=False))
