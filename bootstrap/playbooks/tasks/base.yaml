@@ -41,6 +41,9 @@
 - shell: pip install httpie
 - shell: pip install docker-py==1.1.0
 
+# faster json
+- shell: pip install ujson
+
 # Redis
 - shell: pip install redis
 - lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
