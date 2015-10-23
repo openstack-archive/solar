@@ -63,33 +63,45 @@ def action(dry_run_mapping, dry_run, action, resource):
                 str(key)
             ))
 
+def backtrack_single(i):
+    def format_input(i):
+        return '{}::{}'.format(i.resource.name, i.name)
+
+    if isinstance(i, list):
+        return [backtrack_single(bi) for bi in i]
+
+    if isinstance(i, dict):
+        return {
+            k: backtrack_single(bi) for k, bi in i.items()
+        }
+
+    bi = i.backtrack_value_emitter(level=1)
+    if isinstance(i, orm.DBResourceInput) and isinstance(bi, orm.DBResourceInput) and i == bi:
+        return (format_input(i), )
+
+    return (format_input(i), backtrack_single(bi))
+
 @resource.command()
 @click.argument('resource')
 def backtrack_inputs(resource):
     r = sresource.load(resource)
 
-    inputs = []
-
-    def backtrack(i):
-        def format_input(i):
-            return '{}::{}'.format(i.resource.name, i.name)
-
-        if isinstance(i, list):
-            return [backtrack(bi) for bi in i]
-
-        if isinstance(i, dict):
-            return {
-                k: backtrack(bi) for k, bi in i.items()
-            }
-
-        bi = i.backtrack_value_emitter(level=1)
-        if isinstance(i, orm.DBResourceInput) and isinstance(bi, orm.DBResourceInput) and i == bi:
-            return (format_input(i), )
-
-        return (format_input(i), backtrack(bi))
-
     for i in r.resource_inputs().values():
-        click.echo(yaml.safe_dump({i.name: backtrack(i)}, default_flow_style=False))
+        click.echo(yaml.safe_dump({i.name: backtrack_single(i)}, default_flow_style=False))
+
+
+@resource.command()
+@click.argument('resource')
+@click.argument('input_name')
+def effective_iv(resource, input_name):
+    r = sresource.load(resource)
+    inp = r.resource_inputs()[input_name]
+    click.echo(yaml.safe_dump(backtrack_single(inp), default_flow_style=False))
+    click.echo('-' * 20)
+    val = inp.backtrack_value()
+    click.echo(val)
+    click.echo('-' * 20)
+
 
 @resource.command()
 def compile_all():
