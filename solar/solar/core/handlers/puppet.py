@@ -65,12 +65,13 @@ class Puppet(TempFileHandler):
         return {resource.name: resource.to_dict()}
 
     def upload_hiera_resource(self, resource):
-        with open('/tmp/puppet_resource.yaml', 'w') as f:
+        src = '/tmp/puppet_{}.yaml'.format(resource.name)
+        with open(src, 'w') as f:
             f.write(yaml.safe_dump(self._make_args(resource)))
 
         self.transport_sync.copy(
             resource,
-            '/tmp/puppet_resource.yaml',
+            src,
             '/etc/puppet/hieradata/{}.yaml'.format(resource.name),
             use_sudo=True
         )

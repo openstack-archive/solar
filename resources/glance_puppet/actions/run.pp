@@ -5,6 +5,8 @@ $ip = $resource['input']['ip']['value']
 $db_user = $resource['input']['db_user']['value']
 $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
+$db_host = $resource['input']['db_host']['value']
+$db_port = $resource['input']['db_port']['value']
 
 $filesystem_store_datadir = $resource['input']['filesystem_store_datadir']['value']
 
@@ -84,7 +86,7 @@ class {'glance::api':
   key_file                  => $key_file,
   ca_file                   => $ca_file,
   known_stores              => $known_stores,
-  database_connection       => "mysql://${db_user}:${db_password}@${ip}/${db_name}",
+  database_connection       => "mysql://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
   database_idle_timeout     => $database_idle_timeout,
   image_cache_dir           => $image_cache_dir,
   os_region_name            => $os_region_name,

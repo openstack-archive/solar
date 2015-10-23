@@ -1,0 +1,22 @@
+id: primary_controller
+
+resources:
+  - id: rabbit_user
+    from: resources/rabbitmq_user
+    location: {{node}}
+    values:
+        user_name: {{user_name}}
+        password: {{password}}
+        vhost_name: {{vhost_res}}::vhost_name
+
+updates:
+  - id: {{for}}
+    values:
+        {{for_user}}: rabbit_user::user_name
+        {{for_password}}: rabbit_user::password
+
+events:
+  - type: depends_on
+    parent_action: rabbit_user.run
+    state: success
+    depend_action: {{for}}.update

@@ -5,6 +5,8 @@ $ip = $resource['input']['ip']['value']
 $db_user = $resource['input']['db_user']['value']
 $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
+$db_host = $resource['input']['db_host']['value']
+$db_port = $resource['input']['db_port']['value']
 
 $database_connection          = $resource['input']['database_connection']['value']
 $database_idle_timeout        = $resource['input']['database_idle_timeout']['value']
@@ -60,7 +62,7 @@ $mysql_module                 = $resource['input']['mysql_module']['value']
 $sql_idle_timeout             = $resource['input']['sql_idle_timeout']['value']
 
 class {'cinder':
-  database_connection          => "mysql://${db_user}:${db_password}@${ip}/${db_name}",
+  database_connection          => "mysql://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
   database_idle_timeout        => $database_idle_timeout,
   database_min_pool_size       => $database_min_pool_size,
   database_max_pool_size       => $database_max_pool_size,

@@ -20,3 +20,7 @@ class { 'nova::conductor':
   ensure_package                        => $ensure_package,
   workers                               => $workers,
 }
+
+notify { "restart nova conductor":
+  notify => Service["nova-conductor"],
+}

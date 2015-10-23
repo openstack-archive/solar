@@ -1,12 +1,15 @@
-Deploying simple OpenStack env. In this example `orchestration` engine is NOT used. 
+Deploying simple two node OpenStack env.
 
-You need to run it from main solar directory. To deploy run:
+You need to run it from main solar directory. To prepare resources run:
 
-`python examples/openstack/openstack.py deploy`
+`python examples/openstack/openstack.py create_all`
 
-To clean nodes, run:
+Then to start deployment:
 
-`python examples/openstack/openstack.py undeploy`
+`solar changes stage
+solar changes process
+solar orch run-once last`
 
+To see the progress:
 
-#### Currently this example does not use solar orchestration. We will change it in near future. For now just don't run `solar orch` or `solar changes` stuff with this example.
+`solar orch report`

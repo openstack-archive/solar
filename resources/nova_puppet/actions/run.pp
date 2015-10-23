@@ -4,6 +4,7 @@ $db_user = $resource['input']['db_user']['value']
 $db_password = $resource['input']['db_password']['value']
 $db_name = $resource['input']['db_name']['value']
 $db_host = $resource['input']['db_host']['value']
+$db_port = $resource['input']['db_port']['value']
 $glance_api_servers_host = $resource['input']['glance_api_servers_host']['value']
 $glance_api_servers_port = $resource['input']['glance_api_servers_port']['value']
 
@@ -72,7 +73,7 @@ $logdir                    = $resource['input']['logdir']['value']
 $os_region_name            = $resource['input']['os_region_name']['value']
 
 class { 'nova':
-  database_connection       => "mysql://${db_user}:${db_password}@${db_host}/${db_name}?charset=utf8",
+  database_connection       => "mysql://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}?charset=utf8",
   ensure_package            => $ensure_package,
   slave_connection          => $slave_connection,
   database_idle_timeout     => $database_idle_timeout,

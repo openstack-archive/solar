@@ -1,5 +1,8 @@
 id: cinder_puppet
 handler: puppet
+actions:
+    run: run.pp
+    update: run.pp
 version: 1.0.0
 input:
     database_connection:
@@ -167,6 +170,9 @@ input:
       value: cinder
     db_host:
       schema: str!
+      value: 
+    db_port:
+      schema: int!
       value: 
 
     port:

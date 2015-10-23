@@ -617,6 +617,7 @@ class DBResource(DBObject):
     id = db_field(schema='str', is_primary=True)
     name = db_field(schema='str!')
     actions_path = db_field(schema='str')
+    actions = db_field(schema={}, default_value={})
     base_name = db_field(schema='str')
     base_path = db_field(schema='str')
     handler = db_field(schema='str')  # one of: {'ansible_playbook', 'ansible_template', 'puppet', etc}
