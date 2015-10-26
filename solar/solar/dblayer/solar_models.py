@@ -72,6 +72,8 @@ class InputsFieldWrp(IndexFieldWrp):
             pass
         my_name = self._instance.key
         bucket = self._instance._bucket
+        # XXX: possible optmization
+        # could fetch all my inputs and cache it
         _input = bucket.get_index('%s_bin' % self.fname,
                                   startkey='{}|{}'.format(my_name, name),
                                   endkey='{}|{}~'.format(my_name, name),
