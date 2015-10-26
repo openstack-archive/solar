@@ -94,6 +94,20 @@ class TempFileHandler(BaseHandler):
             tpl = Template(f.read())
         return tpl.render(str=str, zip=zip, **args)
 
+    def _render_dir(self, resource, _path):
+        args = self._make_args(resource)
+        for f in os.listdir(_path):
+            if f.endswith('.jinja'):
+                target_f = f[:-6]
+                full_target = os.path.join(_path, target_f)
+                full_src = os.path.join(_path, f)
+                with open(full_src, 'rb') as orig_f:
+                    with open(full_target, 'wb') as tmpl_f:
+                        tpl = Template(orig_f.read())
+                        tmpl_f.write(tpl.render(str=str, zip=zip, **args))
+                log.debug("Rendered: %s", full_target)
+                os.remove(full_src)
+
     def _copy_templates_and_scripts(self, resource, action):
         # TODO: we might need to optimize it later, like provide list
         # templates/scripts per action
@@ -111,6 +125,9 @@ class TempFileHandler(BaseHandler):
         if os.path.exists(src_scripts_dir):
             trg_scripts_dir = os.path.join(self.dirs[resource.name], 'scripts')
             shutil.copytree(src_scripts_dir, trg_scripts_dir)
+
+        if trg_templates_dir:
+            self._render_dir(resource, trg_templates_dir)
 
         return (trg_templates_dir, trg_scripts_dir)
 
