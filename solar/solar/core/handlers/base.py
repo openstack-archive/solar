@@ -18,8 +18,7 @@ import shutil
 import tempfile
 import errno
 
-from jinja2 import Template
-
+from solar import utils
 from solar.core.log import log
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 
@@ -90,9 +89,11 @@ class TempFileHandler(BaseHandler):
         log.debug('action file: %s', action_file)
         args = self._make_args(resource)
 
-        with open(action_file) as f:
-            tpl = Template(f.read())
-        return tpl.render(str=str, zip=zip, **args)
+        return utils.render_template(
+            action_file,
+            str=str,
+            zip=zip,
+            **args)
 
     def _render_dir(self, resource, _path):
         args = self._make_args(resource)
@@ -101,10 +102,13 @@ class TempFileHandler(BaseHandler):
                 target_f = f[:-6]
                 full_target = os.path.join(_path, target_f)
                 full_src = os.path.join(_path, f)
-                with open(full_src, 'rb') as orig_f:
-                    with open(full_target, 'wb') as tmpl_f:
-                        tpl = Template(orig_f.read())
-                        tmpl_f.write(tpl.render(str=str, zip=zip, **args))
+                with open(full_target, 'wb') as tmpl_f:
+                    tpl = utils.render_template(
+                        full_src,
+                        str=str,
+                        zip=zip,
+                        **args)
+                    tmpl_f.write(tpl)
                 log.debug("Rendered: %s", full_target)
                 os.remove(full_src)
 
