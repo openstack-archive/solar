@@ -126,7 +126,8 @@ class TempFileHandler(BaseHandler):
             trg_scripts_dir = os.path.join(self.dirs[resource.name], 'scripts')
             shutil.copytree(src_scripts_dir, trg_scripts_dir)
 
-        self._render_dir(resource, trg_templates_dir)
+        if trg_templates_dir:
+            self._render_dir(resource, trg_templates_dir)
 
         return (trg_templates_dir, trg_scripts_dir)
 
