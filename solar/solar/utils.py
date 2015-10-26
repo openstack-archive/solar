@@ -21,7 +21,7 @@ import os
 
 from uuid import uuid4
 
-from jinja2 import Template
+from jinja2 import Environment
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +69,20 @@ def generate_uuid():
     return str(uuid4())
 
 
-def render_template(template_path, params):
+def to_json(data):
+    return json.dumps(data)
+
+
+def to_pretty_json(data):
+    return json.dumps(data, indent=4)
+
+
+def render_template(template_path, **params):
+    env = Environment()
+    env.filters['to_json'] = to_json
+    env.filters['to_pretty_json'] = to_pretty_json
     with io.open(template_path) as f:
-        temp = Template(f.read())
+        temp = env.from_string(f.read())
 
     return temp.render(**params)
 
