@@ -26,6 +26,20 @@ from jinja2 import Environment
 logger = logging.getLogger(__name__)
 
 
+def to_json(data):
+    return json.dumps(data)
+
+
+def to_pretty_json(data):
+    return json.dumps(data, indent=4)
+
+
+# Configure jinja2 filters
+jinja_env_with_filters = Environment()
+jinja_env_with_filters.filters['to_json'] = to_json
+jinja_env_with_filters.filters['to_pretty_json'] = to_pretty_json
+
+
 def create_dir(dir_path):
     logger.debug(u'Creating directory %s', dir_path)
     if not os.path.isdir(dir_path):
@@ -69,20 +83,9 @@ def generate_uuid():
     return str(uuid4())
 
 
-def to_json(data):
-    return json.dumps(data)
-
-
-def to_pretty_json(data):
-    return json.dumps(data, indent=4)
-
-
 def render_template(template_path, **params):
-    env = Environment()
-    env.filters['to_json'] = to_json
-    env.filters['to_pretty_json'] = to_pretty_json
     with io.open(template_path) as f:
-        temp = env.from_string(f.read())
+        temp = jinja_env_with_filters.from_string(f.read())
 
     return temp.render(**params)
 
