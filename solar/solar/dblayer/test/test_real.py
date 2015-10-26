@@ -1,8 +1,9 @@
 import pytest
 import random
 
-from solar.dblayer.model import Model, Field, IndexField, clear_cache, check_state_for
+from solar.dblayer.model import Model, Field, IndexField, clear_cache, check_state_for, StrInt
 from solar.dblayer.solar_models import Resource, DBLayerSolarException
+
 
 
 
@@ -23,12 +24,12 @@ def test_basic_input(rk):
     r.inputs['a'] = 1
     r.save()
     assert r.inputs['a'] == 1
-    assert len(r._riak_object.indexes) == 1
+    assert len(r._riak_object.indexes) == 2
     del r.inputs['a']
     r.save()
     with pytest.raises(DBLayerSolarException):
         assert r.inputs['a'] == 1
-    assert len(r._riak_object.indexes) == 0
+    assert len(r._riak_object.indexes) == 1
 
 
 def test_input_in_dict(rk):
@@ -72,7 +73,7 @@ def test_basic_connect(rk):
     assert r2.inputs['input2'] == 15
 
 
-@pytest.mark.parametrize('depth', (3, 4, 5, 10))
+@pytest.mark.parametrize('depth', (3, 4, 5, 10, 25, 50))
 def test_adv_connect(rk, depth):
     k1 = next(rk)
     k2 = next(rk)
@@ -191,3 +192,15 @@ def test_list_by_tag(rk, rt):
     assert Resource.tags.filter(tag2, 10) == set([k2])
 
     assert len(Resource.tags.filter(tag2, '*')) == 1
+
+
+def test_updated_behaviour(rk):
+    k1 = next(rk)
+
+    _cmp = StrInt()
+    r1 = Resource.from_dict(k1, {'name': 'blah'})
+    r1.save()
+    assert isinstance(r1._riak_object.data['updated'], basestring)
+    assert not isinstance(r1.updated, basestring)
+    assert r1.updated >= _cmp
+    assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())

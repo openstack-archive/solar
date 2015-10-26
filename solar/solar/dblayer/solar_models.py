@@ -1,7 +1,9 @@
 from solar.dblayer.model import (Model, Field, IndexField,
                                  IndexFieldWrp,
                                  DBLayerException,
-                                 requires_clean_state, check_state_for)
+                                 requires_clean_state, check_state_for,
+                                 StrInt,
+                                 IndexedField)
 
 from operator import itemgetter
 
@@ -290,8 +292,15 @@ class Resource(Model):
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
 
+    updated = IndexedField(StrInt)
+
     def connect(self, other, mappings):
         my_inputs = self.inputs
         other_inputs = other.inputs
         for my_name, other_name in mappings.iteritems():
             other_inputs.connect(other_name, self, my_name)
+
+    def save(self, *args, **kwargs):
+        if self.changed():
+            self.updated = StrInt()
+        return super(Resource, self).save(*args, **kwargs)
