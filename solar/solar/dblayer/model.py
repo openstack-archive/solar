@@ -1,9 +1,9 @@
 from threading import local, current_thread
 from random import getrandbits
 import uuid
-from functools import wraps
+from functools import wraps, total_ordering
 from operator import itemgetter
-
+import time
 
 LOCAL = local()
 
@@ -89,6 +89,112 @@ def check_state_for(_type, obj):
         raise Exception("Dirty state, save all objects first")
 
 
+@total_ordering
+class StrInt(object):
+
+    precision = 3
+    positive_char = 'p'
+    negative_char = 'n'
+    format_size = 10 + precision
+
+
+    def __init__(self, val=None):
+        self._val = self._make_val(val)
+
+    def __str__(self):
+        return self._val.__str__()
+
+    def __repr__(self):
+        return "<%s: %r>" % (self.__class__.__name__, self._val)
+
+    @classmethod
+    def p_max(cls):
+        return cls(int('9' * cls.format_size))
+
+    @classmethod
+    def p_min(cls):
+        return cls(1)
+
+    @classmethod
+    def n_max(cls):
+        return -cls.p_max()
+
+    @classmethod
+    def n_min(cls):
+        return -cls.p_min()
+
+    def __neg__(self):
+        time_ = self.int_val()
+        ret = self.__class__(-time_)
+        return ret
+
+    @classmethod
+    def to_hex(cls, value):
+        char = cls.positive_char
+        if value < 0:
+            value = int('9' * cls.format_size) + value
+            char = cls.negative_char
+        f = '%s%%.%dx' % (char, cls.format_size - 2)
+        value = f % value
+        if value[-1] == 'L':
+            value = value[:-1]
+        return value
+
+    @classmethod
+    def from_hex(cls, value):
+        v = int(value[1:], 16)
+        if value[0] == cls.negative_char:
+            v -= int('9' * self.format_size)
+        return v
+
+    def int_val(self):
+        return self.from_hex(self._val)
+
+    @classmethod
+    def from_simple(cls, value):
+        return cls(value)
+
+    @classmethod
+    def to_simple(cls, value):
+        return value._val
+
+    @classmethod
+    def _make_val(cls, val):
+        if val is None:
+            val = time.time()
+        if isinstance(val, (long, int, float)):
+            if isinstance(val, float):
+                val = int(val * (10 ** cls.precision))
+            val = cls.to_hex(val)
+        elif isinstance(val, cls):
+            val = val._val
+        return val
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            raise Exception("Cannot compare %r with %r" % (self, other))
+        so = other._val[0]
+        ss = self._val[0]
+        son = so == other.negative_char
+        ssn = so == self.negative_char
+        if son != ssn:
+            return False
+        return self._val[1:] == other._val[1:]
+
+    def __gt__(self, other):
+        if not isinstance(other, self.__class__):
+            raise Exception("Cannot compare %r with %r" % (self, other))
+        so = other._val[0]
+        ss = self._val[0]
+        if ss == self.positive_char and so == other.negative_char:
+            return -1
+        elif ss == self.negative_char and so == other.positive_char:
+            return 1
+        else:
+            return other._val[1:] < self._val[1:]
+
+
+
 class Replacer(object):
 
     def __init__(self, name, fget, *args):
@@ -132,6 +238,8 @@ class FieldBase(object):
 
 class Field(FieldBase):
 
+    _simple_types = {int, float, long, str, unicode, basestring, list, tuple, dict}
+
     def __init__(self, _type, fname=None, default=NONE):
         self._type = _type
         super(Field, self).__init__(fname=fname, default=default)
@@ -139,18 +247,50 @@ class Field(FieldBase):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance._data_container[self.fname]
+        val = instance._data_container[self.fname]
+        if self._type in self._simple_types:
+            return val
+        else:
+            return self._type.from_simple(val)
 
     def __set__(self, instance, value):
         if not isinstance(value, self._type):
             raise Exception("Invalid type %r for %r" % (type(value), self.fname))
+        if self._type not in self._simple_types:
+            value = self._type.to_simple(value)
         instance._field_changed(self)
         instance._data_container[self.fname] = value
+        return value
 
     def __str__(self):
         return "<%s:%r>" % (self.__class__.__name__, self.fname)
 
     __repr__ = __str__
+
+
+class IndexedField(Field):
+
+    def __set__(self, instance, value):
+        value = super(IndexedField, self).__set__(instance, value)
+        instance._set_index('{}_bin'.format(self.fname), value)
+        return value
+
+    def _filter(self, startkey, endkey=None, **kwargs):
+        if isinstance(startkey, self._type) and self._type not in self._simple_types:
+            startkey = self._type.to_simple(startkey)
+        if isinstance(endkey, self._type) and self._type not in self._simple_types:
+            endkey = self._type.to_simple(endkey)
+        kwargs.setdefault('max_results', 1000000)
+        res = self._declared_in._get_index('{}_bin'.format(self.fname),
+                                           startkey=startkey,
+                                           endkey=endkey,
+                                           **kwargs).results
+        return res
+
+    def filter(self, *args, **kwargs):
+        kwargs['return_terms'] = False
+        res = self._filter(*args, **kwargs)
+        return set(res)
 
 
 class IndexFieldWrp(object):
