@@ -175,7 +175,7 @@ class IndexFieldWrp(object):
 
     def __setitem__(self, name, value):
         inst = self._instance
-        inst._riak_object.set_index('%s_bin' % self.fname, '{}|{}'.format(name, value))
+        inst._add_index('%s_bin' % self.fname, '{}|{}'.format(name, value))
 
     def __delitem__(self, name):
         inst = self._instance
