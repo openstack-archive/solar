@@ -16,7 +16,13 @@ from threading import RLock
 # using json for easier debug
 import json
 encoder = json.dumps
-decoder = json.loads
+
+def wrapped_loads(data, *args, **kwargs):
+    if not isinstance(data, basestring):
+        data = str(data)
+    return json.loads(data, *args, **kwargs)
+
+decoder = wrapped_loads
 
 
 
