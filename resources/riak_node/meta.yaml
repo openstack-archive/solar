@@ -37,3 +37,6 @@ input:
     join_to:
       schema: str
       value:
+    storage_backend:
+      schema: str!
+      value: bitcask
