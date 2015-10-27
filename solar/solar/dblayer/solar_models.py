@@ -470,3 +470,60 @@ class Resource(Model):
         if self.changed():
             self.updated = StrInt()
         return super(Resource, self).save(*args, **kwargs)
+
+"""
+Type of operations:
+
+- load all tasks + transitions
+- load single task + childs + all parents of childs (and transitions between them)
+"""
+
+class TasksFieldWrp(IndexFieldWrp):
+
+    def add(self, task):
+        self._instance._add_index('{}_bin'.format(self.fname), task.key)
+        return True
+
+
+class TasksField(IndexField):
+
+    _wrp_class = TasksFieldWrp
+
+    def __set__(self, obj, value):
+        wrp = getattr(obj, self.fname)
+        obj._data_container[self.fname] = self.default
+        for val in value:
+            wrp.add(val)
+
+
+class ChildFieldWrp(TasksFieldWrp):
+
+    def add(self, task):
+        task.parents.add(self._instance)
+
+
+class ChildField(TasksField):
+
+    _wrp_class = ChildFieldWrp
+
+
+class Task(Model):
+    """Node object"""
+
+    name = Field(str)
+    status = Field(str)
+    target = Field(str)
+
+    execution = IndexedField(str)
+    parents = TasksField(default=list)
+    childs = ChildField(default=list)
+
+
+# class Transition(Model):
+#     """Edge object"""
+
+    # parent = TaskField()
+    # child = TaskField()
+
+    # for now it is only state, e.g. transition based on success/error
+    # condition = Field(str)
