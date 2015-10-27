@@ -14,6 +14,19 @@ class M1(Model):
     ind = IndexField(default=dict)
 
 
+class M2(Model):
+    f1 = Field(str)
+
+    ind = IndexField(default=dict)
+
+
+class M3(Model):
+    f1 = Field(str)
+
+    ind = IndexField(default=dict)
+
+
+
 def test_from_dict(rk):
     key = next(rk)
 
@@ -103,3 +116,61 @@ def test_update(rk):
     clear_cache()
     m11 = M1.get(key)
     assert m11.f1 == 'updated'
+
+
+def test_different_models(rk):
+    key = next(rk)
+
+    m2 = M2.from_dict(key, {'f1': 'm2', 'ind': {'blah': 'blub'}})
+    m3 = M3.from_dict(key, {'f1': 'm3', 'ind': {'blah': 'blub'}})
+
+    m2.save()
+    m3.save()
+
+    assert M2.get(key).f1 == 'm2'
+    assert M3.get(key).f1 == 'm3'
+
+
+def test_cache_behaviour(rk):
+    key1 = next(rk)
+
+    m1 = M1.from_dict(key1, {'f1': 'm1'})
+
+    m11 = M1.get(key1)
+    assert m1 is m11
+    m1.save()
+    assert m1 is m11
+
+    m12 = M1.get(key1)
+    assert m1 is m12
+
+    clear_cache()
+    m13 = M1.get(key1)
+    assert m1 is not m13
+
+
+def test_save_lazy(rk):
+    key1 = next(rk)
+    key2 = next(rk)
+
+    m1 = M1.from_dict(key1, {'f1': 'm1'})
+    m2 = M1.from_dict(key2, {'f1': 'm2'})
+    m1.save_lazy()
+    m2.save_lazy()
+
+    m1g = M1.get(key1)
+    m2g = M1.get(key2)
+
+    assert m1 is m1g
+    assert m2 is m2g
+
+    assert M1._c.lazy_save == {m1, m2}
+    M1.session_end()
+    assert M1._c.lazy_save == set()
+
+    clear_cache()
+    m1g2 = M1.get(key1)
+    m2g2 = M1.get(key2)
+
+    assert m1g is not m1g2
+    assert m2g is not m2g2
