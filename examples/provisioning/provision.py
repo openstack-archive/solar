@@ -14,6 +14,7 @@ from solar.events.controls import React
 transport_run = BatRunTransport()
 
 discovery_service = 'http://0.0.0.0:8881'
+bareon_service = 'http://0.0.0.0:9322/v1/nodes/{0}/partitioning'
 
 
 class NodeAdapter(dict):
@@ -27,6 +28,10 @@ class NodeAdapter(dict):
     @property
     def safe_mac(self):
         return self['mac'].replace(':', '_')
+
+    @property
+    def partitioning(self):
+        return requests.get(bareon_service.format(self['mac'])).json()
 
 
 def feed_discovery(mac, ohai_data):
@@ -54,6 +59,8 @@ for node in nodes_list:
     run_result = transport_run.run(node_resource, 'ohai')
     ohai = json.loads(run_result.stdout)
     feed_discovery(node['mac'], ohai)
+
+    node_resource.update({'partitioning': node.partitioning})
 
     dnsmasq = vr.create('dnsmasq_{0}'.format(node.safe_mac), 'resources/dnsmasq', {})[0]
     master_node.connect(dnsmasq)
