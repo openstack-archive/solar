@@ -571,6 +571,7 @@ class Model(object):
             raise DBLayerException("Already have _riak_object")
         self._real_riak_object = value
 
+
     @property
     def _data_container(self):
         return self._riak_object.data
@@ -609,6 +610,9 @@ class Model(object):
 
     def changed(self):
         return True if self._modified_fields else False
+
+    def to_dict(self):
+        return dict(self._riak_object.data)
 
     def __str__(self):
         if self._riak_object is None:
