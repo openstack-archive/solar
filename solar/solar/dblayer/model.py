@@ -23,19 +23,44 @@ class NONE:
     """A None like type"""
     pass
 
-def get_cache(instance, _):
-    th = current_thread()
-    l = LOCAL
-    try:
-        cache_id = l.cache_id
-    except AttributeError:
-        cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
-        setattr(th, 'cache_id', cache_id)
-    if getattr(th, 'cache_id', None) == cache_id:
-        setattr(l, 'obj_cache', {})
-        setattr(l, 'db_ch_state', {})
-        l.db_ch_state.setdefault('index', set())
-    return l
+
+class SingleClassCache(object):
+
+    __slots__ = ['obj_cache', 'db_ch_state', 'lazy_save', 'origin_class']
+
+    def __init__(self, origin_class):
+        self.obj_cache = {}
+        self.db_ch_state = {'index': set()}
+        self.lazy_save = set()
+        self.origin_class = origin_class
+
+
+class ClassCache(object):
+
+    def __get__(self, _, owner):
+        th = current_thread()
+        l = LOCAL
+        # better don't duplicate class names
+        cache_name = owner.__name__
+        try:
+            cache_id = l.cache_id
+        except AttributeError:
+            cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
+            setattr(l, 'cache_id', cache_id)
+        if getattr(th, 'cache_id', None) != cache_id:
+            # new cache
+            setattr(th, 'cache_id', cache_id)
+            c = SingleClassCache(owner)
+            setattr(l, '_model_caches', {})
+            l._model_caches[cache_name] = c
+        try:
+            # already had this owner in cache
+            return l._model_caches[cache_name]
+        except KeyError:
+            # old cache but first time this owner
+            c = SingleClassCache(owner)
+            l._model_caches[cache_name] = c
+            return c
 
 
 def clear_cache():
@@ -387,6 +412,8 @@ class IndexField(FieldBase):
 
 class ModelMeta(type):
 
+    _defined_models = set()
+
     def __new__(mcs, name, bases, attrs):
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, attrs)
         model_fields = set((name for (name, attr) in attrs.items()
@@ -409,18 +436,38 @@ class ModelMeta(type):
                 for given in base._model_fields:
                     model_fields.add(given)
 
-        # set the fields just in case
+
         cls._model_fields = [getattr(cls, x) for x in model_fields]
 
+        if bases == (object, ):
+            return cls
+
         cls.bucket = Replacer('bucket', get_bucket, mcs)
+        mcs._defined_models.add(cls)
         return cls
 
 
     @classmethod
     def setup(mcs, riak_client):
         mcs.riak_client = riak_client
-        mcs.session_start = riak_client.session_start
-        mcs.session_end = riak_client.session_end
+
+    @classmethod
+    def session_end(mcs, result=True):
+        for cls in mcs._defined_models:
+            for to_save in cls._c.lazy_save:
+                try:
+                    to_save.save()
+                except DBLayerException:
+                    continue
+                else:
+                    print 'saved', to_save
+            cls._c.lazy_save.clear()
+        mcs.riak_client.session_end(result)
+
+    @classmethod
+    def session_start(mcs):
+        clear_cache()
+        mcs.riak_client.session_start()
 
 
 class NestedField(FieldBase):
@@ -536,7 +583,7 @@ class Model(object):
 
     __metaclass__ = ModelMeta
 
-    _c = Replacer('_c', get_cache)
+    _c = ClassCache()
 
     _key = None
     _new = None
@@ -660,6 +707,9 @@ class Model(object):
                 setattr(obj, gname, val)
         return obj
 
+    def __hash__(self):
+        return hash(self.key)
+
     @classmethod
     def get(cls, key):
         try:
@@ -685,5 +735,13 @@ class Model(object):
         else:
             raise DBLayerException("No changes")
 
+    def save_lazy(self):
+        self._c.lazy_save.add(self)
+
     def delete(self):
+        ls = self._c.lazy_save
+        try:
+            ls.remove(self.key)
+        except KeyError:
+            pass
         raise NotImplementedError()
