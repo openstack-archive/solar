@@ -275,6 +275,7 @@ class Resource(Model):
     base_name = Field(str)
     base_path = Field(str)
     actions_path = Field(str)
+    actions = Field(dict)
     handler = Field(str)
     puppet_module = Field(str)  # remove
     meta_inputs = Field(dict, default=dict)
