@@ -30,7 +30,7 @@ from uuid import uuid4
 from hashlib import md5
 
 
-from solar.dblayer.solar_models import Resource
+from solar.dblayer.solar_models import Resource as DBResource
 
 
 def read_meta(base_path):
@@ -76,7 +76,7 @@ class Resource(object):
 
         self.auto_extend_inputs(inputs)
 
-        self.db_obj = Resource.from_dict(name,
+        self.db_obj = DBResource.from_dict(name,
                                          'id': name,
                                          'name': name,
                                          'actions_path': metadata.get('actions_path', ''),
@@ -96,7 +96,7 @@ class Resource(object):
         self.db_obj.save()
 
     # Load
-    @dispatch(orm.DBResource)
+    @dispatch(DBResource)
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
@@ -267,7 +267,7 @@ class Resource(object):
 
 
 def load(name):
-    r = orm.DBResource.load(name)
+    r = DBResource.get(name)
 
     if not r:
         raise Exception('Resource {} does not exist in DB'.format(name))
