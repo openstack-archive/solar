@@ -71,19 +71,12 @@ class InputsFieldWrp(IndexFieldWrp):
         except KeyError:
             pass
         my_name = self._instance.key
-        # XXX: possible optmization
-        # could fetch all my inputs and cache it
-        _input = self._instance._get_index('%s_bin' % self.fname,
-                                           startkey='{}|{}'.format(my_name, name),
-                                           endkey='{}|{}~'.format(my_name, name),
-                                           max_results=1,
-                                           return_terms=True).results
-        if not _input :
+        try:
+            self._get_raw_field_val(name)
+        except KeyError:
             raise DBLayerSolarException('No input {} for {}'.format(name, my_name))
-        if not _input[0][0].startswith('{}|{}'.format(my_name, name)):
-            # double check for ranges
-            raise DBLayerSolarException('No input {} for {}'.format(name, my_name))
-        return True
+        else:
+            return True
 
     def _get_field_val(self, name):
         # maybe it should be tco
@@ -94,7 +87,6 @@ class InputsFieldWrp(IndexFieldWrp):
             pass
         fname = self.fname
         my_name = self._instance.key
-        # TODO: _has_own_input is slow, check if its really needed
         self._has_own_input(name)
         ind_name = '{}_recv_bin'.format(fname)
         # XXX: possible optimization
