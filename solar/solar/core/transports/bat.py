@@ -54,6 +54,7 @@ class BatTransport(SolarTransport):
         super(BatTransport, self).__init__(*args, **kwargs)
         self._cache = {}
         self._used_transports = []
+        self._other_remember = None
 
     def select_valid_transport(self, resource, *args, **kwargs):
         key_name = '_bat_transport_%s' % self._mode
@@ -114,4 +115,3 @@ class BatRunTransport(RunTransport, BatTransport):
     def run(self, resource, *args, **kwargs):
         transport = self.select_valid_transport(resource)
         return transport.run(resource, *args, **kwargs)
-

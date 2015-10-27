@@ -5,13 +5,13 @@ import json
 import requests
 
 from solar.core.resource import virtual_resource as vr
-from solar.core.transports.ssh import SSHRunTransport
+from solar.core.transports.bat import BatRunTransport
 
 from solar.events.api import add_event
 from solar.events.controls import React
 
 
-transport_run = SSHRunTransport()
+transport_run = BatRunTransport()
 
 discovery_service = 'http://0.0.0.0:8881'
 
@@ -35,7 +35,7 @@ def feed_discovery(mac, ohai_data):
             base_url=discovery_service,
             mac=mac,
         ),
-        json=ohai_data,
+        data=json.dumps(ohai_data),
     )
 
 nodes_list = requests.get(discovery_service).json()
