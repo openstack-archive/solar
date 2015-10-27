@@ -71,14 +71,13 @@ class InputsFieldWrp(IndexFieldWrp):
         except KeyError:
             pass
         my_name = self._instance.key
-        bucket = self._instance._bucket
         # XXX: possible optmization
         # could fetch all my inputs and cache it
-        _input = bucket.get_index('%s_bin' % self.fname,
-                                  startkey='{}|{}'.format(my_name, name),
-                                  endkey='{}|{}~'.format(my_name, name),
-                                  max_results=1,
-                                  return_terms=True).results
+        _input = self._instance._get_index('%s_bin' % self.fname,
+                                           startkey='{}|{}'.format(my_name, name),
+                                           endkey='{}|{}~'.format(my_name, name),
+                                           max_results=1,
+                                           return_terms=True).results
         if not _input :
             raise DBLayerSolarException('No input {} for {}'.format(name, my_name))
         if not _input[0][0].startswith('{}|{}'.format(my_name, name)):
@@ -95,17 +94,16 @@ class InputsFieldWrp(IndexFieldWrp):
             pass
         fname = self.fname
         my_name = self._instance.key
-        bucket = self._instance._bucket
         # TODO: _has_own_input is slow, check if its really needed
         self._has_own_input(name)
         ind_name = '{}_recv_bin'.format(fname)
         # XXX: possible optimization
         # get all values for resource and cache it (use dirty to check)
-        recvs = bucket.get_index(ind_name,
-                                 startkey='{}|{}|'.format(my_name, name),
-                                 endkey='{}|{}|~'.format(my_name, name),
-                                 max_results=1,
-                                 return_terms=True).results
+        recvs = self._instance._get_index(ind_name,
+                                          startkey='{}|{}|'.format(my_name, name),
+                                          endkey='{}|{}|~'.format(my_name, name),
+                                          max_results=1,
+                                          return_terms=True).results
         if not recvs:
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
@@ -142,8 +140,7 @@ class InputsFieldWrp(IndexFieldWrp):
         fname = self.fname
         my_name = self._instance.key
         ind_name = '{}_recv_bin'.format(fname)
-        bucket = self._instance._bucket
-        recvs = bucket.get_index(ind_name,
+        recvs = self._instance._get_index(ind_name,
                                  startkey='{}|{}|'.format(my_name, name),
                                  endkey='{}|{}|~'.format(my_name,name),
                                  max_results=1,
