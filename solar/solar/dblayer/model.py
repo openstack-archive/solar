@@ -719,6 +719,12 @@ class Model(object):
                 obj = cls.from_riakobj(riak_object)
                 return obj
 
+    @classmethod
+    def multi_get(cls, keys):
+        # TODO: parallel execution
+        ret = map(cls.get, keys)
+        return ret
+
     def _reset_state(self):
         self._new = False
         self._modified_fields.clear()
