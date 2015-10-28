@@ -4,14 +4,20 @@ from solar.dblayer.model import (Model, Field, IndexField,
                                  requires_clean_state, check_state_for,
                                  StrInt,
                                  IndexedField)
-
+from types import NoneType
 from operator import itemgetter
+from enum import Enum
+
+InputTypes = Enum('InputTypes',
+                  'simple list hash list_hash')
 
 class DBLayerSolarException(DBLayerException):
     pass
 
 
 class InputsFieldWrp(IndexFieldWrp):
+
+    _simple_types = (NoneType, int, float, basestring, str, unicode)
 
     def __init__(self, *args, **kwargs):
         super(InputsFieldWrp, self).__init__(*args, **kwargs)
@@ -30,8 +36,32 @@ class InputsFieldWrp(IndexFieldWrp):
         if '|' in nested_key:
             nested_key, nested_tag = nested_key.split('|', 1)
         else:
-            nested_tag = my_resource.name
+            nested_tag = other_resource.key
         raise NotImplementedError()
+
+
+    def _connect_list_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+        other_ind_name = '{}_emit_bin'.format(self.fname)
+        other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
+                                             other_inp_name,
+                                             my_resource.key,
+                                             my_inp_name)
+
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
+                                          my_inp_name,
+                                          other_resource.key,
+                                          other_inp_name)
+
+        my_resource._add_index(my_ind_name,
+                               my_ind_val)
+        my_resource._add_index(other_ind_name,
+                               other_ind_val)
+        try:
+            del self._cache[my_inp_name]
+        except KeyError:
+            pass
+        return True
 
 
     def _connect_simple_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
@@ -79,22 +109,39 @@ class InputsFieldWrp(IndexFieldWrp):
         return True
 
 
+    def _input_type(self, resource, name):
+        # XXX: it could be worth to precalculate it
+        schema = resource.meta_inputs[name]['schema']
+        if isinstance(schema, self._simple_types):
+            return InputTypes.simple
+        if isinstance(schema, list):
+            if len(schema) > 0 and isinstance(schema[0], dict):
+                return InputTypes.list_hash
+            return InputTypes.list
+        if isinstance(schema, dict):
+            return InputTypes.hash
+        raise Exception("Unknown type")
+
+
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
+        other_type = self._input_type(other_resource, other_inp_name)
+        my_type = self._input_type(my_resource, my_inp_name)
+        raise Exception()
         if ':' in my_inp_name:
             tmp_name = my_inp_name.split(':', 1)[0]
             my_input = self._get_raw_field_val(tmp_name)
         else:
             my_input = self._get_raw_field_val(my_inp_name)
         other_input = other_resource.inputs._get_raw_field_val(other_inp_name)
-        if isinstance(my_input, dict):
-            my_side = 'dict'
-        else:
+        if isinstance(my_input, self._simple_types):
             my_side = 'simple'
-        if isinstance(other_input, dict):
-            other_side = 'dict'
         else:
+            my_side = type(my_input).__name__
+        if isinstance(other_input, self._simple_types):
             other_side = 'simple'
+        else:
+            other_side = type(other_input).__name__
         method = '_connect_{}_{}'.format(my_side, other_side)
         try:
             meth = getattr(self, method)
@@ -132,7 +179,6 @@ class InputsFieldWrp(IndexFieldWrp):
         recvs = self._instance._get_index(ind_name,
                                           startkey='{}|{}|'.format(my_name, name),
                                           endkey='{}|{}|~'.format(my_name, name),
-                                          max_results=1,
                                           return_terms=True).results
         if not recvs:
             _res = self._get_raw_field_val(name)
