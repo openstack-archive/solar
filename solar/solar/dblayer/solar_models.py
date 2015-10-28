@@ -548,6 +548,7 @@ class Task(Model):
     target = Field(str)
     task_type = Field(str)
     args = Field(list)
+    errmsg = Field(str)
 
     execution = IndexedField(str)
     parents = ParentField(default=list)

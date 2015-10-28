@@ -47,7 +47,8 @@ def save_graph(graph):
              'status': graph.node[n].get('status', ''),
              'target': str(graph.node[n].get('target', '')),
              'task_type': graph.node[n].get('type', ''),
-             'args': graph.node[n].get('args')})
+             'args': graph.node[n].get('args', []),
+             'errmsg': graph.node[n].get('errmsg', '')})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
@@ -65,7 +66,8 @@ def get_graph(uid):
         dg.add_node(
             t.name, status=t.status,
             type=t.task_type, args=t.args,
-            target=t.target)
+            target=t.target or None,
+            errmsg=t.errmsg or None)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg
@@ -83,7 +85,7 @@ def parse_plan(plan_path):
     for task in plan['tasks']:
         defaults = {
             'status': 'PENDING',
-            'errmsg': None,
+            'errmsg': '',
             }
         defaults.update(task['parameters'])
         dg.add_node(
