@@ -76,20 +76,22 @@ class Resource(object):
 
         self.auto_extend_inputs(inputs)
 
-        self.db_obj = DBResource.from_dict(name,
-                                         'id': name,
-                                         'name': name,
-                                         'actions_path': metadata.get('actions_path', ''),
-                                         'actions': metadata.get('actions', ''),
-                                         'base_name': metadata.get('base_name', ''),
-                                         'base_path': metadata.get('base_path', ''),
-                                         'handler': metadata.get('handler', ''),
-                                         'puppet_module': metadata.get('puppet_module', ''),
-                                         'version': metadata.get('version', ''),
-                                         'meta_inputs': inputs,
-                                         'tags': tags,
-                                         'stae': RESOURCE_STATE.created.name
-        })
+        self.db_obj = DBResource.from_dict(
+            name,
+            {
+                'id': name,
+                'name': name,
+                'actions_path': metadata.get('actions_path', ''),
+                'actions': metadata.get('actions', ''),
+                'base_name': metadata.get('base_name', ''),
+                'base_path': metadata.get('base_path', ''),
+                'handler': metadata.get('handler', ''),
+                'puppet_module': metadata.get('puppet_module', ''),
+                'version': metadata.get('version', ''),
+                'meta_inputs': inputs,
+                'tags': tags,
+                'stae': RESOURCE_STATE.created.name
+            })
 
         self.create_inputs(args)
 
@@ -223,6 +225,12 @@ class Resource(object):
                 [emitter.resource.name, emitter.name,
                  receiver.resource.name, receiver_input])
         return rst
+
+    def graph(self):
+        mdg = networkx.MultiDiGraph()
+        for input_name, input_value in self.inputs:
+            mdg.add_edges_from(input.edges())
+        return mdg
 
     def resource_inputs(self):
         return self.db_obj.inputs
