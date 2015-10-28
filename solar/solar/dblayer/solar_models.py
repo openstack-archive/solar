@@ -454,9 +454,11 @@ class Resource(Model):
     puppet_module = Field(str)  # remove
     meta_inputs = Field(dict, default=dict)
     state = Field(str)  # on_set/on_get would be useful
+    events = Field(list, default=list)
 
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
+
 
     updated = IndexedField(StrInt)
 
@@ -483,10 +485,13 @@ class TasksFieldWrp(IndexFieldWrp):
     def add(self, task):
         return True
 
+    def __iter__(self):
+        return iter(self._instance._data_container[self.fname])
+
     def all(self, postprocessor=None):
         if postprocessor:
-            return map(postprocessor, self._instance._data_container[self.fname])
-        return self._instance._data_container[self.fname]
+            return map(postprocessor, self)
+        return list(self)
 
     def all_names(self):
         return self.all(lambda key: key.split('~')[1])

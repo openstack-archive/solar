@@ -398,7 +398,6 @@ class IndexField(FieldBase):
         for f_name, f_value in value.iteritems():
             wrp[f_name] = f_value
 
-
     def _parse_key(self, k):
         if '=' in k:
             val, subval = k.split('=', 1)
