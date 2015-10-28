@@ -204,3 +204,26 @@ def test_updated_behaviour(rk):
     assert not isinstance(r1.updated, basestring)
     assert r1.updated >= _cmp
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
+
+
+
+def test_advanced_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = Resource.from_dict(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = Resource.from_dict(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None}}})
+
+
+    r1.connect(r2, {'input1': 'input:input1',
+                    'input2': 'input:input2'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 15

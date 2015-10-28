@@ -18,11 +18,25 @@ class InputsFieldWrp(IndexFieldWrp):
         # TODO: add cache for lookup
         self._cache = {}
 
-    def connect(self, my_inp_name, other_resource, other_inp_name):
+
+    def _connect_dict_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+        if ':' in other_inp_name:
+            raise NotImplementedError("Not supported `:` in this direction")
+        if ':' in my_inp_name:
+            my_inp_name, nested_key = my_inp_name.split(':', 1)
+        else:
+            nested_key = ""
+
+        if '|' in nested_key:
+            nested_key, nested_tag = nested_key.split('|', 1)
+        else:
+            nested_tag = my_resource.name
+        raise NotImplementedError()
+
+
+    def _connect_simple_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
         # TODO: for now connections are attached to target resource
         # in future we might change it to separate object
-        my_resource = self._instance
-
 
         other_ind_name = '{}_emit_bin'.format(self.fname)
         other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
@@ -64,6 +78,30 @@ class InputsFieldWrp(IndexFieldWrp):
             pass
         return True
 
+
+    def connect(self, my_inp_name, other_resource, other_inp_name):
+        my_resource = self._instance
+        if ':' in my_inp_name:
+            tmp_name = my_inp_name.split(':', 1)[0]
+            my_input = self._get_raw_field_val(tmp_name)
+        else:
+            my_input = self._get_raw_field_val(my_inp_name)
+        other_input = other_resource.inputs._get_raw_field_val(other_inp_name)
+        if isinstance(my_input, dict):
+            my_side = 'dict'
+        else:
+            my_side = 'simple'
+        if isinstance(other_input, dict):
+            other_side = 'dict'
+        else:
+            other_side = 'simple'
+        method = '_connect_{}_{}'.format(my_side, other_side)
+        try:
+            meth = getattr(self, method)
+        except AttributeError:
+            raise Exception("Unknown connection %r %r" % (my_side, other_side))
+        else:
+            return meth(my_resource, my_inp_name, other_resource, other_inp_name)
 
     def _has_own_input(self, name):
         try:
