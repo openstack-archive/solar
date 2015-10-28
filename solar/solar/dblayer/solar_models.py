@@ -474,7 +474,7 @@ class Resource(Model):
 """
 Type of operations:
 
-- load all tasks
+- load all tasks for execution
 - load single task + childs + all parents of childs (and transitions between them)
 """
 
@@ -494,6 +494,14 @@ class TasksFieldWrp(IndexFieldWrp):
     def all_tasks(self):
         return self.all(Task.get)
 
+    def _add(self, parent, child):
+        parent._data_container['childs'].append(child.key)
+        child._data_container['parents'].append(parent.key)
+
+        child._add_index('childs_bin', parent.key)
+        parent._add_index('parents_bin', child.key)
+        return True
+
 
 class TasksField(IndexField):
 
@@ -509,15 +517,11 @@ class TasksField(IndexField):
         return startkey
 
 
+
 class ChildFieldWrp(TasksFieldWrp):
 
     def add(self, task):
-        self._instance._data_container['childs'].append(task.key)
-        task._data_container['parents'].append(self._instance.key)
-
-        task._add_index('childs_bin', self._instance.key)
-        self._instance._add_index('parents_bin', task.key)
-        return True
+        return self._add(self._instance, task)
 
 
 class ChildField(TasksField):
@@ -528,12 +532,7 @@ class ChildField(TasksField):
 class ParentFieldWrp(TasksFieldWrp):
 
     def add(self, task):
-        self._instance._data_container['parents'].append(task.key)
-        task._data_container['childs'].append(self._instance.key)
-
-        task._add_index('parents_bin', self._instance.key)
-        self._instance._add_index('childs_bin', task.key)
-        return True
+        return self._add(task, self._instance)
 
 
 class ParentField(TasksField):
@@ -547,6 +546,8 @@ class Task(Model):
     name = Field(str)
     status = Field(str)
     target = Field(str)
+    task_type = Field(str)
+    args = Field(list)
 
     execution = IndexedField(str)
     parents = ParentField(default=list)

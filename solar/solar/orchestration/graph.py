@@ -26,32 +26,48 @@ from collections import Counter
 
 from solar.interfaces.db import get_db
 
+from solar.dblayer.model import ModelMeta
+from solar.dblayer.riak_client import RiakClient
+from solar.dblayer.solar_models import Task
+client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+
+ModelMeta.setup(client)
+
 db = get_db()
 
 
 def save_graph(graph):
     # maybe it is possible to store part of information in AsyncResult backend
     uid = graph.graph['uid']
-    db.create(uid, graph.graph, db.COLLECTIONS.plan_graph)
 
-    for n in graph:
-        collection = db.COLLECTIONS.plan_node.name + ':' + uid
-        db.create(n, properties=graph.node[n], collection=collection)
-        db.create_relation_str(uid, n, type_=db.RELATION_TYPES.graph_to_node)
-
-    for u, v, properties in graph.edges(data=True):
-        type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
-        db.create_relation_str(u, v, properties, type_=type_)
+    for n in nx.topological_sort(graph):
+        t = Task.new(
+            {'name': n,
+             'execution': uid,
+             'status': graph.node[n].get('status', ''),
+             'target': str(graph.node[n].get('target', '')),
+             'task_type': graph.node[n].get('type', ''),
+             'args': graph.node[n].get('args')})
+        graph.node[n]['task'] = t
+        for pred in graph.predecessors(n):
+            pred_task = graph.node[pred]['task']
+            t.parents.add(pred_task)
+            pred_task.save()
+        t.save()
 
 
 def get_graph(uid):
     dg = nx.MultiDiGraph()
-    collection = db.COLLECTIONS.plan_node.name + ':' + uid
-    type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
-    dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
-    dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
-    dg.add_edges_from([(i['source'], i['dest'], i['properties'])
-                       for i in db.all_relations(type_=type_, db_convert=False)])
+    dg.graph['uid'] = uid
+    dg.graph['name'] = uid.split(':')[0]
+    tasks = map(Task.get, Task.execution.filter(uid))
+    for t in tasks:
+        dg.add_node(
+            t.name, status=t.status,
+            type=t.task_type, args=t.args,
+            target=t.target)
+        for u in t.parents.all_names():
+            dg.add_edge(u, t.name)
     return dg
 
 
