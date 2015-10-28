@@ -459,8 +459,6 @@ class ModelMeta(type):
                     to_save.save()
                 except DBLayerException:
                     continue
-                else:
-                    print 'saved', to_save
             cls._c.lazy_save.clear()
         mcs.riak_client.session_end(result)
 
