@@ -474,15 +474,25 @@ class Resource(Model):
 """
 Type of operations:
 
-- load all tasks + transitions
+- load all tasks
 - load single task + childs + all parents of childs (and transitions between them)
 """
 
 class TasksFieldWrp(IndexFieldWrp):
 
     def add(self, task):
-        self._instance._add_index('{}_bin'.format(self.fname), task.key)
         return True
+
+    def all(self, postprocessor=None):
+        if postprocessor:
+            return map(postprocessor, self._instance._data_container[self.fname])
+        return self._instance._data_container[self.fname]
+
+    def all_names(self):
+        return self.all(lambda key: key.split('~')[1])
+
+    def all_tasks(self):
+        return self.all(Task.get)
 
 
 class TasksField(IndexField):
@@ -495,16 +505,40 @@ class TasksField(IndexField):
         for val in value:
             wrp.add(val)
 
+    def _parse_key(self, startkey):
+        return startkey
+
 
 class ChildFieldWrp(TasksFieldWrp):
 
     def add(self, task):
-        task.parents.add(self._instance)
+        self._instance._data_container['childs'].append(task.key)
+        task._data_container['parents'].append(self._instance.key)
+
+        task._add_index('childs_bin', self._instance.key)
+        self._instance._add_index('parents_bin', task.key)
+        return True
 
 
 class ChildField(TasksField):
 
     _wrp_class = ChildFieldWrp
+
+
+class ParentFieldWrp(TasksFieldWrp):
+
+    def add(self, task):
+        self._instance._data_container['parents'].append(task.key)
+        task._data_container['childs'].append(self._instance.key)
+
+        task._add_index('parents_bin', self._instance.key)
+        self._instance._add_index('childs_bin', task.key)
+        return True
+
+
+class ParentField(TasksField):
+
+    _wrp_class = ParentFieldWrp
 
 
 class Task(Model):
@@ -515,15 +549,10 @@ class Task(Model):
     target = Field(str)
 
     execution = IndexedField(str)
-    parents = TasksField(default=list)
+    parents = ParentField(default=list)
     childs = ChildField(default=list)
 
-
-# class Transition(Model):
-#     """Edge object"""
-
-    # parent = TaskField()
-    # child = TaskField()
-
-    # for now it is only state, e.g. transition based on success/error
-    # condition = Field(str)
+    @classmethod
+    def new(self, data):
+        key = '%s~%s' % (data['execution'], data['name'])
+        return Task.from_dict(key, data)

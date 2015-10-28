@@ -57,8 +57,12 @@ client = SqlClient(':memory:', threadlocals=False, autocommit=False)
 #                    autocommit=False, pragmas=(('journal_mode', 'WAL'),
 #                                               ('synchronous', 'NORMAL')))
 
-# from solar.dblayer.riak_client import RiakClient
-# client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+#from solar.dblayer.riak_client import RiakClient
+#client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
 # client = RiakClient(protocol='http', host='10.0.0.3', http_port=18098)
+
+@pytest.fixture
+def riakc():
+    return client
 
 ModelMeta.setup(client)
