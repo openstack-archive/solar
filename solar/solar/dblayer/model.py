@@ -459,8 +459,6 @@ class ModelMeta(type):
                     to_save.save()
                 except DBLayerException:
                     continue
-                else:
-                    print 'saved', to_save
             cls._c.lazy_save.clear()
         mcs.riak_client.session_end(result)
 
@@ -593,6 +591,8 @@ class Model(object):
 
     def __init__(self, key=None):
         self._modified_fields = set()
+        # TODO: that _indexes_changed should be smarter
+        self._indexes_changed = False
         self.key = key
 
     @property
@@ -624,19 +624,18 @@ class Model(object):
         return self._riak_object.data
 
     @changes_state_for('index')
-    def _set_index(self, *args, **kwargs):
-        return self._riak_object.set_index(*args, **kwargs)
+    def _set_index(self, name, value):
+        self._indexes_changed = True
+        return self._riak_object.set_index(name, value)
 
     @changes_state_for('index')
     def _add_index(self, *args, **kwargs):
-        return self._riak_object.add_index(*args, **kwargs)
-
-    @changes_state_for('index')
-    def _add_index(self, *args, **kwargs):
+        self._indexes_changed = True
         return self._riak_object.add_index(*args, **kwargs)
 
     @changes_state_for('index')
     def _remove_index(self, *args, **kwargs):
+        self._indexes_changed = True
         return self._riak_object.remove_index(*args, **kwargs)
 
     @classmethod
@@ -656,7 +655,9 @@ class Model(object):
         self._modified_fields.add(field.fname)
 
     def changed(self):
-        return True if self._modified_fields else False
+        if self._modified_fields:
+            return True
+        return self._indexes_changed
 
     def to_dict(self):
         return dict(self._riak_object.data)
@@ -722,9 +723,16 @@ class Model(object):
                 obj = cls.from_riakobj(riak_object)
                 return obj
 
+    @classmethod
+    def multi_get(cls, keys):
+        # TODO: parallel execution
+        ret = map(cls.get, keys)
+        return ret
+
     def _reset_state(self):
         self._new = False
         self._modified_fields.clear()
+        self._indexes_hash = None
 
     @clears_state_for('index')
     def save(self, force=False):
