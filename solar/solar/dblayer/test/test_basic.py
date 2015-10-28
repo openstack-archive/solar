@@ -174,3 +174,14 @@ def test_save_lazy(rk):
 
     assert m1g is not m1g2
     assert m2g is not m2g2
+
+
+def test_changed_index(rk):
+    key1 = next(rk)
+
+    m1 = M1.from_dict(key1, {'f1': 'm1'})
+
+    m1.save()
+    # don't use _add_index directly
+    m1._add_index('test_bin', 'blah')
+    m1.save()

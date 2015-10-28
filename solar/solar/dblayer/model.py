@@ -593,6 +593,8 @@ class Model(object):
 
     def __init__(self, key=None):
         self._modified_fields = set()
+        # TODO: that _indexes_changed should be smarter
+        self._indexes_changed = False
         self.key = key
 
     @property
@@ -623,19 +625,18 @@ class Model(object):
         return self._riak_object.data
 
     @changes_state_for('index')
-    def _set_index(self, *args, **kwargs):
-        return self._riak_object.set_index(*args, **kwargs)
+    def _set_index(self, name, value):
+        self._indexes_changed = True
+        return self._riak_object.set_index(name, value)
 
     @changes_state_for('index')
     def _add_index(self, *args, **kwargs):
-        return self._riak_object.add_index(*args, **kwargs)
-
-    @changes_state_for('index')
-    def _add_index(self, *args, **kwargs):
+        self._indexes_changed = True
         return self._riak_object.add_index(*args, **kwargs)
 
     @changes_state_for('index')
     def _remove_index(self, *args, **kwargs):
+        self._indexes_changed = True
         return self._riak_object.remove_index(*args, **kwargs)
 
     @classmethod
@@ -655,7 +656,9 @@ class Model(object):
         self._modified_fields.add(field.fname)
 
     def changed(self):
-        return True if self._modified_fields else False
+        if self._modified_fields:
+            return True
+        return self._indexes_changed
 
     def __str__(self):
         if self._riak_object is None:
@@ -721,6 +724,7 @@ class Model(object):
     def _reset_state(self):
         self._new = False
         self._modified_fields.clear()
+        self._indexes_hash = None
 
     @clears_state_for('index')
     def save(self, force=False):
