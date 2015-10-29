@@ -49,6 +49,12 @@ class InputsFieldWrp(IndexFieldWrp):
                                           other_inp_name)
         my_ind_val += types_mapping
 
+        for ind_name, ind_value in my_resource._riak_object.indexes:
+            if ind_name == my_ind_name:
+                mr, mn, _ = ind_value.split('|', 2)
+                if mr == my_resource.key and mn == my_inp_name:
+                    my_resource._remove_index(ind_name, ind_value)
+                    break
 
         my_resource._add_index(my_ind_name, my_ind_val)
         return my_inp_name
@@ -59,6 +65,14 @@ class InputsFieldWrp(IndexFieldWrp):
                                              other_inp_name,
                                              my_resource.key,
                                              my_inp_name)
+
+        for ind_name, ind_value in my_resource._riak_object.indexes:
+            if ind_name == other_ind_name:
+                mr, mn = ind_value.rsplit('|')[2:]
+                if mr == my_resource.key and mn == my_inp_name:
+                    my_resource._remove_index(ind_name, ind_value)
+                    break
+
         my_resource._add_index(other_ind_name,
                                other_ind_val)
         return other_inp_name
@@ -202,6 +216,7 @@ class InputsFieldWrp(IndexFieldWrp):
                 items.append((my_tag, my_val, cres))
                 tags.add(my_tag)
             if len(tags) != 1:
+                # TODO: add it also for during connecting
                 raise Exception("Detected dict with different tags")
             res = {}
             for _, my_val, value in items:
