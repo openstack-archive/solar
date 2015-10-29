@@ -40,3 +40,9 @@ def test_changed_index():
     l.save()
 
     assert LogItem.composite.filter({'log': 'staged'}) == {l.uid}
+
+    l.log = 'history'
+    l.save()
+
+    assert LogItem.composite.filter({'log': 'staged'}) == set()
+    assert LogItem.composite.filter({'log': 'history'}) == {l.uid}

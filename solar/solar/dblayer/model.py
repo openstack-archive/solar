@@ -431,6 +431,16 @@ class CompositeIndexFieldWrp(IndexFieldWrp):
         for f in self._field_obj.fields:
             index.append(self._instance._data_container.get(f, ''))
         index = '|'.join(index)
+
+        index_to_del = []
+        for index_name, index_val in self._instance._riak_object.indexes:
+            if index_name == '%s_bin' % self.fname:
+                if index != index_val:
+                    index_to_del.append((index_name, index_val))
+
+        for index_name, index_val in index_to_del:
+            self._instance._remove_index(index_name, index_val)
+
         self._instance._add_index('%s_bin' % self.fname, index)
 
 class CompositeIndexField(IndexField):
