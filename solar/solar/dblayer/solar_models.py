@@ -573,7 +573,7 @@ system log
 1. one bucket for all log items
 2. separate logs for stage/history (using index)
 3. last log item for resource in history
-4. log item in staged log for resource.action
+4. log item in staged log for resource|action
 5. keep order of history
 """
 
@@ -587,21 +587,7 @@ class NegativeCounter(Model):
         return self.count
 
 
-class NegativeCounterWrapper(object):
-
-    def __init__(self, name):
-        self.name = name
-        self.backend_inst = None
-
-    def next(self):
-        if self.backend_inst is None:
-            self.backend_inst = NegativeCounter.get_or_create(self.name)
-        return next(self.backend_inst)
-
-
 class LogItem(Model):
-
-    logs_counter = NegativeCounterWrapper('logs_counter')
 
     uid = IndexedField(str, default=lambda: str(uuid4()))
     resource = Field(str)
@@ -611,6 +597,7 @@ class LogItem(Model):
     state = Field(list)
     base_path = Field(str) # remove me
 
+    history = IndexedField(StrInt)
     log = Field(str) # staged/history
 
     composite = CompositeIndexField(fields=('log', 'resource', 'action'))
@@ -622,6 +609,9 @@ class LogItem(Model):
     def save(self):
         if any(f in self._modified_fields for f in LogItem.composite.fields):
             self.composite.reset()
+
+        if 'log' in self._modified_fields and self.log == 'history':
+            self.history = StrInt(next(NegativeCounter.get_or_create('history')))
         return super(LogItem, self).save()
 
     @classmethod
@@ -630,4 +620,4 @@ class LogItem(Model):
         if 'uid' not in vals:
             vals['uid'] = cls.uid.default
         vals.update(data)
-        return LogItem.from_dict(str(StrInt(next(cls.logs_counter))), vals)
+        return LogItem.from_dict(vals['uid'], vals)

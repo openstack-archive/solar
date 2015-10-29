@@ -332,7 +332,7 @@ class IndexedField(Field):
     def filter(self, *args, **kwargs):
         kwargs['return_terms'] = False
         res = self._filter(*args, **kwargs)
-        return set(res)
+        return res
 
 
 class IndexFieldWrp(object):

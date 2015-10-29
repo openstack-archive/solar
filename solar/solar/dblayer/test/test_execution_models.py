@@ -37,8 +37,8 @@ def test_parent_child(rk):
     t1.save()
     t2.save()
 
-    assert Task.childs.filter(t1.key) == {t2.key}
-    assert Task.parents.filter(t2.key) == {t1.key}
+    assert Task.childs.filter(t1.key) == [t2.key]
+    assert Task.parents.filter(t2.key) == [t1.key]
     assert t1.childs.all_tasks() == [t2]
     assert t2.parents.all_names() == [t1.name]
 
