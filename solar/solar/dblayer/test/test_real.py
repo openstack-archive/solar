@@ -300,7 +300,7 @@ def test_simple_to_dict_inputs(rk):
     assert r2.inputs['input']['input2'] == 15
 
 
-def test_simple_do_dict_inputs_with_tag(rk):
+def test_simple_to_dict_inputs_with_tag(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
