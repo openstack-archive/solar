@@ -424,6 +424,26 @@ class IndexField(FieldBase):
         return set(res)
 
 
+class CompositeIndexFieldWrp(IndexFieldWrp):
+
+    def reset(self):
+        index = []
+        for f in self._field_obj.fields:
+            index.append(self._instance._data_container.get(f, ''))
+        index = '|'.join(index)
+        self._instance._add_index('%s_bin' % self.fname, index)
+
+class CompositeIndexField(IndexField):
+
+    _wrp_class = CompositeIndexFieldWrp
+
+    def __init__(self, fields=(), *args, **kwargs):
+        super(CompositeIndexField, self).__init__(*args, **kwargs)
+        self.fields = fields
+
+    def _parse_key(self, startkey):
+        vals = [startkey[f] for f in self.fields if f in startkey]
+        return '|'.join(vals) + '*'
 
 
 class ModelMeta(type):

@@ -3,14 +3,16 @@ from solar.dblayer.model import (Model, Field, IndexField,
                                  DBLayerException,
                                  requires_clean_state, check_state_for,
                                  StrInt,
-                                 IndexedField)
+                                 IndexedField, CompositeIndexField)
 from types import NoneType
 from operator import itemgetter
 from enum import Enum
 from itertools import groupby
+from uuid import uuid4
 
 InputTypes = Enum('InputTypes',
                   'simple list hash list_hash')
+
 
 class DBLayerSolarException(DBLayerException):
     pass
@@ -560,6 +562,47 @@ class Task(Model):
     childs = ChildField(default=list)
 
     @classmethod
-    def new(self, data):
+    def new(cls, data):
         key = '%s~%s' % (data['execution'], data['name'])
         return Task.from_dict(key, data)
+
+
+"""
+system log
+
+1. one bucket for all log items
+2. separate logs for stage/history (using index)
+3. last log item for resource in history
+4. log item in staged log for resource.action
+"""
+
+class LogItem(Model):
+
+    uid = IndexedField(str, default=lambda: str(uuid4()))
+    resource = Field(str)
+    action = Field(str)
+    diff = Field(list)
+    connections_diff = Field(list)
+    state = Field(list)
+    base_path = Field(str) # remove me
+
+    log = Field(str) # staged/history
+
+    composite = CompositeIndexField(fields=('log', 'resource', 'action'))
+
+    @property
+    def log_action(self):
+        return '.'.join((self.resource, self.action))
+
+    def save(self):
+        if any(f in self._modified_fields for f in LogItem.composite.fields):
+            self.composite.reset()
+        return super(LogItem, self).save()
+
+    @classmethod
+    def new(cls, data):
+        vals = {}
+        if 'uid' not in vals:
+            vals['uid'] = cls.uid.default
+        vals.update(data)
+        return LogItem.from_dict(vals['uid'], vals)
