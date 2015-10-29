@@ -196,6 +196,12 @@ class StrInt(object):
         return val
 
     def __eq__(self, other):
+        if isinstance(other, basestring):
+            first_ch = other[0]
+            if first_ch not in (self.positive_char, self.negative_char):
+                raise Exception("Cannot compare %r with %r" % (self, other))
+            else:
+                other = self.from_simple(other)
         if not isinstance(other, self.__class__):
             raise Exception("Cannot compare %r with %r" % (self, other))
         so = other._val[0]
@@ -207,6 +213,12 @@ class StrInt(object):
         return self._val[1:] == other._val[1:]
 
     def __gt__(self, other):
+        if isinstance(other, basestring):
+            first_ch = other[0]
+            if first_ch not in (self.positive_char, self.negative_char):
+                raise Exception("Cannot compare %r with %r" % (self, other))
+            else:
+                other = self.from_simple(other)
         if not isinstance(other, self.__class__):
             raise Exception("Cannot compare %r with %r" % (self, other))
         so = other._val[0]
