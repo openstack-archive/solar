@@ -57,5 +57,7 @@
     - shell: 'discovery-scan --ssh_key {{insecure_pub_key_path}} &'
 
     # Install bareon-api
+    # Workaround is required because pbr does not handle git-eggs correctly and fails to install fuel-agent
+    - shell: 'pip install git+git://github.com/prmtl/fuel-agent.git@detach_from_nailgun#egg=fuel_agent'
     - shell: pip install git+https://github.com/Mirantis/bareon-api.git
     - shell: 'bareon-api &'
