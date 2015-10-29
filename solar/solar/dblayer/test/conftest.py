@@ -1,4 +1,4 @@
-from solar.dblayer.model import Model, ModelMeta
+from solar.dblayer.model import Model, ModelMeta, get_bucket
 import pytest
 import time
 import string
@@ -40,6 +40,12 @@ def rt(request):
     return obj
 
 
+@pytest.fixture(autouse=True)
+def setup(request):
+
+    for model in ModelMeta._defined_models:
+        model.bucket = get_bucket(None, model, ModelMeta)
+
 
 def pytest_runtest_teardown(item, nextitem):
     ModelMeta.session_end(result=True)
@@ -57,12 +63,9 @@ client = SqlClient(':memory:', threadlocals=False, autocommit=False)
 #                    autocommit=False, pragmas=(('journal_mode', 'WAL'),
 #                                               ('synchronous', 'NORMAL')))
 
-#from solar.dblayer.riak_client import RiakClient
-#client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+# from solar.dblayer.riak_client import RiakClient
+# client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
 # client = RiakClient(protocol='http', host='10.0.0.3', http_port=18098)
 
-@pytest.fixture
-def riakc():
-    return client
 
 ModelMeta.setup(client)
