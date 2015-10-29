@@ -25,88 +25,88 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache = {}
 
 
-    def _connect_dict_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
-        if ':' in other_inp_name:
-            raise NotImplementedError("Not supported `:` in this direction")
-        if ':' in my_inp_name:
-            my_inp_name, nested_key = my_inp_name.split(':', 1)
-        else:
-            nested_key = ""
+    # def _connect_dict_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+    #     if ':' in other_inp_name:
+    #         raise NotImplementedError("Not supported `:` in this direction")
+    #     if ':' in my_inp_name:
+    #         my_inp_name, nested_key = my_inp_name.split(':', 1)
+    #     else:
+    #         nested_key = ""
 
-        if '|' in nested_key:
-            nested_key, nested_tag = nested_key.split('|', 1)
-        else:
-            nested_tag = other_resource.key
-        raise NotImplementedError()
-
-
-    def _connect_list_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
-        other_ind_name = '{}_emit_bin'.format(self.fname)
-        other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
-                                             other_inp_name,
-                                             my_resource.key,
-                                             my_inp_name)
-
-        my_ind_name = '{}_recv_bin'.format(self.fname)
-        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
-                                          my_inp_name,
-                                          other_resource.key,
-                                          other_inp_name)
-
-        my_resource._add_index(my_ind_name,
-                               my_ind_val)
-        my_resource._add_index(other_ind_name,
-                               other_ind_val)
-        try:
-            del self._cache[my_inp_name]
-        except KeyError:
-            pass
-        return True
+    #     if '|' in nested_key:
+    #         nested_key, nested_tag = nested_key.split('|', 1)
+    #     else:
+    #         nested_tag = other_resource.key
+    #     raise NotImplementedError()
 
 
-    def _connect_simple_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
-        # TODO: for now connections are attached to target resource
-        # in future we might change it to separate object
+    # def _connect_list_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+    #     other_ind_name = '{}_emit_bin'.format(self.fname)
+    #     other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
+    #                                          other_inp_name,
+    #                                          my_resource.key,
+    #                                          my_inp_name)
 
-        other_ind_name = '{}_emit_bin'.format(self.fname)
-        other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
-                                             other_inp_name,
-                                             my_resource.key,
-                                             my_inp_name)
+    #     my_ind_name = '{}_recv_bin'.format(self.fname)
+    #     my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
+    #                                       my_inp_name,
+    #                                       other_resource.key,
+    #                                       other_inp_name)
 
-        my_ind_name = '{}_recv_bin'.format(self.fname)
-        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
-                                          my_inp_name,
-                                          other_resource.key,
-                                          other_inp_name)
+    #     my_resource._add_index(my_ind_name,
+    #                            my_ind_val)
+    #     my_resource._add_index(other_ind_name,
+    #                            other_ind_val)
+    #     try:
+    #         del self._cache[my_inp_name]
+    #     except KeyError:
+    #         pass
+    #     return True
 
-        # ensure no conflicting connections are done
-        # TODO: move this to backend layer
-        indexes = my_resource._riak_object.indexes
-        to_del = []
-        for ind_name, ind_value in indexes:
-            if ind_name == my_ind_name:
-                mr, mn = ind_value.split('|')[:2]
-                if mr == my_resource.key and mn == my_inp_name:
-                    to_del.append((ind_name, ind_value))
-            elif ind_name == other_ind_name:
-                mr, mn = ind_value.rsplit('|')[2:]
-                if mr == my_resource.key and mn == my_inp_name:
-                    to_del.append((ind_name, ind_value))
 
-        for ind_name, ind_value in to_del:
-            my_resource._remove_index(ind_name, value=ind_value)
+    # def _connect_simple_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+    #     # TODO: for now connections are attached to target resource
+    #     # in future we might change it to separate object
 
-        # add new
-        my_resource._add_index(my_ind_name,
-                               my_ind_val)
-        my_resource._add_index(other_ind_name,
-                               other_ind_val)
-        try:
-            del self._cache[my_inp_name]
-        except KeyError:
-            pass
-        return True
+    #     other_ind_name = '{}_emit_bin'.format(self.fname)
+    #     other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
+    #                                          other_inp_name,
+    #                                          my_resource.key,
+    #                                          my_inp_name)
+
+    #     my_ind_name = '{}_recv_bin'.format(self.fname)
+    #     my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
+    #                                       my_inp_name,
+    #                                       other_resource.key,
+    #                                       other_inp_name)
+
+    #     # ensure no conflicting connections are done
+    #     # TODO: move this to backend layer
+    #     indexes = my_resource._riak_object.indexes
+    #     to_del = []
+    #     for ind_name, ind_value in indexes:
+    #         if ind_name == my_ind_name:
+    #             mr, mn = ind_value.split('|')[:2]
+    #             if mr == my_resource.key and mn == my_inp_name:
+    #                 to_del.append((ind_name, ind_value))
+    #         elif ind_name == other_ind_name:
+    #             mr, mn = ind_value.rsplit('|')[2:]
+    #             if mr == my_resource.key and mn == my_inp_name:
+    #                 to_del.append((ind_name, ind_value))
+
+    #     for ind_name, ind_value in to_del:
+    #         my_resource._remove_index(ind_name, value=ind_value)
+
+    #     # add new
+    #     my_resource._add_index(my_ind_name,
+    #                            my_ind_val)
+    #     my_resource._add_index(other_ind_name,
+    #                            other_ind_val)
+    #     try:
+    #         del self._cache[my_inp_name]
+    #     except KeyError:
+    #         pass
+    #     return True
 
 
     def _input_type(self, resource, name):
@@ -123,32 +123,69 @@ class InputsFieldWrp(IndexFieldWrp):
         raise Exception("Unknown type")
 
 
+    def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
+                                          my_inp_name,
+                                          other_resource.key,
+                                          other_inp_name)
+
+
+        my_resource._add_index(my_ind_name, my_ind_val)
+        return True
+
+
+    def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+        other_ind_name = '{}_emit_bin'.format(self.fname)
+        other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
+                                             other_inp_name,
+                                             my_resource.key,
+                                             my_inp_name)
+        my_resource._add_index(other_ind_name,
+                               other_ind_val)
+        return True
+
+
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
-        raise Exception()
-        if ':' in my_inp_name:
-            tmp_name = my_inp_name.split(':', 1)[0]
-            my_input = self._get_raw_field_val(tmp_name)
-        else:
-            my_input = self._get_raw_field_val(my_inp_name)
-        other_input = other_resource.inputs._get_raw_field_val(other_inp_name)
-        if isinstance(my_input, self._simple_types):
-            my_side = 'simple'
-        else:
-            my_side = type(my_input).__name__
-        if isinstance(other_input, self._simple_types):
-            other_side = 'simple'
-        else:
-            other_side = type(other_input).__name__
-        method = '_connect_{}_{}'.format(my_side, other_side)
+
+        # set my side
+        my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
+        my_meth(my_resource, my_inp_name, other_resource, other_inp_name)
+
+        # set other side
+        other_meth = getattr(self, '_connect_other_{}'.format(other_type.name))
+        other_meth(my_resource, my_inp_name, other_resource, other_inp_name)
+
         try:
-            meth = getattr(self, method)
-        except AttributeError:
-            raise Exception("Unknown connection %r %r" % (my_side, other_side))
-        else:
-            return meth(my_resource, my_inp_name, other_resource, other_inp_name)
+            del self._cache[my_inp_name]
+        except KeyError:
+            pass
+        return True
+        # raise Exception()
+        # if ':' in my_inp_name:
+        #     tmp_name = my_inp_name.split(':', 1)[0]
+        #     my_input = self._get_raw_field_val(tmp_name)
+        # else:
+        #     my_input = self._get_raw_field_val(my_inp_name)
+        # other_input = other_resource.inputs._get_raw_field_val(other_inp_name)
+        # if isinstance(my_input, self._simple_types):
+        #     my_side = 'simple'
+        # else:
+        #     my_side = type(my_input).__name__
+        # if isinstance(other_input, self._simple_types):
+        #     other_side = 'simple'
+        # else:
+        #     other_side = type(other_input).__name__
+        # method = '_connect_{}_{}'.format(my_side, other_side)
+        # try:
+        #     meth = getattr(self, method)
+        # except AttributeError:
+        #     raise Exception("Unknown connection %r %r" % (my_side, other_side))
+        # else:
+        #     return meth(my_resource, my_inp_name, other_resource, other_inp_name)
 
     def _has_own_input(self, name):
         try:

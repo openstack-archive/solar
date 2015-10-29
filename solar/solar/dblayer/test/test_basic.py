@@ -1,6 +1,7 @@
 import pytest
 from solar.dblayer.model import (Field, IndexField,
                                  clear_cache, Model,
+                                 StrInt,
                                  DBLayerNotFound,
                                  DBLayerNoRiakObj,
                                  DBLayerException)
@@ -185,3 +186,12 @@ def test_changed_index(rk):
     # don't use _add_index directly
     m1._add_index('test_bin', 'blah')
     m1.save()
+
+
+def test_strint_comparsions():
+    a = StrInt(-1)
+    b = StrInt(-2)
+    c = StrInt.to_simple(b)
+    assert isinstance(c, basestring)
+    assert a > b
+    assert a > c
