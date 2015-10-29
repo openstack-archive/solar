@@ -1,17 +1,10 @@
 #!/usr/bin/env python
-
-import json
-
 import requests
 
 from solar.core.resource import virtual_resource as vr
-from solar.core.transports.bat import BatRunTransport
-
 from solar.events.api import add_event
 from solar.events.controls import React
 
-
-transport_run = BatRunTransport()
 
 discovery_service = 'http://0.0.0.0:8881'
 bareon_service = 'http://0.0.0.0:9322/v1/nodes/{0}/partitioning'
@@ -33,16 +26,6 @@ class NodeAdapter(dict):
     def partitioning(self):
         return requests.get(bareon_service.format(self['mac'])).json()
 
-
-def feed_discovery(mac, ohai_data):
-    return requests.put(
-        "{base_url}/nodes/{mac}/".format(
-            base_url=discovery_service,
-            mac=mac,
-        ),
-        data=json.dumps(ohai_data),
-    )
-
 nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
@@ -55,10 +38,6 @@ master_node = filter(lambda n: n.name == 'node_master', node_resources)[0]
 for node in nodes_list:
     node = NodeAdapter(node)
     node_resource = filter(lambda n: n.name.endswith('node_{0}'.format(node.safe_mac)), node_resources)[0]
-
-    run_result = transport_run.run(node_resource, 'ohai')
-    ohai = json.loads(run_result.stdout)
-    feed_discovery(node['mac'], ohai)
 
     node_resource.update({'partitioning': node.partitioning})
 
