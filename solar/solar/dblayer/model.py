@@ -721,6 +721,13 @@ class Model(object):
         return cls.from_dict(key, data)
 
     @classmethod
+    def get_or_create(cls, key):
+        try:
+            return cls.get(key)
+        except DBLayerNotFound:
+            return cls.new(key, {})
+
+    @classmethod
     def from_riakobj(cls, riak_obj):
         obj = cls(riak_obj.key)
         obj._riak_object = riak_obj
