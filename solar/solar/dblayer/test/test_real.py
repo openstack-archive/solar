@@ -230,7 +230,7 @@ def test_list_inputs(rk):
                                  'inputs': {'input': []}})
 
     r1.connect(r2, {'input1': 'input'})
-    # r1.connect(r2, {'input2': 'input'})
+    r1.connect(r2, {'input2': 'input'})
 
     r1.save()
     r2.save()
@@ -238,6 +238,30 @@ def test_list_inputs(rk):
     print r2._riak_object.indexes
 
     assert r2.inputs['input'] == [10, 15]
+
+
+def test_dict_to_dict_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input': {'input1': 10,
+                                                      'input2': 15}
+                                            }})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None,
+                                                      'input3': None}}})
+
+    r1.connect(r2, {'input': 'input'})
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 15
+    assert 'input3' not in r2.inputs['input']
+
 
 
 def test_dict_inputs(rk):

@@ -134,7 +134,6 @@ class InputsFieldWrp(IndexFieldWrp):
         my_resource._add_index(my_ind_name, my_ind_val)
         return True
 
-
     def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
         other_ind_name = '{}_emit_bin'.format(self.fname)
         other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
@@ -150,6 +149,10 @@ class InputsFieldWrp(IndexFieldWrp):
         my_resource = self._instance
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
+
+        if my_type == other_type:
+            my_type = InputTypes.simple
+            other_type = InputTypes.simple
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
