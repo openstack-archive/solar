@@ -278,8 +278,7 @@ def test_list_to_list_inputs(rk):
     assert r2.inputs['input'] == [10, 15]
 
 
-
-def test_dict_inputs(rk):
+def test_simple_to_dict_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
 

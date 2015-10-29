@@ -7,6 +7,7 @@ from solar.dblayer.model import (Model, Field, IndexField,
 from types import NoneType
 from operator import itemgetter
 from enum import Enum
+from itertools import groupby
 
 InputTypes = Enum('InputTypes',
                   'simple list hash list_hash')
@@ -111,6 +112,8 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _input_type(self, resource, name):
         # XXX: it could be worth to precalculate it
+        if ':' in name:
+            name = name.split(":", 1)[0]
         schema = resource.meta_inputs[name]['schema']
         if isinstance(schema, self._simple_types):
             return InputTypes.simple
@@ -133,7 +136,7 @@ class InputsFieldWrp(IndexFieldWrp):
 
 
         my_resource._add_index(my_ind_name, my_ind_val)
-        return True
+        return my_inp_name
 
     def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
         other_ind_name = '{}_emit_bin'.format(self.fname)
@@ -143,12 +146,32 @@ class InputsFieldWrp(IndexFieldWrp):
                                              my_inp_name)
         my_resource._add_index(other_ind_name,
                                other_ind_val)
-        return True
+        return other_inp_name
 
 
     def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
         return ret
+
+    def _connect_my_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        my_key, my_val = my_inp_name.split(':', 1)
+        if '|' in my_val:
+            my_val, my_tag = my_val.split('|', 1)
+        else:
+            my_tag = other_resource.name
+        types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        my_ind_val = '{}|{}|{}|{}|{}|{}'.format(my_resource.key,
+                                                my_key,
+                                                other_resource.key,
+                                                other_inp_name,
+                                                my_tag,
+                                                my_val
+        )
+        my_ind_val += types_mapping
+
+        my_resource._add_index(my_ind_name, my_ind_val)
+        return my_key
 
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
@@ -162,14 +185,14 @@ class InputsFieldWrp(IndexFieldWrp):
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
-        my_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+        my_affected = my_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
 
         # set other side
         other_meth = getattr(self, '_connect_other_{}'.format(other_type.name))
         other_meth(my_resource, my_inp_name, other_resource, other_inp_name)
 
         try:
-            del self._cache[my_inp_name]
+            del self._cache[my_affected]
         except KeyError:
             pass
         return True
@@ -259,7 +282,7 @@ class InputsFieldWrp(IndexFieldWrp):
             res = []
             for recv in recvs:
                 index_val, obj_key = recv
-                _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
+                _, _, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
                 cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
                 res.append(cres)
         self._cache[name] = res
@@ -274,7 +297,19 @@ class InputsFieldWrp(IndexFieldWrp):
             if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
                 raise NotImplementedError()
         else:
-            raise NotImplementedError()
+            items = []
+            tags = set()
+            for recv in recvs:
+                index_val, obj_key = recv
+                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+                items.append((my_tag, my_val, cres))
+                tags.add(my_tag)
+            if len(tags) != 1:
+                raise Exception("Detected dict with different tags")
+            res = {}
+            for _, my_val, value in items:
+                res[my_val] = value
         self._cache[name] = res
         return res
 
