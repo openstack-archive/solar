@@ -8,6 +8,7 @@ from solar.events.controls import React
 
 discovery_service = 'http://0.0.0.0:8881'
 bareon_service = 'http://0.0.0.0:9322/v1/nodes/{0}/partitioning'
+bareon_sync = 'http://0.0.0.0:9322/v1/actions/sync_all'
 
 
 class NodeAdapter(dict):
@@ -26,6 +27,10 @@ class NodeAdapter(dict):
     def partitioning(self):
         return requests.get(bareon_service.format(self['mac'])).json()
 
+# Sync hw info about nodes from discovery service into bareon-api
+requests.post(bareon_sync)
+
+# Get list of nodes from discovery service
 nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
