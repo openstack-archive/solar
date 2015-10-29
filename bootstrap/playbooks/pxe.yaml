@@ -15,6 +15,7 @@
     image_builder_path: /tmp/image_builder
     http_ip: 10.0.0.2
     http_port: 8000
+    supervisor_dir: /etc/supervisor/conf.d/
 
   tasks:
     # Istall and configure dnsmasq
@@ -53,9 +54,25 @@
 
     # Install discovery service
     - shell: pip install git+https://github.com/rustyrobot/discovery.git
-    - shell: 'discovery &'
-    - shell: 'discovery-scan --ssh_key {{insecure_pub_key_path}} &'
 
     # Install bareon-api
+    # Workaround is required because pbr does not handle git-eggs correctly and fails to install fuel-agent
+    - shell: 'pip install git+git://github.com/prmtl/fuel-agent.git@detach_from_nailgun#egg=fuel_agent'
     - shell: pip install git+https://github.com/Mirantis/bareon-api.git
-    - shell: 'bareon-api &'
+
+    # Install and configure supervisor
+    - apt: name=supervisor state=present
+
+    - set_fact: {'name': 'discovery', 'cmd': 'discovery'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/discovery.conf
+
+    - set_fact: {'name': 'discovery-scan', 'cmd': 'discovery-scan --ssh_key /vagrant/tmp/keys/ssh_private'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/discovery-scan.conf
+
+    - set_fact: {'name': 'bareon-api', 'cmd': 'bareon-api'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/bareon-api.conf
+
+    - service: name=supervisor state=restarted
+
+    # Add nat rules so slaves have internet access via solar-dev
+    - shell: iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
