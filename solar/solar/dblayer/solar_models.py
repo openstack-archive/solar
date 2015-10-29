@@ -122,7 +122,6 @@ class InputsFieldWrp(IndexFieldWrp):
             return InputTypes.hash
         raise Exception("Unknown type")
 
-
     def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
         my_ind_name = '{}_recv_bin'.format(self.fname)
         my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
@@ -145,12 +144,17 @@ class InputsFieldWrp(IndexFieldWrp):
         return True
 
 
+    def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name):
+        ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name)
+        return ret
+
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
         if my_type == other_type:
+            # if the type is the same map 1:1
             my_type = InputTypes.simple
             other_type = InputTypes.simple
 
@@ -216,18 +220,38 @@ class InputsFieldWrp(IndexFieldWrp):
         ind_name = '{}_recv_bin'.format(fname)
         # XXX: possible optimization
         # get all values for resource and cache it (use dirty to check)
+        kwargs = dict(startkey='{}|{}|'.format(my_name, name),
+                      endkey='{}|{}|~'.format(my_name, name),
+                      return_terms=True)
+        my_type = self._input_type(self._instance, name)
+        if my_type == InputTypes.simple:
+            kwargs['max_results'] = 1
+        else:
+            kwargs['max_results'] = 99999
         recvs = self._instance._get_index(ind_name,
-                                          startkey='{}|{}|'.format(my_name, name),
-                                          endkey='{}|{}|~'.format(my_name, name),
-                                          return_terms=True).results
+                                          **kwargs).results
         if not recvs:
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
             return _res
+        my_meth = getattr(self, '_map_field_val_{}'.format(my_type.name))
+        return my_meth(recvs, my_name)
+
+    def _map_field_val_simple(self, recvs, name):
         recvs = recvs[0]
         index_val, obj_key = recvs
         _, inp, emitter_key, emitter_inp = index_val.split('|', 4)
         res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+        self._cache[name] = res
+        return res
+
+    def _map_field_val_list(self, recvs, name):
+        res = []
+        for recv in recvs:
+            index_val, obj_key = recv
+            _, inp, emitter_key, emitter_inp = index_val.split('|', 4)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            res.append(cres)
         self._cache[name] = res
         return res
 

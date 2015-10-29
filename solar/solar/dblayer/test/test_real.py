@@ -235,8 +235,6 @@ def test_list_inputs(rk):
     r1.save()
     r2.save()
 
-    print r2._riak_object.indexes
-
     assert r2.inputs['input'] == [10, 15]
 
 
