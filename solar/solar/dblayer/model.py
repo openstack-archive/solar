@@ -421,7 +421,7 @@ class IndexField(FieldBase):
                                            startkey=startkey,
                                            endkey=endkey,
                                            **kwargs).results
-        return set(res)
+        return list(res)
 
 
 class CompositeIndexFieldWrp(IndexFieldWrp):

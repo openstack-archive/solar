@@ -630,5 +630,4 @@ class LogItem(Model):
         if 'uid' not in vals:
             vals['uid'] = cls.uid.default
         vals.update(data)
-        key = '{}~{}'.format(next(cls.logs_counter), vals['uid'])
-        return LogItem.from_dict(key, vals)
+        return LogItem.from_dict(str(StrInt(next(cls.logs_counter))), vals)
