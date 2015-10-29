@@ -122,12 +122,14 @@ class InputsFieldWrp(IndexFieldWrp):
             return InputTypes.hash
         raise Exception("Unknown type")
 
-    def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+    def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
         my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
                                           my_inp_name,
                                           other_resource.key,
                                           other_inp_name)
+        my_ind_val += types_mapping
 
 
         my_resource._add_index(my_ind_name, my_ind_val)
@@ -144,8 +146,8 @@ class InputsFieldWrp(IndexFieldWrp):
         return True
 
 
-    def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name):
-        ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name)
+    def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
         return ret
 
     def connect(self, my_inp_name, other_resource, other_inp_name):
@@ -160,7 +162,7 @@ class InputsFieldWrp(IndexFieldWrp):
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
-        my_meth(my_resource, my_inp_name, other_resource, other_inp_name)
+        my_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
 
         # set other side
         other_meth = getattr(self, '_connect_other_{}'.format(other_type.name))
@@ -246,12 +248,33 @@ class InputsFieldWrp(IndexFieldWrp):
         return res
 
     def _map_field_val_list(self, recvs, name):
-        res = []
-        for recv in recvs:
+        if len(recvs) == 1:
+            recv = recvs[0]
             index_val, obj_key = recv
-            _, inp, emitter_key, emitter_inp = index_val.split('|', 4)
-            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
-            res.append(cres)
+            _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
+                res = [res]
+        else:
+            res = []
+            for recv in recvs:
+                index_val, obj_key = recv
+                _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+                res.append(cres)
+        self._cache[name] = res
+        return res
+
+    def _map_field_val_hash(self, recvs, name):
+        if len(recvs) == 1:
+            recv = recvs[0]
+            index_val, obj_key = recv
+            _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
+                raise NotImplementedError()
+        else:
+            raise NotImplementedError()
         self._cache[name] = res
         return res
 

@@ -261,6 +261,23 @@ def test_dict_to_dict_inputs(rk):
     assert 'input3' not in r2.inputs['input']
 
 
+def test_list_to_list_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input': [10, 15]}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': []}})
+
+    r1.connect(r2, {'input': 'input'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input'] == [10, 15]
+
+
 
 def test_dict_inputs(rk):
     k1 = next(rk)
