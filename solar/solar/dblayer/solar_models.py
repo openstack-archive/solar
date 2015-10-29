@@ -265,7 +265,7 @@ class InputsFieldWrp(IndexFieldWrp):
     def _map_field_val_simple(self, recvs, name):
         recvs = recvs[0]
         index_val, obj_key = recvs
-        _, inp, emitter_key, emitter_inp = index_val.split('|', 4)
+        _, inp, emitter_key, emitter_inp, _mapping_type = index_val.split('|', 4)
         res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
         self._cache[name] = res
         return res
