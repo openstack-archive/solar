@@ -475,6 +475,16 @@ class Resource(Model):
             self.updated = StrInt()
         return super(Resource, self).save(*args, **kwargs)
 
+
+class CommitedResource(Model):
+
+    inputs = Field(dict, default=dict)
+    connections = Field(list, default=list)
+    base_path = Field(str)
+    tags = Field(list, default=list)
+    state = Field(str)
+
+
 """
 Type of operations:
 

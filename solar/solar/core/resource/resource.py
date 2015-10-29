@@ -30,6 +30,7 @@ from uuid import uuid4
 from hashlib import md5
 import networkx
 
+from solar.dblayer.solar_models import CommitedResource
 
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.dblayer.model import StrInt
@@ -259,7 +260,7 @@ class Resource(object):
         )
 
     def load_commited(self):
-        return orm.DBCommitedState.get_or_create(self.name)
+        return CommitedResource.get_or_create(self.name)
 
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):

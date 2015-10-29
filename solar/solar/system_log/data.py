@@ -17,8 +17,6 @@ from solar.dblayer.solar_models import LogItem
 
 
 
-
-
 def SL():
     rst = LogItem.composite.filter({'log': 'staged'})
     return map(LogItem.get, rst)

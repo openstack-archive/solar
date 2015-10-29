@@ -26,7 +26,7 @@ from .consts import CHANGES
 from solar.core.resource.resource import RESOURCE_STATE
 from solar.errors import CannotFindID
 
-from solar.dblayer.solar_models import LogItem
+from solar.dblayer.solar_models import LogItem, CommitedResource
 
 
 def guess_action(from_, to):
@@ -62,6 +62,9 @@ def create_sorted_diff(staged, commited):
 
 
 def stage_changes():
+    for li in data.SL():
+        li.delete()
+
     staged_log = []
     for resouce_obj in resource.load_all():
         commited = resouce_obj.load_commited()

@@ -13,6 +13,7 @@
 #    under the License.
 
 from solar.system_log import data
+from solar.dblayer.solar_models import CommitedResource
 from dictdiffer import patch
 from solar.interfaces import orm
 from solar.core.resource import resource
@@ -34,8 +35,8 @@ def move_to_commited(log_action, *args, **kwargs):
     item = next((i for i in sl if i.log_action == log_action), None)
     if item:
 
-        resource_obj = resource.load(item.res)
-        commited = orm.DBCommitedState.get_or_create(item.res)
+        resource_obj = resource.load(item.resource)
+        commited = CommitedResource.get_or_create(item.resource)
 
         if item.action == CHANGES.remove.name:
             resource_obj.delete()
@@ -48,6 +49,7 @@ def move_to_commited(log_action, *args, **kwargs):
             sorted_connections = sorted(commited.connections)
             commited.connections = patch(item.signals_diff, sorted_connections)
             commited.base_path = item.base_path
-
+        commited.save()
         item.log = 'history'
         item.state = 'success'
+        item.save()
