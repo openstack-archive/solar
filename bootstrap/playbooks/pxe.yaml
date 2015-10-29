@@ -61,3 +61,6 @@
     - shell: 'pip install git+git://github.com/prmtl/fuel-agent.git@detach_from_nailgun#egg=fuel_agent'
     - shell: pip install git+https://github.com/Mirantis/bareon-api.git
     - shell: 'bareon-api &'
+
+    # Add nat rules so slaves have internet access via solar-dev
+    - shell: iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
