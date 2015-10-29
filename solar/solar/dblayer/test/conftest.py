@@ -57,14 +57,14 @@ def pytest_runtest_call(item):
 
 Model.get_bucket_name = classmethod(patched_get_bucket_name)
 
-from solar.dblayer.sql_client import SqlClient
-client = SqlClient(':memory:', threadlocals=False, autocommit=False)
+# from solar.dblayer.sql_client import SqlClient
+# client = SqlClient(':memory:', threadlocals=False, autocommit=False)
 # client = SqlClient('/tmp/blah.db', threadlocals=True,
 #                    autocommit=False, pragmas=(('journal_mode', 'WAL'),
 #                                               ('synchronous', 'NORMAL')))
 
-# from solar.dblayer.riak_client import RiakClient
-# client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+from solar.dblayer.riak_client import RiakClient
+client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
 # client = RiakClient(protocol='http', host='10.0.0.3', http_port=18098)
 
 

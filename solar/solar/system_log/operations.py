@@ -25,15 +25,15 @@ def set_error(log_action, *args, **kwargs):
     if item:
         resource_obj = resource.load(item.res)
         resource_obj.set_error()
-        item.state = data.STATES.error
-        sl.update(item)
+        item.state = 'error'
+        item.save()
 
 
 def move_to_commited(log_action, *args, **kwargs):
     sl = data.SL()
     item = next((i for i in sl if i.log_action == log_action), None)
     if item:
-        sl.pop(item.uid)
+
         resource_obj = resource.load(item.res)
         commited = orm.DBCommitedState.get_or_create(item.res)
 
@@ -49,9 +49,5 @@ def move_to_commited(log_action, *args, **kwargs):
             commited.connections = patch(item.signals_diff, sorted_connections)
             commited.base_path = item.base_path
 
-        commited.save()
-        cl = data.CL()
-        item.state = data.STATES.success
-        cl.append(item)
-
-
+        item.log = 'history'
+        item.state = 'success'

@@ -19,16 +19,14 @@ from solar.core.log import log
 from solar.core import signals
 from solar.core import resource
 from solar import utils
-from solar.interfaces.db import get_db
-from solar.system_log import data
+
 from solar.orchestration import graph
 from solar.events import api as evapi
-from solar.interfaces import orm
 from .consts import CHANGES
 from solar.core.resource.resource import RESOURCE_STATE
 from solar.errors import CannotFindID
 
-db = get_db()
+from solar.dblayer.solar_models import LogItem
 
 
 def guess_action(from_, to):
@@ -47,14 +45,14 @@ def create_diff(staged, commited):
 
 
 def create_logitem(resource, action, diffed, connections_diffed,
-                   base_path=None):
-    return data.LogItem(
-                utils.generate_uuid(),
-                resource,
-                action,
-                diffed,
-                connections_diffed,
-                base_path=base_path)
+                   base_path=''):
+    return LogItem.new(
+                {'resource': resource,
+                 'action': action,
+                 'diff': diffed,
+                 'connections_diff': connections_diffed,
+                 'base_path': base_path,
+                 'log': 'staged'})
 
 
 def create_sorted_diff(staged, commited):
@@ -63,11 +61,8 @@ def create_sorted_diff(staged, commited):
     return create_diff(staged, commited)
 
 
-
 def stage_changes():
-    log = data.SL()
-    log.clean()
-
+    staged_log = []
     for resouce_obj in resource.load_all():
         commited = resouce_obj.load_commited()
         base_path = resouce_obj.base_path
@@ -92,14 +87,15 @@ def stage_changes():
         # if new connection created it will be reflected in inputs
         # but using inputs to reverse connections is not possible
         if inputs_diff:
-            log_item = create_logitem(
+            li = create_logitem(
                 resouce_obj.name,
                 guess_action(commited_args, resource_args),
                 inputs_diff,
                 connections_diff,
                 base_path=base_path)
-            log.append(log_item)
-    return log
+            li.save()
+            staged_log.append(li)
+    return staged_log
 
 
 def send_to_orchestration():
@@ -108,10 +104,10 @@ def send_to_orchestration():
     changed_nodes = []
 
     for logitem in data.SL():
-        events[logitem.res] = evapi.all_events(logitem.res)
-        changed_nodes.append(logitem.res)
+        events[logitem.resource] = evapi.all_events(logitem.resource)
+        changed_nodes.append(logitem.resource)
 
-        state_change = evapi.StateChange(logitem.res, logitem.action)
+        state_change = evapi.StateChange(logitem.resource, logitem.action)
         state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)
@@ -123,9 +119,7 @@ def send_to_orchestration():
 
 def parameters(res, action, data):
     return {'args': [res, action],
-            'type': 'solar_resource',
-            # unique identifier for a node should be passed
-            'target': data.get('ip')}
+            'type': 'solar_resource'}
 
 
 def check_uids_present(log, uids):

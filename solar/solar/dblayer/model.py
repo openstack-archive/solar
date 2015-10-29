@@ -810,4 +810,4 @@ class Model(object):
             ls.remove(self.key)
         except KeyError:
             pass
-        raise NotImplementedError()
+        self._riak_object.delete()
