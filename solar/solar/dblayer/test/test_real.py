@@ -9,7 +9,10 @@ def create_resource(key, data):
     mi = data.get('meta_inputs', {})
     for inp_name, inp_value in data.get('inputs', {}).items():
         if isinstance(inp_value, list):
-            schema = ['str!']
+            if len(inp_value) == 1 and isinstance(inp_value[0], dict):
+                schema = [{}]
+            else:
+                schema = ['str!']
         elif isinstance(inp_value, dict):
             schema = {}
         else:
@@ -326,3 +329,40 @@ def test_simple_to_dict_inputs_with_tag(rk):
     assert r2.inputs['input']['input1'] == 10
     assert r2.inputs['input']['input2'] == 115
 
+
+def test_simple_to_listdict_inputs(rk):
+
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+    k4 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': 110,
+                                            'input2': 115}})
+    r4 = create_resource(k4, {'name': 'first',
+                                 'inputs': {'input1': 1110,
+                                            'input2': 1115}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': [{'input1': None,
+                                                       'input2': None}]}})
+
+
+    r1.connect(r2, {'input1': 'input:input1',
+                    'input2': 'input:input2'})
+    r3.connect(r2, {'input2': 'input:input2|tag2',
+                    'input1': 'input:input1|tag1'})
+    r4.connect(r2, {'input2': 'input:input2|tag1',
+                    'input1': 'input:input1|tag2'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+    r4.save()
+
+    assert r2.inputs['input'] == [{u'input2': 1115, u'input1': 110},
+                                  {u'input2': 115, u'input1': 1110},
+                                  {u'input2': 15, u'input1': 10}]

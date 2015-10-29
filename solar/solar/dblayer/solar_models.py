@@ -88,6 +88,9 @@ class InputsFieldWrp(IndexFieldWrp):
         my_resource._add_index(my_ind_name, my_ind_val)
         return my_key
 
+    def _connect_my_list_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        return self._connect_my_hash(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
         other_type = self._input_type(other_resource, other_inp_name)
@@ -203,6 +206,24 @@ class InputsFieldWrp(IndexFieldWrp):
             res = {}
             for _, my_val, value in items:
                 res[my_val] = value
+        self._cache[name] = res
+        return res
+
+    def _map_field_val_list_hash(self, recvs, name):
+        items = []
+        tags = set()
+        for recv in recvs:
+            index_val, obj_key = recv
+            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            items.append((my_tag, my_val, cres))
+        tmp_res = {}
+        for my_tag, my_val, value in items:
+            try:
+                tmp_res[my_tag][my_val] = value
+            except KeyError:
+                tmp_res[my_tag] = {my_val: value}
+        res = tmp_res.values()
         self._cache[name] = res
         return res
 
