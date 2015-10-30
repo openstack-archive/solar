@@ -170,9 +170,7 @@ class Resource(object):
 
         for k, v in args.items():
             self.db_obj.inputs[k] = v
-            # i = resource_inputs[k]
-            # i.value = v
-            # i.save()
+        self.db_obj.save_lazy()
 
     def delete(self):
         return self.db_obj.delete()
@@ -182,19 +180,19 @@ class Resource(object):
             self.delete()
         else:
             self.db_obj.state = RESOURCE_STATE.removed.name
-            self.db_obj.save()
+            self.db_obj.save_lazy()
 
     def set_operational(self):
         self.db_obj.state = RESOURCE_STATE.operational.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def set_error(self):
         self.db_obj.state = RESOURCE_STATE.error.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def set_created(self):
         self.db_obj.state = RESOURCE_STATE.created.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def to_be_removed(self):
         return self.db_obj.state == RESOURCE_STATE.removed.name
@@ -265,6 +263,7 @@ class Resource(object):
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):
         self.db_obj.connect(receiver.db_obj, mapping=mapping)
+        self.db_obj.save_lazy()
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         return
