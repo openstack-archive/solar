@@ -278,6 +278,8 @@ class Field(FieldBase):
     _simple_types = {int, float, long, str, unicode, basestring, list, tuple, dict}
 
     def __init__(self, _type, fname=None, default=NONE):
+        if _type == str:
+           _type = basestring
         self._type = _type
         super(Field, self).__init__(fname=fname, default=default)
 
@@ -292,7 +294,7 @@ class Field(FieldBase):
 
     def __set__(self, instance, value):
         if not isinstance(value, self._type):
-            raise Exception("Invalid type %r for %r" % (type(value), self.fname))
+            raise Exception("Invalid type %r for %r, expected %r" % (type(value), self.fname, self._type))
         if self._type not in self._simple_types:
             value = self._type.to_simple(value)
         instance._field_changed(self)
