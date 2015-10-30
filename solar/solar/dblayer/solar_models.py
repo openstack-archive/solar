@@ -49,29 +49,33 @@ class InputsFieldWrp(IndexFieldWrp):
                                           other_inp_name)
         my_ind_val += types_mapping
 
-        for ind_name, ind_value in my_resource._riak_object.indexes:
-            if ind_name == my_ind_name:
-                mr, mn, _ = ind_value.split('|', 2)
-                if mr == my_resource.key and mn == my_inp_name:
-                    my_resource._remove_index(ind_name, ind_value)
-                    break
+        real_my_type = self._input_type(my_resource, my_inp_name)
+        if real_my_type == InputTypes.simple:
+            for ind_name, ind_value in my_resource._riak_object.indexes:
+                if ind_name == my_ind_name:
+                    mr, mn, _ = ind_value.split('|', 2)
+                    if mr == my_resource.key and mn == my_inp_name:
+                        my_resource._remove_index(ind_name, ind_value)
+                        break
 
         my_resource._add_index(my_ind_name, my_ind_val)
         return my_inp_name
 
-    def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name):
+    def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         other_ind_name = '{}_emit_bin'.format(self.fname)
         other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
                                              other_inp_name,
                                              my_resource.key,
                                              my_inp_name)
 
-        for ind_name, ind_value in my_resource._riak_object.indexes:
-            if ind_name == other_ind_name:
-                mr, mn = ind_value.rsplit('|')[2:]
-                if mr == my_resource.key and mn == my_inp_name:
-                    my_resource._remove_index(ind_name, ind_value)
-                    break
+        real_my_type = self._input_type(my_resource, my_inp_name)
+        if real_my_type == InputTypes.simple:
+            for ind_name, ind_value in my_resource._riak_object.indexes:
+                if ind_name == other_ind_name:
+                    mr, mn = ind_value.rsplit('|')[2:]
+                    if mr == my_resource.key and mn == my_inp_name:
+                        my_resource._remove_index(ind_name, ind_value)
+                        break
 
         my_resource._add_index(other_ind_name,
                                other_ind_val)
@@ -121,7 +125,7 @@ class InputsFieldWrp(IndexFieldWrp):
 
         # set other side
         other_meth = getattr(self, '_connect_other_{}'.format(other_type.name))
-        other_meth(my_resource, my_inp_name, other_resource, other_inp_name)
+        other_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
 
         try:
             del self._cache[my_affected]
