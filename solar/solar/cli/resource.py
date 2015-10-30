@@ -108,8 +108,11 @@ def compile_all():
 
 @resource.command()
 def clear_all():
+    from solar.dblayer.model import ModelMeta
     click.echo('Clearing all resources and connections')
-    orm.db.clear()
+    ModelMeta.remove_all()
+
+    # orm.db.clear()
 
 @resource.command()
 @click.argument('name')

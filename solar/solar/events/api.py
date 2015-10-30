@@ -73,7 +73,7 @@ def add_react(parent, dep, actions, state='success'):
 
 
 def add_events(resource, lst):
-    resource = Resource.get_or_create(resource)
+    resource = Resource.get(resource)
     resource.events.extend([ev.to_dict() for ev in lst])
     resource.save(force=True)
 
@@ -83,7 +83,7 @@ def remove_event(ev):
 
 
 def all_events(resource):
-    return [create_event(e) for e in Resource.get_or_create(resource).events]
+    return [create_event(e) for e in Resource.get(resource).events]
 
 
 def bft_events_graph(start):

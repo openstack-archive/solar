@@ -74,7 +74,7 @@ def stage_changes():
             resource_args = {}
             resource_connections = []
         else:
-            resource_args = resouce_obj.to_dict()
+            resource_args = resouce_obj.args.to_dict()
             resource_connections = resouce_obj.connections
 
         if commited.state == RESOURCE_STATE.removed.name:

@@ -64,7 +64,7 @@ Model.get_bucket_name = classmethod(patched_get_bucket_name)
 #                                               ('synchronous', 'NORMAL')))
 
 from solar.dblayer.riak_client import RiakClient
-client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+client = RiakClient(protocol='pbc', host='10.0.0.2', pb_port=8087)
 # client = RiakClient(protocol='http', host='10.0.0.3', http_port=18098)
 
 

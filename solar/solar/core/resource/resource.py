@@ -271,11 +271,10 @@ class Resource(object):
         self.db_obj.save_lazy()
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
-        return
-        # if use_defaults:
-        #     api.add_default_events(self, receiver)
-        # if events:
-        #     api.add_events(self.name, events)
+        if use_defaults:
+            api.add_default_events(self, receiver)
+        if events:
+            api.add_events(self.name, events)
 
     def connect(self, receiver, mapping=None, events=None):
         return self.connect_with_events(
