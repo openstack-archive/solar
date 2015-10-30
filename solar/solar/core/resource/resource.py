@@ -202,10 +202,14 @@ class Resource(object):
         return self.db_obj.tags
 
     def add_tags(self, *tags):
-        self.db_obj.add_tags(*tags)
+        for tag in tags:
+            self.db_obj.tags.set(tag)
+        self.db_obj.save_lazy()
 
     def remove_tags(self, *tags):
-        self.db_obj.remove_tags(*tags)
+        for tag in tags:
+            self.db_obj.tags.remove(tag)
+        self.db_obj.save_lazy()
 
     @property
     def connections(self):
@@ -290,8 +294,11 @@ def load_all():
 
 def load_by_tags(tags):
     tags = set(tags)
-    return [Resource(r) for r in orm.DBResource.load_all()
-            if tags.issubset(set(r.tags))]
+    candids_all = set()
+    for tag in tags:
+        candids = DBResource.tags.filter(tag)
+        candids_all.update(set(candids))
+    return [Resource(r) for r in DBResource.multi_get(candids_all)]
 
 
 def validate_resources():

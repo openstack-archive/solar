@@ -38,7 +38,7 @@ class SingleClassCache(object):
 class ClassCache(object):
 
     def __get__(self, _, owner):
-        th = current_thread()
+        # th = current_thread()
         l = LOCAL
         # better don't duplicate class names
         cache_name = owner.__name__
@@ -47,9 +47,9 @@ class ClassCache(object):
         except AttributeError:
             cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
             setattr(l, 'cache_id', cache_id)
-        if getattr(th, 'cache_id', None) != cache_id:
+        if getattr(l, 'cache_id_cmp', None) != cache_id:
             # new cache
-            setattr(th, 'cache_id', cache_id)
+            setattr(l, 'cache_id_cmp', cache_id)
             c = SingleClassCache(owner)
             setattr(l, '_model_caches', {})
             l._model_caches[cache_name] = c
@@ -64,9 +64,10 @@ class ClassCache(object):
 
 
 def clear_cache():
-    th = current_thread()
+    # th = current_thread()
+    l = LOCAL
     cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
-    setattr(th, 'cache_id', cache_id)
+    setattr(l, 'cache_id_cmp', cache_id)
 
 
 def get_bucket(_, owner, mcs):
@@ -765,6 +766,7 @@ class Model(object):
 
     def save_lazy(self):
         self._c.lazy_save.add(self)
+
 
     def delete(self):
         ls = self._c.lazy_save
