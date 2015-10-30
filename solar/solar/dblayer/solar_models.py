@@ -342,6 +342,12 @@ class TagsFieldWrp(IndexFieldWrp):
     def __iter__(self):
         return iter(self._instance._data_container[self.fname])
 
+    def as_list(self):
+        try:
+            return self._instance._data_container[self.fname][:]
+        except KeyError:
+            return []
+
     def set(self, name, value=None):
         if '=' in name and value is None:
             name, value = name.split('=', 1)
@@ -423,6 +429,7 @@ class TagsField(IndexField):
                                                max_results=100000,
                                                return_terms=True).results
         return set(map(itemgetter(1), res))
+
 
 
 # class MetaInput(NestedModel):
