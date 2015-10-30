@@ -20,12 +20,12 @@ class NodeAdapter(dict):
             raise AttributeError(name)
 
     @property
-    def safe_mac(self):
-        return self['mac'].replace(':', '_')
+    def node_id(self):
+        return self['id']
 
     @property
     def partitioning(self):
-        return requests.get(bareon_service.format(self['mac'])).json()
+        return requests.get(bareon_service.format(self['id'])).json()
 
 # Sync hw info about nodes from discovery service into bareon-api
 requests.post(bareon_sync)
@@ -42,11 +42,11 @@ master_node = filter(lambda n: n.name == 'node_master', node_resources)[0]
 # Dnsmasq resources
 for node in nodes_list:
     node = NodeAdapter(node)
-    node_resource = filter(lambda n: n.name.endswith('node_{0}'.format(node.safe_mac)), node_resources)[0]
+    node_resource = filter(lambda n: n.name.endswith('node_{0}'.format(node.node_id)), node_resources)[0]
 
     node_resource.update({'partitioning': node.partitioning})
 
-    dnsmasq = vr.create('dnsmasq_{0}'.format(node.safe_mac), 'resources/dnsmasq', {})[0]
+    dnsmasq = vr.create('dnsmasq_{0}'.format(node.node_id), 'resources/dnsmasq', {})[0]
     master_node.connect(dnsmasq)
     node_resource.connect(dnsmasq, {'admin_mac': 'exclude_mac_pxe'})
 
