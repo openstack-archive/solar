@@ -60,8 +60,8 @@ def test_reversed_order_is_preserved():
         li.save()
         added.append(li.key)
     added.reverse()
-    assert LogItem.history.filter(
-        StrInt.n_max(), StrInt.n_min(), max_results=2) == added[:2]
+    assert list(LogItem.history.filter(
+        StrInt.n_max(), StrInt.n_min(), max_results=2)) == added[:2]
 
 
 def test_staged_not_indexed():
