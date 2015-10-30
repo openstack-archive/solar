@@ -136,14 +136,15 @@ def create(args, base_path, name):
 @click.option('--json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
 def show(name, tag, json, color):
+    echo = click.echo_via_pager
     if name:
         resources = [sresource.load(name)]
+        echo = click.echo
     elif tag:
         resources = sresource.load_by_tags(set(tag))
     else:
         resources = sresource.load_all()
 
-    echo = click.echo_via_pager
     if json:
         output = json.dumps([r.to_dict() for r in resources], indent=2)
         echo = click.echo

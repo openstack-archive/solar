@@ -31,6 +31,7 @@ from hashlib import md5
 
 
 from solar.dblayer.solar_models import Resource as DBResource
+from solar.dblayer.model import StrInt
 
 
 def read_meta(base_path):
@@ -290,7 +291,8 @@ def load(name):
 
 # TODO
 def load_all():
-    return [Resource(r) for r in orm.DBResource.load_all()]
+    candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
+    return [Resource(r) for r in DBResource.multi_get(candids)]
 
 def load_by_tags(tags):
     tags = set(tags)
