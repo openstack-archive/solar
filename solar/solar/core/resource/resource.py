@@ -28,6 +28,7 @@ from solar.events import api
 
 from uuid import uuid4
 from hashlib import md5
+import networkx
 
 
 from solar.dblayer.solar_models import Resource as DBResource
@@ -220,22 +221,20 @@ class Resource(object):
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
         rst = []
-        for emitter, receiver, meta in self.db_obj.graph().edges(data=True):
+        for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
             if meta:
-                receiver_input = '{}:{}|{}'.format(receiver.name,
+                receiver_input = '{}:{}|{}'.format(receiver_input,
                     meta['destination_key'], meta['tag'])
-            else:
-                receiver_input = receiver.name
 
             rst.append(
-                [emitter.resource.name, emitter.name,
-                 receiver.resource.name, receiver_input])
+                [emitter_resource, emitter_input,
+                 receiver_resource, receiver_input])
         return rst
 
     def graph(self):
         mdg = networkx.MultiDiGraph()
-        for input_name, input_value in self.inputs:
-            mdg.add_edges_from(input.edges())
+        for data in self.db_obj.inputs._edges():
+            mdg.add_edges_from(data)
         return mdg
 
     def resource_inputs(self):

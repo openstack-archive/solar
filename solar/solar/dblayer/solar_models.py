@@ -40,6 +40,33 @@ class InputsFieldWrp(IndexFieldWrp):
             return InputTypes.hash
         raise Exception("Unknown type")
 
+    def _edges(self):
+        inst = self._instance
+        start = inst.key
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        res = inst._get_index(my_ind_name,
+                              startkey=start + '|',
+                              endkey=start + '|~',
+                              return_terms=True,
+                              max_results=99999).results
+        vals = map(itemgetter(0), res)
+        for val in vals:
+            data = val.split('|')
+            dlen = len(data)
+            my_resource = data[0]
+            my_input = data[1]
+            other_resource = data[2]
+            other_input = data[3]
+            if dlen == 5:
+                meta = None
+            elif dlen == 7:
+                meta = {'destination_key': data[5],
+                        'tag': data[4]}
+            else:
+                raise Exception("Unsupported case")
+            yield (my_resource, my_input), (other_resource, other_input), meta
+
+
     def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
