@@ -219,6 +219,7 @@ class Resource(object):
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
         rst = []
+        # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
             if meta:
                 receiver_input = '{}:{}|{}'.format(receiver_input,
