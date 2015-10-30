@@ -468,8 +468,9 @@ class ModelMeta(type):
     def setup(mcs, riak_client):
         mcs.riak_client = riak_client
 
+
     @classmethod
-    def session_end(mcs, result=True):
+    def save_all_lazy(mcs):
         for cls in mcs._defined_models:
             for to_save in cls._c.lazy_save:
                 try:
@@ -477,6 +478,10 @@ class ModelMeta(type):
                 except DBLayerException:
                     continue
             cls._c.lazy_save.clear()
+
+    @classmethod
+    def session_end(mcs, result=True):
+        mcs.save_all_lazy()
         mcs.riak_client.session_end(result)
 
     @classmethod
@@ -754,6 +759,16 @@ class Model(object):
         self._new = False
         self._modified_fields.clear()
         self._indexes_hash = None
+
+    @classmethod
+    def save_all_lazy(cls):
+        for to_save in set(cls._c.lazy_save):
+            try:
+                to_save.save()
+            except DBLayerException:
+                continue
+            cls._c.lazy_save.clear()
+
 
     @clears_state_for('index')
     def save(self, force=False):

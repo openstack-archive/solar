@@ -25,12 +25,13 @@ from solar.interfaces.db import get_db
 from solar.events.controls import React, Dep
 from solar.events.api import add_event
 
+from solar.dblayer.solar_models import Resource
 
-db = get_db()
+# db = get_db()
 
 
 def setup_riak():
-    db.clear()
+    # db.clear()
 
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})
     nodes = [x for x in resources if x.name.startswith('node')]
@@ -43,6 +44,7 @@ def setup_riak():
         r = vr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
+                       'storage_backend': 'leveldb',
                        'riak_hostname': 'riak_server%d.solar' % num,
                        'riak_name': 'riak%d@riak_server%d.solar' % (num, num)})[0]
         riak_services.append(r)
@@ -67,6 +69,7 @@ def setup_riak():
                 {'riak_hostname': 'hosts:name',
                  'ip': 'hosts:ip'})
 
+    Resource.save_all_lazy()
     errors = resource.validate_resources()
     for r, error in errors:
         click.echo('ERROR: %s: %s' % (r.name, error))

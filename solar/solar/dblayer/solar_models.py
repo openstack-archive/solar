@@ -294,6 +294,15 @@ class InputsFieldWrp(IndexFieldWrp):
         self._instance._field_changed(self)
         return self._set_field_value(name, value)
 
+    def items(self):
+        return self._instance._data_container[self.fname].items()
+
+    def get(self, name, default=None):
+        if self._has_own_input(name):
+            return self[name]
+        else:
+            return default
+
     def _set_field_value(self, name, value):
         fname = self.fname
         my_name = self._instance.key
@@ -305,8 +314,8 @@ class InputsFieldWrp(IndexFieldWrp):
                                  return_terms=True).results
         if recvs:
             recvs = recvs[0]
-            inp, emitter_name, emitter_inp = recvs[0].split('|', 3)
-            raise Exception("I'm connected with resource %r input %r" % (emitter_name, emitter_inp))
+            res, inp, emitter_name, emitter_inp = recvs[0].split('|')[:4]
+            raise Exception("%r is connected with resource %r input %r" % (res, emitter_name, emitter_inp))
         # inst = self._instance
         robj = self._instance._riak_object
         self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(my_name, name))
@@ -463,6 +472,8 @@ class Resource(Model):
     def connect(self, other, mapping):
         my_inputs = self.inputs
         other_inputs = other.inputs
+        if mapping is None:
+            return
         for my_name, other_name in mapping.iteritems():
             other_inputs.connect(other_name, self, my_name)
 
