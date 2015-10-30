@@ -21,5 +21,8 @@ input:
       schema: str!
       value: $uuid
       reverse: True
+    partitioning:
+      schema: dict!
+      value:
 
 tags: [resources=node]
