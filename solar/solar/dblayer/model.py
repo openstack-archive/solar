@@ -275,9 +275,13 @@ class FieldBase(object):
 
 class Field(FieldBase):
 
+    # in from_dict, when you set value to None, then types that are *not* there are set to NONE
+    _not_nullable_types = {int, float, long, str, unicode, basestring}
     _simple_types = {int, float, long, str, unicode, basestring, list, tuple, dict}
 
     def __init__(self, _type, fname=None, default=NONE):
+        if _type == str:
+           _type = basestring
         self._type = _type
         super(Field, self).__init__(fname=fname, default=default)
 
@@ -292,7 +296,7 @@ class Field(FieldBase):
 
     def __set__(self, instance, value):
         if not isinstance(value, self._type):
-            raise Exception("Invalid type %r for %r" % (type(value), self.fname))
+            raise Exception("Invalid type %r for %r, expected %r" % (type(value), self.fname, self._type))
         if self._type not in self._simple_types:
             value = self._type.to_simple(value)
         instance._field_changed(self)
@@ -630,6 +634,7 @@ class Model(object):
             raise DBLayerException("Already have _riak_object")
         self._real_riak_object = value
 
+
     @property
     def _data_container(self):
         return self._riak_object.data
@@ -669,6 +674,11 @@ class Model(object):
         if self._modified_fields:
             return True
         return self._indexes_changed
+
+    def to_dict(self):
+        d = dict(self._riak_object.data)
+        d['key'] = self.key
+        return d
 
     def __str__(self):
         if self._riak_object is None:
@@ -710,6 +720,8 @@ class Model(object):
             gname = field.gname
             val = data.get(fname, NONE)
             default = field.default
+            if val is None and field._type not in field._not_nullable_types:
+                val = NONE
             if val is NONE and default is not NONE:
                 setattr(obj, gname, default)
             elif val is not NONE:

@@ -30,6 +30,8 @@ from uuid import uuid4
 from hashlib import md5
 
 
+from solar.dblayer.solar_models import Resource as DBResource
+
 
 def read_meta(base_path):
     base_meta_file = os.path.join(base_path, 'meta.yaml')
@@ -74,28 +76,29 @@ class Resource(object):
 
         self.auto_extend_inputs(inputs)
 
-        self.db_obj = orm.DBResource(**{
-            'id': name,
-            'name': name,
-            'actions_path': metadata.get('actions_path', ''),
-            'actions': metadata.get('actions', ''),
-            'base_name': metadata.get('base_name', ''),
-            'base_path': metadata.get('base_path', ''),
-            'handler': metadata.get('handler', ''),
-            'puppet_module': metadata.get('puppet_module', ''),
-            'version': metadata.get('version', ''),
-            'meta_inputs': inputs,
-            'tags': tags
-
-        })
-        self.db_obj.state = RESOURCE_STATE.created.name
-        self.db_obj.tags = tags or []
-        self.db_obj.save()
+        self.db_obj = DBResource.from_dict(
+            name,
+            {
+                'id': name,
+                'name': name,
+                'actions_path': metadata.get('actions_path', ''),
+                'actions': metadata.get('actions', {}),
+                'base_name': metadata.get('base_name', ''),
+                'base_path': metadata.get('base_path', ''),
+                'handler': metadata.get('handler', ''),
+                'puppet_module': metadata.get('puppet_module', ''),
+                'version': metadata.get('version', ''),
+                'meta_inputs': inputs,
+                'tags': tags,
+                'state': RESOURCE_STATE.created.name
+            })
 
         self.create_inputs(args)
 
+        self.db_obj.save()
+
     # Load
-    @dispatch(orm.DBResource)
+    @dispatch(DBResource)
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
@@ -147,15 +150,15 @@ class Resource(object):
         args = args or {}
         for name, v in self.db_obj.meta_inputs.items():
             value = args.get(name, v.get('value'))
-
-            self.db_obj.add_input(name, v['schema'], value)
+            self.db_obj.inputs[name] = value
 
     @property
     def args(self):
-        ret = {}
-        for i in self.resource_inputs().values():
-            ret[i.name] = i.backtrack_value()
-        return ret
+        return self.db_obj.inputs
+        # ret = {}
+        # for i in self.resource_inputs().values():
+        #     ret[i.name] = i.backtrack_value()
+        # return ret
 
     def update(self, args):
         # TODO: disconnect input when it is updated and end_node
@@ -164,9 +167,10 @@ class Resource(object):
         resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
-            i = resource_inputs[k]
-            i.value = v
-            i.save()
+            self.db_obj.inputs[k] = v
+            # i = resource_inputs[k]
+            # i.value = v
+            # i.save()
 
     def delete(self):
         return self.db_obj.delete()
@@ -223,19 +227,17 @@ class Resource(object):
                  receiver.resource.name, receiver_input])
         return rst
 
+    def graph(self):
+        mdg = networkx.MultiDiGraph()
+        for input_name, input_value in self.inputs:
+            mdg.add_edges_from(input.edges())
+        return mdg
+
     def resource_inputs(self):
-        return {
-            i.name: i for i in self.db_obj.inputs.as_set()
-        }
+        return self.db_obj.inputs
 
     def to_dict(self):
         ret = self.db_obj.to_dict()
-        ret['input'] = {}
-        for k, v in self.args.items():
-            ret['input'][k] = {
-                'value': v,
-            }
-
         return ret
 
     def color_repr(self):
@@ -243,8 +245,8 @@ class Resource(object):
 
         arg_color = 'yellow'
 
-        return ("{resource_s}({name_s}='{id}', {base_path_s}={base_path} "
-                "{args_s}={input}, {tags_s}={tags})").format(
+        return ("{resource_s}({name_s}='{key}', {base_path_s}={base_path} "
+                "{args_s}={inputs}, {tags_s}={tags})").format(
             resource_s=click.style('Resource', fg='white', bold=True),
             name_s=click.style('name', fg=arg_color, bold=True),
             base_path_s=click.style('base_path', fg=arg_color, bold=True),
@@ -258,11 +260,14 @@ class Resource(object):
 
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):
-        signals.connect(self, receiver, mapping=mapping)
-        if use_defaults:
-            api.add_default_events(self, receiver)
-        if events:
-            api.add_events(self.name, events)
+        self.db_obj.connect(receiver.db_obj, mapping=mapping)
+        # signals.connect(self, receiver, mapping=mapping)
+        # TODO: implement events
+        return
+        # if use_defaults:
+        #     api.add_default_events(self, receiver)
+        # if events:
+        #     api.add_events(self.name, events)
 
     def connect(self, receiver, mapping=None, events=None):
         return self.connect_with_events(
@@ -271,7 +276,7 @@ class Resource(object):
 
 
 def load(name):
-    r = orm.DBResource.load(name)
+    r = DBResource.get(name)
 
     if not r:
         raise Exception('Resource {} does not exist in DB'.format(name))

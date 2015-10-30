@@ -5,11 +5,26 @@ from solar.dblayer.model import Model, Field, IndexField, clear_cache, check_sta
 from solar.dblayer.solar_models import Resource, DBLayerSolarException
 
 
+def create_resource(key, data):
+    mi = data.get('meta_inputs', {})
+    for inp_name, inp_value in data.get('inputs', {}).items():
+        if isinstance(inp_value, list):
+            if len(inp_value) == 1 and isinstance(inp_value[0], dict):
+                schema = [{}]
+            else:
+                schema = ['str!']
+        elif isinstance(inp_value, dict):
+            schema = {}
+        else:
+            schema = '%s!' % type(inp_value).__name__
+        mi.setdefault(inp_name, {"schema": schema})
+    data['meta_inputs'] = mi
+    return Resource.from_dict(key, data)
 
 
 def test_changes_state(rk):
     key = next(rk)
-    r = Resource.from_dict(key, {'name': 'a name'})
+    r = create_resource(key, {'name': 'a name'})
     r.inputs['a'] = 1
     with pytest.raises(Exception):
         # raise exception when something is changed
@@ -20,7 +35,7 @@ def test_changes_state(rk):
 
 def test_basic_input(rk):
     key = next(rk)
-    r = Resource.from_dict(key, {'name': 'a name'})
+    r = create_resource(key, {'name': 'a name'})
     r.inputs['a'] = 1
     r.save()
     assert r.inputs['a'] == 1
@@ -34,7 +49,7 @@ def test_basic_input(rk):
 
 def test_input_in_dict(rk):
     key = next(rk)
-    r = Resource.from_dict(key, {'name': 'a name',
+    r = create_resource(key, {'name': 'a name',
                                  'inputs': {'input1': 15,
                                             'input2': None}})
     r.save()
@@ -49,10 +64,10 @@ def test_basic_connect(rk):
     k1 = next(rk)
     k2 = next(rk)
 
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                  'inputs': {'input1': 10,
                                             'input2': 15}})
-    r2 = Resource.from_dict(k2, {'name': 'second',
+    r2 = create_resource(k2, {'name': 'second',
                                  'inputs': {'input1': None,
                                             'input2': None}})
 
@@ -78,10 +93,10 @@ def test_adv_connect(rk, depth):
     k1 = next(rk)
     k2 = next(rk)
 
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                  'inputs': {'input1': 10,
                                             'input2': 15}})
-    prev = Resource.from_dict(k2, {'name': 'second',
+    prev = create_resource(k2, {'name': 'second',
                                      'inputs': {'input1': None,
                                                 'input2': None,
                                                 'input3': 0}})
@@ -93,7 +108,7 @@ def test_adv_connect(rk, depth):
 
     for x in xrange(depth - 1):
         k = next(rk)
-        res = Resource.from_dict(k, {'name': 'next %d' % (x + 1),
+        res = create_resource(k, {'name': 'next %d' % (x + 1),
                                      'inputs': {'input1': None,
                                                 'input2': None,
                                                 'input3': x + 1}})
@@ -111,14 +126,14 @@ def test_adv_connect(rk, depth):
 @pytest.mark.parametrize('depth', (1, 3, 5, 10, 50, 100))
 def test_perf_inputs(rk, depth):
     k1 = next(rk)
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                  'inputs': {'input1': 'target'}})
 
     r1.save()
     prev = r1
     for x in xrange(depth):
         k = next(rk)
-        res = Resource.from_dict(k, {'name': 'next %d' % (x + 1),
+        res = create_resource(k, {'name': 'next %d' % (x + 1),
                                      'inputs': {'input1': None}})
         prev.connect(res, {'input1': 'input1'})
         res.save()
@@ -136,14 +151,14 @@ def test_change_connect(rk):
     k2 = next(rk)
     k3 = next(rk)
 
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                  'inputs': {'input1': 10,
                                             'input2': 15}})
-    r2 = Resource.from_dict(k2, {'name': 'second',
+    r2 = create_resource(k2, {'name': 'second',
                                  'inputs': {'input1': None,
                                             'input2': None,
                                             'input3': 0}})
-    r3 = Resource.from_dict(k3, {'name': 'first',
+    r3 = create_resource(k3, {'name': 'first',
                                 'inputs': {'input1': 30,
                                             'input2': 35}})
 
@@ -163,7 +178,7 @@ def test_simple_tag(rk, rt):
     k1 = next(rk)
     tag = next(rt)
 
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                  'tags': ['%s' % tag, '%s=10' % tag]})
 
     r1.save()
@@ -175,11 +190,11 @@ def test_list_by_tag(rk, rt):
     k2 = next(rk)
     tag1 = next(rt)
     tag2 = next(rt)
-    r1 = Resource.from_dict(k1, {'name': 'first',
+    r1 = create_resource(k1, {'name': 'first',
                                      'tags': [tag1, '%s=10' % tag1]})
     r1.save()
 
-    r2 = Resource.from_dict(k2, {'name': 'first',
+    r2 = create_resource(k2, {'name': 'first',
                                      'tags': [tag1, '%s=10' % tag2]})
     r2.save()
 
@@ -198,9 +213,156 @@ def test_updated_behaviour(rk):
     k1 = next(rk)
 
     _cmp = StrInt()
-    r1 = Resource.from_dict(k1, {'name': 'blah'})
+    r1 = create_resource(k1, {'name': 'blah'})
     r1.save()
     assert isinstance(r1._riak_object.data['updated'], basestring)
     assert not isinstance(r1.updated, basestring)
     assert r1.updated >= _cmp
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
+
+
+
+def test_list_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': []}})
+
+    r1.connect(r2, {'input1': 'input'})
+    r1.connect(r2, {'input2': 'input'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input'] == [10, 15]
+
+
+def test_dict_to_dict_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input': {'input1': 10,
+                                                      'input2': 15}
+                                            }})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None,
+                                                      'input3': None}}})
+
+    r1.connect(r2, {'input': 'input'})
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 15
+    assert 'input3' not in r2.inputs['input']
+
+
+def test_list_to_list_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input': [10, 15]}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': []}})
+
+    r1.connect(r2, {'input': 'input'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input'] == [10, 15]
+
+
+def test_simple_to_dict_inputs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None}}})
+
+
+    r1.connect(r2, {'input1': 'input:input1',
+                    'input2': 'input:input2'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 15
+
+
+def test_simple_to_dict_inputs_with_tag(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': 110,
+                                            'input2': 115}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None}}})
+
+
+    r1.connect(r2, {'input1': 'input:input1|tag'})
+    r3.connect(r2, {'input2': 'input:input2|tag'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 115
+
+
+def test_simple_to_listdict_inputs(rk):
+
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+    k4 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': 110,
+                                            'input2': 115}})
+    r4 = create_resource(k4, {'name': 'first',
+                                 'inputs': {'input1': 1110,
+                                            'input2': 1115}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': [{'input1': None,
+                                                       'input2': None}]}})
+
+
+    r1.connect(r2, {'input1': 'input:input1',
+                    'input2': 'input:input2'})
+    r3.connect(r2, {'input2': 'input:input2|tag2',
+                    'input1': 'input:input1|tag1'})
+    r4.connect(r2, {'input2': 'input:input2|tag1',
+                    'input1': 'input:input1|tag2'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+    r4.save()
+
+    assert r2.inputs['input'] == [{u'input2': 1115, u'input1': 110},
+                                  {u'input2': 115, u'input1': 1110},
+                                  {u'input2': 15, u'input1': 10}]
