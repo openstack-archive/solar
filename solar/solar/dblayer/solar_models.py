@@ -118,7 +118,7 @@ class InputsFieldWrp(IndexFieldWrp):
             return True
 
     def __iter__(self):
-        for name in self._instance._data_container:
+        for name in self._instance._data_container[self.fname]:
             yield name
 
     def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
