@@ -82,7 +82,7 @@ class Resource(object):
                 'id': name,
                 'name': name,
                 'actions_path': metadata.get('actions_path', ''),
-                'actions': metadata.get('actions', ''),
+                'actions': metadata.get('actions', {}),
                 'base_name': metadata.get('base_name', ''),
                 'base_path': metadata.get('base_path', ''),
                 'handler': metadata.get('handler', ''),
@@ -90,7 +90,7 @@ class Resource(object):
                 'version': metadata.get('version', ''),
                 'meta_inputs': inputs,
                 'tags': tags,
-                'stae': RESOURCE_STATE.created.name
+                'state': RESOURCE_STATE.created.name
             })
 
         self.create_inputs(args)
@@ -167,9 +167,10 @@ class Resource(object):
         resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
-            i = resource_inputs[k]
-            i.value = v
-            i.save()
+            self.db_obj.inputs[k] = v
+            # i = resource_inputs[k]
+            # i.value = v
+            # i.save()
 
     def delete(self):
         return self.db_obj.delete()
@@ -244,8 +245,8 @@ class Resource(object):
 
         arg_color = 'yellow'
 
-        return ("{resource_s}({name_s}='{id}', {base_path_s}={base_path} "
-                "{args_s}={input}, {tags_s}={tags})").format(
+        return ("{resource_s}({name_s}='{key}', {base_path_s}={base_path} "
+                "{args_s}={inputs}, {tags_s}={tags})").format(
             resource_s=click.style('Resource', fg='white', bold=True),
             name_s=click.style('name', fg=arg_color, bold=True),
             base_path_s=click.style('base_path', fg=arg_color, bold=True),
@@ -259,7 +260,7 @@ class Resource(object):
 
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):
-        self.db_obj.connect(receiver, mappings=mappings)
+        self.db_obj.connect(receiver.db_obj, mapping=mapping)
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         return

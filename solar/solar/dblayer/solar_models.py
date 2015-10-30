@@ -421,10 +421,10 @@ class Resource(Model):
 
     updated = IndexedField(StrInt)
 
-    def connect(self, other, mappings):
+    def connect(self, other, mapping):
         my_inputs = self.inputs
         other_inputs = other.inputs
-        for my_name, other_name in mappings.iteritems():
+        for my_name, other_name in mapping.iteritems():
             other_inputs.connect(other_name, self, my_name)
 
     def save(self, *args, **kwargs):
