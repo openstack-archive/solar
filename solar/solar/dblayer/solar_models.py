@@ -320,15 +320,16 @@ class TagsFieldWrp(IndexFieldWrp):
             name, value = name.split('=', 1)
         if value is None:
             value = ''
+        full_value = '{}={}'.format(name, value)
         inst = self._instance
-        indexes = inst._riak_object.indexes.copy()  # copy it
-
-        inst._add_index('{}_bin'.format(self.fname), '{}~{}'.format(name, value))
         try:
             fld = inst._data_container[self.fname]
         except IndexError:
             fld = inst._data_container[self.fname] = []
-        full_value = '{}={}'.format(name, value)
+        if full_value in fld:
+            return
+        # indexes = inst._riak_object.indexes.copy()  # copy it
+        inst._add_index('{}_bin'.format(self.fname), '{}~{}'.format(name, value))
         try:
             fld.append(full_value)
         except KeyError:
