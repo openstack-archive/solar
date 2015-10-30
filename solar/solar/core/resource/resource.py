@@ -33,6 +33,7 @@ import networkx
 
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.dblayer.model import StrInt
+from solar.core.signals import get_mapping
 
 
 def read_meta(base_path):
@@ -261,10 +262,15 @@ class Resource(object):
     def load_commited(self):
         return orm.DBCommitedState.get_or_create(self.name)
 
-    def connect_with_events(self, receiver, mapping=None, events=None,
-            use_defaults=False):
+    def _connect_inputs(self, receiver, mapping):
+        print mapping
         self.db_obj.connect(receiver.db_obj, mapping=mapping)
         self.db_obj.save_lazy()
+
+    def connect_with_events(self, receiver, mapping=None, events=None,
+            use_defaults=False):
+        mapping = get_mapping(self, receiver, mapping)
+        self._connect_inputs(receiver, mapping)
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         return

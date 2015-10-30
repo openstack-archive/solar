@@ -109,6 +109,18 @@ class InputsFieldWrp(IndexFieldWrp):
         return other_inp_name
 
 
+    def __contains__(self, name):
+        try:
+            self._has_own_input(name)
+        except Exception:
+            return False
+        else:
+            return True
+
+    def __iter__(self):
+        for name in self._instance._data_container:
+            yield name
+
     def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
         return ret
@@ -175,11 +187,11 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _get_field_val(self, name):
         # maybe it should be tco
-        check_state_for('index', self._instance)
         try:
             return self._cache[name]
         except KeyError:
             pass
+        check_state_for('index', self._instance)
         fname = self.fname
         my_name = self._instance.key
         self._has_own_input(name)
@@ -315,7 +327,7 @@ class InputsFieldWrp(IndexFieldWrp):
         if recvs:
             recvs = recvs[0]
             res, inp, emitter_name, emitter_inp = recvs[0].split('|')[:4]
-            raise Exception("%r is connected with resource %r input %r" % (res, emitter_name, emitter_inp))
+            raise Exception("%s:%s is connected with resource %s:%s" % (res, inp, emitter_name, emitter_inp))
         # inst = self._instance
         robj = self._instance._riak_object
         self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(my_name, name))

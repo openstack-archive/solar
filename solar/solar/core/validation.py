@@ -174,11 +174,11 @@ def validate_resource(r):
     inputs = r.resource_inputs()
     args = r.args
 
-    for input_name, input_definition in inputs.items():
+    for input_name, _ in inputs.items():
         errors = validate_input(
             args.get(input_name),
             #jsonschema=input_definition.get('jsonschema'),
-            schema=input_definition.schema
+            schema=r.db_obj.meta_inputs[input_name]['schema']
         )
         if errors:
             ret[input_name] = errors

@@ -4,6 +4,7 @@ import uuid
 from functools import wraps, total_ordering
 from operator import itemgetter
 import time
+from contextlib import contextmanager
 
 LOCAL = local()
 
@@ -26,7 +27,8 @@ class NONE:
 
 class SingleClassCache(object):
 
-    __slots__ = ['obj_cache', 'db_ch_state', 'lazy_save', 'origin_class']
+    __slots__ = ['obj_cache', 'db_ch_state',
+                 'lazy_save', 'origin_class']
 
     def __init__(self, origin_class):
         self.obj_cache = {}
@@ -81,6 +83,7 @@ def changes_state_for(_type):
         @wraps(f)
         def _inner2(obj, *args, **kwargs):
             obj._c.db_ch_state['index'].add(obj.key)
+            obj.save_lazy()
             return f(obj, *args, **kwargs)
         return _inner2
     return _inner1
@@ -112,7 +115,14 @@ def requires_clean_state(_type):
 def check_state_for(_type, obj):
     state = obj._c.db_ch_state.get(_type)
     if state:
-        raise Exception("Dirty state, save all objects first")
+        if True:
+            # TODO: solve it
+            orig_state = state
+            obj.save_all_lazy()
+            state = obj._c.db_ch_state.get(_type)
+            if not state:
+                return
+        raise Exception("Dirty state, save all %r objects first" % obj.__class__)
 
 
 @total_ordering
