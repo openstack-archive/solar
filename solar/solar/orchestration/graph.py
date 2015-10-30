@@ -26,10 +26,6 @@ from collections import Counter
 from solar.dblayer.solar_models import Task
 
 
-ModelMeta.setup(client)
-
-
-
 def save_graph(graph):
     # maybe it is possible to store part of information in AsyncResult backend
     uid = graph.graph['uid']
@@ -39,16 +35,24 @@ def save_graph(graph):
             {'name': n,
              'execution': uid,
              'status': graph.node[n].get('status', ''),
-             'target': str(graph.node[n].get('target', '')),
+             'target': graph.node[n].get('target', ''),
              'task_type': graph.node[n].get('type', ''),
              'args': graph.node[n].get('args', []),
-             'errmsg': graph.node[n].get('errmsg', '')})
+             'errmsg': graph.node[n].get('errmsg', '') or ''})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
             t.parents.add(pred_task)
             pred_task.save()
         t.save()
+
+
+def update_graph(graph):
+    for n in graph:
+        task = graph.node[n]['task']
+        task.status = graph.node[n]['status']
+        task.errmsg = graph.node[n]['errmsg'] or ''
+        task.save()
 
 
 def get_graph(uid):
@@ -61,7 +65,8 @@ def get_graph(uid):
             t.name, status=t.status,
             type=t.task_type, args=t.args,
             target=t.target or None,
-            errmsg=t.errmsg or None)
+            errmsg=t.errmsg or None,
+            task=t)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg
@@ -151,7 +156,7 @@ def reset(graph, state_list=None):
     for n in graph:
         if state_list is None or graph.node[n]['status'] in state_list:
             graph.node[n]['status'] = states.PENDING.name
-    save_graph(graph)
+    update_graph(graph)
 
 
 def reset_filtered(uid):

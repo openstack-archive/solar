@@ -560,14 +560,14 @@ class ParentField(TasksField):
 class Task(Model):
     """Node object"""
 
-    name = Field(str)
-    status = Field(str)
-    target = Field(str)
-    task_type = Field(str)
+    name = Field(basestring)
+    status = Field(basestring)
+    target = Field(basestring, default=str)
+    task_type = Field(basestring)
     args = Field(list)
-    errmsg = Field(str)
+    errmsg = Field(basestring, default=str)
 
-    execution = IndexedField(str)
+    execution = IndexedField(basestring)
     parents = ParentField(default=list)
     childs = ChildField(default=list)
 
