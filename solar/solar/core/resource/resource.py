@@ -35,6 +35,8 @@ from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.dblayer.model import StrInt
 
+from solar.dblayer.model import StrInt
+
 
 def read_meta(base_path):
     base_meta_file = os.path.join(base_path, 'meta.yaml')
@@ -219,6 +221,7 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
+        return []
         rst = []
         # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
@@ -289,10 +292,15 @@ def load(name):
     return Resource(r)
 
 
+def load_updated():
+    return [Resource(DBResource.get(r)) for r
+            in DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())]
+
 # TODO
 def load_all():
     candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
     return [Resource(r) for r in DBResource.multi_get(candids)]
+
 
 def load_by_tags(tags):
     tags = set(tags)

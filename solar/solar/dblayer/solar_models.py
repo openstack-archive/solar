@@ -319,6 +319,12 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = value
         return True
 
+    def to_dict(self):
+        rst = {}
+        for key in self._instance._data_container[self.fname].keys():
+            rst[key] = self[key]
+        return rst
+
 
 class InputsField(IndexField):
     _wrp_class = InputsFieldWrp

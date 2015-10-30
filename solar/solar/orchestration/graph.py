@@ -35,7 +35,7 @@ def save_graph(graph):
             {'name': n,
              'execution': uid,
              'status': graph.node[n].get('status', ''),
-             'target': graph.node[n].get('target', ''),
+             'target': graph.node[n].get('target', '') or '',
              'task_type': graph.node[n].get('type', ''),
              'args': graph.node[n].get('args', []),
              'errmsg': graph.node[n].get('errmsg', '') or ''})

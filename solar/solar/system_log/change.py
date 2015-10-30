@@ -29,7 +29,6 @@ from solar.errors import CannotFindID
 
 from solar.dblayer.solar_models import LogItem, CommitedResource
 
-
 def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
     # something where this action will be excplicitly specified
@@ -67,14 +66,15 @@ def stage_changes():
         li.delete()
 
     staged_log = []
-    for resouce_obj in resource.load_all():
+
+    for resouce_obj in resource.load_updated():
         commited = resouce_obj.load_commited()
         base_path = resouce_obj.base_path
         if resouce_obj.to_be_removed():
             resource_args = {}
             resource_connections = []
         else:
-            resource_args = resouce_obj.args
+            resource_args = resouce_obj.to_dict()
             resource_connections = resouce_obj.connections
 
         if commited.state == RESOURCE_STATE.removed.name:

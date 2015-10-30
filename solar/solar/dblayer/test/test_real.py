@@ -221,8 +221,6 @@ def test_updated_behaviour(rk):
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
 
 
-<<<<<<< HEAD
-
 def test_list_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
