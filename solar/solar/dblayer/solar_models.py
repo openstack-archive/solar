@@ -482,7 +482,7 @@ class CommitedResource(Model):
     connections = Field(list, default=list)
     base_path = Field(str)
     tags = Field(list, default=list)
-    state = Field(str)
+    state = Field(str, default=lambda: 'removed')
 
 
 """
@@ -599,16 +599,16 @@ class NegativeCounter(Model):
 
 class LogItem(Model):
 
-    uid = IndexedField(str, default=lambda: str(uuid4()))
-    resource = Field(str)
-    action = Field(str)
+    uid = IndexedField(basestring, default=lambda: str(uuid4()))
+    resource = Field(basestring)
+    action = Field(basestring)
     diff = Field(list)
     connections_diff = Field(list)
-    state = Field(list)
-    base_path = Field(str) # remove me
+    state = Field(basestring)
+    base_path = Field(basestring) # remove me
 
     history = IndexedField(StrInt)
-    log = Field(str) # staged/history
+    log = Field(basestring) # staged/history
 
     composite = CompositeIndexField(fields=('log', 'resource', 'action'))
 

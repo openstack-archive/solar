@@ -23,17 +23,11 @@ from solar import errors
 
 from collections import Counter
 
-
-from solar.interfaces.db import get_db
-
-from solar.dblayer.model import ModelMeta
-from solar.dblayer.riak_client import RiakClient
 from solar.dblayer.solar_models import Task
-client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
+
 
 ModelMeta.setup(client)
 
-db = get_db()
 
 
 def save_graph(graph):

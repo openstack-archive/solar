@@ -498,6 +498,13 @@ class ModelMeta(type):
         mcs.riak_client = riak_client
 
     @classmethod
+    def remove_all(mcs):
+        for model in mcs._defined_models:
+            rst = model.bucket.get_index('$bucket', startkey='\x00', max_results=100000).results
+            for key in rst:
+                model.bucket.delete(key)
+
+    @classmethod
     def session_end(mcs, result=True):
         for cls in mcs._defined_models:
             for to_save in cls._c.lazy_save:

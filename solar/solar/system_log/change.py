@@ -15,6 +15,7 @@
 import dictdiffer
 import networkx as nx
 
+from solar.system_log import data
 from solar.core.log import log
 from solar.core import signals
 from solar.core import resource

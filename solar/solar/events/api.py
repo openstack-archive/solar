@@ -21,14 +21,7 @@ from solar.core.log import log
 from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
-
-from solar.dblayer.model import ModelMeta
-from solar.dblayer.riak_client import RiakClient
 from solar.dblayer.solar_models import Resource
-client = RiakClient(protocol='pbc', host='10.0.0.3', pb_port=18087)
-
-ModelMeta.setup(client)
-
 
 def create_event(event_dict):
     etype = event_dict['etype']
@@ -80,9 +73,9 @@ def add_react(parent, dep, actions, state='success'):
 
 
 def add_events(resource, lst):
-    resource = Resource.get(resource)
-    resource.events.append([ev.to_dict() for ev in lst])
-    resource.save()
+    resource = Resource.get_or_create(resource)
+    resource.events.extend([ev.to_dict() for ev in lst])
+    resource.save(force=True)
 
 
 def remove_event(ev):
@@ -90,7 +83,7 @@ def remove_event(ev):
 
 
 def all_events(resource):
-    return [create_event(e) for e in Resource.get(resource).events]
+    return [create_event(e) for e in Resource.get_or_create(resource).events]
 
 
 def bft_events_graph(start):

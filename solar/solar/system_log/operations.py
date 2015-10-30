@@ -47,7 +47,7 @@ def move_to_commited(log_action, *args, **kwargs):
             commited.inputs = patch(item.diff, commited.inputs)
             commited.tags = resource_obj.tags
             sorted_connections = sorted(commited.connections)
-            commited.connections = patch(item.signals_diff, sorted_connections)
+            commited.connections = patch(item.connections_diff, sorted_connections)
             commited.base_path = item.base_path
         commited.save()
         item.log = 'history'
