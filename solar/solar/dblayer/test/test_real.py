@@ -366,3 +366,29 @@ def test_simple_to_listdict_inputs(rk):
     assert r2.inputs['input'] == [{u'input2': 1115, u'input1': 110},
                                   {u'input2': 115, u'input1': 1110},
                                   {u'input2': 15, u'input1': 10}]
+
+
+def test_passthrough_inputs(rk):
+
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+
+    r2.connect(r3, {'input1': 'input1',
+                    'input2': 'input2'})
+    r1.connect(r2, {'input1': 'input1',
+                    'input2': 'input2'})
+
+
+    assert r3.inputs['input1'] == 10
+    assert r3.inputs['input2'] == 15
