@@ -314,9 +314,11 @@ class Bucket(object):
         ret.vclock = "new"
         return RiakObj(ret, new)
 
-    def get_index(self, index, startkey, endkey, return_terms=None,
+    def get_index(self, index, startkey, endkey=None, return_terms=None,
                   max_results=None, continuation=None, timeout=None, fmt=None,
                   term_regex=None):
+        if startkey and endkey is None:
+            endkey = startkey
         if startkey > endkey:
             startkey, endkey = endkey, startkey
 
@@ -329,6 +331,16 @@ class Bucket(object):
             q = q.where(
                 self._sql_model.key >= startkey, self._sql_model.key <= endkey
             ).order_by(self._sql_model.key)
+        elif index == '$bucket':
+            if return_terms:
+                q = self._sql_model.select(
+                    self._sql_model.value, self._sql_model.key)
+            else:
+                q = self._sql_model.select(self._sql_model.key)
+            if not startkey == '_' and endkey == '_':
+                q = q.where(
+                    self._sql_model.key >= startkey, self._sql_model.key <= endkey
+                )
         else:
             if return_terms:
                 q = self._sql_idx.select(

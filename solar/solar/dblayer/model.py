@@ -511,7 +511,7 @@ class ModelMeta(type):
     @classmethod
     def remove_all(mcs):
         for model in mcs._defined_models:
-            rst = model.bucket.get_index('$bucket', startkey='\x00', max_results=100000).results
+            rst = model.bucket.get_index('$bucket', startkey='_', max_results=100000).results
             for key in rst:
                 model.bucket.delete(key)
 
