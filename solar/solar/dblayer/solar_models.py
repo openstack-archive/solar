@@ -185,10 +185,14 @@ class InputsFieldWrp(IndexFieldWrp):
         else:
             return True
 
-    def _get_field_val(self, name):
+    def _get_field_val(self, name, other=None):
         # maybe it should be tco
+        if other:
+            full_name = '{}_other_{}'.format(name, other)
+        else:
+            full_name = name
         try:
-            return self._cache[name]
+            return self._cache[full_name]
         except KeyError:
             pass
         check_state_for('index', self._instance)
@@ -211,24 +215,29 @@ class InputsFieldWrp(IndexFieldWrp):
         if not recvs:
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
+            if other:
+                other_res = self._get_raw_field_val(other)
+                self._cache[full_name] = other_res
+                return other_res
             return _res
         my_meth = getattr(self, '_map_field_val_{}'.format(my_type.name))
-        return my_meth(recvs, my_name)
+        return my_meth(recvs, my_name, other=other)
 
-    def _map_field_val_simple(self, recvs, name):
+
+    def _map_field_val_simple(self, recvs, name, other=None):
         recvs = recvs[0]
         index_val, obj_key = recvs
         _, inp, emitter_key, emitter_inp, _mapping_type = index_val.split('|', 4)
-        res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+        res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
         self._cache[name] = res
         return res
 
-    def _map_field_val_list(self, recvs, name):
+    def _map_field_val_list(self, recvs, name, other=None):
         if len(recvs) == 1:
             recv = recvs[0]
             index_val, obj_key = recv
             _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
             if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
                 res = [res]
         else:
@@ -236,17 +245,17 @@ class InputsFieldWrp(IndexFieldWrp):
             for recv in recvs:
                 index_val, obj_key = recv
                 _, _, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
                 res.append(cres)
         self._cache[name] = res
         return res
 
-    def _map_field_val_hash(self, recvs, name):
+    def _map_field_val_hash(self, recvs, name, other=None):
         if len(recvs) == 1:
             recv = recvs[0]
             index_val, obj_key = recv
             _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
             if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
                 raise NotImplementedError()
         else:
@@ -255,7 +264,7 @@ class InputsFieldWrp(IndexFieldWrp):
             for recv in recvs:
                 index_val, obj_key = recv
                 _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
                 items.append((my_tag, my_val, cres))
                 tags.add(my_tag)
             if len(tags) != 1:
@@ -267,13 +276,13 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
-    def _map_field_val_list_hash(self, recvs, name):
+    def _map_field_val_list_hash(self, recvs, name, other=None):
         items = []
         tags = set()
         for recv in recvs:
             index_val, obj_key = recv
             _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
             items.append((my_tag, my_val, cres))
         tmp_res = {}
         for my_tag, my_val, value in items:

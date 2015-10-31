@@ -125,14 +125,12 @@ class Resource(object):
                 inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
 
     def transports(self):
-        inputs = self.resource_inputs()
-        transports_id = inputs['transports_id']
-        return transports_id.backtrack_value(other_val='transports')
+        db_obj = self.db_obj
+        return db_obj.inputs._get_field_val('transports_id', other='transports')
 
     def ip(self):
-        inputs = self.resource_inputs()
-        transports_id = inputs['location_id']
-        return transports_id.backtrack_value(other_val='ip')
+        db_obj = self.db_obj
+        return db_obj.inputs._get_field_val('location_id', other='ip')
 
     @property
     def actions(self):
@@ -222,7 +220,6 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
-        return []
         rst = []
         # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
