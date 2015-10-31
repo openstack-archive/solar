@@ -216,7 +216,7 @@ class InputsFieldWrp(IndexFieldWrp):
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
             if other:
-                other_res = self._get_raw_field_val(other)
+                other_res = self._get_field_val(other)
                 self._cache[full_name] = other_res
                 return other_res
             return _res
