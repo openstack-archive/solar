@@ -158,7 +158,7 @@ class Resource(object):
 
     @property
     def args(self):
-        return self.db_obj.inputs
+        return self.db_obj.inputs.as_dict()
         # ret = {}
         # for i in self.resource_inputs().values():
         #     ret[i.name] = i.backtrack_value()
@@ -220,6 +220,7 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
+        return []
         rst = []
         # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
