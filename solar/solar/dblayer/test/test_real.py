@@ -366,6 +366,31 @@ def test_simple_to_listdict_inputs(rk):
                                   {u'input2': 115, u'input1': 1110},
                                   {u'input2': 15, u'input1': 10}]
 
+
+def test_dict_to_list_inputs(rk):
+
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'modules': []}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {'module': {'name': 'blah2'}}})
+    r3 = create_resource(k3, {'name': 'third',
+                              'inputs': {'module': {'name': 'blah3'}}})
+
+    r2.connect(r1, {'module': 'modules'})
+    r3.connect(r1, {'module': 'modules'})
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert r1.inputs['modules'] == [{'name': 'blah2'}, {'name': 'blah3'}]
+
+
+
+
 def test_passthrough_inputs(rk):
 
     k1 = next(rk)
@@ -400,4 +425,3 @@ def test_events(rk):
     r1.events.pop()
     r1.save()
     assert r1.events == ['event1']
-
