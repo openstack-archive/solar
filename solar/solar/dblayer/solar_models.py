@@ -3,14 +3,16 @@ from solar.dblayer.model import (Model, Field, IndexField,
                                  DBLayerException,
                                  requires_clean_state, check_state_for,
                                  StrInt,
-                                 IndexedField)
+                                 IndexedField, CompositeIndexField)
 from types import NoneType
 from operator import itemgetter
 from enum import Enum
 from itertools import groupby
+from uuid import uuid4
 
 InputTypes = Enum('InputTypes',
                   'simple list hash list_hash')
+
 
 class DBLayerSolarException(DBLayerException):
     pass
@@ -336,6 +338,12 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = value
         return True
 
+    def to_dict(self):
+        rst = {}
+        for key in self._instance._data_container[self.fname].keys():
+            rst[key] = self[key]
+        return rst
+
 
 class InputsField(IndexField):
     _wrp_class = InputsFieldWrp
@@ -473,9 +481,11 @@ class Resource(Model):
     puppet_module = Field(str)  # remove
     meta_inputs = Field(dict, default=dict)
     state = Field(str)  # on_set/on_get would be useful
+    events = Field(list, default=list)
 
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
+
 
     updated = IndexedField(StrInt)
 
@@ -491,3 +501,160 @@ class Resource(Model):
         if self.changed():
             self.updated = StrInt()
         return super(Resource, self).save(*args, **kwargs)
+
+
+class CommitedResource(Model):
+
+    inputs = Field(dict, default=dict)
+    connections = Field(list, default=list)
+    base_path = Field(str)
+    tags = Field(list, default=list)
+    state = Field(str, default=lambda: 'removed')
+
+
+"""
+Type of operations:
+
+- load all tasks for execution
+- load single task + childs + all parents of childs (and transitions between them)
+"""
+
+class TasksFieldWrp(IndexFieldWrp):
+
+    def add(self, task):
+        return True
+
+    def __iter__(self):
+        return iter(self._instance._data_container[self.fname])
+
+    def all(self, postprocessor=None):
+        if postprocessor:
+            return map(postprocessor, self)
+        return list(self)
+
+    def all_names(self):
+        return self.all(lambda key: key.split('~')[1])
+
+    def all_tasks(self):
+        return self.all(Task.get)
+
+    def _add(self, parent, child):
+        parent._data_container['childs'].append(child.key)
+        child._data_container['parents'].append(parent.key)
+
+        child._add_index('childs_bin', parent.key)
+        parent._add_index('parents_bin', child.key)
+        return True
+
+
+class TasksField(IndexField):
+
+    _wrp_class = TasksFieldWrp
+
+    def __set__(self, obj, value):
+        wrp = getattr(obj, self.fname)
+        obj._data_container[self.fname] = self.default
+        for val in value:
+            wrp.add(val)
+
+    def _parse_key(self, startkey):
+        return startkey
+
+
+
+class ChildFieldWrp(TasksFieldWrp):
+
+    def add(self, task):
+        return self._add(self._instance, task)
+
+
+class ChildField(TasksField):
+
+    _wrp_class = ChildFieldWrp
+
+
+class ParentFieldWrp(TasksFieldWrp):
+
+    def add(self, task):
+        return self._add(task, self._instance)
+
+
+class ParentField(TasksField):
+
+    _wrp_class = ParentFieldWrp
+
+
+class Task(Model):
+    """Node object"""
+
+    name = Field(basestring)
+    status = Field(basestring)
+    target = Field(basestring, default=str)
+    task_type = Field(basestring)
+    args = Field(list)
+    errmsg = Field(basestring, default=str)
+
+    execution = IndexedField(basestring)
+    parents = ParentField(default=list)
+    childs = ChildField(default=list)
+
+    @classmethod
+    def new(cls, data):
+        key = '%s~%s' % (data['execution'], data['name'])
+        return Task.from_dict(key, data)
+
+
+"""
+system log
+
+1. one bucket for all log items
+2. separate logs for stage/history (using index)
+3. last log item for resource in history
+4. log item in staged log for resource|action
+5. keep order of history
+"""
+
+class NegativeCounter(Model):
+
+    count = Field(int, default=int)
+
+    def next(self):
+        self.count -= 1
+        self.save()
+        return self.count
+
+
+class LogItem(Model):
+
+    uid = IndexedField(basestring, default=lambda: str(uuid4()))
+    resource = Field(basestring)
+    action = Field(basestring)
+    diff = Field(list)
+    connections_diff = Field(list)
+    state = Field(basestring)
+    base_path = Field(basestring) # remove me
+
+    history = IndexedField(StrInt)
+    log = Field(basestring) # staged/history
+
+    composite = CompositeIndexField(fields=('log', 'resource', 'action'))
+
+    @property
+    def log_action(self):
+        return '.'.join((self.resource, self.action))
+
+    def save(self):
+        if any(f in self._modified_fields for f in LogItem.composite.fields):
+            self.composite.reset()
+
+        if 'log' in self._modified_fields and self.log == 'history':
+            self.history = StrInt(next(NegativeCounter.get_or_create('history')))
+        return super(LogItem, self).save()
+
+    @classmethod
+    def new(cls, data):
+        vals = {}
+        if 'uid' not in vals:
+            vals['uid'] = cls.uid.default
+        vals.update(data)
+        return LogItem.from_dict(vals['uid'], vals)

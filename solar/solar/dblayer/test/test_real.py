@@ -221,7 +221,6 @@ def test_updated_behaviour(rk):
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
 
 
-
 def test_list_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
@@ -367,7 +366,6 @@ def test_simple_to_listdict_inputs(rk):
                                   {u'input2': 115, u'input1': 1110},
                                   {u'input2': 15, u'input1': 10}]
 
-
 def test_passthrough_inputs(rk):
 
     k1 = next(rk)
@@ -392,3 +390,14 @@ def test_passthrough_inputs(rk):
 
     assert r3.inputs['input1'] == 10
     assert r3.inputs['input2'] == 15
+
+
+def test_events(rk):
+    k = next(rk)
+    r1 = Resource.from_dict(k, {'events': ['event1', 'event2']})
+    r1.save()
+    assert r1.events == ['event1', 'event2']
+    r1.events.pop()
+    r1.save()
+    assert r1.events == ['event1']
+

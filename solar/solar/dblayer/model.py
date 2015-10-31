@@ -342,7 +342,7 @@ class IndexedField(Field):
     def filter(self, *args, **kwargs):
         kwargs['return_terms'] = False
         res = self._filter(*args, **kwargs)
-        return set(res)
+        return res
 
 
 class IndexFieldWrp(object):
@@ -408,7 +408,6 @@ class IndexField(FieldBase):
         for f_name, f_value in value.iteritems():
             wrp[f_name] = f_value
 
-
     def _parse_key(self, k):
         if '=' in k:
             val, subval = k.split('=', 1)
@@ -432,9 +431,39 @@ class IndexField(FieldBase):
                                            startkey=startkey,
                                            endkey=endkey,
                                            **kwargs).results
-        return set(res)
+        return list(res)
 
 
+class CompositeIndexFieldWrp(IndexFieldWrp):
+
+    def reset(self):
+        index = []
+        for f in self._field_obj.fields:
+            index.append(self._instance._data_container.get(f, ''))
+        index = '|'.join(index)
+
+        index_to_del = []
+        for index_name, index_val in self._instance._riak_object.indexes:
+            if index_name == '%s_bin' % self.fname:
+                if index != index_val:
+                    index_to_del.append((index_name, index_val))
+
+        for index_name, index_val in index_to_del:
+            self._instance._remove_index(index_name, index_val)
+
+        self._instance._add_index('%s_bin' % self.fname, index)
+
+class CompositeIndexField(IndexField):
+
+    _wrp_class = CompositeIndexFieldWrp
+
+    def __init__(self, fields=(), *args, **kwargs):
+        super(CompositeIndexField, self).__init__(*args, **kwargs)
+        self.fields = fields
+
+    def _parse_key(self, startkey):
+        vals = [startkey[f] for f in self.fields if f in startkey]
+        return '|'.join(vals) + '*'
 
 
 class ModelMeta(type):
@@ -480,7 +509,14 @@ class ModelMeta(type):
 
 
     @classmethod
-    def save_all_lazy(mcs):
+    def remove_all(mcs):
+        for model in mcs._defined_models:
+            rst = model.bucket.get_index('$bucket', startkey='\x00', max_results=100000).results
+            for key in rst:
+                model.bucket.delete(key)
+
+    @classmethod
+    def save_all_lazy(mcs, result=True):
         for cls in mcs._defined_models:
             for to_save in cls._c.lazy_save:
                 try:
@@ -707,6 +743,13 @@ class Model(object):
         return cls.from_dict(key, data)
 
     @classmethod
+    def get_or_create(cls, key):
+        try:
+            return cls.get(key)
+        except DBLayerNotFound:
+            return cls.new(key, {})
+
+    @classmethod
     def from_riakobj(cls, riak_obj):
         obj = cls(riak_obj.key)
         obj._riak_object = riak_obj
@@ -799,4 +842,4 @@ class Model(object):
             ls.remove(self.key)
         except KeyError:
             pass
-        raise NotImplementedError()
+        self._riak_object.delete()

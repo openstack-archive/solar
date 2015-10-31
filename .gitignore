@@ -25,6 +25,7 @@ celery*.log
 
 *.dot
 *.png
+*.svg
 resources_compiled.py
 
 # bootstrap
