@@ -21,7 +21,7 @@ def create_resource(key, data):
     data['meta_inputs'] = mi
     return Resource.from_dict(key, data)
 
-
+@pytest.mark.xfail(reason="Not YET decided how it should work")
 def test_changes_state(rk):
     key = next(rk)
     r = create_resource(key, {'name': 'a name'})
