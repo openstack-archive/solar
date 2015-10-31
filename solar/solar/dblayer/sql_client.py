@@ -294,6 +294,15 @@ class Bucket(object):
             ret = self._sql_model(key=key, _new=new)
         return RiakObj(ret, new)
 
+    def delete(self, data, *args, **kwargs):
+        if isinstance(data, basestring):
+            key = data
+        else:
+            key = data.key
+        self._sql_model.delete().where(self._sql_model.key == key).execute()
+        self._sql_idx.delete().where(self._sql_idx.key == key).execute()
+        return self
+
     def new(self, key, data=None, encoded_data=None, **kwargs):
         if key is not None:
             try:
