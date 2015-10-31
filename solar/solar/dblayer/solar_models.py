@@ -514,7 +514,12 @@ class Resource(Model):
         if mapping is None:
             return
         for my_name, other_name in mapping.iteritems():
-            other_inputs.connect(other_name, self, my_name)
+            if isinstance(other_name, (list, tuple)):
+                # XXX: could be paralelized
+                for other in other_name:
+                    other_inputs.connect(other, self, my_name)
+            else:
+                other_inputs.connect(other_name, self, my_name)
 
     def save(self, *args, **kwargs):
         if self.changed():
