@@ -12,77 +12,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import collections
-from functools import partial
 
-from solar import utils
-from solar.interfaces.db import get_db
-
-from enum import Enum
+from solar.dblayer.solar_models import LogItem
 
 
-db = get_db()
+
+def SL():
+    rst = LogItem.composite.filter({'log': 'staged'})
+    return map(LogItem.get, rst)
+
+def CL():
+    rst = LogItem.composite.filter({'log': 'history'})
+    return map(LogItem.get, rst)
 
 
-STATES = Enum('States', 'error inprogress pending success')
+
+def compact(logitem):
+    return 'log task={} uid={}'.format(logitem.log_action, logitem.uid)
 
 
-def state_file(name):
-    if 'log' in name:
-        return Log(name)
-
-
-SL = partial(state_file, 'stage_log')
-CL = partial(state_file, 'commit_log')
-
-
-class LogItem(object):
-
-    def __init__(self, uid, res, action, diff,
-                 signals_diff, state=None, base_path=None):
-        self.uid = uid
-        self.res = res
-        self.log_action = '{}.{}'.format(res, action)
-        self.action = action
-        self.diff = diff
-        self.signals_diff = signals_diff
-        self.state = state or STATES.pending
-        self.base_path = base_path
-
-    def to_yaml(self):
-        return utils.yaml_dump(self.to_dict())
-
-    def to_dict(self):
-        return {'uid': self.uid,
-                'res': self.res,
-                'diff': self.diff,
-                'state': self.state.name,
-                'signals_diff': self.signals_diff,
-                'base_path': self.base_path,
-                'action': self.action}
-
-    @classmethod
-    def from_dict(cls, **kwargs):
-        state = getattr(STATES, kwargs.get('state', ''), STATES.pending)
-        kwargs['state'] = state
-        return cls(**kwargs)
-
-    def __str__(self):
-        return self.compact
-
-    def __repr__(self):
-        return self.compact
-
-    @property
-    def compact(self):
-        return 'log task={} uid={}'.format(self.log_action, self.uid)
-
-    @property
-    def details(self):
-        return details(self.diff)
-
-
-def details(diff):
+def details(logitem):
+    diff = logitem.diff
     rst = []
     for type_, val, change in diff:
         if type_ == 'add':
@@ -114,44 +64,3 @@ def unwrap_change_val(val):
     else:
         return val
 
-
-class Log(object):
-
-    def __init__(self, path):
-        self.ordered_log = db.get_ordered_hash(path)
-
-    def append(self, logitem):
-        self.ordered_log.add([(logitem.uid, logitem.to_dict())])
-
-    def pop(self, uid):
-        item = self.get(uid)
-        if not item:
-            return None
-        self.ordered_log.rem([uid])
-        return item
-
-    def update(self, logitem):
-        self.ordered_log.update(logitem.uid, logitem.to_dict())
-
-    def clean(self):
-        self.ordered_log.clean()
-
-    def get(self, key):
-        item = self.ordered_log.get(key)
-        if item:
-            return LogItem.from_dict(**item)
-        return None
-
-    def collection(self, n=0):
-        for item in self.ordered_log.reverse(n=n):
-            yield LogItem.from_dict(**item)
-
-    def reverse(self, n=0):
-        for item in self.ordered_log.list(n=n):
-            yield LogItem.from_dict(**item)
-
-    def __iter__(self):
-        return iter(self.collection())
-
-    def __len__(self):
-        return len(list(self.collection()))

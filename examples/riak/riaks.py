@@ -20,6 +20,8 @@ from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
 
+from solar.dblayer.model import ModelMeta
+
 from solar.interfaces.db import get_db
 
 from solar.events.controls import React, Dep
@@ -33,6 +35,8 @@ from solar.dblayer.solar_models import Resource
 def setup_riak():
     # db.clear()
 
+    db.clear()
+    ModelMeta.remove_all()
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})
     nodes = [x for x in resources if x.name.startswith('node')]
     node1, node2, node3 = nodes

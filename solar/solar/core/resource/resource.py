@@ -30,10 +30,13 @@ from uuid import uuid4
 from hashlib import md5
 import networkx
 
+from solar.dblayer.solar_models import CommitedResource
 
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.dblayer.model import StrInt
 from solar.core.signals import get_mapping
+
+from solar.dblayer.model import StrInt
 
 
 def read_meta(base_path):
@@ -219,6 +222,7 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
+        return []
         rst = []
         # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
@@ -260,10 +264,9 @@ class Resource(object):
         )
 
     def load_commited(self):
-        return orm.DBCommitedState.get_or_create(self.name)
+        return CommitedResource.get_or_create(self.name)
 
     def _connect_inputs(self, receiver, mapping):
-        print mapping
         self.db_obj.connect(receiver.db_obj, mapping=mapping)
         self.db_obj.save_lazy()
 
@@ -273,11 +276,10 @@ class Resource(object):
         self._connect_inputs(receiver, mapping)
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
-        return
-        # if use_defaults:
-        #     api.add_default_events(self, receiver)
-        # if events:
-        #     api.add_events(self.name, events)
+        if use_defaults:
+            api.add_default_events(self, receiver)
+        if events:
+            api.add_events(self.name, events)
 
     def connect(self, receiver, mapping=None, events=None):
         return self.connect_with_events(
@@ -294,10 +296,15 @@ def load(name):
     return Resource(r)
 
 
+def load_updated():
+    return [Resource(DBResource.get(r)) for r
+            in DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())]
+
 # TODO
 def load_all():
     candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
     return [Resource(r) for r in DBResource.multi_get(candids)]
+
 
 def load_by_tags(tags):
     tags = set(tags)

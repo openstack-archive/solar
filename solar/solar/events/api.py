@@ -21,6 +21,7 @@ from solar.core.log import log
 from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
+from solar.dblayer.solar_models import Resource
 
 def create_event(event_dict):
     etype = event_dict['etype']
@@ -52,11 +53,7 @@ def add_event(ev):
         if ev == rev:
             break
     else:
-        rst.append(ev)
-        resource_events = orm.DBResourceEvents.get_or_create(ev.parent)
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
+        add_events(ev.parent, [ev])
 
 
 def add_dep(parent, dep, actions, state='success'):
@@ -76,34 +73,17 @@ def add_react(parent, dep, actions, state='success'):
 
 
 def add_events(resource, lst):
-    resource_events = orm.DBResourceEvents.get_or_create(resource)
-    for ev in lst:
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
-
-
-def set_events(resource, lst):
-    resource_events = orm.DBResourceEvents.get_or_create(resource)
-    for ev in resource_events.events.as_set():
-        ev.delete()
-    for ev in lst:
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
+    resource = Resource.get(resource)
+    resource.events.extend([ev.to_dict() for ev in lst])
+    resource.save(force=True)
 
 
 def remove_event(ev):
-    event_db = orm.DBEvent(**ev.to_dict())
-    event_db.delete()
+    raise NotImplemented()
 
 
 def all_events(resource):
-    events = orm.DBResourceEvents.get_or_create(resource).events.as_set()
-
-    if not events:
-        return []
-    return [create_event(i.to_dict()) for i in events]
+    return [create_event(e) for e in Resource.get(resource).events]
 
 
 def bft_events_graph(start):
