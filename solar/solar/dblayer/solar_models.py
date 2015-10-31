@@ -80,6 +80,10 @@ class InputsFieldWrp(IndexFieldWrp):
         for name in self._instance._data_container[self.fname]:
             yield name
 
+    def as_dict(self):
+        # TODO: could be paralelized
+        return dict((name, self._get_field_val(name)) for name in self)
+
     def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
