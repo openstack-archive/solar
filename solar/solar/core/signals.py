@@ -137,6 +137,10 @@ def get_mapping(emitter, receiver, mapping=None):
     location_and_transports(emitter, receiver, mapping)
     return mapping
 
+
+def connect(emitter, receiver, mapping=None):
+    emitter.connect(receiver, mapping)
+
 # def connect(emitter, receiver, mapping=None):
 #     if mapping is None:
 #         mapping = guess_mapping(emitter, receiver)
