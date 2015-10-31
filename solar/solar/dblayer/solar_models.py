@@ -164,6 +164,9 @@ class InputsFieldWrp(IndexFieldWrp):
             # if the type is the same map 1:1
             my_type = InputTypes.simple
             other_type = InputTypes.simple
+        elif my_type == InputTypes.list_hash and other_type == InputTypes.hash:
+            # whole dict to a list with dicts
+            my_type = InputTypes.list
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
