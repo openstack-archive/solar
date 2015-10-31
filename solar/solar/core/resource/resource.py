@@ -267,7 +267,6 @@ class Resource(object):
         return CommitedResource.get_or_create(self.name)
 
     def _connect_inputs(self, receiver, mapping):
-        print mapping
         self.db_obj.connect(receiver.db_obj, mapping=mapping)
         self.db_obj.save_lazy()
 
