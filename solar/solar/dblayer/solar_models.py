@@ -184,6 +184,23 @@ class InputsFieldWrp(IndexFieldWrp):
             pass
         return True
 
+    def disconnect(self, name):
+        # ind_name  = '{}_recv_bin'.format(self.fname)
+        indexes = self._instance._riak_object.indexes
+        to_dels = []
+        recvs = filter(lambda x: x[0] == '{}_recv_bin'.format(self.fname), indexes)
+        for recv in recvs:
+            _, ind_value = recv
+            if ind_value.startswith('{}|{}|'.format(self._instance.key, name)):
+                to_dels.append(recv)
+        emits = filter(lambda x: x[0] == '{}_emit_bin'.format(self.fname), indexes)
+        for emit in emits:
+            _, ind_value = recv
+            if ind_value.endswith('|{}|{}'.format(self._instance.key, name)):
+                to_dels.append(emit)
+        for to_del in to_dels:
+            self._instance._remove_index(*to_del)
+
     def _has_own_input(self, name):
         try:
             return self._cache[name]

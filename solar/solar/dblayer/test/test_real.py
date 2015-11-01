@@ -412,9 +412,57 @@ def test_passthrough_inputs(rk):
     r1.connect(r2, {'input1': 'input1',
                     'input2': 'input2'})
 
+    r1.save()
+    r2.save()
+    r3.save()
+
 
     assert r3.inputs['input1'] == 10
     assert r3.inputs['input2'] == 15
+
+
+def test_disconnect_by_input(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+
+    r2.connect(r3, {'input1': 'input1',
+                    'input2': 'input2'})
+    r1.connect(r2, {'input1': 'input1',
+                    'input2': 'input2'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    with pytest.raises(Exception):
+        r2.inputs['input1'] = 150
+
+    r2.inputs.disconnect('input1')
+
+    r2.save()
+
+    assert r2.inputs['input1'] is None
+
+    r2.inputs['input1'] = 150
+
+    r2.save()
+
+    assert r2.inputs['input1'] == 150
+    assert r2.inputs['input2'] == 15
+
+    assert r3.inputs['input1'] == 150
+
 
 
 def test_events(rk):

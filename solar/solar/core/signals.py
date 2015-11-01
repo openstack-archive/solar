@@ -227,10 +227,11 @@ def connect(emitter, receiver, mapping=None):
 #     )
 
 
-# def disconnect_receiver_by_input(receiver, input_name):
-#     input_node = receiver.resource_inputs()[input_name]
+def disconnect_receiver_by_input(receiver, input_name):
+    # input_node = receiver.resource_inputs()[input_name]
 
-#     input_node.receivers.delete_all_incoming(input_node)
+    # input_node.receivers.delete_all_incoming(input_node)
+    receiver.db_obj.inputs.disconnect(input_name)
 
 
 # def disconnect(emitter, receiver):
