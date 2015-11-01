@@ -374,7 +374,7 @@ def test_dict_to_list_inputs(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                              'inputs': {'modules': []}})
+                              'inputs': {'modules': [{}]}})
     r2 = create_resource(k2, {'name': 'second',
                               'inputs': {'module': {'name': 'blah2'}}})
     r3 = create_resource(k3, {'name': 'third',

@@ -133,6 +133,7 @@ class InputsFieldWrp(IndexFieldWrp):
         return ret
 
     def _connect_my_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+
         my_key, my_val = my_inp_name.split(':', 1)
         if '|' in my_val:
             my_val, my_tag = my_val.split('|', 1)
@@ -165,7 +166,8 @@ class InputsFieldWrp(IndexFieldWrp):
             my_type = InputTypes.simple
             other_type = InputTypes.simple
         elif my_type == InputTypes.list_hash and other_type == InputTypes.hash:
-            # whole dict to a list with dicts
+            # whole dict to list with dicts
+            # TODO: solve this problem
             my_type = InputTypes.list
 
         # set my side
@@ -291,15 +293,25 @@ class InputsFieldWrp(IndexFieldWrp):
         tags = set()
         for recv in recvs:
             index_val, obj_key = recv
-            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-            items.append((my_tag, my_val, cres))
+            splitted_val = index_val.split('|', 6)
+            if len(splitted_val) == 5:
+                # it was list hash but with whole dict mapping
+                _, _, emitter_key, emitter_inp, mapping_type = splitted_val
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                items.append((emitter_key, None, cres))
+            else:
+                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                items.append((my_tag, my_val, cres))
         tmp_res = {}
         for my_tag, my_val, value in items:
-            try:
-                tmp_res[my_tag][my_val] = value
-            except KeyError:
-                tmp_res[my_tag] = {my_val: value}
+            if my_val is None:
+                tmp_res[my_tag] = value
+            else:
+                try:
+                    tmp_res[my_tag][my_val] = value
+                except KeyError:
+                    tmp_res[my_tag] = {my_val: value}
         res = tmp_res.values()
         self._cache[name] = res
         return res
