@@ -19,11 +19,11 @@ from solar.dblayer.solar_models import LogItem
 
 def SL():
     rst = LogItem.composite.filter({'log': 'staged'})
-    return map(LogItem.get, rst)
+    return LogItem.multi_get(rst)
 
 def CL():
     rst = LogItem.composite.filter({'log': 'history'})
-    return map(LogItem.get, rst)
+    return LogItem.multi_get(rst)
 
 
 
