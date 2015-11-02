@@ -30,6 +30,7 @@ def setup_riak(nodes_num=None, hosts_mapping=False):
 
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': nodes_num})
     nodes = [x for x in resources if x.name.startswith('node')]
+    hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
 
     riak_services = []
     ips = '10.0.0.%d'
@@ -47,14 +48,6 @@ def setup_riak(nodes_num=None, hosts_mapping=False):
 
     for i, riak in enumerate(riak_services[1:]):
         riak_services[0].connect(riak, {'riak_name': 'join_to'})
-
-    hosts_services = []
-    for i, riak in enumerate(riak_services):
-        num = i + 1
-        hosts_file = vr.create('hosts_file%d' % num,
-                               'resources/hosts_file', {})[0]
-        hosts_services.append(hosts_file)
-        nodes[i].connect(hosts_file)
 
     if hosts_mapping:
         for riak in riak_services:
