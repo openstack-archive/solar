@@ -61,44 +61,46 @@ def create_sorted_diff(staged, commited):
     return create_diff(staged, commited)
 
 
+def make_single_stage_item(resource_obj):
+    commited = resource_obj.load_commited()
+    base_path = resource_obj.base_path
+    if resource_obj.to_be_removed():
+        resource_args = {}
+        resource_connections = []
+    else:
+        resource_args = resource_obj.args
+        resource_connections = resource_obj.connections
+
+    if commited.state == RESOURCE_STATE.removed.name:
+        commited_args = {}
+        commited_connections = []
+    else:
+        commited_args = commited.inputs
+        commited_connections = commited.connections
+
+    inputs_diff = create_diff(resource_args, commited_args)
+    connections_diff = create_sorted_diff(
+        resource_connections, commited_connections)
+
+    # if new connection created it will be reflected in inputs
+    # but using inputs to reverse connections is not possible
+    if inputs_diff:
+        li = create_logitem(
+            resource_obj.name,
+            guess_action(commited_args, resource_args),
+            inputs_diff,
+            connections_diff,
+            base_path=base_path)
+        li.save()
+    return li
+
+
 def stage_changes():
     for li in data.SL():
         li.delete()
 
-    staged_log = []
+    staged_log = utils.solar_map(make_single_stage_item, resource.load_updated())
 
-    for resouce_obj in resource.load_updated():
-        commited = resouce_obj.load_commited()
-        base_path = resouce_obj.base_path
-        if resouce_obj.to_be_removed():
-            resource_args = {}
-            resource_connections = []
-        else:
-            resource_args = resouce_obj.args
-            resource_connections = resouce_obj.connections
-
-        if commited.state == RESOURCE_STATE.removed.name:
-            commited_args = {}
-            commited_connections = []
-        else:
-            commited_args = commited.inputs
-            commited_connections = commited.connections
-
-        inputs_diff = create_diff(resource_args, commited_args)
-        connections_diff = create_sorted_diff(
-            resource_connections, commited_connections)
-
-        # if new connection created it will be reflected in inputs
-        # but using inputs to reverse connections is not possible
-        if inputs_diff:
-            li = create_logitem(
-                resouce_obj.name,
-                guess_action(commited_args, resource_args),
-                inputs_diff,
-                connections_diff,
-                base_path=base_path)
-            li.save()
-            staged_log.append(li)
     return staged_log
 
 

@@ -279,6 +279,17 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
+    def _map_field_val_hash_single(self, recvs, other):
+        items = []
+        tags = set()
+        for recv in recvs:
+            index_val, obj_key = recv
+            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+            items.append((my_tag, my_val, cres))
+            tags.add(my_tag)
+        return items, tags
+
     def _map_field_val_hash(self, recvs, name, other=None):
         if len(recvs) == 1:
             recv = recvs[0]
@@ -288,14 +299,7 @@ class InputsFieldWrp(IndexFieldWrp):
             if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
                 raise NotImplementedError()
         else:
-            items = []
-            tags = set()
-            for recv in recvs:
-                index_val, obj_key = recv
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-                items.append((my_tag, my_val, cres))
-                tags.add(my_tag)
+            items, tags = self._map_field_val_hash_single(recvs, other)
             if len(tags) != 1:
                 # TODO: add it also for during connecting
                 raise Exception("Detected dict with different tags")

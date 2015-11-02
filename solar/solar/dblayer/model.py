@@ -1,4 +1,6 @@
-from threading import local, current_thread
+# from threading import local, current_thread
+# from solar.dblayer.gevent_local import local
+from solar.utils import get_local
 from random import getrandbits
 import uuid
 from functools import wraps, total_ordering
@@ -6,7 +8,8 @@ from operator import itemgetter
 import time
 from contextlib import contextmanager
 
-LOCAL = local()
+LOCAL = get_local()
+
 
 class DBLayerException(Exception):
     pass

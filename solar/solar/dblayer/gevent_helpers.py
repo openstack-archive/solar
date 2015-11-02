@@ -1,5 +1,6 @@
 from gevent.pool import Pool
 import gevent
+from solar.dblayer.solar_models import Resource
 
 
 class DBLayerPool(Pool):
@@ -13,3 +14,19 @@ class DBLayerPool(Pool):
         greenlet._nested_parent = self.parent
         self.start(greenlet)
         return greenlet
+
+
+@classmethod
+def multi_get(obj, keys):
+    pool = DBLayerPool(10)
+    return pool.map(obj.get, keys)
+
+
+def solar_map(funct, args, concurrency=5):
+    dp = DBLayerPool(concurrency)
+    return dp.map(funct, args)
+
+
+def get_local():
+    from solar.dblayer.gevent_local import local
+    return local
