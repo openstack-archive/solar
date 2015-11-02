@@ -8,7 +8,7 @@ from operator import itemgetter
 import time
 from contextlib import contextmanager
 
-LOCAL = get_local()
+LOCAL = get_local()()
 
 
 class DBLayerException(Exception):
