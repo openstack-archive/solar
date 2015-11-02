@@ -99,7 +99,7 @@ def stage_changes():
     for li in data.SL():
         li.delete()
 
-    staged_log = utils.solar_map(make_single_stage_item, resource.load_updated())
+    staged_log = utils.solar_map(make_single_stage_item, resource.load_updated(), concurrency=10)
 
     return staged_log
 
