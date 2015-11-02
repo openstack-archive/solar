@@ -306,4 +306,5 @@ Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you n
  * Login into vm `vagrant ssh solar-dev`
  * Go to `cd /vagrant/tmp/` directory
  * Untar the images `tar vxf targetimages.tar`
+ * Go to `/vagrant` directory
 * Now you can run provisioning `/vagrant/examples/provisioning/provision.sh`
