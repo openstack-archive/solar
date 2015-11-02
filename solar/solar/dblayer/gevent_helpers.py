@@ -18,7 +18,7 @@ class DBLayerPool(Pool):
 
 @classmethod
 def multi_get(obj, keys):
-    pool = DBLayerPool(10)
+    pool = DBLayerPool(5)
     return pool.map(obj.get, keys)
 
 
