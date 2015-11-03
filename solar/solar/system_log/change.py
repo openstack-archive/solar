@@ -92,7 +92,8 @@ def make_single_stage_item(resource_obj):
             connections_diff,
             base_path=base_path)
         li.save()
-    return li
+        return li
+    return None
 
 
 def stage_changes():
@@ -103,6 +104,7 @@ def stage_changes():
     since = StrInt.greater(last.updated) if last else None
     staged_log = utils.solar_map(make_single_stage_item,
         resource.load_updated(since), concurrency=10)
+    staged_log = filter(None, staged_log)
     return staged_log
 
 
