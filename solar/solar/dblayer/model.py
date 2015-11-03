@@ -168,6 +168,12 @@ class StrInt(object):
         return ret
 
     @classmethod
+    def greater(cls, inst):
+        if isinstance(inst, cls):
+            return cls(inst._val + 'g')
+        return cls(inst + 'g')
+
+    @classmethod
     def to_hex(cls, value):
         char = cls.positive_char
         if value < 0:
@@ -814,7 +820,7 @@ class Model(object):
     def _reset_state(self):
         self._new = False
         self._modified_fields.clear()
-        self._indexes_hash = None
+        self._indexes_changed = False
 
     @classmethod
     def save_all_lazy(cls):

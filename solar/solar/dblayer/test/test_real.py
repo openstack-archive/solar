@@ -221,6 +221,14 @@ def test_updated_behaviour(rk):
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
 
 
+def test_updated_only_last(rk):
+
+    for i in range(3):
+        r = create_resource(next(rk), {'name': str(i)})
+        r.save()
+    assert Resource.updated.filter(r.updated, StrInt.p_max()) == [r.key]
+
+
 def test_list_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)

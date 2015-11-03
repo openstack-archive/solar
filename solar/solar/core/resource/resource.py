@@ -296,9 +296,13 @@ def load(name):
     return Resource(r)
 
 
-def load_updated():
-    return [Resource(DBResource.get(r)) for r
-            in DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())]
+def load_updated(since=None):
+    if since is None:
+        startkey = StrInt.p_min()
+    else:
+        startkey = since
+    candids = DBResource.updated.filter(startkey, StrInt.p_max())
+    return [Resource(r) for r in DBResource.multi_get(candids)]
 
 # TODO
 def load_all():

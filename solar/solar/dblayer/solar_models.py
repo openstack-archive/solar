@@ -695,6 +695,7 @@ class LogItem(Model):
     connections_diff = Field(list)
     state = Field(basestring)
     base_path = Field(basestring) # remove me
+    updated = Field(StrInt)
 
     history = IndexedField(StrInt)
     log = Field(basestring) # staged/history
@@ -704,6 +705,13 @@ class LogItem(Model):
     @property
     def log_action(self):
         return '.'.join((self.resource, self.action))
+
+    @classmethod
+    def history_last(cls):
+        items = cls.history.filter(StrInt.n_max(), StrInt.n_min(), max_results=1)
+        if not items:
+            return None
+        return cls.get(items[0])
 
     def save(self):
         if any(f in self._modified_fields for f in LogItem.composite.fields):

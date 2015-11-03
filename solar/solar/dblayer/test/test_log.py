@@ -77,3 +77,17 @@ def test_staged_not_indexed():
 
     assert set(LogItem.history.filter(
         StrInt.n_max(), StrInt.n_min())) == {li.key for li in added[:2]}
+
+
+def test_history_last_filter():
+    for i in range(4):
+        li = LogItem.new({'log': 'history'})
+        li.save()
+        last = li
+
+    assert LogItem.history_last() == last
+
+
+def test_history_last_returns_none():
+    assert LogItem.history_last() == None
+
