@@ -204,6 +204,11 @@ class InputsFieldWrp(IndexFieldWrp):
         for to_del in to_dels:
             self._instance._remove_index(*to_del)
 
+        try:
+            del self._cache[name]
+        except KeyError:
+            pass
+
     def _has_own_input(self, name):
         try:
             return self._cache[name]
