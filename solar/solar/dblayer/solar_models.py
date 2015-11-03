@@ -9,6 +9,7 @@ from operator import itemgetter
 from enum import Enum
 from itertools import groupby
 from uuid import uuid4
+from collections import defaultdict
 
 from solar.utils import solar_map
 
@@ -563,6 +564,32 @@ class Resource(Model):
         if self.changed():
             self.updated = StrInt()
         return super(Resource, self).save(*args, **kwargs)
+
+    @classmethod
+    def childs(cls, parents):
+        all_indexes = cls.bucket.get_index(
+            'inputs_recv_bin',
+            startkey='',
+            endkey='~',
+            return_terms=True,
+            max_results=999999)
+
+        tmp = defaultdict(set)
+        to_visit = parents[:]
+        visited = []
+
+        for item in all_indexes.results:
+            data = item[0].split('|')
+            em, rcv = data[0], data[2]
+            tmp[rcv].add(em)
+
+        while to_visit:
+            n = to_visit.pop()
+            for child in tmp[n]:
+                if child not in visited:
+                    to_visit.append(child)
+            visited.append(n)
+        return visited
 
 
 class CommitedResource(Model):

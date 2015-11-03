@@ -296,12 +296,14 @@ def load(name):
     return Resource(r)
 
 
-def load_updated(since=None):
+def load_updated(since=None, with_childs=True):
     if since is None:
         startkey = StrInt.p_min()
     else:
         startkey = since
     candids = DBResource.updated.filter(startkey, StrInt.p_max())
+    if with_childs:
+        candids = DBResource.childs(candids)
     return [Resource(r) for r in DBResource.multi_get(candids)]
 
 # TODO

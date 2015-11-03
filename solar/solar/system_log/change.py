@@ -27,7 +27,7 @@ from .consts import CHANGES
 from solar.core.resource.resource import RESOURCE_STATE
 from solar.errors import CannotFindID
 
-from solar.dblayer.solar_models import LogItem, CommitedResource, StrInt
+from solar.dblayer.solar_models import Resource, LogItem, CommitedResource, StrInt
 
 def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
@@ -44,7 +44,7 @@ def create_diff(staged, commited):
     return list(dictdiffer.diff(commited, staged))
 
 
-def create_logitem(resource, action, diffed, connections_diffed, updated,
+def create_logitem(resource, action, diffed, connections_diffed,
                    base_path=''):
     return LogItem.new(
                 {'resource': resource,
