@@ -10,6 +10,8 @@ from enum import Enum
 from itertools import groupby
 from uuid import uuid4
 
+from solar.utils import solar_map
+
 InputTypes = Enum('InputTypes',
                   'simple list hash list_hash')
 
@@ -81,8 +83,8 @@ class InputsFieldWrp(IndexFieldWrp):
             yield name
 
     def as_dict(self):
-        # TODO: could be paralelized
-        return dict((name, self._get_field_val(name)) for name in self)
+        items = solar_map(lambda x: (x, self._get_field_val(x)), [x for x in self], concurrency=3)
+        return dict(items)
 
     def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
@@ -279,6 +281,17 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
+    def _map_field_val_hash_single(self, recvs, other):
+        items = []
+        tags = set()
+        for recv in recvs:
+            index_val, obj_key = recv
+            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+            items.append((my_tag, my_val, cres))
+            tags.add(my_tag)
+        return items, tags
+
     def _map_field_val_hash(self, recvs, name, other=None):
         if len(recvs) == 1:
             recv = recvs[0]
@@ -288,14 +301,7 @@ class InputsFieldWrp(IndexFieldWrp):
             if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
                 raise NotImplementedError()
         else:
-            items = []
-            tags = set()
-            for recv in recvs:
-                index_val, obj_key = recv
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-                items.append((my_tag, my_val, cres))
-                tags.add(my_tag)
+            items, tags = self._map_field_val_hash_single(recvs, other)
             if len(tags) != 1:
                 # TODO: add it also for during connecting
                 raise Exception("Detected dict with different tags")
@@ -537,18 +543,21 @@ class Resource(Model):
 
     updated = IndexedField(StrInt)
 
+    def _connect_single(self, other_inputs, other_name, my_name):
+        if isinstance(other_name, (list, tuple)):
+            # XXX: could be paralelized
+            for other in other_name:
+                other_inputs.connect(other, self, my_name)
+        else:
+            other_inputs.connect(other_name, self, my_name)
+
     def connect(self, other, mapping):
         my_inputs = self.inputs
         other_inputs = other.inputs
         if mapping is None:
             return
-        for my_name, other_name in mapping.iteritems():
-            if isinstance(other_name, (list, tuple)):
-                # XXX: could be paralelized
-                for other in other_name:
-                    other_inputs.connect(other, self, my_name)
-            else:
-                other_inputs.connect(other_name, self, my_name)
+        solar_map(lambda (my_name, other_name): self._connect_single(other_inputs, other_name, my_name),
+                  mapping.iteritems(), concurrency=2)
 
     def save(self, *args, **kwargs):
         if self.changed():

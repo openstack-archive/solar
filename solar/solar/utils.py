@@ -127,3 +127,12 @@ def save_to_config_file(key, data):
     with open(fpath, 'w') as f:
         encoder = ext_encoder(fpath)
         encoder.dump(data, f)
+
+
+def solar_map(funct, args, **kwargs):
+    return map(funct, args)
+
+
+def get_local():
+    from threading import local
+    return local
