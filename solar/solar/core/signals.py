@@ -69,10 +69,12 @@ def location_and_transports(emitter, receiver, orig_mapping):
         #     will be deleted too
         if inps_emitter and inps_receiver:
             if not inps_emitter == inps_receiver:
-                log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
+                if not '::' in inps_receiver:
+                    pass
+                    # log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
                 return
             else:
-                log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
+                # log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
                 return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
@@ -93,7 +95,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
             # like adding ssh_transport for solard_transport and we don't want then
             # transports_id to be messed
             # it forbids passing this value around
-            log.debug("Disabled %r mapping for %r", single, emitter.name)
+            # log.debug("Disabled %r mapping for %r", single, emitter.name)
             return
         if receiver_single.get('is_own') is False:
             # this case is when we connect resource which has location_id but that is
