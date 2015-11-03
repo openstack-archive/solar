@@ -9,6 +9,7 @@ from operator import itemgetter
 from enum import Enum
 from itertools import groupby
 from uuid import uuid4
+from collections import defaultdict
 
 from solar.utils import solar_map
 
@@ -564,6 +565,32 @@ class Resource(Model):
             self.updated = StrInt()
         return super(Resource, self).save(*args, **kwargs)
 
+    @classmethod
+    def childs(cls, parents):
+        all_indexes = cls.bucket.get_index(
+            'inputs_recv_bin',
+            startkey='',
+            endkey='~',
+            return_terms=True,
+            max_results=999999)
+
+        tmp = defaultdict(set)
+        to_visit = parents[:]
+        visited = []
+
+        for item in all_indexes.results:
+            data = item[0].split('|')
+            em, rcv = data[0], data[2]
+            tmp[rcv].add(em)
+
+        while to_visit:
+            n = to_visit.pop()
+            for child in tmp[n]:
+                if child not in visited:
+                    to_visit.append(child)
+            visited.append(n)
+        return visited
+
 
 class CommitedResource(Model):
 
@@ -695,6 +722,7 @@ class LogItem(Model):
     connections_diff = Field(list)
     state = Field(basestring)
     base_path = Field(basestring) # remove me
+    updated = Field(StrInt)
 
     history = IndexedField(StrInt)
     log = Field(basestring) # staged/history
@@ -704,6 +732,13 @@ class LogItem(Model):
     @property
     def log_action(self):
         return '.'.join((self.resource, self.action))
+
+    @classmethod
+    def history_last(cls):
+        items = cls.history.filter(StrInt.n_max(), StrInt.n_min(), max_results=1)
+        if not items:
+            return None
+        return cls.get(items[0])
 
     def save(self):
         if any(f in self._modified_fields for f in LogItem.composite.fields):

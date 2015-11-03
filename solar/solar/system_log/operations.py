@@ -50,7 +50,10 @@ def move_to_commited(log_action, *args, **kwargs):
             sorted_connections = sorted(commited.connections)
             commited.connections = patch(item.connections_diff, sorted_connections)
             commited.base_path = item.base_path
+            # required to update `updated` field
+            resource_obj.db_obj.save()
         commited.save()
         item.log = 'history'
         item.state = 'success'
+        item.updated = resource_obj.db_obj.updated
         item.save()

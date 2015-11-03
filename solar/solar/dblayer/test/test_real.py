@@ -221,6 +221,14 @@ def test_updated_behaviour(rk):
     assert k1 in Resource.updated.filter(StrInt.p_min(), StrInt.p_max())
 
 
+def test_updated_only_last(rk):
+
+    for i in range(3):
+        r = create_resource(next(rk), {'name': str(i)})
+        r.save()
+    assert Resource.updated.filter(r.updated, StrInt.p_max()) == [r.key]
+
+
 def test_list_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
@@ -416,7 +424,6 @@ def test_passthrough_inputs(rk):
     r2.save()
     r3.save()
 
-
     assert r3.inputs['input1'] == 10
     assert r3.inputs['input2'] == 15
 
@@ -463,6 +470,30 @@ def test_disconnect_by_input(rk):
 
     assert r3.inputs['input1'] == 150
 
+
+def test_resource_childs(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+    r3 = create_resource(k3, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+
+    r2.connect(r3, {'input1': 'input1'})
+    r1.connect(r2, {'input1': 'input1'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert set(Resource.childs([r1.key])) == {r1.key, r2.key, r3.key}
 
 
 def test_events(rk):
