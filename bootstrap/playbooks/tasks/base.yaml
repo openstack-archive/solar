@@ -1,6 +1,6 @@
 ---
 
-- shell: apt-get update
+- shell: sudo apt-get update
 
 - name: Base packages
   apt: name={{ item }} state=present
@@ -38,14 +38,14 @@
 #- shell: easy_install pip
 #- shell: pip install -U pip
 #- shell: pip install -U setuptools
-- shell: pip install httpie
-- shell: pip install docker-py==1.1.0
+- shell: sudo pip install httpie
+- shell: sudo pip install docker-py==1.1.0
 
 # faster json
 - shell: pip install ujson
 
 # Redis
-- shell: pip install redis
+- shell: sudo pip install redis
 - lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
 - service: name=redis-server state=restarted
 
