@@ -2,7 +2,7 @@ from solar.dblayer.model import (Model, Field, IndexField,
                                  IndexFieldWrp,
                                  DBLayerException,
                                  requires_clean_state, check_state_for,
-                                 StrInt,
+                                 StrInt, SingleIndexCache,
                                  IndexedField, CompositeIndexField)
 from types import NoneType
 from operator import itemgetter
@@ -28,6 +28,7 @@ class InputsFieldWrp(IndexFieldWrp):
     def __init__(self, *args, **kwargs):
         super(InputsFieldWrp, self).__init__(*args, **kwargs)
         # TODO: add cache for lookup
+        self.inputs_index_cache = SingleIndexCache()
         self._cache = {}
 
     def _input_type(self, resource, name):
@@ -185,6 +186,10 @@ class InputsFieldWrp(IndexFieldWrp):
             del self._cache[my_affected]
         except KeyError:
             pass
+
+        with self.inputs_index_cache as c:
+            c.wipe()
+
         return True
 
     def disconnect(self, name):
@@ -208,6 +213,9 @@ class InputsFieldWrp(IndexFieldWrp):
             del self._cache[name]
         except KeyError:
             pass
+
+        with self.inputs_index_cache as c:
+            c.wipe()
 
     def _has_own_input(self, name):
         try:
@@ -239,16 +247,27 @@ class InputsFieldWrp(IndexFieldWrp):
         ind_name = '{}_recv_bin'.format(fname)
         # XXX: possible optimization
         # get all values for resource and cache it (use dirty to check)
-        kwargs = dict(startkey='{}|{}|'.format(my_name, name),
-                      endkey='{}|{}|~'.format(my_name, name),
-                      return_terms=True)
-        my_type = self._input_type(self._instance, name)
-        if my_type == InputTypes.simple:
-            kwargs['max_results'] = 1
-        else:
-            kwargs['max_results'] = 99999
-        recvs = self._instance._get_index(ind_name,
-                                          **kwargs).results
+        with self.inputs_index_cache as c:
+            kwargs = dict(startkey='{}|'.format(my_name),
+                          endkey='{}|~'.format(my_name),
+                          return_terms=True)
+            my_type = self._input_type(self._instance, name)
+            if my_type == InputTypes.simple:
+                max_results = 1
+            else:
+                max_results = 99999
+            c.get_index(self._instance._get_index, ind_name, **kwargs)
+            # recvs = self._instance._get_index(ind_name,
+            #                                   **kwargs).results
+            recvs = tuple(c.filter(startkey="{}|{}|".format(my_name, name),
+                                   endkey="{}|{}|~".format(my_name, name),
+                                   max_results=max_results))
+            # kwargs['max_results'] = max_results
+            # kwargs['startkey'] = "{}|{}|".format(my_name, name)
+            # kwargs['endkey'] = "{}|{}|~".format(my_name, name)
+            # recvs2 = self._instance._get_index(ind_name,
+            #                                   **kwargs).results
+            # assert recvs == recvs2
         if not recvs:
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
@@ -395,6 +414,8 @@ class InputsFieldWrp(IndexFieldWrp):
             robj.data[self.fname][name] = value
         except KeyError:
             robj.data[self.fname] = {name: value}
+        with self.inputs_index_cache as c:
+            c.wipe()
         self._cache[name] = value
         return True
 
