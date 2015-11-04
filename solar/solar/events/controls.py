@@ -31,6 +31,7 @@ trigger action even if no changes noticed on dependent resource.
         - parent:update -> ok -> dependent:update
 """
 
+from solar.dblayer.solar_models import Resource
 
 class Event(object):
 
@@ -96,15 +97,7 @@ class React(Event):
 
         if self.parent_node in changes_graph:
             if self.child_node not in changes_graph:
-                # TODO: solve this circular import problem
-                from solar.core import resource
-                try:
-                    loaded_resource = resource.load(self.child)
-                except KeyError:
-                    # orm throws this error when we're NOT using resource there
-                    location_id = ''
-                else:
-                    location_id = loaded_resource.args['location_id']
+                location_id = Resource.get(self.child).inputs['location_id']
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
                     target=location_id,
@@ -113,7 +106,7 @@ class React(Event):
 
             changes_graph.add_edge(
                 self.parent_node, self.child_node, state=self.state)
-            changed_resources.append(self.child_node)
+            changed_resources.append(self.child)
 
 
 class StateChange(Event):
@@ -122,15 +115,8 @@ class StateChange(Event):
 
     def insert(self, changed_resources, changes_graph):
         changed_resources.append(self.parent)
-        # TODO: solve this circular import problem
-        from solar.core import resource
-        try:
-            loaded_resource = resource.load(self.parent)
-        except KeyError:
-            # orm throws this error when we're NOT using resource there
-            location_id = ''
-        else:
-            location_id = loaded_resource.args['location_id']
+
+        location_id = Resource.get(self.parent).inputs['location_id']
         changes_graph.add_node(
             self.parent_node, status='PENDING',
             target=location_id,
