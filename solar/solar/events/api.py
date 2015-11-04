@@ -74,8 +74,12 @@ def add_react(parent, dep, actions, state='success'):
 
 def add_events(resource, lst):
     resource = Resource.get(resource)
-    resource.events.extend([ev.to_dict() for ev in lst])
-    resource.save(force=True)
+    events = resource.events
+    # TODO: currently we don't track mutable objects
+    events.extend([ev.to_dict() for ev in lst])
+    resource.events = events
+    # import pdb; pdb.settrace()
+    resource.save_lazy()
 
 
 def remove_event(ev):
