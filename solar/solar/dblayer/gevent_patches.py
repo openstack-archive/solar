@@ -37,3 +37,4 @@ def patch_all():
 
     _patch(utils, 'solar_map', solar_map)
     _patch(utils, 'get_local', get_local)
+    _patch(Model, '_local', get_local()())

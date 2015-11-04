@@ -1,5 +1,3 @@
-# from threading import local, current_thread
-# from solar.dblayer.gevent_local import local
 from solar.utils import get_local
 from random import getrandbits
 import uuid
@@ -7,8 +5,7 @@ from functools import wraps, total_ordering
 from operator import itemgetter
 import time
 from contextlib import contextmanager
-
-LOCAL = get_local()()
+from threading import RLock
 
 
 class DBLayerException(Exception):
@@ -42,35 +39,39 @@ class SingleClassCache(object):
 
 class ClassCache(object):
 
-    def __get__(self, _, owner):
+    def __init__(self, *args, **kwargs):
+        self._l = RLock()
+
+    def __get__(self, inst, owner):
         # th = current_thread()
-        l = LOCAL
-        # better don't duplicate class names
-        cache_name = owner.__name__
-        try:
-            cache_id = l.cache_id
-        except AttributeError:
-            cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
-            setattr(l, 'cache_id', cache_id)
-        if getattr(l, 'cache_id_cmp', None) != cache_id:
-            # new cache
-            setattr(l, 'cache_id_cmp', cache_id)
-            c = SingleClassCache(owner)
-            setattr(l, '_model_caches', {})
-            l._model_caches[cache_name] = c
-        try:
-            # already had this owner in cache
-            return l._model_caches[cache_name]
-        except KeyError:
-            # old cache but first time this owner
-            c = SingleClassCache(owner)
-            l._model_caches[cache_name] = c
-            return c
+        with self._l:
+            l = Model._local
+            # better don't duplicate class names
+            cache_name = owner.__name__
+            try:
+                cache_id = l.cache_id
+            except AttributeError:
+                cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
+                setattr(l, 'cache_id', cache_id)
+            if getattr(l, 'cache_id_cmp', None) != cache_id:
+                # new cache
+                setattr(l, 'cache_id_cmp', cache_id)
+                c = SingleClassCache(owner)
+                setattr(l, '_model_caches', {})
+                l._model_caches[cache_name] = c
+            try:
+                # already had this owner in cache
+                return l._model_caches[cache_name]
+            except KeyError:
+                # old cache but first time this owner
+                c = SingleClassCache(owner)
+                l._model_caches[cache_name] = c
+                return c
 
 
 def clear_cache():
     # th = current_thread()
-    l = LOCAL
+    l = Model._local
     cache_id = uuid.UUID(int=getrandbits(128), version=4).hex
     setattr(l, 'cache_id_cmp', cache_id)
 
@@ -665,6 +666,8 @@ class Model(object):
     _real_riak_object = None
 
     _changed = False
+
+    _local = get_local()()
 
     def __init__(self, key=None):
         self._modified_fields = set()
