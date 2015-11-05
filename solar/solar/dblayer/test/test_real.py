@@ -504,3 +504,53 @@ def test_events(rk):
     r1.events.pop()
     r1.save()
     assert r1.events == ['event1']
+
+
+def test_delete(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'first',
+                                 'inputs': {'input1': None,
+                                            'input2': None}})
+
+    r1.connect(r2, {'input1': 'input1'})
+    r1.save()
+    r2.save()
+
+    r1.delete()
+
+    recv_emit_bin = []
+    for index in r2._riak_object.indexes:
+        if 'recv' in index[0] or 'emit' in index[0]:
+            recv_emit_bin.append(index)
+    assert recv_emit_bin == []
+
+
+def test_delete_hash(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                                 'inputs': {'input1': 10,
+                                            'input2': 15}})
+    r2 = create_resource(k2, {'name': 'second',
+                                 'inputs': {'input': {'input1': None,
+                                                      'input2': None}}})
+
+
+    r1.connect(r2, {'input1': 'input:input1',
+                    'input2': 'input:input2'})
+
+    r1.save()
+    r2.save()
+
+    r1.delete()
+    recv_emit_bin = []
+    for index in r2._riak_object.indexes:
+        if 'recv' in index[0] or 'emit' in index[0]:
+            recv_emit_bin.append(index)
+    assert recv_emit_bin == []

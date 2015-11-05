@@ -69,7 +69,7 @@ class InputsFieldWrp(IndexFieldWrp):
                         'tag': data[4]}
             else:
                 raise Exception("Unsupported case")
-            yield (my_resource, my_input), (other_resource, other_input), meta
+            yield (other_resource, other_input), (my_resource, my_input), meta
 
     def __contains__(self, name):
         try:
@@ -194,11 +194,14 @@ class InputsFieldWrp(IndexFieldWrp):
         recvs = filter(lambda x: x[0] == '{}_recv_bin'.format(self.fname), indexes)
         for recv in recvs:
             _, ind_value = recv
-            if ind_value.startswith('{}|{}|'.format(self._instance.key, name)):
+            recv_name = name
+            if ':' in recv_name:
+                recv_name = recv_name.split(':')[0]
+            if ind_value.startswith('{}|{}|'.format(self._instance.key, recv_name)):
                 to_dels.append(recv)
         emits = filter(lambda x: x[0] == '{}_emit_bin'.format(self.fname), indexes)
         for emit in emits:
-            _, ind_value = recv
+            _, ind_value = emit
             if ind_value.endswith('|{}|{}'.format(self._instance.key, name)):
                 to_dels.append(emit)
         for to_del in to_dels:
@@ -567,6 +570,7 @@ class Resource(Model):
 
     @classmethod
     def childs(cls, parents):
+
         all_indexes = cls.bucket.get_index(
             'inputs_recv_bin',
             startkey='',
@@ -590,6 +594,21 @@ class Resource(Model):
                     to_visit.append(child)
             visited.append(n)
         return visited
+
+    def delete(self):
+        inputs_index = self.bucket.get_index(
+            'inputs_emit_bin',
+            startkey=self.key,
+            endkey=self.key+'~',
+            return_terms=True,
+            max_results=999999)
+
+        for emit_bin in inputs_index.results:
+            index_vals = emit_bin[0].split('|')
+
+            my_res, my_key, other_res, other_key = index_vals[:4]
+            Resource.get(other_res).inputs.disconnect(other_key)
+        super(Resource, self).delete()
 
 
 class CommitedResource(Model):
