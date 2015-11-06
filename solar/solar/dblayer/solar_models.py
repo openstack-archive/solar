@@ -580,7 +580,7 @@ class Resource(Model):
 
         tmp = defaultdict(set)
         to_visit = parents[:]
-        visited = []
+        visited = set()
 
         for item in all_indexes.results:
             data = item[0].split('|')
@@ -592,7 +592,7 @@ class Resource(Model):
             for child in tmp[n]:
                 if child not in visited:
                     to_visit.append(child)
-            visited.append(n)
+            visited.add(n)
         return visited
 
     def delete(self):
@@ -607,7 +607,8 @@ class Resource(Model):
             index_vals = emit_bin[0].split('|')
 
             my_res, my_key, other_res, other_key = index_vals[:4]
-            Resource.get(other_res).inputs.disconnect(other_key)
+            emit_obj = Resource.get(other_res)
+            emit_obj.inputs.disconnect(other_key)
         super(Resource, self).delete()
 
 

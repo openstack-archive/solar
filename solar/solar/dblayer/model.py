@@ -851,7 +851,7 @@ class Model(object):
     def delete(self):
         ls = self._c.lazy_save
         try:
-            ls.remove(self.key)
+            ls.remove(self)
         except KeyError:
             pass
         self._riak_object.delete()
