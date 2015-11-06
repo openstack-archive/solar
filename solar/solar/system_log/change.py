@@ -141,6 +141,16 @@ def check_uids_present(log, uids):
         raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
 
 
+def _get_args_to_update(args, connections):
+    """For each resource we can update only args that are not provided
+    by connections
+    """
+    inherited = [i[3].split(':')[0] for i in connections]
+    return {
+        key:args[key] for key in args
+        if key not in inherited
+        }
+
 def revert_uids(uids):
     """
     :param uids: iterable not generator
@@ -168,13 +178,9 @@ def _revert_remove(logitem):
     commited = CommitedResource.get(logitem.resource)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
     connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
-    inherited = [i[3].split(':')[0] for i in connections]
-    args_to_update = {
-        key:args[key] for key in args
-        if key not in inherited
-        }
 
-    resource.Resource(logitem.resource, logitem.base_path, args=args_to_update, tags=commited.tags)
+    resource.Resource(logitem.resource, logitem.base_path,
+        args=_get_args_to_update(args, connections), tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
@@ -215,14 +221,9 @@ def _revert_update(logitem):
 
     connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
     args = dictdiffer.revert(logitem.diff, commited.inputs)
-    inherited = [i[3].split(':')[0] for i in connections]
-    args_to_update = {
-        key:args[key] for key in args
-        if key not in inherited
-        }
 
     _update_inputs_connections(
-        res_obj, args_to_update, commited.connections, connections)
+        res_obj, _get_args_to_update(args, connections), commited.connections, connections)
 
 
 def _revert_run(logitem):
@@ -244,13 +245,9 @@ def _discard_update(item):
     old_connections = resource_obj.connections
     new_connections = dictdiffer.revert(item.connections_diff, sorted(old_connections))
     args = dictdiffer.revert(item.diff, resource_obj.args)
-    inherited = [i[3].split(':')[0] for i in new_connections]
-    args_to_update = {
-        key:args[key] for key in args
-        if key not in inherited
-        }
+
     _update_inputs_connections(
-        resource_obj, args_to_update, old_connections, new_connections)
+        resource_obj, _get_args_to_update(args, new_connections), old_connections, new_connections)
 
 def _discard_run(item):
     resource.load(item.resource).remove(force=True)
