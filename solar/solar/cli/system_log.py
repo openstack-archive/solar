@@ -142,8 +142,7 @@ def test(name):
 
 @changes.command(name='clean-history')
 def clean_history():
-    data.CL().clean()
-    data.CD().clean()
+    change.clear_history()
 
 @changes.command(help='USE ONLY FOR TESTING')
 def commit():

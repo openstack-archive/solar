@@ -220,23 +220,22 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
-        return []
-        rst = []
+        rst = set()
         # TODO: fix it
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
             if meta:
                 receiver_input = '{}:{}|{}'.format(receiver_input,
                     meta['destination_key'], meta['tag'])
 
-            rst.append(
-                [emitter_resource, emitter_input,
-                 receiver_resource, receiver_input])
-        return rst
+            rst.add(
+                (emitter_resource, emitter_input,
+                 receiver_resource, receiver_input))
+        return [list(i) for i in rst]
 
     def graph(self):
         mdg = networkx.MultiDiGraph()
-        for data in self.db_obj.inputs._edges():
-            mdg.add_edges_from(data)
+        for u, v, data in self.db_obj.inputs._edges():
+            mdg.add_edge(u, v, attr_dict=data)
         return mdg
 
     def resource_inputs(self):

@@ -560,9 +560,7 @@ class ModelMeta(type):
     @classmethod
     def remove_all(mcs):
         for model in mcs._defined_models:
-            rst = model.bucket.get_index('$bucket', startkey='_', max_results=100000).results
-            for key in rst:
-                model.bucket.delete(key)
+            model.delete_all()
 
     @classmethod
     def save_all_lazy(mcs, result=True):
@@ -886,11 +884,16 @@ class Model(object):
     def save_lazy(self):
         self._c.lazy_save.add(self)
 
+    @classmethod
+    def delete_all(cls):
+        rst = cls.bucket.get_index('$bucket', startkey='_', max_results=100000).results
+        for key in rst:
+            cls.bucket.delete(key)
 
     def delete(self):
         ls = self._c.lazy_save
         try:
-            ls.remove(self.key)
+            ls.remove(self)
         except KeyError:
             pass
         self._riak_object.delete()

@@ -132,24 +132,23 @@ def parameters(res, action, data):
             'type': 'solar_resource'}
 
 
-def check_uids_present(log, uids):
-    not_valid = []
-    for uid in uids:
-        if log.get(uid) is None:
-            not_valid.append(uid)
-    if not_valid:
-        raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
-
+def _get_args_to_update(args, connections):
+    """For each resource we can update only args that are not provided
+    by connections
+    """
+    inherited = [i[3].split(':')[0] for i in connections]
+    return {
+        key:args[key] for key in args
+        if key not in inherited
+        }
 
 def revert_uids(uids):
     """
     :param uids: iterable not generator
     """
-    history = data.CL()
-    check_uids_present(history, uids)
+    items = LogItem.multi_get(uids)
 
-    for uid in uids:
-        item = history.get(uid)
+    for item in items:
 
         if item.action == CHANGES.update.name:
             _revert_update(item)
@@ -165,10 +164,12 @@ def revert_uids(uids):
 def _revert_remove(logitem):
     """Resource should be created with all previous connections
     """
-    commited = orm.DBCommitedState.load(logitem.res)
+    commited = CommitedResource.get(logitem.resource)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
-    connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
-    resource.Resource(logitem.res, logitem.base_path, args=args, tags=commited.tags)
+    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+
+    resource.Resource(logitem.resource, logitem.base_path,
+        args=_get_args_to_update(args, connections), tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
@@ -204,18 +205,18 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
 def _revert_update(logitem):
     """Revert of update should update inputs and connections
     """
-    res_obj = resource.load(logitem.res)
+    res_obj = resource.load(logitem.resource)
     commited = res_obj.load_commited()
 
-    args_to_update = dictdiffer.revert(logitem.diff, commited.inputs)
-    connections = dictdiffer.revert(logitem.signals_diff, sorted(commited.connections))
+    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+    args = dictdiffer.revert(logitem.diff, commited.inputs)
 
     _update_inputs_connections(
-        res_obj, args_to_update, commited.connections, connections)
+        res_obj, _get_args_to_update(args, connections), commited.connections, connections)
 
 
 def _revert_run(logitem):
-    res_obj = resource.load(logitem.res)
+    res_obj = resource.load(logitem.resource)
     res_obj.remove()
 
 
@@ -224,27 +225,26 @@ def revert(uid):
 
 
 def _discard_remove(item):
-    resource_obj = resource.load(item.res)
+    resource_obj = resource.load(item.resource)
     resource_obj.set_created()
 
 
 def _discard_update(item):
-    resource_obj = resource.load(item.res)
+    resource_obj = resource.load(item.resource)
     old_connections = resource_obj.connections
-    new_connections = dictdiffer.revert(item.signals_diff, sorted(old_connections))
+    new_connections = dictdiffer.revert(item.connections_diff, sorted(old_connections))
     args = dictdiffer.revert(item.diff, resource_obj.args)
+
     _update_inputs_connections(
-        resource_obj, args, old_connections, new_connections)
+        resource_obj, _get_args_to_update(args, new_connections), old_connections, new_connections)
 
 def _discard_run(item):
-    resource.load(item.res).remove(force=True)
+    resource.load(item.resource).remove(force=True)
 
 
 def discard_uids(uids):
-    staged_log = data.SL()
-    check_uids_present(staged_log, uids)
-    for uid in uids:
-        item = staged_log.get(uid)
+    items = LogItem.multi_get(uids)
+    for item in items:
         if item.action == CHANGES.update.name:
             _discard_update(item)
         elif item.action == CHANGES.remove.name:
@@ -254,7 +254,7 @@ def discard_uids(uids):
         else:
             log.debug('Action %s for resource %s is a side'
                       ' effect of another action', item.action, item.res)
-        staged_log.pop(uid)
+        item.delete()
 
 
 def discard_uid(uid):
@@ -271,3 +271,7 @@ def commit_all():
     from .operations import move_to_commited
     for item in data.SL():
         move_to_commited(item.log_action)
+
+def clear_history():
+    LogItem.delete_all()
+    CommitedResource.delete_all()
