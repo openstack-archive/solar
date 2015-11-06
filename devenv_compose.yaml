@@ -1,0 +1,13 @@
+solar-celery:
+  build: .
+  volumes:
+    - .solar:/solar
+    - .solard:/solard
+    - .templates:/templates
+    - .resources:/resources
+  environment:
+    - REDIS_HOST=10.0.0.2
+    - REDIS_PORT=6379
+    - RIAK_HOST=10.0.0.2
+    - RIAK_PORT=8087
+    - DIRECTORIES=/resources/templates
