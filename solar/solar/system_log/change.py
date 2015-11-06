@@ -132,15 +132,6 @@ def parameters(res, action, data):
             'type': 'solar_resource'}
 
 
-def check_uids_present(log, uids):
-    not_valid = []
-    for uid in uids:
-        if LogItem.get(uid) is None:
-            not_valid.append(uid)
-    if not_valid:
-        raise CannotFindID('UIDS: {} not in history.'.format(not_valid))
-
-
 def _get_args_to_update(args, connections):
     """For each resource we can update only args that are not provided
     by connections
@@ -155,11 +146,9 @@ def revert_uids(uids):
     """
     :param uids: iterable not generator
     """
-    history = data.CL()
-    check_uids_present(history, uids)
+    items = LogItem.multi_get(uids)
 
-    for uid in uids:
-        item = LogItem.get(uid)
+    for item in items:
 
         if item.action == CHANGES.update.name:
             _revert_update(item)
@@ -254,10 +243,8 @@ def _discard_run(item):
 
 
 def discard_uids(uids):
-    staged_log = data.SL()
-    check_uids_present(staged_log, uids)
-    for uid in uids:
-        item = LogItem.get(uid)
+    items = LogItem.multi_get(uids)
+    for item in items:
         if item.action == CHANGES.update.name:
             _discard_update(item)
         elif item.action == CHANGES.remove.name:
