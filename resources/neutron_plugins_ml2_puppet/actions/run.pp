@@ -1,19 +1,19 @@
 $resource = hiera($::resource_name)
 
-$ip = $resource['input']['ip']['value']
+$ip = $resource['input']['ip']
 
-$type_drivers               = $resource['input']['type_drivers']['value']
-$tenant_network_types       = $resource['input']['tenant_network_types']['value']
-$mechanism_drivers          = $resource['input']['mechanism_drivers']['value']
-$flat_networks              = $resource['input']['flat_networks']['value']
-$network_vlan_ranges        = $resource['input']['network_vlan_ranges']['value']
-$tunnel_id_ranges           = $resource['input']['tunnel_id_ranges']['value']
-$vxlan_group                = $resource['input']['vxlan_group']['value']
-$vni_ranges                 = $resource['input']['vni_ranges']['value']
-$enable_security_group      = $resource['input']['enable_security_group']['value']
-$package_ensure             = $resource['input']['package_ensure']['value']
-$supported_pci_vendor_devs  = $resource['input']['supported_pci_vendor_devs']['value']
-$sriov_agent_required       = $resource['input']['sriov_agent_required']['value']
+$type_drivers               = $resource['input']['type_drivers']
+$tenant_network_types       = $resource['input']['tenant_network_types']
+$mechanism_drivers          = $resource['input']['mechanism_drivers']
+$flat_networks              = $resource['input']['flat_networks']
+$network_vlan_ranges        = $resource['input']['network_vlan_ranges']
+$tunnel_id_ranges           = $resource['input']['tunnel_id_ranges']
+$vxlan_group                = $resource['input']['vxlan_group']
+$vni_ranges                 = $resource['input']['vni_ranges']
+$enable_security_group      = $resource['input']['enable_security_group']
+$package_ensure             = $resource['input']['package_ensure']
+$supported_pci_vendor_devs  = $resource['input']['supported_pci_vendor_devs']
+$sriov_agent_required       = $resource['input']['sriov_agent_required']
 
 # LP1490438
 file {'/etc/default/neutron-server':

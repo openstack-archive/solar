@@ -1,7 +1,7 @@
 $resource = hiera($::resource_name)
 
-$scheduler_driver  = $resource['input']['scheduler_driver']['value']
-$package_ensure    = $resource['input']['package_ensure']['value']
+$scheduler_driver  = $resource['input']['scheduler_driver']
+$package_ensure    = $resource['input']['package_ensure']
 
 include cinder::params
 

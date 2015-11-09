@@ -1,17 +1,17 @@
 $resource = hiera($::resource_name)
 
-$ensure_package             = $resource['input']['ensure_package']['value']
-$use_lnx                    = $resource['input']['use_lnx']['value']
-$use_ovs                    = $resource['input']['use_ovs']['value']
-$install_ovs                = $resource['input']['install_ovs']['value']
-$install_brtool             = $resource['input']['install_brtool']['value']
-$install_ethtool            = $resource['input']['install_ethtool']['value']
-$install_bondtool           = $resource['input']['install_bondtool']['value']
-$install_vlantool           = $resource['input']['install_vlantool']['value']
-$ovs_modname                = $resource['input']['ovs_modname']['value']
-$ovs_datapath_package_name  = $resource['input']['ovs_datapath_package_name']['value']
-$ovs_common_package_name    = $resource['input']['ovs_common_package_name']['value']
-$network_scheme             = $resource['input']['network_scheme']['value']
+$ensure_package             = $resource['input']['ensure_package']
+$use_lnx                    = $resource['input']['use_lnx']
+$use_ovs                    = $resource['input']['use_ovs']
+$install_ovs                = $resource['input']['install_ovs']
+$install_brtool             = $resource['input']['install_brtool']
+$install_ethtool            = $resource['input']['install_ethtool']
+$install_bondtool           = $resource['input']['install_bondtool']
+$install_vlantool           = $resource['input']['install_vlantool']
+$ovs_modname                = $resource['input']['ovs_modname']
+$ovs_datapath_package_name  = $resource['input']['ovs_datapath_package_name']
+$ovs_common_package_name    = $resource['input']['ovs_common_package_name']
+$network_scheme             = $resource['input']['network_scheme']
 
 class {'l23network':
   ensure_package             => $ensure_package,
