@@ -7,7 +7,8 @@ from solar.events.controls import React
 
 
 discovery_service = 'http://0.0.0.0:8881'
-bareon_service = 'http://0.0.0.0:9322/v1/nodes/{0}/partitioning'
+bareon_partitioning = 'http://0.0.0.0:9322/v1/nodes/{0}/partitioning'
+bareon_repos = 'http://0.0.0.0:9322/v1/nodes/{0}/repos'
 bareon_sync = 'http://0.0.0.0:9322/v1/actions/sync_all'
 
 
@@ -25,7 +26,12 @@ class NodeAdapter(dict):
 
     @property
     def partitioning(self):
-        return requests.get(bareon_service.format(self['id'])).json()
+        return requests.get(bareon_partitioning.format(self['id'])).json()
+
+    @property
+    def repos(self):
+        return requests.get(bareon_repos.format(self['id'])).json()
+
 
 # Sync hw info about nodes from discovery service into bareon-api
 requests.post(bareon_sync)
@@ -53,6 +59,7 @@ for node in nodes_list:
         {
             'partitioning': node.partitioning,
             'master_key': master_key,
+            'repos': node.repos,
         }
     )
 
