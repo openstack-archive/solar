@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
 import os
+from fnmatch import fnmatch
+import shutil
 
 import click
 import yaml
-from fnmatch import fnmatch
-import shutil
+import networkx as nx
+
 
 def ensure_dir(dir):
     try:
@@ -19,11 +21,19 @@ LIBRARY_PATH = os.path.join(CURDIR, 'fuel-library')
 RESOURCE_TMP_WORKDIR = os.path.join(CURDIR, 'tmp/resources')
 ensure_dir(RESOURCE_TMP_WORKDIR)
 RESOURCE_DIR = os.path.join(CURDIR, 'resources')
-
+VR_TMP_DIR = os.path.join(CURDIR, 'tmp/vrs')
+ensure_dir(VR_TMP_DIR)
+INPUTS_LOCATION = "/tmp/fuel_specs/"
+DEPLOYMENT_GROUP_PATH = os.path.join(LIBRARY_PATH,
+    'deployment', 'puppet', 'deployment_groups', 'tasks.yaml')
 
 def clean_resources():
     shutil.rmtree(RESOURCE_TMP_WORKDIR)
     ensure_dir(RESOURCE_TMP_WORKDIR)
+
+def clean_vr():
+    shutil.rmtree(VR_TMP_DIR)
+    ensure_dir(VR_TMP_DIR)
 
 class Task(object):
 
@@ -32,6 +42,22 @@ class Task(object):
         self.src_path = task_path
         self.name = self.data['id']
         self.type = self.data['type']
+
+    def edges(self):
+        data = self.data
+        if 'required_for' in data:
+            for req in data['required_for']:
+                yield self.name, req
+        if 'requires' in task:
+            for req in data['requires']:
+                yield req, self.name
+
+        if 'groups' in data:
+            for req in data['groups']:
+                yield self.name, req
+        if 'tasks' in data:
+            for req in data['tasks']:
+                yield req, self.name
 
     @property
     def manifest(self):
@@ -42,7 +68,7 @@ class Task(object):
 
     @property
     def dst_path(self):
-        return os.path.join(RESOURCE_TMP_WORKDIR, self.data['id'])
+        return os.path.join(RESOURCE_TMP_WORKDIR, self.name)
 
     @property
     def actions_path(self):
@@ -53,7 +79,7 @@ class Task(object):
         return os.path.join(self.dst_path, 'meta.yaml')
 
     def meta(self):
-        data = {'id': self.data['id'],
+        data = {'id': self.name,
                 'handler': 'puppetv2',
                 'version': '8.0',
                 'inputs': self.inputs()}
@@ -66,7 +92,78 @@ class Task(object):
         yield self.manifest, os.path.join(self.actions_path, 'run.pp')
 
     def inputs(self):
-        return {}
+        """
+        Inputs prepared by
+
+        fuel_noop_tests.rb
+        identity = spec.split('/')[-1]
+        ENV["SPEC"] = identity
+
+        hiera.rb
+        File.open("/tmp/fuel_specs/#{ENV['SPEC']}", 'a') { |f| f << "- #{key}\n" }
+        """
+        lookup_stack_path = os.path.join(
+            INPUTS_LOCATION, self.name+"_spec.rb'")
+        if not os.path.exists(lookup_stack_path):
+            return {}
+
+        with open(lookup_stack_path) as f:
+            data = yaml.safe_load(f) or []
+        return {key: None for key in set(data)}
+
+
+class RoleData(Task):
+
+    name = 'globals'
+
+    def meta(self):
+        data = {'id': self.name,
+                'handler': 'puppetv2',
+                'version': '8.0',
+                'inputs': self.inputs(),
+                'manager': 'globals.py'}
+        return yaml.safe_dump(data, default_flow_style=False)
+
+    @property
+    def actions(self):
+        pass
+
+
+class DGroup(object):
+
+    def __init__(self, name, tasks):
+        self.name = name
+        self.tasks = tasks
+
+    def resources(self):
+        for t, _, _ in self.tasks:
+            yield {'id': t.name+"{{index}}",
+                   'from': 'f2s/resources/'+t.name,
+                   'location': "{{node}}"}
+
+
+    def events(self):
+        for t, inner, outer self.tasks:
+            for dep in set(inner):
+                yield {
+                    'type': 'depends_on',
+                    'state': 'success',
+                    'parent_action': dep + '{{index}}.run',
+                    'child_action': t.name + '{{index}}.run'}
+            for dep in set(outer):
+                yield {
+                    'type': 'depends_on',
+                    'state': 'success',
+                    'parent': {
+                        'with_tags': ['resource=' + dep],
+                        'action': 'run'}
+                    'depend_action': t.name + '{{index}}.run'}
+
+    def meta(self):
+        data = {'id': self.name,
+                'resources': self.resources(),
+                'events': self.events()}
+        return yaml.safe_dump(data, default_flow_style=False)
 
 
 def get_files(base_dir, file_pattern='*tasks.yaml'):
@@ -90,11 +187,32 @@ def preview(task):
 
 def create(task):
     ensure_dir(task.dst_path)
-    ensure_dir(task.actions_path)
+    if task.actions_path:
+        ensure_dir(task.actions_path)
+        for src, dst in task.actions:
+            shutil.copyfile(src, dst)
+
     with open(task.meta_path, 'w') as f:
         f.write(task.meta())
-    for src, dst in task.actions:
-        shutil.copyfile(src, dst)
+
+
+def get_tasks():
+    for base, task_yaml in get_files(LIBRARY_PATH + '/deployment'):
+        for item in load_data(base, task_yaml):
+            yield Task(item, base)
+
+
+def get_graph():
+    dg = nx.DiGraph)
+    for t in get_tasks():
+        dg.add_edges_from(list(t.edges()))
+        dg.add_node(t.name, t=t)
+    return dg
+
+def dgroup_subgraph(dg, dgroup):
+    preds = [p for p in dg.predecessors(dgroup)
+             if dg.node[p]['t'].type == 'puppet']
+    return dg.subgraph(preds)
 
 @click.group()
 def main():
@@ -108,17 +226,53 @@ def main():
 def t2r(tasks, t, p, c):
     if c:
         clean_resources()
-    for base, task_yaml in get_files(LIBRARY_PATH + '/deployment'):
-        for item in load_data(base, task_yaml):
-            task = Task(item, base)
-            if task.type != 'puppet':
-                continue
 
-            if task.name in tasks or tasks == ():
-                if p:
-                    preview(task)
+    for task in get_tasks():
+        if task.type != 'puppet':
+            continue
+
+        if task.name in tasks or tasks == ():
+            if p:
+                preview(task)
+            else:
+                create(task)
+    role_data = RoleData()
+    if p:
+        preview(role_data)
+    else:
+        create(role_data)
+
+
+@main.command(help='convert groups into templates')
+@click.argument('groups', nargs=-1)
+@click.option('-c', is_flag=True)
+def g2vr(groups, c):
+    if c:
+        clean_vr()
+
+    dg = get_graph()
+    dgroups = [n for n in dg.node[n]['t'].type == 'group']
+
+    for d in dgroups:
+        if groups and d not in groups:
+            continue
+
+        ordered = []
+        dsub = dg.subgraph(dg.predecessors(group))
+        for t in nx.topological(dsub):
+            inner_preds = []
+            outer_preds = []
+            for p in dg.predecessors(t):
+                if p in dsub:
+                    inner_preds.append(p)
                 else:
-                    create(task)
+                    outer_preds.append(p)
+
+            if dg.node[t]['t'].type == 'puppet':
+                ordered.append(dg.node[t]['t'], inner_preds, outer_preds)
+
+        # based on inner/outer aggregation configure joins in events
+
 
 if __name__ == '__main__':
     main()
