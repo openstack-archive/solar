@@ -48,7 +48,7 @@ class Task(object):
         if 'required_for' in data:
             for req in data['required_for']:
                 yield self.name, req
-        if 'requires' in task:
+        if 'requires' in data:
             for req in data['requires']:
                 yield req, self.name
 
@@ -109,7 +109,8 @@ class Task(object):
 
         with open(lookup_stack_path) as f:
             data = yaml.safe_load(f) or []
-        return {key: None for key in set(data)}
+        return {key: {'value': None} for key
+                in set(data) if '::' not in key}
 
 
 class RoleData(Task):
@@ -143,7 +144,7 @@ class DGroup(object):
 
 
     def events(self):
-        for t, inner, outer self.tasks:
+        for t, inner, outer in self.tasks:
             for dep in set(inner):
                 yield {
                     'type': 'depends_on',
@@ -156,14 +157,18 @@ class DGroup(object):
                     'state': 'success',
                     'parent': {
                         'with_tags': ['resource=' + dep],
-                        'action': 'run'}
+                        'action': 'run'},
                     'depend_action': t.name + '{{index}}.run'}
 
     def meta(self):
         data = {'id': self.name,
-                'resources': self.resources(),
-                'events': self.events()}
+                'resources': list(self.resources()),
+                'events': list(self.events())}
         return yaml.safe_dump(data, default_flow_style=False)
+
+    @property
+    def path(self):
+        return os.path.join(VR_TMP_DIR, self.name + '.yml')
 
 
 def get_files(base_dir, file_pattern='*tasks.yaml'):
@@ -203,7 +208,7 @@ def get_tasks():
 
 
 def get_graph():
-    dg = nx.DiGraph)
+    dg = nx.DiGraph()
     for t in get_tasks():
         dg.add_edges_from(list(t.edges()))
         dg.add_node(t.name, t=t)
@@ -236,11 +241,11 @@ def t2r(tasks, t, p, c):
                 preview(task)
             else:
                 create(task)
-    role_data = RoleData()
-    if p:
-        preview(role_data)
-    else:
-        create(role_data)
+    # role_data = RoleData()
+    # if p:
+    #     preview(role_data)
+    # else:
+    #     create(role_data)
 
 
 @main.command(help='convert groups into templates')
@@ -251,15 +256,15 @@ def g2vr(groups, c):
         clean_vr()
 
     dg = get_graph()
-    dgroups = [n for n in dg.node[n]['t'].type == 'group']
+    dgroups = [n for n in dg if dg.node[n]['t'].type == 'group']
 
-    for d in dgroups:
-        if groups and d not in groups:
+    for group in dgroups:
+        if groups and group not in groups:
             continue
 
         ordered = []
         dsub = dg.subgraph(dg.predecessors(group))
-        for t in nx.topological(dsub):
+        for t in nx.topological_sort(dsub):
             inner_preds = []
             outer_preds = []
             for p in dg.predecessors(t):
@@ -269,8 +274,11 @@ def g2vr(groups, c):
                     outer_preds.append(p)
 
             if dg.node[t]['t'].type == 'puppet':
-                ordered.append(dg.node[t]['t'], inner_preds, outer_preds)
+                ordered.append((dg.node[t]['t'], inner_preds, outer_preds))
 
+        obj = DGroup(group, ordered)
+        with open(obj.path, 'w') as f:
+            f.write(obj.meta())
         # based on inner/outer aggregation configure joins in events
 
 
