@@ -1,7 +1,7 @@
 $resource = hiera($::resource_name)
 
-$ensure_package                        = $resource['input']['ensure_package']['value']
-$workers                               = $resource['input']['workers']['value']
+$ensure_package                        = $resource['input']['ensure_package']
+$workers                               = $resource['input']['workers']
 
 exec { 'post-nova_config':
   command     => '/bin/echo "Nova config has changed"',
