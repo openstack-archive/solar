@@ -399,11 +399,10 @@ class InputsFieldWrp(IndexFieldWrp):
             raise Exception("%s:%s is connected with resource %s:%s" % (res, inp, emitter_name, emitter_inp))
         # inst = self._instance
         robj = self._instance._riak_object
-        self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(my_name, name))
-        try:
-            robj.data[self.fname][name] = value
-        except KeyError:
-            robj.data[self.fname] = {name: value}
+        if name not in robj.data[self.fname]:
+            self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(my_name, name))
+        robj.data[self.fname][name] = value
+
         with self.inputs_index_cache as c:
             c.wipe()
         self._cache[name] = value
