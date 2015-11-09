@@ -11,6 +11,9 @@ input:
     ip:
       schema: str!
       value:
+    master_key:
+      schema: str!
+      value:
     admin_mac:
       schema: str!
       value:

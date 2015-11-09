@@ -34,25 +34,39 @@ requests.post(bareon_sync)
 nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
-node_resources = vr.create('nodes', 'templates/not_provisioned_nodes.yaml', {'nodes': nodes_list})
+node_resources = vr.create('nodes', 'templates/not_provisioned_nodes.yaml',
+                           {'nodes': nodes_list})
 
 # Get master node
 master_node = filter(lambda n: n.name == 'node_master', node_resources)[0]
 
+with open('/vagrant/tmp/keys/ssh_public') as fp:
+    master_key = fp.read().strip()
+
 # Dnsmasq resources
 for node in nodes_list:
     node = NodeAdapter(node)
-    node_resource = filter(lambda n: n.name.endswith('node_{0}'.format(node.node_id)), node_resources)[0]
+    node_resource = next(n for n in node_resources
+                         if n.name.endswith('node_{0}'.format(node.node_id)))
 
-    node_resource.update({'partitioning': node.partitioning})
+    node_resource.update(
+        {
+            'partitioning': node.partitioning,
+            'master_key': master_key,
+        }
+    )
 
-    dnsmasq = vr.create('dnsmasq_{0}'.format(node.node_id), 'resources/dnsmasq', {})[0]
+    dnsmasq = vr.create('dnsmasq_{0}'.format(node.node_id),
+                        'resources/dnsmasq', {})[0]
     master_node.connect(dnsmasq)
     node_resource.connect(dnsmasq, {'admin_mac': 'exclude_mac_pxe'})
 
-    event = React(node_resource.name, 'run', 'success', node_resource.name, 'provision')
+    event = React(node_resource.name, 'run', 'success', node_resource.name,
+                  'provision')
     add_event(event)
-    event = React(node_resource.name, 'provision', 'success', dnsmasq.name, 'exclude_mac_pxe')
+    event = React(node_resource.name, 'provision', 'success', dnsmasq.name,
+                  'exclude_mac_pxe')
     add_event(event)
-    event = React(dnsmasq.name, 'exclude_mac_pxe', 'success', node_resource.name, 'reboot')
+    event = React(dnsmasq.name, 'exclude_mac_pxe', 'success',
+                  node_resource.name, 'reboot')
     add_event(event)
