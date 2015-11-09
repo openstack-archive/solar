@@ -17,7 +17,6 @@ import subprocess
 import time
 
 from celery.app import task
-import redis
 
 from solar.orchestration import graph
 from solar.core import actions
@@ -27,8 +26,6 @@ from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
 from solar.orchestration import limits
 from solar.orchestration import executor
-
-r = redis.StrictRedis(host='10.0.0.2', port=6379, db=1)
 
 
 __all__ = ['solar_resource', 'cmd', 'sleep',

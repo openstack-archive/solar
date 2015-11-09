@@ -77,7 +77,6 @@ C.add('redis.host', default='10.0.0.2')
 C.add('riak.host', default='10.0.0.2')
 C.add('riak.port', default='8087')
 C.add('riak.protocol', default='pbc')
-C.add('directories', default=[os.path.dirname(os.path.realpath(__file__))])
 C.init_env()
 
 if __name__ == '__main__':
