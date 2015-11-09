@@ -20,6 +20,11 @@ RESOURCE_TMP_WORKDIR = os.path.join(CURDIR, 'tmp/resources')
 ensure_dir(RESOURCE_TMP_WORKDIR)
 RESOURCE_DIR = os.path.join(CURDIR, 'resources')
 
+
+def clean_resources():
+    shutil.rmtree(RESOURCE_TMP_WORKDIR)
+    ensure_dir(RESOURCE_TMP_WORKDIR)
+
 class Task(object):
 
     def __init__(self, task_data, task_path):
@@ -27,6 +32,13 @@ class Task(object):
         self.src_path = task_path
         self.name = self.data['id']
         self.type = self.data['type']
+
+    @property
+    def manifest(self):
+        after_naily = self.data['parameters']['puppet_manifest'].split('osnailyfacter/')[-1]
+        return os.path.join(
+            LIBRARY_PATH, 'deployment', 'puppet', 'osnailyfacter',
+            after_naily)
 
     @property
     def dst_path(self):
@@ -51,7 +63,7 @@ class Task(object):
     def actions(self):
         """yield an iterable of src/dst
         """
-        yield os.path.join(self.src_path, self.data['id'] + '.pp'), os.path.join(self.actions_path, 'run.pp')
+        yield self.manifest, os.path.join(self.actions_path, 'run.pp')
 
     def inputs(self):
         return {}
@@ -92,14 +104,17 @@ def main():
 @click.argument('tasks', nargs=-1)
 @click.option('-t', is_flag=True)
 @click.option('-p', is_flag=True)
-def t2r(tasks, t, p):
+@click.option('-c', is_flag=True)
+def t2r(tasks, t, p, c):
+    if c:
+        clean_resources()
     for base, task_yaml in get_files(LIBRARY_PATH + '/deployment'):
         for item in load_data(base, task_yaml):
             task = Task(item, base)
             if task.type != 'puppet':
                 continue
 
-            if task.name in tasks or tasks is ():
+            if task.name in tasks or tasks == ():
                 if p:
                     preview(task)
                 else:
