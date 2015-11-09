@@ -11,3 +11,12 @@ solar-celery:
     - RIAK_HOST=10.0.0.2
     - RIAK_PORT=8087
     - DIRECTORIES=/resources/templates
+riak:
+  image: tutum/riak
+  ports:
+    - 8087:8087
+    - 8098:8098
+redis:
+  image: tutum/redis
+  ports:
+    - 6379:6379
