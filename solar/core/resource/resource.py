@@ -23,11 +23,13 @@ from enum import Enum
 from multipledispatch import dispatch
 import networkx
 
+
 from solar.core.signals import get_mapping
 from solar.core import validation
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
+from solar.dblayer.proxy import DBLayerProxy
 from solar.events import api
 from solar import utils
 
@@ -98,7 +100,11 @@ class Resource(object):
         self.db_obj.save()
 
     # Load
+<<<<<<< HEAD:solar/core/resource/resource.py
     @dispatch(DBResource)  # NOQA
+=======
+    @dispatch(object)
+>>>>>>> 3f53526... Initial idea of new cache:solar/solar/core/resource/resource.py
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name

@@ -14,12 +14,20 @@
 
 from functools import total_ordering
 from functools import wraps
+
+import uuid
+import time
+import weakref
+
+from collections import defaultdict
+from contextlib import contextmanager
+from operator import itemgetter
 from random import getrandbits
 from threading import RLock
-import time
-import uuid
 
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
+from solar.dblayer.lfu_cache import LFUCache
+from solar.dblayer.proxy import DBLayerProxy
 from solar.utils import get_local
 
 
@@ -79,12 +87,19 @@ class SingleIndexCache(object):
 
 class SingleClassCache(object):
 
+<<<<<<< HEAD:solar/dblayer/model.py
     __slots__ = ['obj_cache', 'db_ch_state', 'lazy_save', 'origin_class']
+=======
+    __slots__ = ['obj_cache', 'db_ch_state',
+                 'lazy_save', 'origin_class',
+                 'refs']
+>>>>>>> 3f53526... Initial idea of new cache:solar/solar/dblayer/model.py
 
     def __init__(self, origin_class):
-        self.obj_cache = {}
+        self.obj_cache = LFUCache(origin_class, 50)
         self.db_ch_state = {'index': set()}
         self.lazy_save = set()
+        self.refs = defaultdict(weakref.WeakSet)
         self.origin_class = origin_class
 
 
@@ -805,6 +820,10 @@ class Model(object):
         return "<%s %s:%s>" % (self.__class__.__name__,
                                self._riak_object.bucket.name, self.key)
 
+    def __hash__(self):
+        return hash(self.key)
+
+
     @classmethod
     def new(cls, key, data):
         return cls.from_dict(key, data)
@@ -822,8 +841,10 @@ class Model(object):
         obj._riak_object = riak_obj
         if obj._new is None:
             obj._new = False
-        cls._c.obj_cache[riak_obj.key] = obj
-        return obj
+        cache = cls._c.obj_cache
+        cache.set(riak_obj.key, obj)
+        # cache may adjust object
+        return cache.get(riak_obj.key)
 
     @classmethod
     def from_dict(cls, key, data=None):
@@ -835,6 +856,10 @@ class Model(object):
                 raise DBLayerException("No key specified")
         if key and 'key' in data and data['key'] != key:
             raise DBLayerException("Different key values detected")
+        # shouldn't be needed, but may cover some weird usecase
+        # when inproperly using from_dict, because it then leads to conflicts
+        if key in cls._c.obj_cache:
+            raise DBLayerException("Object already exists in cache, cannot create second")
         data['key'] = key
         riak_obj = cls.bucket.new(key, data={})
         obj = cls.from_riakobj(riak_obj)
@@ -855,20 +880,16 @@ class Model(object):
                 setattr(obj, gname, val)
         return obj
 
-    def __hash__(self):
-        return hash(self.key)
-
     @classmethod
     def get(cls, key):
         try:
-            return cls._c.obj_cache[key]
+            return cls._c.obj_cache.get(key)
         except KeyError:
             riak_object = cls.bucket.get(key)
             if not riak_object.exists:
                 raise DBLayerNotFound(key)
             else:
-                obj = cls.from_riakobj(riak_object)
-                return obj
+                return cls.from_riakobj(riak_object)
 
     @classmethod
     def multi_get(cls, keys):
