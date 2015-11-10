@@ -1,7 +1,8 @@
 id: managed
 handler: none
 version: 1.0.0
-manager: managers/manager.py
+managers:
+    - managers/manager.py
 input:
     val:
       schema: int!

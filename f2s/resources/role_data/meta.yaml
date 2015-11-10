@@ -2,7 +2,9 @@
 id: role_data
 handler: none
 version: 0.0.1
-manager: manager.py
+managers:
+    - managers/from_file.py
+    - managers/globals.py
 input:
     # should be auto-generated based on outputs from globals.pp
     puppet_modules:

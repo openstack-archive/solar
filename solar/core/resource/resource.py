@@ -90,7 +90,7 @@ class Resource(object):
                 'meta_inputs': inputs,
                 'tags': tags,
                 'state': RESOURCE_STATE.created.name,
-                'manager': metadata.get('manager', '')
+                'managers': metadata.get('managers', [])
             })
         self.create_inputs(args)
 
@@ -287,13 +287,15 @@ class Resource(object):
         self.db_obj.save_lazy()
 
     def prefetch(self):
-        if not self.db_obj.manager:
+        if not self.db_obj.managers:
             return
 
-        manager_path = os.path.join(
-            self.db_obj.base_path, self.db_obj.manager)
-        rst = utils.communicate([manager_path], json.dumps(self.args))
-        self.update(json.loads(rst))
+        manager_stack = self.db_obj.managers
+        while manager_stack:
+            manager = manager_stack.pop(0)
+            manager_path = os.path.join(self.db_obj.base_path, manager)
+            rst = utils.communicate([manager_path], json.dumps(self.args))
+            self.update(json.loads(rst))
 
 def load(name):
     r = DBResource.get(name)
