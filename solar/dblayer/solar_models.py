@@ -715,6 +715,7 @@ class Resource(Model):
     meta_inputs = Field(dict, default=dict)
     state = Field(str)  # on_set/on_get would be useful
     events = Field(list, default=list)
+    manager = Field(str)
 
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
