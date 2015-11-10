@@ -1,0 +1,20 @@
+id: genkeys
+handler: bash
+version: 0.0.1
+inputs:
+    uid:
+        schema: str!
+        value:
+    path:
+        schema: str!
+        value: /var/lib/fuel/keys/
+    ssl:
+        schema: []
+        value:
+            - mongo
+    ssh:
+        schema: []
+        value:
+            - neutron
+            - nova
+            - mysql

@@ -1,0 +1,23 @@
+id: prep_tasks
+resources:
+    - id: sources{{index}}
+      from: resources/sources
+      location: {{node}}
+      values:
+        sources:
+            - src: /var/lib/fuel/keys/{{uid}}/neutron/neutron.pub
+              dst: /var/lib/astute/neutron/neutron.pub
+            - src: /var/lib/fuel/keys/{{uid}}/neutron/neutron
+              dst: /var/lib/astute/neutron/neutron
+            - src: /var/lib/fuel/keys/{uid}/nova/nova.pub
+              dst: /var/lib/astute/nova/nova.pub
+            - src: /var/lib/fuel/keys/{{uid}}/nova/nova
+              dst: /var/lib/astute/nova/nova
+            - src: /var/lib/fuel/keys/{{uid}}/mysql/mysql.pub
+              dst: /var/lib/astute/mysql/mysql.pub
+            - src: /var/lib/fuel/keys/{{uid}}/mysql/mysql
+              dst: /var/lib/astute/mysql/mysql
+            - src: /var/lib/fuel/keys/{{uid}}/mongodb/mongodb.key
+              dst: /var/lib/astute/mongodb/mongodb.key
+            - src: /etc/puppet/modules
+              dst: /etc/puppet/modules
