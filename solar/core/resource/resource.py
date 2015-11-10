@@ -90,7 +90,7 @@ class Resource(object):
                 'meta_inputs': inputs,
                 'tags': tags,
                 'state': RESOURCE_STATE.created.name,
-                'manager': metadata.get('manager')
+                'manager': metadata.get('manager', '')
             })
         self.create_inputs(args)
 
@@ -292,8 +292,7 @@ class Resource(object):
 
         manager_path = os.path.join(
             self.db_obj.base_path, self.db_obj.manager)
-        data = json.dumps(self.args)
-        rst = utils.communicate([manager_path], data)
+        rst = utils.communicate([manager_path], json.dumps(self.args))
         self.update(json.loads(rst))
 
 def load(name):
