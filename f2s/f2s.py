@@ -140,7 +140,8 @@ class DGroup(object):
         for t, _, _ in self.tasks:
             yield {'id': t.name+"{{index}}",
                    'from': 'f2s/resources/'+t.name,
-                   'location': "{{node}}"}
+                   'location': "{{node}}",
+                   'values_from': RoleData.name+"{{index}}"}
 
 
     def events(self):
