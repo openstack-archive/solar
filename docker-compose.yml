@@ -18,6 +18,12 @@ solar:
   links:
     - riak
     - redis
+
+# docker run --name solar -d -v /root/solar/solar:/solar -v /root/solar/solard:/solard -v /root/solar/templates:/vagrant/templates \
+# -v /root/solar/resources:/vagrant/resources -v /root/solar/f2s:/vagrant/f2s \
+# -v /var/lib/fuel:/var/lib/fuel -v /root/.config/fuel/fuel_client.yaml:/root/.config/fuel/fuel_client.yaml \
+# --link=riak:riak --link=redis:redis --name solar solarproject/solar-celery:f2s
+
 riak:
   image: tutum/riak
   ports:

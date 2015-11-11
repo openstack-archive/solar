@@ -15,13 +15,15 @@ class NailgunSource(object):
     def nodes(self, uids):
         from fuelclient.objects.node import Node
         nodes_obj = map(Node, nodes)
-        return []
+        return [str(n.data['id']), str(n.data['ip']), str(n.data['cluster'])]
 
-    def roles(self, roles):
-        return []
+    def roles(self, uid):
+        from fuelclient.objects.node import Node
+        node = Node(uid)
+        return node.data['roles'] + node.data['pending_roles']
 
     def master(self):
-        return 'master', ''
+        return 'master', '10.20.0.2'
 
 class DumbSource(object):
 
