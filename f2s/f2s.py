@@ -80,9 +80,11 @@ class Task(object):
             after_naily)
 
     @property
-    def manifest_name(self):
-        name = self.data['parameters']['puppet_manifest'].split('/')[-1]
-        return name.split('.')[0]
+    def spec_name(self):
+        splitted = self.data['parameters']['puppet_manifest'].split('/')
+        directory = splitted[-2]
+        name = splitted[-1].split('.')[0]
+        return "{}_{}_spec.rb'".format(directory, name)
 
     @property
     def dst_path(self):
@@ -122,7 +124,7 @@ class Task(object):
         """
         print self.manifest_name
         lookup_stack_path = os.path.join(
-            INPUTS_LOCATION, self.manifest_name+"_spec.rb'")
+            INPUTS_LOCATION, self.spec_name)
         if not os.path.exists(lookup_stack_path):
             return {}
 

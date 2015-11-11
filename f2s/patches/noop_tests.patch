@@ -4,8 +4,9 @@
    # @return [Array<TrueClass,FalseClass,NilClass>] success and empty report array
    def self.rspec(spec)
      inside_noop_tests_directory do
-+      identity = spec.split('/')[-1]
-+      ENV["SPEC"] = identity
++      splitted = spec.split('/')
++      dir, name = splitted[-2], splitted[-1]
++      ENV["SPEC"] = "#{dir}_#{name}"
        command = "rspec #{RSPEC_OPTIONS} #{spec}"
 -      command = 'bundle exec ' + command if options[:bundle]
 +      command = "bundle exec " + command if options[:bundle]

@@ -13,6 +13,9 @@ input:
   uid:
     type: str!
     value:
+  env:
+    type: str!
+    value:
   access:
     value: null
   access_hash:
