@@ -122,7 +122,7 @@ class Task(object):
         hiera.rb
         File.open("/tmp/fuel_specs/#{ENV['SPEC']}", 'a') { |f| f << "- #{key}\n" }
         """
-        print self.manifest_name
+        print self.spec_name
         lookup_stack_path = os.path.join(
             INPUTS_LOCATION, self.spec_name)
         if not os.path.exists(lookup_stack_path):
@@ -160,6 +160,11 @@ class DGroup(object):
         self.tasks = tasks
 
     def resources(self):
+
+        yield OrderedDict(
+                [('id', RoleData.name+"{{index}}"),
+                 ('from', 'f2s/resources/'+RoleData.name),
+                 ('location', "{{node}}")])
 
         for t, _, _ in self.tasks:
             if t.name in self.filtered:

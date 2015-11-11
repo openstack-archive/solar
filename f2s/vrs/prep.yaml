@@ -21,3 +21,16 @@ resources:
               dst: /var/lib/astute/mongodb/mongodb.key
             - src: /etc/puppet/modules
               dst: /etc/puppet/modules
+    - id: mos_repos{{index}}
+      from: templates/mos_repos.yaml
+      values:
+        node: {{node}}
+        index: {{index}}
+events:
+    - type: depends_on
+      state: success
+      parent:
+        action: run
+        with_tags:
+            - resource=genkeys
+      depend_action: sources{{index}}.run

@@ -1,0 +1,5 @@
+id: genkeys
+resources:
+    - id: genkeys{{index}}
+      from: f2s/resources/genkeys
+      location: {{node}}
