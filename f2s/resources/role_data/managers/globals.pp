@@ -1,8 +1,8 @@
 notice('MODULAR: globals.pp')
 
 $service_token_off = false
-
-$globals_yaml_file = "/etc/puppet/${uid}globals.yaml"
+$identity = hiera('uid')
+$globals_yaml_file = "/etc/puppet/${identity}globals.yaml"
 
 # remove cached globals values before anything else
 remove_file($globals_yaml_file)

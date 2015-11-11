@@ -23,5 +23,8 @@ RUN ansible-playbook -v -i "localhost," -c local /celery.yaml --tags install
 RUN pip install riak peewee
 RUN pip install -U setuptools>=17.1
 RUN pip install -U python-fuelclient
+RUN apt-get install -y puppet
+RUN gem install hiera
+RUN mkdir -p /etc/puppet/hieradata/
 
 CMD ["/run.sh"]

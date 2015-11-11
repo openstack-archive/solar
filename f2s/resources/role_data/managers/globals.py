@@ -47,6 +47,7 @@ def collect_results():
 
 def main():
     prepare_hiera()
+    run_command()
     rst = collect_results()
     sys.stdout.write(json.dumps(rst))
 

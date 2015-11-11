@@ -4,9 +4,11 @@ resources:
     from: resources/transport_ssh
     values:
       ssh_user: 'root'
+      ssh_key: '/root/.ssh/id_rsa'
   - id: transports{{index}}
     from: resources/transports
     values:
+      transports:key: ssh_transport{{index}}::ssh_key
       transports:user: ssh_transport{{index}}::ssh_user
       transports:port: ssh_transport{{index}}::ssh_port
       transports:name: ssh_transport{{index}}::name

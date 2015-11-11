@@ -10,4 +10,4 @@ ARGS = json.loads(sys.stdin.read())
 env = Environment(ARGS['env'])
 facts = env.get_default_facts('deployment', [ARGS['uid']])
 
-sys.stdout.write(json.dumps(facts))
+sys.stdout.write(json.dumps(facts[0]))
