@@ -1,5 +1,5 @@
 solar:
-  image: solarproject/solar-celery
+  image: solarproject/solar-celery:f2s
   # path inside of the container should be exactly the same as outside
   # because solar uses absolute path to find resoruce actions files
   volumes:
