@@ -3,6 +3,7 @@
 import os
 from fnmatch import fnmatch
 import shutil
+from collections import OrderedDict
 
 import click
 import yaml
@@ -34,6 +35,18 @@ def clean_resources():
 def clean_vr():
     shutil.rmtree(VR_TMP_DIR)
     ensure_dir(VR_TMP_DIR)
+
+
+def ordered_dump(data, stream=None, Dumper=yaml.Dumper, **kwds):
+    class OrderedDumper(Dumper):
+        pass
+    def _dict_representer(dumper, data):
+        return dumper.represent_mapping(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            data.items())
+    OrderedDumper.add_representer(OrderedDict, _dict_representer)
+    return yaml.dump(data, stream, OrderedDumper, **kwds)
+
 
 class Task(object):
 
@@ -67,6 +80,11 @@ class Task(object):
             after_naily)
 
     @property
+    def manifest_name(self):
+        name = self.data['parameters']['puppet_manifest'].split('/')[-1]
+        return name.split('.')[0]
+
+    @property
     def dst_path(self):
         return os.path.join(RESOURCE_TMP_WORKDIR, self.name)
 
@@ -79,11 +97,11 @@ class Task(object):
         return os.path.join(self.dst_path, 'meta.yaml')
 
     def meta(self):
-        data = {'id': self.name,
-                'handler': 'puppetv2',
-                'version': '8.0',
-                'inputs': self.inputs()}
-        return yaml.safe_dump(data, default_flow_style=False)
+        data = OrderedDict([('id', self.name),
+                ('handler', 'puppetv2'),
+                ('version', '8.0'),
+                ('inputs', self.inputs())])
+        return ordered_dump(data, default_flow_style=False)
 
     @property
     def actions(self):
@@ -102,8 +120,9 @@ class Task(object):
         hiera.rb
         File.open("/tmp/fuel_specs/#{ENV['SPEC']}", 'a') { |f| f << "- #{key}\n" }
         """
+        print self.manifest_name
         lookup_stack_path = os.path.join(
-            INPUTS_LOCATION, self.name+"_spec.rb'")
+            INPUTS_LOCATION, self.manifest_name+"_spec.rb'")
         if not os.path.exists(lookup_stack_path):
             return {}
 
@@ -115,7 +134,7 @@ class Task(object):
 
 class RoleData(Task):
 
-    name = 'globals'
+    name = 'role_data'
 
     def meta(self):
         data = {'id': self.name,
@@ -132,40 +151,57 @@ class RoleData(Task):
 
 class DGroup(object):
 
+    filtered = ['globals', 'hiera', 'deploy_start']
+
     def __init__(self, name, tasks):
         self.name = name
         self.tasks = tasks
 
     def resources(self):
+
         for t, _, _ in self.tasks:
-            yield {'id': t.name+"{{index}}",
-                   'from': 'f2s/resources/'+t.name,
-                   'location': "{{node}}",
-                   'values_from': RoleData.name+"{{index}}"}
+            if t.name in self.filtered:
+                continue
+
+            yield OrderedDict(
+                [('id', t.name+"{{index}}"),
+                 ('from', 'f2s/resources/'+t.name),
+                 ('location', "{{node}}"),
+                 ('values_from', RoleData.name+"{{index}}")])
 
 
     def events(self):
         for t, inner, outer in self.tasks:
+            if t.name in self.filtered:
+                continue
+
             for dep in set(inner):
-                yield {
-                    'type': 'depends_on',
-                    'state': 'success',
-                    'parent_action': dep + '{{index}}.run',
-                    'child_action': t.name + '{{index}}.run'}
+                if dep in self.filtered:
+                    continue
+
+                yield OrderedDict([
+                    ('type', 'depends_on'),
+                    ('state', 'success'),
+                    ('parent_action', dep + '{{index}}.run'),
+                    ('child_action', t.name + '{{index}}.run')])
             for dep in set(outer):
-                yield {
-                    'type': 'depends_on',
-                    'state': 'success',
-                    'parent': {
+                if dep in self.filtered:
+                    continue
+
+                yield OrderedDict([
+                    ('type', 'depends_on'),
+                    ('state', 'success'),
+                    ('parent', {
                         'with_tags': ['resource=' + dep],
-                        'action': 'run'},
-                    'depend_action': t.name + '{{index}}.run'}
+                        'action': 'run'}),
+                    ('depend_action', t.name + '{{index}}.run')])
 
     def meta(self):
-        data = {'id': self.name,
-                'resources': list(self.resources()),
-                'events': list(self.events())}
-        return yaml.safe_dump(data, default_flow_style=False)
+        data = OrderedDict([
+            ('id', self.name),
+            ('resources', list(self.resources())),
+            ('events', list(self.events()))])
+        return ordered_dump(data, default_flow_style=False)
 
     @property
     def path(self):
@@ -242,11 +278,6 @@ def t2r(tasks, t, p, c):
                 preview(task)
             else:
                 create(task)
-    # role_data = RoleData()
-    # if p:
-    #     preview(role_data)
-    # else:
-    #     create(role_data)
 
 
 @main.command(help='convert groups into templates')
@@ -281,7 +312,6 @@ def g2vr(groups, c):
         with open(obj.path, 'w') as f:
             f.write(obj.meta())
         # based on inner/outer aggregation configure joins in events
-
 
 if __name__ == '__main__':
     main()

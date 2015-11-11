@@ -1,0 +1,18 @@
+id: fuel_node
+resources:
+  - id: ssh_transport{{index}}
+    from: resources/transport_ssh
+    values:
+      ssh_user: 'root'
+  - id: transports{{index}}
+    from: resources/transports
+    values:
+      transports:user: ssh_transport{{index}}::ssh_user
+      transports:port: ssh_transport{{index}}::ssh_port
+      transports:name: ssh_transport{{index}}::name
+  - id: node{{index}}
+    from: resources/ro_node
+    values:
+      name: node{{index}}
+      ip: {{ip}}
+      transports_id: transports{{j}}::transports_id
