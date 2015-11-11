@@ -5,19 +5,19 @@ resources:
       location: {{node}}
       values:
         sources:
-            - src: /var/lib/fuel/keys/{{uid}}/neutron/neutron.pub
+            - src: /var/lib/fuel/keys/{{env}}/neutron/neutron.pub
               dst: /var/lib/astute/neutron/neutron.pub
-            - src: /var/lib/fuel/keys/{{uid}}/neutron/neutron
+            - src: /var/lib/fuel/keys/{{env}}/neutron/neutron
               dst: /var/lib/astute/neutron/neutron
-            - src: /var/lib/fuel/keys/{uid}/nova/nova.pub
+            - src: /var/lib/fuel/keys/{{env}}/nova/nova.pub
               dst: /var/lib/astute/nova/nova.pub
-            - src: /var/lib/fuel/keys/{{uid}}/nova/nova
+            - src: /var/lib/fuel/keys/{{env}}/nova/nova
               dst: /var/lib/astute/nova/nova
-            - src: /var/lib/fuel/keys/{{uid}}/mysql/mysql.pub
+            - src: /var/lib/fuel/keys/{{env}}/mysql/mysql.pub
               dst: /var/lib/astute/mysql/mysql.pub
-            - src: /var/lib/fuel/keys/{{uid}}/mysql/mysql
+            - src: /var/lib/fuel/keys/{{env}}/mysql/mysql
               dst: /var/lib/astute/mysql/mysql
-            - src: /var/lib/fuel/keys/{{uid}}/mongodb/mongodb.key
+            - src: /var/lib/fuel/keys/{{env}}/mongodb/mongodb.key
               dst: /var/lib/astute/mongodb/mongodb.key
             - src: /etc/puppet/modules
               dst: /etc/puppet/modules

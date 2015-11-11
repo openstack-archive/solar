@@ -9,7 +9,7 @@ input:
     # should be auto-generated based on outputs from globals.pp
   puppet_modules:
     type: str!
-    value:
+    value: /etc/puppet/modules
   uid:
     type: str!
     value:

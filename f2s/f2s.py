@@ -165,7 +165,9 @@ class DGroup(object):
         yield OrderedDict(
                 [('id', RoleData.name+"{{index}}"),
                  ('from', 'f2s/resources/'+RoleData.name),
-                 ('location', "{{node}}")])
+                 ('location', "{{node}}"),
+                 ('values', {'uid': '{{index}}',
+                             'env': '{{env}}'})])
 
         for t, _, _ in self.tasks:
             if t.name in self.filtered:

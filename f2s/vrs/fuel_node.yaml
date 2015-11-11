@@ -15,4 +15,4 @@ resources:
     values:
       name: node{{index}}
       ip: {{ip}}
-      transports_id: transports{{j}}::transports_id
+      transports_id: transports{{index}}::transports_id
