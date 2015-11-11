@@ -1,0 +1,28 @@
+id: openstack-network-agents-metadata
+handler: puppetv2
+version: '8.0'
+inputs:
+  debug:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  neutron_advanced_configuration:
+    value: null
+  neutron_config:
+    value: null
+  nova_endpoint:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  use_neutron:
+    value: null

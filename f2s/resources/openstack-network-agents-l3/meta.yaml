@@ -1,0 +1,20 @@
+id: openstack-network-agents-l3
+handler: puppetv2
+version: '8.0'
+inputs:
+  debug:
+    value: null
+  fqdn:
+    value: null
+  network_scheme:
+    value: null
+  neutron_advanced_configuration:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  use_neutron:
+    value: null

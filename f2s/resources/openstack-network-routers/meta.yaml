@@ -1,0 +1,18 @@
+id: openstack-network-routers
+handler: puppetv2
+version: '8.0'
+inputs:
+  access:
+    value: null
+  fqdn:
+    value: null
+  neutron_config:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  use_neutron:
+    value: null

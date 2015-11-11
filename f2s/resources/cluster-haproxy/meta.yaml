@@ -1,0 +1,24 @@
+id: cluster-haproxy
+handler: puppetv2
+version: '8.0'
+inputs:
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  haproxy:
+    value: null
+  management_vip:
+    value: null
+  network_scheme:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null

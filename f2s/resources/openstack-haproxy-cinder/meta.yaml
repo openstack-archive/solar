@@ -1,0 +1,26 @@
+id: openstack-haproxy-cinder
+handler: puppetv2
+version: '8.0'
+inputs:
+  cinder_hash:
+    value: null
+  cinder_ipaddresses:
+    value: null
+  cinder_names:
+    value: null
+  cinder_nodes:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

@@ -1,0 +1,20 @@
+id: swift-keystone
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  swift:
+    value: null

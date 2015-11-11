@@ -1,0 +1,28 @@
+id: openstack-haproxy-swift
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  ironic:
+    value: null
+  management_vip:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  storage:
+    value: null
+  swift_ipaddresses:
+    value: null
+  swift_proxies:
+    value: null
+  swift_server_names:
+    value: null

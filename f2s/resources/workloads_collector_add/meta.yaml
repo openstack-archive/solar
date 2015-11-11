@@ -1,0 +1,14 @@
+id: workloads_collector_add
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  workloads_collector:
+    value: null

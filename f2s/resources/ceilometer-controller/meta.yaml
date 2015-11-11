@@ -1,0 +1,44 @@
+id: ceilometer-controller
+handler: puppetv2
+version: '8.0'
+inputs:
+  ceilometer:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  mongo:
+    value: null
+  mongo_roles:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  nodes:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  storage:
+    value: null
+  syslog_log_facility_ceilometer:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

@@ -1,0 +1,18 @@
+id: dns-server
+handler: puppetv2
+version: '8.0'
+inputs:
+  external_dns:
+    value: null
+  fqdn:
+    value: null
+  management_vrouter_vip:
+    value: null
+  master_ip:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

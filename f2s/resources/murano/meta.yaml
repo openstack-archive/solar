@@ -1,0 +1,56 @@
+id: murano
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_hosts:
+    value: null
+  amqp_port:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  heat_hash:
+    value: null
+  management_vip:
+    value: null
+  murano:
+    value: null
+  murano_hash:
+    value: null
+  murano_settings:
+    value: null
+  network_scheme:
+    value: null
+  neutron_config:
+    value: null
+  node_role:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_ha_queues:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  syslog_log_facility_murano:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

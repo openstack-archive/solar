@@ -1,0 +1,22 @@
+id: keystone-db
+handler: puppetv2
+version: '8.0'
+inputs:
+  database_vip:
+    value: null
+  fqdn:
+    value: null
+  keystone:
+    value: null
+  mysql:
+    value: null
+  mysql_custom_setup_class:
+    value: null
+  network_metadata:
+    value: null
+  node_name:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

@@ -1,0 +1,52 @@
+id: heat
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_hosts:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  deployment_mode:
+    value: null
+  fqdn:
+    value: null
+  heat:
+    value: null
+  heat_db_name:
+    value: null
+  heat_ha_engine:
+    value: null
+  idle_timeout:
+    value: null
+  management_vip:
+    value: null
+  max_overflow:
+    value: null
+  max_pool_size:
+    value: null
+  max_retries:
+    value: null
+  network_scheme:
+    value: null
+  public_ssl:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  syslog_log_facility_heat:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

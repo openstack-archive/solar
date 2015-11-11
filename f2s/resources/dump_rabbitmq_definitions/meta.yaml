@@ -1,0 +1,12 @@
+id: dump_rabbitmq_definitions
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_hash:
+    value: null
+  role:
+    value: null

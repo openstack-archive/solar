@@ -1,0 +1,26 @@
+id: neutron-db
+handler: puppetv2
+version: '8.0'
+inputs:
+  database_vip:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  mysql:
+    value: null
+  mysql_custom_setup_class:
+    value: null
+  neutron_db_password:
+    value: null
+  node_name:
+    value: null
+  puppet_modules:
+    value: null
+  quantum_settings:
+    value: null
+  role:
+    value: null
+  use_neutron:
+    value: null

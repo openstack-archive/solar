@@ -1,0 +1,12 @@
+id: connectivity_tests
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  repo_setup:
+    value: null
+  role:
+    value: null

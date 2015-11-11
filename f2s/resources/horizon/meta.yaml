@@ -1,0 +1,44 @@
+id: horizon
+handler: puppetv2
+version: '8.0'
+inputs:
+  apache_ports:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  horizon:
+    value: null
+  horizon_package_ensure:
+    value: null
+  horizon_use_ssl:
+    value: null
+  memcache_roles:
+    value: null
+  memcache_server_port:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  neutron_advanced_configuration:
+    value: null
+  nova_quota:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  use_neutron:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

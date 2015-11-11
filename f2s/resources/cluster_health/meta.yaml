@@ -1,0 +1,24 @@
+id: cluster_health
+handler: puppetv2
+version: '8.0'
+inputs:
+  corosync_disk_monitor:
+    value: null
+  corosync_disk_monitor_interval:
+    value: null
+  corosync_disk_unit:
+    value: null
+  corosync_disks:
+    value: null
+  corosync_min_disk_space:
+    value: null
+  corosync_monitor_interval:
+    value: null
+  corosync_roles:
+    value: null
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

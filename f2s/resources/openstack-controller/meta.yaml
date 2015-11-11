@@ -1,0 +1,110 @@
+id: openstack-controller
+handler: puppetv2
+version: '8.0'
+inputs:
+  access:
+    value: null
+  amqp_hosts:
+    value: null
+  auto_assign_floating_ip:
+    value: null
+  ceilometer:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  glance:
+    value: null
+  glance_api_servers:
+    value: null
+  ironic:
+    value: null
+  keystone:
+    value: null
+  libvirt_type:
+    value: null
+  management_vip:
+    value: null
+  memcache_roles:
+    value: null
+  mysql:
+    value: null
+  network_config:
+    value: null
+  network_manager:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  network_size:
+    value: null
+  nodes:
+    value: null
+  nova:
+    value: null
+  nova_config:
+    value: null
+  nova_quota:
+    value: null
+  nova_rate_limits:
+    value: null
+  nova_report_interval:
+    value: null
+  nova_service_down_time:
+    value: null
+  num_networks:
+    value: null
+  openstack_controller:
+    value: null
+  openstack_version:
+    value: null
+  primary_controller:
+    value: null
+  public_int:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  quantum_settings:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  sahara:
+    value: null
+  service_endpoint:
+    value: null
+  storage:
+    value: null
+  syslog_log_facility_ceph:
+    value: null
+  syslog_log_facility_glance:
+    value: null
+  syslog_log_facility_keystone:
+    value: null
+  syslog_log_facility_neutron:
+    value: null
+  syslog_log_facility_nova:
+    value: null
+  uid:
+    value: null
+  use_cow_images:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  use_vcenter:
+    value: null
+  workloads_collector:
+    value: null

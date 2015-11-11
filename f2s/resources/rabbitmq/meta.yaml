@@ -1,0 +1,40 @@
+id: rabbitmq
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_port:
+    value: null
+  debug:
+    value: null
+  deployment_mode:
+    value: null
+  erlang_cookie:
+    value: null
+  fqdn:
+    value: null
+  mnesia_table_loading_timeout:
+    value: null
+  network_scheme:
+    value: null
+  puppet_modules:
+    value: null
+  queue_provider:
+    value: null
+  rabbit_cluster_partition_handling:
+    value: null
+  rabbit_config_kernel_variables:
+    value: null
+  rabbit_config_management_variables:
+    value: null
+  rabbit_config_variables:
+    value: null
+  rabbit_environment_variables:
+    value: null
+  rabbit_hash:
+    value: null
+  rabbit_tcp_listen_options:
+    value: null
+  rabbit_version:
+    value: null
+  role:
+    value: null

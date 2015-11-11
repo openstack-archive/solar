@@ -1,0 +1,46 @@
+id: glance
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_hosts:
+    value: null
+  ceilometer:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  glance:
+    value: null
+  management_vip:
+    value: null
+  max_overflow:
+    value: null
+  max_pool_size:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  storage:
+    value: null
+  syslog_log_facility_glance:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

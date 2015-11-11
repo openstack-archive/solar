@@ -1,0 +1,32 @@
+id: openstack-haproxy-mysqld
+handler: puppetv2
+version: '8.0'
+inputs:
+  custom_mysql_setup_class:
+    value: null
+  database_nodes:
+    value: null
+  database_vip:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  mysql:
+    value: null
+  mysqld_ipaddresses:
+    value: null
+  mysqld_names:
+    value: null
+  network_metadata:
+    value: null
+  primary_controller:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

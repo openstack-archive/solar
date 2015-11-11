@@ -1,0 +1,12 @@
+id: ssl-keys-saving
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  public_ssl:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

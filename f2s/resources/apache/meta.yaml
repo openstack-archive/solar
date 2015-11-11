@@ -1,0 +1,12 @@
+id: apache
+handler: puppetv2
+version: '8.0'
+inputs:
+  apache_ports:
+    value: null
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

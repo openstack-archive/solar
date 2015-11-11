@@ -1,0 +1,18 @@
+id: openstack-haproxy-sahara
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  sahara_hash:
+    value: null
+  sahara_roles:
+    value: null

@@ -1,0 +1,16 @@
+id: firewall
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  ironic:
+    value: null
+  master_ip:
+    value: null
+  network_scheme:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

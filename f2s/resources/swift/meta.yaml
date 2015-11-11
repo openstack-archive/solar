@@ -1,0 +1,60 @@
+id: swift
+handler: puppetv2
+version: '8.0'
+inputs:
+  debug:
+    value: null
+  deploy_swift_proxy:
+    value: null
+  deploy_swift_storage:
+    value: null
+  fqdn:
+    value: null
+  is_primary_swift_proxy:
+    value: null
+  management_vip:
+    value: null
+  mp:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  nodes:
+    value: null
+  proxy_port:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  storage:
+    value: null
+  storage_hash:
+    value: null
+  swift:
+    value: null
+  swift_hash:
+    value: null
+  swift_master_role:
+    value: null
+  swift_nodes:
+    value: null
+  swift_partition:
+    value: null
+  swift_proxies:
+    value: null
+  swift_proxy_caches:
+    value: null
+  swift_ring_min_part_hours:
+    value: null
+  use_ceilometer:
+    value: null
+  verbose:
+    value: null

@@ -1,0 +1,16 @@
+id: controller_remaining_tasks
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  neutron_mellanox:
+    value: null
+  primary_controller:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  use_neutron:
+    value: null

@@ -1,0 +1,26 @@
+id: openstack-network-plugins-l2
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  network_scheme:
+    value: null
+  neutron_advanced_configuration:
+    value: null
+  neutron_config:
+    value: null
+  puppet_modules:
+    value: null
+  quantum_settings:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  use_neutron:
+    value: null

@@ -1,0 +1,24 @@
+id: netconfig
+handler: puppetv2
+version: '8.0'
+inputs:
+  default_gateway:
+    value: null
+  fqdn:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  set_rps:
+    value: null
+  set_xps:
+    value: null
+  use_neutron:
+    value: null
+  use_ovs:
+    value: null

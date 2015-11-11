@@ -1,0 +1,26 @@
+id: openstack-haproxy-horizon
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  horizon:
+    value: null
+  horizon_ipaddresses:
+    value: null
+  horizon_names:
+    value: null
+  horizon_nodes:
+    value: null
+  management_vip:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

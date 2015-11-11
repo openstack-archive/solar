@@ -1,0 +1,18 @@
+id: openstack-haproxy-murano
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  murano_hash:
+    value: null
+  murano_roles:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

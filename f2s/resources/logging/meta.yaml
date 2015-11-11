@@ -1,0 +1,24 @@
+id: logging
+handler: puppetv2
+version: '8.0'
+inputs:
+  base_syslog_hash:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  node_role:
+    value: null
+  nodes:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
+  syslog_hash:
+    value: null
+  uid:
+    value: null
+  use_syslog:
+    value: null

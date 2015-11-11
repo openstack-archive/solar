@@ -1,0 +1,52 @@
+id: sahara
+handler: puppetv2
+version: '8.0'
+inputs:
+  access_hash:
+    value: null
+  amqp_hosts:
+    value: null
+  amqp_port:
+    value: null
+  ceilometer_hash:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  management_vip:
+    value: null
+  network_scheme:
+    value: null
+  primary_controller:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_ha_queues:
+    value: null
+  rabbit_hash:
+    value: null
+  role:
+    value: null
+  sahara:
+    value: null
+  sahara_hash:
+    value: null
+  service_endpoint:
+    value: null
+  syslog_log_facility_sahara:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

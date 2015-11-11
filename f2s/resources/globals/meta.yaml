@@ -1,0 +1,124 @@
+id: globals
+handler: puppetv2
+version: '8.0'
+inputs:
+  access:
+    value: null
+  amqp_hosts:
+    value: null
+  amqp_ports:
+    value: null
+  apache_ports:
+    value: null
+  base_syslog:
+    value: null
+  ceilometer:
+    value: null
+  cinder:
+    value: null
+  cinder_rate_limits:
+    value: null
+  corosync_roles:
+    value: null
+  custom_mysql_setup_class:
+    value: null
+  debug:
+    value: null
+  deployment_mode:
+    value: null
+  dns_nameservers:
+    value: null
+  fqdn:
+    value: null
+  glance:
+    value: null
+  heat:
+    value: null
+  idle_timeout:
+    value: null
+  keystone:
+    value: null
+  master_ip:
+    value: null
+  max_overflow:
+    value: null
+  max_pool_size:
+    value: null
+  max_retries:
+    value: null
+  memcache_roles:
+    value: null
+  mirror_type:
+    value: null
+  mp:
+    value: null
+  multi_host:
+    value: null
+  murano:
+    value: null
+  mysql:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  nodes:
+    value: null
+  nova:
+    value: null
+  nova_rate_limits:
+    value: null
+  nova_report_interval:
+    value: null
+  nova_service_down_time:
+    value: null
+  openstack_version:
+    value: null
+  public_ssl:
+    value: null
+  puppet_modules:
+    value: null
+  quantum:
+    value: null
+  quantum_settings:
+    value: null
+  queue_provider:
+    value: null
+  rabbit:
+    value: null
+  role:
+    value: null
+  sahara:
+    value: null
+  storage:
+    value: null
+  swift:
+    value: null
+  syslog:
+    value: null
+  syslog_log_facility_ceilometer:
+    value: null
+  syslog_log_facility_ceph:
+    value: null
+  syslog_log_facility_cinder:
+    value: null
+  syslog_log_facility_glance:
+    value: null
+  syslog_log_facility_heat:
+    value: null
+  syslog_log_facility_keystone:
+    value: null
+  syslog_log_facility_murano:
+    value: null
+  syslog_log_facility_neutron:
+    value: null
+  syslog_log_facility_nova:
+    value: null
+  syslog_log_facility_sahara:
+    value: null
+  use_ovs:
+    value: null
+  use_syslog:
+    value: null
+  vcenter:
+    value: null

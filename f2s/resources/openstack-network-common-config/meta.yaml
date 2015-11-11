@@ -1,0 +1,34 @@
+id: openstack-network-common-config
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_hosts:
+    value: null
+  ceilometer:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  network_scheme:
+    value: null
+  neutron_config:
+    value: null
+  openstack_network:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_hash:
+    value: null
+  role:
+    value: null
+  syslog_log_facility_neutron:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

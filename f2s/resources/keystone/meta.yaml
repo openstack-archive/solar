@@ -1,0 +1,74 @@
+id: keystone
+handler: puppetv2
+version: '8.0'
+inputs:
+  access:
+    value: null
+  amqp_hosts:
+    value: null
+  apache_ports:
+    value: null
+  ceilometer:
+    value: null
+  cinder:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  glance:
+    value: null
+  keystone:
+    value: null
+  management_vip:
+    value: null
+  max_overflow:
+    value: null
+  max_pool_size:
+    value: null
+  memcache_roles:
+    value: null
+  memcache_server_port:
+    value: null
+  murano_settings:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  neutron_user_password:
+    value: null
+  node_name:
+    value: null
+  nodes:
+    value: null
+  nova:
+    value: null
+  public_service_endpoint:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  syslog_log_facility_keystone:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

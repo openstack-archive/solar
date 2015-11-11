@@ -1,0 +1,56 @@
+id: openstack-cinder
+handler: puppetv2
+version: '8.0'
+inputs:
+  amqp_hosts:
+    value: null
+  ceilometer_hash:
+    value: null
+  cinder:
+    value: null
+  cinder_hash:
+    value: null
+  cinder_rate_limits:
+    value: null
+  cinder_volume_group:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
+  fqdn:
+    value: null
+  glance_api_servers:
+    value: null
+  management_vip:
+    value: null
+  network_scheme:
+    value: null
+  nodes:
+    value: null
+  puppet_modules:
+    value: null
+  queue_provider:
+    value: null
+  rabbit_ha_queues:
+    value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
+  role:
+    value: null
+  service_endpoint:
+    value: null
+  storage:
+    value: null
+  syslog_log_facility_cinder:
+    value: null
+  uid:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
+    value: null

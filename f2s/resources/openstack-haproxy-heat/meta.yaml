@@ -1,0 +1,26 @@
+id: openstack-haproxy-heat
+handler: puppetv2
+version: '8.0'
+inputs:
+  fqdn:
+    value: null
+  heat:
+    value: null
+  heat_ipaddresses:
+    value: null
+  heat_names:
+    value: null
+  heat_roles:
+    value: null
+  management_vip:
+    value: null
+  network_metadata:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null
