@@ -30,7 +30,7 @@ class DumbSource(object):
         return 'primary-controller'
 
     def master(self):
-        return 'master', '10.0.1.1'
+        return 'master', '0.0.0.0'
 
 source = DumbSource()
 
@@ -65,7 +65,7 @@ def roles(uids):
     for uid, ip, env in source.nodes(uids):
         role = source.roles(uid)
         vr.create(role, 'f2s/vrs/'+role,
-            {'index': uid, 'env': 'env', 'node': 'node'+uid})
+            {'index': uid, 'env': env, 'node': 'node'+uid})
 
 
 if __name__ == '__main__':
