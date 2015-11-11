@@ -53,7 +53,7 @@ class InputsFieldWrp(IndexFieldWrp):
         # XXX: it could be worth to precalculate it
         if ':' in name:
             name = name.split(":", 1)[0]
-        schema = resource.meta_inputs[name]['schema']
+        schema = resource.meta_inputs[name].get('schema', None)
         if isinstance(schema, self._simple_types):
             return InputTypes.simple
         if isinstance(schema, list):

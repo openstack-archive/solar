@@ -189,7 +189,7 @@ class DGroup(object):
                     ('type', 'depends_on'),
                     ('state', 'success'),
                     ('parent_action', RoleData.name + '{{index}}.run'),
-                    ('child_action', t.name + '{{index}}.run')])
+                    ('depend_action', t.name + '{{index}}.run')])
 
             for dep in set(inner):
                 if dep in self.filtered:
@@ -199,7 +199,7 @@ class DGroup(object):
                     ('type', 'depends_on'),
                     ('state', 'success'),
                     ('parent_action', dep + '{{index}}.run'),
-                    ('child_action', t.name + '{{index}}.run')])
+                    ('depend_action', t.name + '{{index}}.run')])
             for dep in set(outer):
                 if dep in self.filtered:
                     continue
@@ -316,6 +316,9 @@ def g2vr(groups, c):
             inner_preds = []
             outer_preds = []
             for p in dg.predecessors(t):
+                if dg.node[p]['t'].type != 'puppet':
+                    continue
+
                 if p in dsub:
                     inner_preds.append(p)
                 else:

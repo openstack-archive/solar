@@ -37,8 +37,8 @@ events:
     - type: depends_on
       state: success
       parent_action: sources{{index}}.run
-      child_action: role_data{{index}}.run
+      depend_action: role_data{{index}}.run
     - type: depends_on
       state: success
       parent_action: managed_apt_{{index}}.run
-      child_action: role_data{{index}}.run
+      depend_action: role_data{{index}}.run
