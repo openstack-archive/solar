@@ -130,6 +130,7 @@ class Task(object):
 
         with open(lookup_stack_path) as f:
             data = yaml.safe_load(f) or []
+        data = data + ['puppet_modules']
         return {key: {'value': None} for key
                 in set(data) if '::' not in key}
 
@@ -181,6 +182,12 @@ class DGroup(object):
         for t, inner, outer in self.tasks:
             if t.name in self.filtered:
                 continue
+
+            yield OrderedDict([
+                    ('type', 'depends_on'),
+                    ('state', 'success'),
+                    ('parent_action', RoleData.name + '{{index}}.run'),
+                    ('child_action', t.name + '{{index}}.run')])
 
             for dep in set(inner):
                 if dep in self.filtered:

@@ -34,3 +34,11 @@ events:
         with_tags:
             - resource=genkeys
       depend_action: sources{{index}}.run
+    - type: depends_on
+      state: success
+      parent_action: sources{{index}}.run
+      child_action: role_data{{index}}.run
+    - type: depends_on
+      state: success
+      parent_action: managed_apt_{{index}}.run
+      child_action: role_data{{index}}.run
