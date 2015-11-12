@@ -1,7 +1,10 @@
 id: logging
 handler: puppetv2
 version: '8.0'
-inputs:
+actions:
+  run: actions/run.pp
+  update: actions/run.pp
+input:
   base_syslog_hash:
     value: null
   debug:

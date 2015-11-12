@@ -1,7 +1,10 @@
 id: openstack-haproxy-mysqld
 handler: puppetv2
 version: '8.0'
-inputs:
+actions:
+  run: actions/run.pp
+  update: actions/run.pp
+input:
   custom_mysql_setup_class:
     value: null
   database_nodes:

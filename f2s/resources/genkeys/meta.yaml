@@ -1,7 +1,7 @@
 id: genkeys
 handler: shell
 version: 0.0.1
-inputs:
+input:
     uid:
         schema: str!
         value:

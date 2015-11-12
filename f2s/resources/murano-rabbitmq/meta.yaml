@@ -1,11 +1,7 @@
-id: hiera
+id: murano-rabbitmq
 handler: puppetv2
 version: '8.0'
 actions:
   run: actions/run.pp
   update: actions/run.pp
-input:
-  fqdn:
-    value: null
-  puppet_modules:
-    value: null
+input: {}

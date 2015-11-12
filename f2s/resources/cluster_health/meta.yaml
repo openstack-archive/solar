@@ -1,7 +1,10 @@
 id: cluster_health
 handler: puppetv2
 version: '8.0'
-inputs:
+actions:
+  run: actions/run.pp
+  update: actions/run.pp
+input:
   corosync_disk_monitor:
     value: null
   corosync_disk_monitor_interval:

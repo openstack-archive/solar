@@ -3,3 +3,8 @@ resources:
     - id: genkeys{{index}}
       from: f2s/resources/genkeys
       location: {{node}}
+      values:
+        uid: '{{index}}'
+        path: /var/lib/fuel/keys/
+        ssl: [mongo]
+        ssh: [neutron, nova, mysql]
