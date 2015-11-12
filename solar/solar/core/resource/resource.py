@@ -241,8 +241,10 @@ class Resource(object):
     def resource_inputs(self):
         return self.db_obj.inputs
 
-    def to_dict(self):
+    def to_dict(self, inputs=False):
         ret = self.db_obj.to_dict()
+        if inputs:
+            ret['inputs'] = self.db_obj.inputs.as_dict()
         return ret
 
     def color_repr(self):

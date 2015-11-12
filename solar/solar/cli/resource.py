@@ -149,7 +149,7 @@ def show(name, tag, json, color):
         resources = sresource.load_all()
 
     if json:
-        output = json.dumps([r.to_dict() for r in resources], indent=2)
+        output = json.dumps([r.to_dict(inputs=True) for r in resources], indent=2)
         echo = click.echo
     else:
         if color:
