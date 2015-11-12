@@ -3,6 +3,7 @@
 
 import click
 from solar.core.resource import virtual_resource as vr
+from solar.dblayer.model import ModelMeta
 
 
 
@@ -48,14 +49,15 @@ def nodes(uids):
             {'index': uid, 'ip': ip})
 
 @main.command()
-def master():
+@click.argument('env')
+def master(env):
     master = source.master()
     vr.create('master', 'f2s/vrs/fuel_node.yaml',
         {'index': master[0], 'ip': master[1]})
 
     vr.create('genkeys', 'f2s/vrs/genkeys.yaml', {
         'node': 'node'+master[0],
-        'index': master[0]})
+        'index': env})
 
 @main.command()
 @click.argument('uids', nargs=-1)
@@ -77,3 +79,4 @@ def roles(uids):
 
 if __name__ == '__main__':
     main()
+    ModelMeta.session_end()

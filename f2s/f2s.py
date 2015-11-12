@@ -24,7 +24,7 @@ ensure_dir(RESOURCE_TMP_WORKDIR)
 RESOURCE_DIR = os.path.join(CURDIR, 'resources')
 VR_TMP_DIR = os.path.join(CURDIR, 'tmp/vrs')
 ensure_dir(VR_TMP_DIR)
-INPUTS_LOCATION = "/tmp/fuel_specs/"
+INPUTS_LOCATION = "/root/latest/"
 DEPLOYMENT_GROUP_PATH = os.path.join(LIBRARY_PATH,
     'deployment', 'puppet', 'deployment_groups', 'tasks.yaml')
 
@@ -102,7 +102,10 @@ class Task(object):
         data = OrderedDict([('id', self.name),
                 ('handler', 'puppetv2'),
                 ('version', '8.0'),
-                ('inputs', self.inputs())])
+                ('actions', {
+                    'run': 'actions/run.pp',
+                    'update': 'actions/run.pp'}),
+                ('input', self.inputs()),])
         return ordered_dump(data, default_flow_style=False)
 
     @property
