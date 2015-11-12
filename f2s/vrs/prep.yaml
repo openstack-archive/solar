@@ -15,11 +15,6 @@ resources:
               dst: /var/lib/astute
             - src: /etc/puppet/modules
               dst: /etc/puppet/
-    - id: mos_repos{{index}}
-      from: templates/mos_repos.yaml
-      values:
-        node: {{node}}
-        index: {{index}}
 events:
     - type: depends_on
       state: success
@@ -31,8 +26,4 @@ events:
     - type: depends_on
       state: success
       parent_action: sources{{index}}.run
-      depend_action: role_data{{index}}.run
-    - type: depends_on
-      state: success
-      parent_action: managed_apt_{{index}}.run
       depend_action: role_data{{index}}.run
