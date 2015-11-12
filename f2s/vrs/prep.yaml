@@ -5,22 +5,16 @@ resources:
       location: {{node}}
       values:
         sources:
-            - src: /var/lib/fuel/keys/{{env}}/neutron/neutron.pub
-              dst: /var/lib/astute/neutron/neutron.pub
-            - src: /var/lib/fuel/keys/{{env}}/neutron/neutron
-              dst: /var/lib/astute/neutron/neutron
-            - src: /var/lib/fuel/keys/{{env}}/nova/nova.pub
-              dst: /var/lib/astute/nova/nova.pub
-            - src: /var/lib/fuel/keys/{{env}}/nova/nova
-              dst: /var/lib/astute/nova/nova
-            - src: /var/lib/fuel/keys/{{env}}/mysql/mysql.pub
-              dst: /var/lib/astute/mysql/mysql.pub
-            - src: /var/lib/fuel/keys/{{env}}/mysql/mysql
-              dst: /var/lib/astute/mysql/mysql
-            - src: /var/lib/fuel/keys/{{env}}/mongodb/mongodb.key
-              dst: /var/lib/astute/mongodb/mongodb.key
+            - src: /var/lib/fuel/keys/{{env}}/neutron
+              dst: /var/lib/astute
+            - src: /var/lib/fuel/keys/{{env}}/nova
+              dst: /var/lib/astute
+            - src: /var/lib/fuel/keys/{{env}}/mysql
+              dst: /var/lib/astute
+            - src: /var/lib/fuel/keys/{{env}}/mongo
+              dst: /var/lib/astute
             - src: /etc/puppet/modules
-              dst: /etc/puppet/modules
+              dst: /etc/puppet/
     - id: mos_repos{{index}}
       from: templates/mos_repos.yaml
       values:

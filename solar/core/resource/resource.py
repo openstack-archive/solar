@@ -290,12 +290,11 @@ class Resource(object):
         if not self.db_obj.managers:
             return
 
-        manager_stack = self.db_obj.managers
-        while manager_stack:
-            manager = manager_stack.pop(0)
+        for manager in self.db_obj.managers:
             manager_path = os.path.join(self.db_obj.base_path, manager)
             rst = utils.communicate([manager_path], json.dumps(self.args))
-            self.update(json.loads(rst))
+            if rst:
+                self.update(json.loads(rst))
 
 def load(name):
     r = DBResource.get(name)

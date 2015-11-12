@@ -1,11 +1,10 @@
 id: fuel_node
 resources:
-{% for i in range(1|int) %}
   - id: ssh_transport{{index}}
     from: resources/transport_ssh
     values:
       ssh_user: 'root'
-      ssh_key: '/root/.ssh/id_rsa'
+      ssh_key: '/root/.ssh/bootstrap.rsa'
   - id: transports{{index}}
     from: resources/transports
     values:
@@ -19,4 +18,3 @@ resources:
       name: node{{index}}
       ip: {{ip}}
       transports_id: transports{{index}}::transports_id
-{% endfor %}

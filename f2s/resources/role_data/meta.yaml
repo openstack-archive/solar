@@ -6,7 +6,6 @@ managers:
     - managers/from_nailgun.py
     - managers/globals.py
 input:
-    # should be auto-generated based on outputs from globals.pp
   puppet_modules:
     type: str!
     value: /etc/puppet/modules
@@ -15,6 +14,10 @@ input:
     value:
   env:
     type: str!
+    value:
+  tasks:
+    value:
+  ironic:
     value:
   access:
     value: null

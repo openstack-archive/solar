@@ -34,7 +34,7 @@ class DumbSource(object):
         return [(uid, ip_mask % uid, 1) for uid in uids]
 
     def roles(self, uid):
-        return 'primary-controller'
+        return ['primary-controller']
 
     def master(self):
         return 'master', '0.0.0.0'
@@ -72,9 +72,9 @@ def prep(uids):
 def roles(uids):
 
     for uid, ip, env in source.nodes(uids):
-        role = source.roles(uid)
-        vr.create(role, 'f2s/vrs/'+role +'.yml',
-            {'index': uid, 'env': env, 'node': 'node'+uid})
+        for role in source.roles(uid):
+            vr.create(role, 'f2s/vrs/'+role +'.yml',
+                {'index': uid, 'env': env, 'node': 'node'+uid})
 
 
 if __name__ == '__main__':

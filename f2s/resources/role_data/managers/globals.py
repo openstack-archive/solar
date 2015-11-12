@@ -30,13 +30,15 @@ def prepare_hiera():
 
     with open('/etc/puppet/hiera.yaml', 'w') as f:
         f.write(hiera_conf)
-
+    # dont dump null values
+    sanitized = {key:ARGS[key] for key in ARGS if ARGS.get(key)}
     with open('/etc/puppet/hieradata/{}.yaml'.format(ARGS['uid']), 'w') as f:
-        f.write(yaml.safe_dump(ARGS))
+        f.write(yaml.safe_dump(sanitized))
 
 def run_command():
     cmd = [
-        'puppet', 'apply', '--modulepath={}'.format(ARGS['puppet_modules']),
+        'puppet', 'apply', '--hiera_config=/etc/puppet/hiera.yaml',
+        '--modulepath={}'.format(ARGS['puppet_modules']),
         os.path.join(CURDIR, 'globals.pp')]
     return execute(cmd)
 

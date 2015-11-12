@@ -170,7 +170,8 @@ class DGroup(object):
                  ('from', 'f2s/resources/'+RoleData.name),
                  ('location', "{{node}}"),
                  ('values', {'uid': '{{index}}',
-                             'env': '{{env}}'})])
+                             'env': '{{env}}',
+                             'puppet_modules': '/etc/puppet/modules'})])
 
         for t, _, _ in self.tasks:
             if t.name in self.filtered:

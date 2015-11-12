@@ -1,8 +1,8 @@
 #!/bin/sh
 
 cluster_id={{uid}}
-open_ssl_keys={{ssl|join(' ')}}
-ssh_keys={{ ssh|join(' ') }}
+open_ssl_keys='{{ssl|join(' ')}}'
+ssh_keys='{{ ssh|join(' ') }}'
 keys_path={{path}}
 
 BASE_PATH=$keys_path/$cluster_id/
