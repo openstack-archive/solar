@@ -57,7 +57,7 @@
 
     # Install bareon-api
     # Workaround is required because pbr does not handle git-eggs correctly and fails to install fuel-agent
-    - shell: 'pip install git+git://github.com/prmtl/fuel-agent.git@detach_from_nailgun#egg=fuel_agent'
+    - shell: 'pip install git+git://github.com/gitfred/fuel-agent.git@iso-build#egg=fuel_agent'
     - shell: pip install git+https://github.com/Mirantis/bareon-api.git
 
     # Install and configure supervisor
@@ -76,3 +76,6 @@
 
     # Add nat rules so slaves have internet access via solar-dev
     - shell: iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
+
+    # build IBP images
+    - shell: fa_build_image --image_build_dir /tmp/ibp --log-file /tmp/ibp-image-build.log -d --data_driver nailgun_build_image --input_data_file files/prov.json
