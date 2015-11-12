@@ -100,6 +100,9 @@ class InputsFieldWrp(IndexFieldWrp):
         for name in self._instance._data_container[self.fname]:
             yield name
 
+    def keys(self):
+        return list(self.__iter__())
+
     def as_dict(self):
         items = solar_map(lambda x: (x, self._get_field_val(x)), [x for x in self], concurrency=3)
         return dict(items)
@@ -593,6 +596,14 @@ class Resource(Model):
             return
         solar_map(lambda (my_name, other_name): self._connect_single(other_inputs, other_name, my_name),
                   mapping.iteritems(), concurrency=2)
+
+    def disconnect(self, other, inputs):
+        other_key = other.key
+        edges = other.inputs._edges()
+        edges = filter(lambda (receiver, emitter, _): emitter[0] == other_key and receiver[1] in inputs,
+                       edges)
+        inputs = [x[1][1] for x in edges]
+        solar_map(other.inputs.disconnect, inputs, concurrency=2)
 
     def save(self, *args, **kwargs):
         if self.changed():
