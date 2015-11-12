@@ -428,3 +428,9 @@ class SqlClient(object):
         else:
             sess.rollback()
         clear_cache()
+
+    def delete_all(self, cls):
+        # naive way for SQL, we could delete whole table contents
+        rst = cls.bucket.get_index('$bucket', startkey='_', max_results=100000).results
+        for key in rst:
+            cls.bucket.delete(key)
