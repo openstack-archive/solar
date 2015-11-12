@@ -1,5 +1,5 @@
 id: genkeys
-handler: bash
+handler: shell
 version: 0.0.1
 inputs:
     uid:

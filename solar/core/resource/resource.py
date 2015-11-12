@@ -234,7 +234,7 @@ class Resource(object):
     def resource_inputs(self):
         return self.db_obj.inputs
 
-    def to_dict(self, inputs=False):
+    def to_dict(self, inputs=True):
         ret = self.db_obj.to_dict()
         if inputs:
             ret['inputs'] = self.db_obj.inputs.as_dict()

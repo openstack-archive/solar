@@ -142,6 +142,7 @@ def create_resources(resources, tags=None):
                 r = new_resources[0]
                 node.connect(r, mapping={})
                 r.add_tags('location={}'.format(node.name))
+
             update_inputs(resource_name, args)
 
             if values_from:

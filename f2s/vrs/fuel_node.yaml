@@ -1,5 +1,6 @@
 id: fuel_node
 resources:
+{% for i in range(1|int) %}
   - id: ssh_transport{{index}}
     from: resources/transport_ssh
     values:
@@ -18,3 +19,4 @@ resources:
       name: node{{index}}
       ip: {{ip}}
       transports_id: transports{{index}}::transports_id
+{% endfor %}

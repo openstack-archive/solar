@@ -14,8 +14,9 @@ class NailgunSource(object):
 
     def nodes(self, uids):
         from fuelclient.objects.node import Node
-        nodes_obj = map(Node, nodes)
-        return [str(n.data['id']), str(n.data['ip']), str(n.data['cluster'])]
+        nodes_obj = map(Node, uids)
+        return [(str(n.data['id']), str(n.data['ip']), str(n.data['cluster']))
+                for n in nodes_obj]
 
     def roles(self, uid):
         from fuelclient.objects.node import Node
@@ -37,26 +38,28 @@ class DumbSource(object):
     def master(self):
         return 'master', '0.0.0.0'
 
-source = DumbSource()
+source = NailgunSource()
 
 @main.command()
 @click.argument('uids', nargs=-1)
 def nodes(uids):
-    master = source.master()
-    vr.create('master', 'f2s/vrs/fuel_node.yaml',
-        {'index': master[0], 'ip': master[1]})
     for uid, ip, env in source.nodes(uids):
         vr.create('fuel_node', 'f2s/vrs/fuel_node.yaml',
             {'index': uid, 'ip': ip})
 
 @main.command()
-@click.argument('uids', nargs=-1)
-def basic(uids):
-    master_index = source.master()[0]
+def master():
+    master = source.master()
+    vr.create('master', 'f2s/vrs/fuel_node.yaml',
+        {'index': master[0], 'ip': master[1]})
 
     vr.create('genkeys', 'f2s/vrs/genkeys.yaml', {
-        'node': 'node'+master_index,
-        'index': master_index})
+        'node': 'node'+master[0],
+        'index': master[0]})
+
+@main.command()
+@click.argument('uids', nargs=-1)
+def prep(uids):
     for uid, ip, env in source.nodes(uids):
         vr.create('prep', 'f2s/vrs/prep.yaml',
             {'index': uid, 'env': env, 'node': 'node'+uid})
