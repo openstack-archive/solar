@@ -20,11 +20,10 @@ multipledispatch==0.4.8
 pbr
 pydot
 bunch
+wrapt
 # if you want to use riak backend then
 riak
 # if you want to use sql backend then
 # peewee
-
-
 # if you want to use lua computable inputs
 # lupa
