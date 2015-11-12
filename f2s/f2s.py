@@ -103,8 +103,8 @@ class Task(object):
                 ('handler', 'puppetv2'),
                 ('version', '8.0'),
                 ('actions', {
-                    'run': 'actions/run.pp',
-                    'update': 'actions/run.pp'}),
+                    'run': 'run.pp',
+                    'update': 'run.pp'}),
                 ('input', self.inputs()),])
         return ordered_dump(data, default_flow_style=False)
 
