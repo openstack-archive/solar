@@ -247,7 +247,7 @@ class Resource(object):
             ret['inputs'] = self.db_obj.inputs.as_dict()
         return ret
 
-    def color_repr(self):
+    def color_repr(self, inputs=False):
         import click
 
         arg_color = 'yellow'
@@ -259,7 +259,7 @@ class Resource(object):
             base_path_s=click.style('base_path', fg=arg_color, bold=True),
             args_s=click.style('args', fg=arg_color, bold=True),
             tags_s=click.style('tags', fg=arg_color, bold=True),
-            **self.to_dict()
+            **self.to_dict(inputs)
         )
 
     def load_commited(self):

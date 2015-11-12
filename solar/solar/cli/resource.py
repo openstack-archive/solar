@@ -136,9 +136,9 @@ def create(args, base_path, name):
 @resource.command()
 @click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
-@click.option('--json', default=False, is_flag=True)
+@click.option('--as_json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
-def show(name, tag, json, color):
+def show(name, tag, as_json, color):
     echo = click.echo_via_pager
     if name:
         resources = [sresource.load(name)]
@@ -148,12 +148,12 @@ def show(name, tag, json, color):
     else:
         resources = sresource.load_all()
 
-    if json:
+    if as_json:
         output = json.dumps([r.to_dict(inputs=True) for r in resources], indent=2)
         echo = click.echo
     else:
         if color:
-            formatter = lambda r: r.color_repr()
+            formatter = lambda r: r.color_repr(inputs=True)
         else:
             formatter = lambda r: unicode(r)
         output = '\n'.join(formatter(r) for r in resources)
