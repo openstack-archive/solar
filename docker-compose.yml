@@ -19,11 +19,11 @@ solar:
     - riak
     - redis
 
-docker run --name solar -d -v /root/solar/solar:/solar -v /root/solar/solard:/solard -v /root/solar/templates:/templates \
--v /root/solar/resources:/resources -v /root/solar/f2s:/f2s \
--v /var/lib/fuel:/var/lib/fuel -v /root/.config/fuel/fuel_client.yaml:/etc/fuel/client/config.yaml -v /etc/puppet/modules:/etc/puppet/modules \
--v /root/.ssh:/root/.ssh \
---link=riak:riak --link=redis:redis solarproject/solar-celery:f2s
+# docker run --name solar -d -v /root/solar/solar:/solar -v /root/solar/solard:/solard -v /root/solar/templates:/templates \
+# -v /root/solar/resources:/resources -v /root/solar/f2s:/f2s \
+# -v /var/lib/fuel:/var/lib/fuel -v /root/.config/fuel/fuel_client.yaml:/etc/fuel/client/config.yaml -v /etc/puppet/modules:/etc/puppet/modules \
+# -v /root/.ssh:/root/.ssh \
+# --link=riak:riak --link=redis:redis solarproject/solar-celery:f2s
 
 riak:
   image: tutum/riak

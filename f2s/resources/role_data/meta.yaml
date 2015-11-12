@@ -17,6 +17,10 @@ input:
     value:
   tasks:
     value:
+  vms_conf:
+    value:
+  horizon:
+    value:
   ironic:
     value:
   access:
