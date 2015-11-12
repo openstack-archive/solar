@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import time
 from functools import partial
 import subprocess
 
@@ -29,7 +30,24 @@ from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
 from solar.system_log.tasks import commit_logitem
 from solar.system_log.tasks import error_logitem
-import time
+from solar.orchestration import limits
+from solar.orchestration import executor
+from solar.dblayer import ModelMeta
+
+from solar.dblayer.model import ModelMeta
+from functools import wraps
+
+def session(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        try:
+            ModelMeta.session_start()
+            rst = func(*args, **kwargs)
+        finally:
+            ModelMeta.session_end()
+        return rst
+    return inner
+
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
@@ -141,6 +159,7 @@ def schedule(plan_uid, dg):
 
 
 @app.task(name='schedule_start')
+@session
 def schedule_start(plan_uid):
     """On receive finished task should update storage with task result:
 
@@ -152,6 +171,7 @@ def schedule_start(plan_uid):
 
 
 @app.task(name='soft_stop')
+@session
 def soft_stop(plan_uid):
     dg = graph.get_graph(plan_uid)
     for n in dg:
@@ -161,6 +181,7 @@ def soft_stop(plan_uid):
 
 
 @app.task(name='schedule_next')
+@session
 def schedule_next(task_id, status, errmsg=None):
     plan_uid, task_name = task_id.rsplit(':', 1)
     dg = graph.get_graph(plan_uid)
