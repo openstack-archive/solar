@@ -96,7 +96,7 @@ class SingleClassCache(object):
 >>>>>>> 3f53526... Initial idea of new cache:solar/solar/dblayer/model.py
 
     def __init__(self, origin_class):
-        self.obj_cache = LFUCache(origin_class, 50)
+        self.obj_cache = LFUCache(origin_class, 200)
         self.db_ch_state = {'index': set()}
         self.lazy_save = set()
         self.refs = defaultdict(weakref.WeakSet)
