@@ -886,9 +886,7 @@ class Model(object):
 
     @classmethod
     def delete_all(cls):
-        rst = cls.bucket.get_index('$bucket', startkey='_', max_results=100000).results
-        for key in rst:
-            cls.bucket.delete(key)
+        cls.riak_client.delete_all(cls)
 
     def delete(self):
         ls = self._c.lazy_save
