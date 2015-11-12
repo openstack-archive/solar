@@ -46,16 +46,7 @@ class InputsFieldWrp(IndexFieldWrp):
             return InputTypes.hash
         raise Exception("Unknown type")
 
-    def _edges(self):
-        inst = self._instance
-        start = inst.key
-        my_ind_name = '{}_recv_bin'.format(self.fname)
-        res = inst._get_index(my_ind_name,
-                              startkey=start + '|',
-                              endkey=start + '|~',
-                              return_terms=True,
-                              max_results=99999).results
-        vals = map(itemgetter(0), res)
+    def _edges_fmt(self, vals):
         for val in vals:
             data = val.split('|')
             dlen = len(data)
@@ -71,6 +62,31 @@ class InputsFieldWrp(IndexFieldWrp):
             else:
                 raise Exception("Unsupported case")
             yield (other_resource, other_input), (my_resource, my_input), meta
+
+    def _edges(self):
+        inst = self._instance
+        start = inst.key
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        res = inst._get_index(my_ind_name,
+                              startkey=start + '|',
+                              endkey=start + '|~',
+                              return_terms=True,
+                              max_results=99999).results
+        vals = map(itemgetter(0), res)
+        return self._edges_fmt(vals)
+
+    def _single_edge(self, name):
+        inst = self._instance
+        self._has_own_input(name)
+        start = '{}|{}'.format(inst.key, name)
+        my_ind_name = '{}_recv_bin'.format(self.fname)
+        res = inst._get_index(my_ind_name,
+                              startkey=start + '|',
+                              endkey=start + '|~',
+                              return_terms=True,
+                              max_results=99999).results
+        vals = map(itemgetter(0), res)
+        return self._edges_fmt(vals)
 
     def __contains__(self, name):
         try:
