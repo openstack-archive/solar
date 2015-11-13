@@ -34,7 +34,7 @@
     - get_url: url={{insecure_pub_key}} dest={{insecure_pub_key_path}}
     - apt: name=debootstrap state=present
     - file: path={{tftp_root}}/ubuntu state=directory
-    - git: repo=https://github.com/rustyrobot/fuel-bootstrap-image-builder dest={{image_builder_path}}
+    - git: repo=https://github.com/Mirantis/fuel-bootstrap-image-builder dest={{image_builder_path}}
     - shell: "{{image_builder_path}}/bin/fuel-bootstrap-image 2>&1 | tee /tmp/image_build.log"
       environment:
         BOOTSTRAP_SSH_KEYS: "{{insecure_pub_key_path}}"
@@ -53,7 +53,7 @@
     - service: name=nginx state=restarted
 
     # Install discovery service
-    - shell: pip install git+https://github.com/rustyrobot/discovery.git
+    - shell: pip install git+https://github.com/Mirantis/discovery.git
 
     # Install bareon-api
     # Workaround is required because pbr does not handle git-eggs correctly and fails to install fuel-agent
