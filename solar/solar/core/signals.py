@@ -16,7 +16,7 @@
 import networkx
 
 from solar.core.log import log
-from solar.interfaces import orm
+# from solar.interfaces import orm
 from solar.dblayer.solar_models import Resource as DBResource
 
 
@@ -242,38 +242,40 @@ def disconnect_receiver_by_input(receiver, input_name):
 #             emitter_input.receivers.remove(receiver_input)
 
 
-def detailed_connection_graph(start_with=None, end_with=None):
-    resource_inputs_graph = orm.DBResource.inputs.graph()
-    inputs_graph = orm.DBResourceInput.receivers.graph()
+def detailed_connection_graph(start_with=None, end_with=None, details=False):
+    from solar.core.resource import Resource, load_all
 
-    def node_attrs(n):
-        if isinstance(n, orm.DBResource):
-            return {
-                'color': 'yellowgreen',
-                'style': 'filled',
-            }
-        elif isinstance(n, orm.DBResourceInput):
-            return {
-                'color': 'lightskyblue',
-                'style': 'filled, rounded',
-            }
+    if details:
+        def format_for_edge(resource, input):
+            return '"{}/{}"'.format(resource, input)
+    else:
+        def format_for_edge(resource, input):
+            input = input.split(':', 1)[0]
+            return '"{}/{}"'.format(resource, input)
 
-    def format_name(i):
-        if isinstance(i, orm.DBResource):
-            return '"{}"'.format(i.name)
-        elif isinstance(i, orm.DBResourceInput):
-            return '{}/{}'.format(i.resource.name, i.name)
+    res_props = {'color': 'yellowgreen',
+                 'style': 'filled'}
+    inp_props = {'color': 'lightskyblue',
+                 'style': 'filled, rounded'}
 
-    for r, i in resource_inputs_graph.edges():
-        inputs_graph.add_edge(r, i)
+    graph = networkx.DiGraph()
 
-    ret = networkx.MultiDiGraph()
+    resources = load_all()
 
-    for u, v in inputs_graph.edges():
-        u_n = format_name(u)
-        v_n = format_name(v)
-        ret.add_edge(u_n, v_n)
-        ret.node[u_n] = node_attrs(u)
-        ret.node[v_n] = node_attrs(v)
-
-    return ret
+    for resource in resources:
+        res_node = '{}'.format(resource.name)
+        for name in resource.db_obj.meta_inputs:
+            resource_input = format_for_edge(resource.name, name)
+            graph.add_edge(resource.name, resource_input)
+            graph.node[resource_input] = inp_props
+        conns = resource.connections
+        for (emitter_resource, emitter_input, receiver_resource, receiver_input) in conns:
+            e = format_for_edge(emitter_resource, emitter_input)
+            r = format_for_edge(receiver_resource, receiver_input)
+            graph.add_edge(emitter_resource, e)
+            graph.add_edge(receiver_resource, r)
+            graph.add_edge(e, r)
+            graph.node[e] = inp_props
+            graph.node[r] = inp_props
+        graph.node[res_node] = res_props
+    return graph
