@@ -131,7 +131,7 @@ def init_cli_connect():
         receiver = sresource.load(receiver)
         click.echo(emitter)
         click.echo(receiver)
-        signals.disconnect(emitter, receiver)
+        emitter.disconnect(receiver)
 
         show_emitter_connections(emitter)
 

@@ -285,6 +285,12 @@ class Resource(object):
         return self.connect_with_events(
             receiver, mapping=mapping, events=events, use_defaults=True)
 
+    def disconnect(self, receiver):
+        inputs = self.db_obj.inputs.keys()
+        self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
+        receiver.db_obj.save_lazy()
+        self.db_obj.save_lazy()
+
 
 
 def load(name):
