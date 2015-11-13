@@ -25,6 +25,7 @@ import os
 import sys
 import tabulate
 import yaml
+from collections import defaultdict
 
 from solar.core import actions
 from solar.core import resource as sresource
@@ -45,27 +46,24 @@ from solar.cli.resource import resource as cli_resource
 
 
 # HELPERS
-def format_resource_input(resource_input):
+def format_resource_input(resource_name, resource_input):
     return '{}::{}'.format(
-        #click.style(resource_name, fg='white', bold=True),
-        resource_input.resource.name,
-        click.style(resource_input.name, fg='yellow')
+        resource_name,
+        click.style(resource_input, fg='yellow')
     )
 
 
-def show_emitter_connections(emitter):
-    for emitter_input in emitter.resource_inputs().values():
-        click.echo(
-            '{} -> {}'.format(
-                format_resource_input(emitter_input),
-                '[{}]'.format(
-                    ', '.join(
-                        format_resource_input(r)
-                        for r in emitter_input.receivers.as_set()
-                    )
-                )
-            )
-        )
+def show_emitter_connections(res):
+    db_obj = res.db_obj
+    d = defaultdict(list)
+    for emitter, receiver, _meta in db_obj.inputs._edges():
+        d[emitter].append(receiver)
+
+    for emitter, receivers in d.iteritems():
+        click.echo("{} -> {}".format(
+            format_resource_input(*emitter),
+            '[{}]'.format(', '.join(
+                format_resource_input(*recv) for recv in receivers))))
 
 
 @click.group(cls=base.AliasedGroup)
