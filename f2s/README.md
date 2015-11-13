@@ -4,6 +4,9 @@ To use solar on fuel master we need to use container because of
 python2.6 there. Also solar itself relies on several services.
 
 ```
+yum -y install git
+git clone -b f2s https://github.com/Mirantis/solar.git
+
 docker run --name riak -d -p 8087:8087 -p 8098:8098 tutum/riak
 
 docker run --name redis -d -p 6379:6379 -e REDIS_PASS=**None** tutum/redis
