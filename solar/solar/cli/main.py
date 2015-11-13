@@ -152,9 +152,11 @@ def init_cli_connections():
     @connections.command()
     @click.option('--start-with', default=None)
     @click.option('--end-with', default=None)
-    def graph(start_with, end_with):
+    @click.option('--details', is_flag=True, default=False)
+    def graph(start_with, end_with, details):
         g = signals.detailed_connection_graph(start_with=start_with,
-                                              end_with=end_with)
+                                              end_with=end_with,
+                                              details=details)
 
         nx.write_dot(g, 'graph.dot')
         fabric_api.local('dot -Tsvg graph.dot -o graph.svg')
