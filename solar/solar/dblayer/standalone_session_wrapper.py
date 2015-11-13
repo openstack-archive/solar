@@ -28,7 +28,3 @@ def create_all():
     ModelMeta.session_start()
 
     atexit.register(ModelMeta.session_end)
-
-
-
-create_all()
