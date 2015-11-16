@@ -50,7 +50,13 @@ def pytest_runtest_teardown(item, nextitem):
     ModelMeta.session_end(result=True)
     return nextitem
 
+# It will run before all fixtures
+def pytest_runtest_setup(item):
+    ModelMeta.session_start()
+
+# it will run after fixtures but before test
 def pytest_runtest_call(item):
+    ModelMeta.session_end()
     ModelMeta.session_start()
 
 def patched_get_bucket_name(cls):
