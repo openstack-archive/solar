@@ -17,20 +17,30 @@ import shutil
 import tempfile
 import unittest
 import yaml
+import time
 
 from solar.core.resource import virtual_resource as vr
-from solar.interfaces.db import get_db
+from solar.dblayer.model import Model, Replacer, ModelMeta, get_bucket
 
-db = get_db()
+
+def patched_get_bucket_name(cls):
+    return cls.__name__ + str(int(time.time() * 10000))
+
+Model.get_bucket_name = classmethod(patched_get_bucket_name)
 
 
 class BaseResourceTest(unittest.TestCase):
+
     def setUp(self):
         self.storage_dir = tempfile.mkdtemp()
+        for model in ModelMeta._defined_models:
+            model.bucket = get_bucket(None, model, ModelMeta)
+        ModelMeta.session_start()
 
     def tearDown(self):
         shutil.rmtree(self.storage_dir)
-        db.clear()
+        ModelMeta.session_end()
+
 
     def make_resource_meta(self, meta_yaml):
         meta = yaml.load(meta_yaml)
@@ -48,5 +58,6 @@ class BaseResourceTest(unittest.TestCase):
 
         return path
 
-    def create_resource(self, name, src, args={}):
+    def create_resource(self, name, src, args=None):
+        args = args or {}
         return vr.create(name, src, args=args)[0]

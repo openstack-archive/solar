@@ -14,9 +14,12 @@
 import os
 
 import pytest
+import time
 
 from solar.core.resource import Resource
-from solar.interfaces import db
+# from solar.interfaces import db
+
+from solar.dblayer.model import get_bucket, ModelMeta, Model
 
 @pytest.fixture
 def resources():
@@ -36,19 +39,27 @@ def resources():
            }
 
 
-def pytest_configure():
-    if db.CURRENT_DB == 'redis_graph_db':
-        db.DB = db.get_db(backend='fakeredis_graph_db')
-    elif db.CURRENT_DB == 'redis_db':
-        db.DB = db.get_db(backend='fakeredis_db')
-    else:
-        db.DB = db.get_db(backend=db.CURRENT_DB)
-
-
 @pytest.fixture(autouse=True)
-def cleanup(request):
+def setup(request):
 
-    def fin():
-        db.get_db().clear()
+    for model in ModelMeta._defined_models:
+        model.bucket = get_bucket(None, model, ModelMeta)
 
-    request.addfinalizer(fin)
+
+def pytest_runtest_teardown(item, nextitem):
+    ModelMeta.session_end(result=True)
+    return nextitem
+
+def pytest_runtest_call(item):
+    ModelMeta.session_start()
+
+def patched_get_bucket_name(cls):
+    return cls.__name__ + str(time.time())
+
+
+Model.get_bucket_name = classmethod(patched_get_bucket_name)
+
+from solar.dblayer.sql_client import SqlClient
+client = SqlClient(':memory:', threadlocals=True, autocommit=False)
+
+ModelMeta.setup(client)
