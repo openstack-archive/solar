@@ -195,3 +195,17 @@ def test_strint_comparsions():
     assert isinstance(c, basestring)
     assert a > b
     assert a > c
+
+
+def test_delete_cache_behaviour(rk):
+    key1 = next(rk)
+
+    m1 = M1.from_dict(key1, {'f1': 'm1'})
+
+    m1.save()
+
+    clear_cache()
+
+    M1.get(key1).delete()
+    with pytest.raises(DBLayerNotFound):
+        m12 = M1.get(key1)

@@ -894,4 +894,9 @@ class Model(object):
             ls.remove(self)
         except KeyError:
             pass
+        try:
+            del self._c.obj_cache[self.key]
+        except KeyError:
+            pass
         self._riak_object.delete()
+        return self
