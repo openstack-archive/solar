@@ -83,6 +83,8 @@ def test_lazy(rk):
 def test_cache_logic(rk):
     k = next(rk)
     M1.session_start()
+    assert M1._c.obj_cache == {}
+    
     m1 = M1.from_dict(k, {'f1': 'blah', 'f2': 150})
     m1.save()
     M1.session_end()
