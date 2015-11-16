@@ -64,6 +64,7 @@ def create_sorted_diff(staged, commited):
 def make_single_stage_item(resource_obj):
     commited = resource_obj.load_commited()
     base_path = resource_obj.base_path
+
     if resource_obj.to_be_removed():
         resource_args = {}
         resource_connections = []
@@ -177,8 +178,6 @@ def _revert_remove(logitem):
 
 
 def _update_inputs_connections(res_obj, args, old_connections, new_connections):
-    res_obj.update(args)
-
 
     removed = []
     for item in old_connections:
@@ -190,16 +189,22 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
         if item not in old_connections:
             added.append(item)
 
-    for emitter, _, receiver, _ in removed:
+    if removed or added:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
-        signals.disconnect(emmiter_obj, receiver_obj)
 
+    for emitter, _, receiver, _ in removed:
+        emmiter_obj.disconnect(receiver_obj)
 
     for emitter, emitter_input, receiver, receiver_input in added:
-        emmiter_obj = resource.load(emitter)
-        receiver_obj = resource.load(receiver)
-        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
+        emmiter_obj.connect(receiver_obj, {emitter_input: receiver_input})
+
+    if removed or added:
+        # without save we will get error that some values can not be updated
+        # even if connection was removed
+        receiver_obj.db_obj.save()
+
+    res_obj.update(args)
 
 
 def _revert_update(logitem):

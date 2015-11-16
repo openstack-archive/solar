@@ -39,10 +39,10 @@ def guess_mapping(emitter, receiver):
     :return:
     """
     guessed = {}
-    for key in emitter.args:
-        if key in receiver.args:
-            guessed[key] = key
 
+    for key in emitter.db_obj.meta_inputs:
+        if key in receiver.db_obj.meta_inputs:
+            guessed[key] = key
     return guessed
 
 
@@ -124,7 +124,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
     # XXX: should be somehow parametrized (input attribute?)
     # with dirty_state_ok(DBResource, ('index', )):
     for single in ('transports_id', 'location_id'):
-        if single in inps_emitter and inps_receiver:
+        if single in inps_emitter and single in inps_receiver:
             _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'

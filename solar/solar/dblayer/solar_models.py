@@ -228,6 +228,7 @@ class InputsFieldWrp(IndexFieldWrp):
             _, ind_value = emit
             if ind_value.endswith('|{}|{}'.format(self._instance.key, name)):
                 to_dels.append(emit)
+
         for to_del in to_dels:
             self._instance._remove_index(*to_del)
 

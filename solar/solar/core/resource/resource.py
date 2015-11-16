@@ -81,7 +81,6 @@ class Resource(object):
         inputs = metadata.get('input', {})
 
         self.auto_extend_inputs(inputs)
-
         self.db_obj = DBResource.from_dict(
             name,
             {
@@ -98,10 +97,10 @@ class Resource(object):
                 'tags': tags,
                 'state': RESOURCE_STATE.created.name
             })
-
         self.create_inputs(args)
 
         self.db_obj.save()
+
 
     # Load
     @dispatch(DBResource)
@@ -269,6 +268,8 @@ class Resource(object):
             mapping = dict((x, x) for x in mapping)
         self.db_obj.connect(receiver.db_obj, mapping=mapping)
         self.db_obj.save_lazy()
+        receiver.db_obj.save_lazy()
+
 
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):
@@ -287,6 +288,7 @@ class Resource(object):
 
     def disconnect(self, receiver):
         inputs = self.db_obj.inputs.keys()
+        inputs += ['location_id', 'transports_id']
         self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
         receiver.db_obj.save_lazy()
         self.db_obj.save_lazy()
