@@ -59,7 +59,7 @@ input:
                 'sample1', sample_meta_dir, {'value': 1}
             )
             sample2 = self.create_resource(
-                'sample2', sample_meta_dir, {}
+                'sample2', sample_meta_dir,
             )
             signals.connect(sample1, sample2)
             self.assertEqual(sample1.args['value'], sample2.args['value'])
@@ -92,7 +92,7 @@ input:
         sample_l = resource.load('sample')
 
         self.assertDictEqual(sample.args, sample_l.args)
-        self.assertListEqual(sample.tags, sample_l.tags)
+        self.assertListEqual(list(sample.tags), list(sample_l.tags))
 
     def test_removal(self):
         """Test that connection removed with resource."""
