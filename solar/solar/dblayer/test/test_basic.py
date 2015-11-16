@@ -80,6 +80,28 @@ def test_lazy(rk):
         assert m1.f1 == 'blah'
 
 
+def test_cache_logic(rk):
+    k = next(rk)
+    M1.session_start()
+    m1 = M1.from_dict(k, {'f1': 'blah', 'f2': 150})
+    m1.save()
+    M1.session_end()
+
+    M1.session_start()
+    assert M1._c.obj_cache == {}
+    m11 = M1.get(k)
+    pid = id(M1._c)
+    assert M1._c.obj_cache == {k: m11}
+    M1.session_end()
+
+    M1.session_start()
+    assert M1._c.obj_cache == {}
+    m12 = M1.get(k)
+    aid = id(M1._c)
+
+    assert pid != aid
+
+
 def test_normal_index(rk):
     key = next(rk)
     key2 = next(rk)
