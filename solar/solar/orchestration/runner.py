@@ -14,9 +14,13 @@
 
 from celery import Celery
 
+from solar.config import C
+
+_url = 'redis://{}:{}/1'.format(C.redis.host, C.redis.port)
+
 app = Celery(
     include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
-    backend='redis://10.0.0.2:6379/1',
-    broker='redis://10.0.0.2:6379/1')
+    backend=_url,
+    broker=_url)
 app.conf.update(CELERY_ACCEPT_CONTENT = ['json'])
 app.conf.update(CELERY_TASK_SERIALIZER = 'json')

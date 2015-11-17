@@ -46,3 +46,4 @@ solar/.coverage
 
 # pytest cache
 solar/.cache
+.config.override
