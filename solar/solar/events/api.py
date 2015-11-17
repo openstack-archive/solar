@@ -83,7 +83,14 @@ def add_events(resource, lst):
 
 
 def remove_event(ev):
-    raise NotImplemented()
+    to_remove = ev.to_dict()
+    resource = ev.parent
+    resource = Resource.get(resource)
+    # TODO: currently we don't track mutable objects
+    events = resource.events
+    events.remove(to_remove)
+    resource.events = events
+    resource.save_lazy()
 
 
 def all_events(resource):
