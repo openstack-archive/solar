@@ -24,7 +24,7 @@ from solar import errors
 from collections import Counter
 
 from solar.dblayer.solar_models import Task
-from solar.dblayer.model import ModelMeta
+from solar.dblayer.model import clear_cache
 
 
 def save_graph(graph):
@@ -171,7 +171,7 @@ def wait_finish(uid, timeout):
 
     while start_time + timeout >= time.time():
         # need to clear cache before fetching updated status
-        ModelMeta.session_start()
+        clear_cache()
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})

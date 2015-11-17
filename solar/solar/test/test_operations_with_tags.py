@@ -15,20 +15,31 @@
 from pytest import fixture
 
 from solar.core import resource
+from solar.dblayer.solar_models import Resource
+from solar.dblayer.model import ModelMeta
 
 
 @fixture
-def tagged_resources(resources):
-    assert len(resources) == 3
-    for res in resources.values():
-        res.add_tags('n1', 'n2', 'n3')
-    return resources
+def tagged_resources():
+    tags = ['n1', 'n2', 'n3']
+    t1 = Resource.from_dict('t1',
+        {'name': 't1', 'tags': tags, 'base_path': 'x'})
+    t1.save_lazy()
+    t2 = Resource.from_dict('t2',
+        {'name': 't2', 'tags': tags, 'base_path': 'x'})
+    t2.save_lazy()
+    t3 = Resource.from_dict('t3',
+        {'name': 't3', 'tags': tags, 'base_path': 'x'})
+    t3.save_lazy()
+    ModelMeta.save_all_lazy()
+    return [t1, t2, t3]
 
 
 def test_add_remove_tags(tagged_resources):
-    assert len(resource.load_by_tags({'n1', 'n2'})) == 3
+    loaded = resource.load_by_tags({'n1', 'n2'})
+    assert len(loaded) == 3
 
-    for res in tagged_resources.values():
+    for res in loaded:
         res.remove_tags('n1')
 
     assert len(resource.load_by_tags(set(['n1']))) == 0
