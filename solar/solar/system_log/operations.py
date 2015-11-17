@@ -15,7 +15,6 @@
 from solar.system_log import data
 from solar.dblayer.solar_models import CommitedResource
 from dictdiffer import patch
-from solar.interfaces import orm
 from solar.core.resource import resource
 from .consts import CHANGES
 

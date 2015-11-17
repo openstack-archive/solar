@@ -2,15 +2,11 @@ import time
 
 from solar.core.resource import virtual_resource as vr
 from solar import errors
-
-from solar.interfaces.db import get_db
-
-
-db = get_db()
+from solar.dblayer.model import ModelMeta
 
 
 def run():
-    db.clear()
+    ModelMeta.remove_all()
 
     node = vr.create('node', 'resources/ro_node', {'name': 'first' + str(time.time()),
                                                    'ip': '10.0.0.3',

@@ -18,7 +18,6 @@ __all__ = ['add_dep', 'add_react', 'Dep', 'React', 'add_event']
 import networkx as nx
 
 from solar.core.log import log
-from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
 from solar.dblayer.solar_models import Resource

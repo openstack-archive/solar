@@ -16,7 +16,6 @@
 import networkx
 
 from solar.core.log import log
-# from solar.interfaces import orm
 from solar.dblayer.solar_models import Resource as DBResource
 
 
@@ -143,103 +142,12 @@ def get_mapping(emitter, receiver, mapping=None):
 def connect(emitter, receiver, mapping=None):
     emitter.connect(receiver, mapping)
 
-# def connect(emitter, receiver, mapping=None):
-#     if mapping is None:
-#         mapping = guess_mapping(emitter, receiver)
-
-#     # XXX: we didn't agree on that "reverse" there
-#     location_and_transports(emitter, receiver, mapping)
-
-#     if isinstance(mapping, set):
-#         mapping = {src: src for src in mapping}
-
-#     for src, dst in mapping.items():
-#         if not isinstance(dst, list):
-#             dst = [dst]
-
-#         for d in dst:
-#             connect_single(emitter, src, receiver, d)
-
-
-# def connect_single(emitter, src, receiver, dst):
-#     if ':' in dst:
-#         return connect_multi(emitter, src, receiver, dst)
-
-#     # Disconnect all receiver inputs
-#     # Check if receiver input is of list type first
-#     emitter_input = emitter.resource_inputs()[src]
-#     receiver_input = receiver.resource_inputs()[dst]
-
-#     if emitter_input.id == receiver_input.id:
-#         raise Exception(
-#             'Trying to connect {} to itself, this is not possible'.format(
-#                 emitter_input.id)
-#         )
-
-#     if not receiver_input.is_list:
-#         receiver_input.receivers.delete_all_incoming(receiver_input)
-
-#     # Check for cycles
-#     # TODO: change to get_paths after it is implemented in drivers
-#     if emitter_input in receiver_input.receivers.as_set():
-#         raise Exception('Prevented creating a cycle on %s::%s' % (emitter.name,
-#                                                                   emitter_input.name))
-
-#     log.debug('Connecting {}::{} -> {}::{}'.format(
-#         emitter.name, emitter_input.name, receiver.name, receiver_input.name
-#     ))
-#     emitter_input.receivers.add(receiver_input)
-
-
-# def connect_multi(emitter, src, receiver, dst):
-#     receiver_input_name, receiver_input_key = dst.split(':')
-#     if '|' in receiver_input_key:
-#         receiver_input_key, receiver_input_tag = receiver_input_key.split('|')
-#     else:
-#         receiver_input_tag = None
-
-#     emitter_input = emitter.resource_inputs()[src]
-#     receiver_input = receiver.resource_inputs()[receiver_input_name]
-
-#     if not receiver_input.is_list or receiver_input_tag:
-#         receiver_input.receivers.delete_all_incoming(
-#             receiver_input,
-#             destination_key=receiver_input_key,
-#             tag=receiver_input_tag
-#         )
-
-#     # We can add default tag now
-#     receiver_input_tag = receiver_input_tag or emitter.name
-
-#     # NOTE: make sure that receiver.args[receiver_input] is of dict type
-#     if not receiver_input.is_hash:
-#         raise Exception(
-#             'Receiver input {} must be a hash or a list of hashes'.format(receiver_input_name)
-#         )
-
-#     log.debug('Connecting {}::{} -> {}::{}[{}], tag={}'.format(
-#         emitter.name, emitter_input.name, receiver.name, receiver_input.name,
-#         receiver_input_key,
-#         receiver_input_tag
-#     ))
-#     emitter_input.receivers.add_hash(
-#         receiver_input,
-#         receiver_input_key,
-#         tag=receiver_input_tag
-#     )
-
 
 def disconnect_receiver_by_input(receiver, input_name):
     # input_node = receiver.resource_inputs()[input_name]
 
     # input_node.receivers.delete_all_incoming(input_node)
     receiver.db_obj.inputs.disconnect(input_name)
-
-
-# def disconnect(emitter, receiver):
-#     for emitter_input in emitter.resource_inputs().values():
-#         for receiver_input in receiver.resource_inputs().values():
-#             emitter_input.receivers.remove(receiver_input)
 
 
 def detailed_connection_graph(start_with=None, end_with=None, details=False):

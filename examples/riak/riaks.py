@@ -22,18 +22,13 @@ from solar import errors
 
 from solar.dblayer.model import ModelMeta
 
-from solar.interfaces.db import get_db
-
 from solar.events.controls import React, Dep
 from solar.events.api import add_event
 
 from solar.dblayer.solar_models import Resource
 
-# db = get_db()
-
 
 def setup_riak():
-    # db.clear()
 
     ModelMeta.remove_all()
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})

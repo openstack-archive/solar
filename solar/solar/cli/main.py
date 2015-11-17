@@ -34,7 +34,6 @@ from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
-from solar.interfaces import orm
 from solar import utils
 
 from solar.cli import base
@@ -78,25 +77,26 @@ def init_actions():
     @click.option('-d', '--dry-run', default=False, is_flag=True)
     @click.option('-m', '--dry-run-mapping', default='{}')
     def run(dry_run_mapping, dry_run, action, tags):
-        if dry_run:
-            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
+        raise NotImplementedError("Not yet implemented")
+        # if dry_run:
+        #     dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
-        resources = filter(
-            lambda r: Expression(tags, r.tags).evaluate(),
-            orm.DBResource.all()
-        )
+        # resources = filter(
+        #     lambda r: Expression(tags, r.tags).evaluate(),
+        #     orm.DBResource.all()
+        # )
 
-        for r in resources:
-            resource_obj = sresource.load(r['id'])
-            actions.resource_action(resource_obj, action)
+        # for r in resources:
+        #     resource_obj = sresource.load(r['id'])
+        #     actions.resource_action(resource_obj, action)
 
-        if dry_run:
-            click.echo('EXECUTED:')
-            for key in dry_run_executor.executed:
-                click.echo('{}: {}'.format(
-                    click.style(dry_run_executor.compute_hash(key), fg='green'),
-                    str(key)
-                ))
+        # if dry_run:
+        #     click.echo('EXECUTED:')
+        #     for key in dry_run_executor.executed:
+        #         click.echo('{}: {}'.format(
+        #             click.style(dry_run_executor.compute_hash(key), fg='green'),
+        #             str(key)
+        #         ))
 
 
 def init_cli_connect():

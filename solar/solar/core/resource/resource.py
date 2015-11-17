@@ -22,7 +22,6 @@ import os
 from solar import utils
 
 from solar.core import validation
-from solar.interfaces import orm
 from solar.core import signals
 from solar.events import api
 

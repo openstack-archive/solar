@@ -12,10 +12,10 @@ import click
 from solar.core import signals
 from solar.core.resource import virtual_resource as vr
 
-from solar.interfaces.db import get_db
-
 from solar.system_log import change
 from solar.cli import orch
+from solar.dblayer.model import ModelMeta
+
 
 @click.group()
 def main():
@@ -43,9 +43,7 @@ def lxc_template(idx):
 
 @click.command()
 def deploy():
-    db = get_db()
-    db.clear()
-    signals.Connections.clear()
+    ModelMeta.remove_all()
 
     node1 = vr.create('nodes', 'templates/nodes.yaml', {})[0]
     seed = vr.create('nodes', 'templates/seed_node.yaml', {})[0]
