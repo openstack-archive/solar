@@ -31,8 +31,7 @@ def compact(logitem):
     return 'log task={} uid={}'.format(logitem.log_action, logitem.uid)
 
 
-def details(logitem):
-    diff = logitem.diff
+def details(diff):
     rst = []
     for type_, val, change in diff:
         if type_ == 'add':

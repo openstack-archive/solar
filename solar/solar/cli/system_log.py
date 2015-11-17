@@ -47,7 +47,7 @@ def stage(d):
     for item in log:
         click.echo(data.compact(item))
         if d:
-            for line in data.details(item):
+            for line in data.details(item.diff):
                 click.echo(' '*4+line)
     if not log:
         click.echo('No changes')
@@ -60,7 +60,7 @@ def staged_item(uid):
         click.echo('No staged changes for {}'.format(log_action))
     else:
         click.echo(data.compact(item))
-        for line in data.details(item):
+        for line in data.details(item.diff):
             click.echo(' '*4+line)
 
 @changes.command()
@@ -89,7 +89,7 @@ def history(n, d, s):
 
         click.echo(data.compact(item))
         if d:
-            for line in data.details(item):
+            for line in data.details(item.diff):
                 click.echo(' '*4+line)
     if not log:
         click.echo('No history')

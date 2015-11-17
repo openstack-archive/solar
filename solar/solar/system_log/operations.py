@@ -38,6 +38,7 @@ def move_to_commited(log_action, *args, **kwargs):
         commited = CommitedResource.get_or_create(item.resource)
         updated = resource_obj.db_obj.updated
         if item.action == CHANGES.remove.name:
+
             resource_obj.delete()
             commited.state = resource.RESOURCE_STATE.removed.name
         else:

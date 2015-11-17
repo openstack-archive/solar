@@ -823,6 +823,7 @@ class Model(object):
         riak_obj = cls.bucket.new(key, data={})
         obj = cls.from_riakobj(riak_obj)
         obj._new = True
+
         for field in cls._model_fields:
             # if field is cls._pkey_field:
             #     continue  # pkey already set
