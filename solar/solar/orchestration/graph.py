@@ -24,6 +24,7 @@ from solar import errors
 from collections import Counter
 
 from solar.dblayer.solar_models import Task
+from solar.dblayer.model import ModelMeta
 
 
 def save_graph(graph):
@@ -169,6 +170,8 @@ def wait_finish(uid, timeout):
     start_time = time.time()
 
     while start_time + timeout >= time.time():
+        # need to clear cache before fetching updated status
+        ModelMeta.session_start()
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})
@@ -176,6 +179,7 @@ def wait_finish(uid, timeout):
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return
+
     else:
         raise errors.ExecutionTimeout(
             'Run %s wasnt able to finish' % uid)
