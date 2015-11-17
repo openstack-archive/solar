@@ -288,7 +288,6 @@ class Resource(object):
 
     def disconnect(self, receiver):
         inputs = self.db_obj.inputs.keys()
-        inputs += ['location_id', 'transports_id']
         self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
         receiver.db_obj.save_lazy()
         self.db_obj.save_lazy()

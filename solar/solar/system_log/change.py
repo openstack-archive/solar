@@ -189,18 +189,18 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
         if item not in old_connections:
             added.append(item)
 
-    if removed or added:
+    for emitter, _, receiver, _ in removed:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
-
-    for emitter, _, receiver, _ in removed:
         emmiter_obj.disconnect(receiver_obj)
 
     for emitter, emitter_input, receiver, receiver_input in added:
+        emmiter_obj = resource.load(emitter)
+        receiver_obj = resource.load(receiver)
         emmiter_obj.connect(receiver_obj, {emitter_input: receiver_input})
 
     if removed or added:
-        # without save we will get error that some values can not be updated
+        # TODO without save we will get error that some values can not be updated
         # even if connection was removed
         receiver_obj.db_obj.save()
 
