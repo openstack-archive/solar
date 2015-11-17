@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from solar.dblayer.model import (Model, Field, IndexField,
                                  IndexFieldWrp,
                                  DBLayerException,
@@ -7,7 +8,6 @@ from solar.dblayer.model import (Model, Field, IndexField,
 from types import NoneType
 from operator import itemgetter
 from enum import Enum
-from itertools import groupby
 from uuid import uuid4
 from collections import defaultdict
 
@@ -595,15 +595,18 @@ class Resource(Model):
         other_inputs = other.inputs
         if mapping is None:
             return
+        if self == other:
+            raise Exception('Trying to connect value-.* to itself')
         solar_map(lambda (my_name, other_name): self._connect_single(other_inputs, other_name, my_name),
                   mapping.iteritems(), concurrency=2)
 
     def disconnect(self, other, inputs):
         other_key = other.key
         edges = other.inputs._edges()
-        edges = filter(lambda (receiver, emitter, _): emitter[0] == other_key and receiver[1] in inputs,
+        edges = filter(lambda (emitter, receiver, _): receiver[0] == other_key
+                and emitter[1] in inputs and emitter[0] == self.name,
                        edges)
-        inputs = [x[1][1] for x in edges]
+        inputs = ['{}|{}'.format(x[1][1], self.name) for x in edges]
         solar_map(other.inputs.disconnect, inputs, concurrency=2)
 
     def save(self, *args, **kwargs):
