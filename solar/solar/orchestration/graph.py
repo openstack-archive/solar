@@ -24,6 +24,7 @@ from solar import errors
 from collections import Counter
 
 from solar.dblayer.solar_models import Task
+from solar.dblayer.model import clear_cache
 
 
 def save_graph(graph):
@@ -128,24 +129,6 @@ def create_plan(plan_path, save=True):
     return create_plan_from_graph(dg, save=save)
 
 
-def update_plan(uid, plan_path):
-    """update preserves old status of tasks if they werent removed
-    """
-
-    new = parse_plan(plan_path)
-    old = get_graph(uid)
-    return update_plan_from_graph(new, old).graph['uid']
-
-
-def update_plan_from_graph(new, old):
-    new.graph = old.graph
-    for n in new:
-        if n in old:
-            new.node[n]['status'] = old.node[n]['status']
-
-    save_graph(new)
-    return new
-
 
 def reset_by_uid(uid, state_list=None):
     dg = get_graph(uid)
@@ -187,6 +170,8 @@ def wait_finish(uid, timeout):
     start_time = time.time()
 
     while start_time + timeout >= time.time():
+        # need to clear cache before fetching updated status
+        clear_cache()
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})
@@ -194,6 +179,7 @@ def wait_finish(uid, timeout):
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return
+
     else:
         raise errors.ExecutionTimeout(
             'Run %s wasnt able to finish' % uid)

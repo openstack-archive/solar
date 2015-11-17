@@ -118,9 +118,11 @@ class StateChange(Event):
     etype = 'state_change'
 
     def insert(self, changed_resources, changes_graph):
-        changed_resources.append(self.parent)
-
-        location_id = Resource.get(self.parent).inputs['location_id']
+        changed_resources.append(self.parent_node)
+        try:
+            location_id = Resource.get(self.parent).inputs['location_id']
+        except DBLayerNotFound:
+            location_id = None
         changes_graph.add_node(
             self.parent_node, status='PENDING',
             target=location_id,
