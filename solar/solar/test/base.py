@@ -33,14 +33,9 @@ class BaseResourceTest(unittest.TestCase):
 
     def setUp(self):
         self.storage_dir = tempfile.mkdtemp()
-        for model in ModelMeta._defined_models:
-            model.bucket = get_bucket(None, model, ModelMeta)
-        ModelMeta.session_start()
 
     def tearDown(self):
         shutil.rmtree(self.storage_dir)
-        ModelMeta.session_end()
-
 
     def make_resource_meta(self, meta_yaml):
         meta = yaml.load(meta_yaml)
