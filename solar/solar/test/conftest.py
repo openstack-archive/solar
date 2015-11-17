@@ -11,13 +11,34 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from solar.dblayer.model import Model, ModelMeta, get_bucket
-import pytest
+import os
 import time
+
+from solar.core.resource import Resource
+from solar.dblayer.model import Model, ModelMeta, get_bucket
+
+import pytest
 
 
 def patched_get_bucket_name(cls):
     return cls.__name__ + str(time.time())
+
+@pytest.fixture
+def resources():
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+
+    node_path = os.path.join(base_path, 'node')
+    node1 = Resource('node1', node_path, args={'ip':'10.0.0.1'})
+    node2 = Resource('node2', node_path, args={'ip':'10.0.0.2'})
+
+    base_service_path = os.path.join(base_path, 'base_service')
+    service1 = Resource('service1', base_service_path)
+    return {'node1' : node1,
+            'node2' : node2,
+            'service1': service1
+           }
 
 @pytest.fixture(autouse=True)
 def setup(request):
