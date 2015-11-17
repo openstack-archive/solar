@@ -43,72 +43,7 @@
                 "local": "/var/www/nailgun/ubuntu/x86_64/images/linux",
                 "remote_relative": "dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/linux"
             },
-            "repos": [
-                {
-                    "name": "ubuntu",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty",
-                    "type": "deb"
-                },
-                {
-                    "name": "ubuntu-updates",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty-updates",
-                    "type": "deb"
-                },
-                {
-                    "name": "ubuntu-security",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty-security",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos",
-                    "section": "main restricted",
-                    "uri": "http://127.0.0.1:8080/2015.1.0-7.0/ubuntu/x86_64",
-                    "priority": 1050,
-                    "suite": "mos7.0",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-updates",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1050,
-                    "suite": "mos7.0-updates",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-security",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1050,
-                    "suite": "mos7.0-security",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-holdback",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1100,
-                    "suite": "mos7.0-holdback",
-                    "type": "deb"
-                },
-                {
-                    "name": "Auxiliary",
-                    "section": "main restricted",
-                    "uri": "http://127.0.0.1:8080/2015.1.0-7.0/ubuntu/auxiliary",
-                    "priority": 1150,
-                    "suite": "auxiliary",
-                    "type": "deb"
-                }
-            ],
+            "repos": {{ repos | to_pretty_json }},
             "metadata": {
                 "always_editable": true,
                 "weight": 50,

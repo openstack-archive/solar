@@ -19,6 +19,7 @@
 
   tasks:
     # Istall and configure dnsmasq
+    - apt: update_cache=yes
     - apt: name=dnsmasq state=present
     - file: path={{tftp_root}} state=directory
     - template: src=files/dnsmasq_pxe.conf dest=/etc/dnsmasq.d/pxe.conf

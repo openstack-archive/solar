@@ -17,6 +17,9 @@ input:
     admin_mac:
       schema: str!
       value:
+    repos:
+      schema: list!
+      value: []
     name:
       schema: str
       value: a node
