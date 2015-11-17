@@ -6,6 +6,7 @@ from operator import itemgetter
 import time
 from contextlib import contextmanager
 from threading import RLock
+from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
 
 
 class DBLayerException(Exception):
@@ -118,6 +119,7 @@ def clear_cache():
 def get_bucket(_, owner, mcs):
     name = owner.get_bucket_name()
     bucket = mcs.riak_client.bucket(name)
+    bucket.resolver = dblayer_conflict_resolver
     return bucket
 
 

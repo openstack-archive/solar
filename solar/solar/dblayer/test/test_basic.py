@@ -209,3 +209,15 @@ def test_delete_cache_behaviour(rk):
     M1.get(key1).delete()
     with pytest.raises(DBLayerNotFound):
         m12 = M1.get(key1)
+
+
+def test_fast_delete(rk):
+    key1 = next(rk)
+
+    m1 = M1.from_dict(key1, {'f1': 'm1'})
+    m1.save()
+    m1.delete()
+    M1.session_start()
+    m12 = M1.from_dict(key1, {'f1': 'm12'})
+    m12.save()
+    assert m12.f1 == 'm12'
