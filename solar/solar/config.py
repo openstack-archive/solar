@@ -26,7 +26,7 @@ def _lookup_vals(setter, config, prefix=None):
 def from_configs():
 
     paths = [
-        os.path.join(CWD, '.config'),
+        os.getenv('SOLAR_CONFIG', os.path.join(CWD, '.config')),
         os.path.join(CWD, '.config.override')
         ]
     data = {}
@@ -37,9 +37,7 @@ def from_configs():
             if loaded:
                 data.update(loaded)
 
-    _load_from_path(data, paths[0])
-
-    for path in paths[1:]:
+    for path in paths:
         if not os.path.exists(path):
             continue
         with open(path) as f:
