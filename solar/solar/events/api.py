@@ -152,6 +152,5 @@ def build_edges(changes_graph, events):
             for parent, child, data in events_graph.edges(event_name, data=True):
                 succ_ev = data['event']
                 succ_ev.insert(stack, changes_graph)
-
         visited.add(event_name)
     return changes_graph

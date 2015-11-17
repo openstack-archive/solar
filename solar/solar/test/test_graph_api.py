@@ -34,28 +34,6 @@ def test_simple_plan_created_and_loaded(simple):
     plan = graph.get_plan(simple.graph['uid'])
     assert set(plan.nodes()) == {'just_fail', 'echo_stuff'}
 
-
-def test_update_plan_with_new_node(simple):
-    new = deepcopy(simple)
-    new.add_node('one_more', {})
-    graph.update_plan_from_graph(new, simple)
-    updated = graph.get_plan(new.graph['uid'])
-    assert set(updated.nodes()) == {'one_more', 'just_fail', 'echo_stuff'}
-
-
-def test_status_preserved_on_update(simple):
-    new = deepcopy(simple)
-    task_under_test = 'echo_stuff'
-
-    assert new.node[task_under_test]['status'] == states.PENDING.name
-
-    simple.node[task_under_test]['status'] = states.SUCCESS.name
-    graph.update_plan_from_graph(new, simple)
-
-    updated = graph.get_plan(new.graph['uid'])
-    assert new.node[task_under_test]['status'] == states.SUCCESS.name
-
-
 def test_reset_all_states(simple):
     for n in simple:
         simple.node[n]['status'] == states.ERROR.name

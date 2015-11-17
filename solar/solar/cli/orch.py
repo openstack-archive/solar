@@ -48,13 +48,6 @@ def create(plan):
     click.echo(uid)
 
 
-@orchestration.command()
-@click.argument('uid', type=SOLARUID)
-@click.argument('plan')
-def update(uid, plan):
-    graph.update_plan(uid, plan)
-
-
 def wait_report(uid, timeout, interval=3):
     try:
         if timeout:

@@ -128,24 +128,6 @@ def create_plan(plan_path, save=True):
     return create_plan_from_graph(dg, save=save)
 
 
-def update_plan(uid, plan_path):
-    """update preserves old status of tasks if they werent removed
-    """
-
-    new = parse_plan(plan_path)
-    old = get_graph(uid)
-    return update_plan_from_graph(new, old).graph['uid']
-
-
-def update_plan_from_graph(new, old):
-    new.graph = old.graph
-    for n in new:
-        if n in old:
-            new.node[n]['status'] = old.node[n]['status']
-
-    save_graph(new)
-    return new
-
 
 def reset_by_uid(uid, state_list=None):
     dg = get_graph(uid)
