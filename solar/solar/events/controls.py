@@ -32,6 +32,7 @@ trigger action even if no changes noticed on dependent resource.
 """
 
 from solar.dblayer.solar_models import Resource
+from solar.dblayer.model import DBLayerNotFound
 
 class Event(object):
 
@@ -97,7 +98,10 @@ class React(Event):
 
         if self.parent_node in changes_graph:
             if self.child_node not in changes_graph:
-                location_id = Resource.get(self.child).inputs['location_id']
+                try:
+                    location_id = Resource.get(self.child).inputs['location_id']
+                except DBLayerNotFound:
+                    location_id = None
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
                     target=location_id,
