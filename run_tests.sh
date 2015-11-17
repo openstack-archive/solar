@@ -34,4 +34,4 @@ pip-accel install -r solar/test-requirements.txt
 
 pushd solar
 
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar
+SOLAR_CONFIG=../.config PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar/test
