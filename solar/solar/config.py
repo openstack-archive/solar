@@ -1,83 +1,56 @@
 
 import os
+import yaml
+from bunch import Bunch
 
-class DictWrp(object):
+CWD = os.getcwd()
 
-    def __init__(self, store):
-        self.store = store
-
-    def __getitem__(self, item):
-        return self.store[item]
-
-    __getattr__ = __getitem__
+C = Bunch()
+C.redis = Bunch(port='6379', host='10.0.0.2')
+C.riak = Bunch(port='8087', host='10.0.0.2', protocol='pbc')
+C.sqlite = Bunch(backend='memory', location=':memory:')
+C.dblayer = 'riak'
 
 
-class Conf(object):
-
-    def __init__(self):
-        self.store = {}
-        self.types = {}
-
-    def add(self, name, _type=None, default=None):
-        if default:
-            if hasattr(default, '__call__'):
-                val = default()
+def _lookup_vals(setter, config, prefix=None):
+        for key, val in config.iteritems():
+            if prefix is None:
+                sub = [key]
             else:
-                val = default
-            _type = type(val)
-        self.types[name] = _type
-        if '.' in name:
-            parent, child = name.split('.')
-            if parent not in self.store:
-                self.store[parent] = {}
-                self.types[parent] = dict
-            self.store[parent][child] = val
-        else:
-            self.store[name] = val
-
-    def __getitem__(self, item):
-        val = self.store[item]
-        if isinstance(val, dict):
-            return DictWrp(val)
-        return val
-
-    def __setitem__(self, item, val):
-        stack = item.split('.')
-        while stack[:-1]:
-            nxt = stack.pop(0)
-            store = self.store[nxt]
-        store[stack[-1]] = val
-
-    def init_env(self):
-        for var, _type in self.types.iteritems():
-            if '.' in var:
-                variable = '_'.join(var.split('.'))
+                sub = prefix + [key]
+            if isinstance(val, Bunch):
+                _lookup_vals(setter, val, sub)
             else:
-                variable = var
-            env_var = variable.upper()
-            val = os.getenv(env_var)
-            if not val: continue
+                setter(config, sub)
 
-            if _type == list:
-                val_lst = val.split('|')
-                self.store[var].extend(val_lst)
-            elif _type == dict:
-                pass
-            else:
-                self.store[var] = val
+def from_configs():
+    paths = [
+        os.path.join(CWD, '.config'),
+        os.path.join(CWD, '.config.override')
+        ]
+    data = {}
+    for path in paths:
+        with open(path) as f:
+            loaded = yaml.load(f)
+            if loaded:
+                data.update(loaded)
 
+    def _setter(config, path):
+        vals = data
+        for key in path:
+            vals = vals[key]
+        config[path[-1]] = vals
+    _lookup_vals(_setter, C)
 
+def from_env():
+    def _setter(config, path):
+        env_key = '_'.join(path).upper()
+        if env_key in os.environ:
+            config[path[-1]] = os.environ[env_key]
+    _lookup_vals(_setter, C)
 
-    __getattr__ = __getitem__
-
-
-C = Conf()
-C.add('redis.port', default='6379')
-C.add('redis.host', default='10.0.0.2')
-C.add('riak.host', default='10.0.0.2')
-C.add('riak.port', default='8087')
-C.add('riak.protocol', default='pbc')
-C.init_env()
+from_configs()
+from_env()
 
 if __name__ == '__main__':
-    print C.store
+    print C

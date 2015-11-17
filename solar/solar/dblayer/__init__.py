@@ -2,9 +2,29 @@ from solar.dblayer.model import ModelMeta
 from solar.dblayer.riak_client import RiakClient
 from solar.config import C
 
-client = RiakClient(
-    protocol=C.riak.protocol, host=C.riak.host, pb_port=C.riak.port)
-# client = RiakClient(protocol='http', host='10.0.0.2', http_port=8098)
+if C.dblayer == 'sqlite':
+    from solar.dblayer.sql_client import SqlClient
+    if C.sqlite.backend == 'memory':
+        client = SqlClient(C.sqlite.location, threadlocals=False, autocommit=False)
+    elif C.sqlite.backend == 'file':
+        client = SqlClient(C.sqlite.location, threadlocals=True,
+            autocommit=False, pragmas=(('journal_mode', 'WAL'),
+                                       ('synchronous', 'NORMAL')))
+    else:
+        raise Exception('Unknown sqlite backend %s', C.sqlite.backend)
+
+elif C.dblayer == 'riak':
+    from solar.dblayer.riak_client import RiakClient
+    if C.riak.protocol == 'pbc':
+       client = RiakClient(
+            protocol=C.riak.protocol, host=C.riak.host, pb_port=C.riak.port)
+    elif C.riak.protocol == 'http':
+        client = RiakClient(
+            protocol=C.riak.protocol, host=C.riak.host, http_port=C.riak.port)
+    else:
+        raise Exception('Unknown riak protocol %s', C.riak.protocol)
+else:
+    raise Exception('Unknown dblayer backend %s', C.dblayer)
 
 ModelMeta.setup(client)
 
