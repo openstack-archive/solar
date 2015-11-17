@@ -4,15 +4,11 @@ import time
 
 from solar.core import signals
 from solar.core.resource import virtual_resource as vr
-
-from solar.interfaces.db import get_db
-
-
-db = get_db()
+from solar.dblayer.model import ModelMeta
 
 
 def run():
-    db.clear()
+    ModelMeta.remove_all()
 
     resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {'count': 2})
     nodes = [x for x in resources if x.name.startswith('node')]

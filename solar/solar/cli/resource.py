@@ -25,7 +25,6 @@ from solar.core import resource as sresource
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
-from solar.interfaces import orm
 from solar import utils
 
 from solar.cli import executors
@@ -120,7 +119,6 @@ def clear_all():
     click.echo('Clearing all resources and connections')
     ModelMeta.remove_all()
 
-    # orm.db.clear()
 
 @resource.command()
 @click.argument('name')
