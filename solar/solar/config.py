@@ -1,4 +1,3 @@
-
 import os
 import yaml
 from bunch import Bunch
@@ -13,23 +12,34 @@ C.dblayer = 'riak'
 
 
 def _lookup_vals(setter, config, prefix=None):
-        for key, val in config.iteritems():
-            if prefix is None:
-                sub = [key]
-            else:
-                sub = prefix + [key]
-            if isinstance(val, Bunch):
-                _lookup_vals(setter, val, sub)
-            else:
-                setter(config, sub)
+    for key, val in config.iteritems():
+        if prefix is None:
+            sub = [key]
+        else:
+            sub = prefix + [key]
+        if isinstance(val, Bunch):
+            _lookup_vals(setter, val, sub)
+        else:
+            setter(config, sub)
+
 
 def from_configs():
+
     paths = [
-        os.path.join(CWD, '.config'),
+        os.getenv('SOLAR_CONFIG', os.path.join(CWD, '.config')),
         os.path.join(CWD, '.config.override')
         ]
     data = {}
+
+    def _load_from_path(data, path):
+        with open(path) as f:
+            loaded = yaml.load(f)
+            if loaded:
+                data.update(loaded)
+
     for path in paths:
+        if not os.path.exists(path):
+            continue
         with open(path) as f:
             loaded = yaml.load(f)
             if loaded:
@@ -51,6 +61,3 @@ def from_env():
 
 from_configs()
 from_env()
-
-if __name__ == '__main__':
-    print C
