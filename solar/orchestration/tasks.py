@@ -85,6 +85,7 @@ def end_solar_session(task_id, task, *args, **kwargs):
 
 
 @report_task(name='solar_resource')
+@session
 def solar_resource(ctxt, resource_name, action):
     res = resource.load(resource_name)
     return actions.resource_action(res, action)
