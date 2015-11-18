@@ -77,7 +77,8 @@ def click_report(uid):
         'ERROR': 'red',
         'SUCCESS': 'green',
         'INPROGRESS': 'yellow',
-        'SKIPPED': 'blue'}
+        'SKIPPED': 'blue',
+        'NOOP': 'black'}
 
     total = 0.0
     report = graph.report_topo(uid)
@@ -114,6 +115,11 @@ def filter(uid, start, end):
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 
+@orchestration.command(help='Used to mark task as executed')
+@click.argument('uid', type=SOLARUID)
+@click.option('--task', '-t', multiple=True)
+def noop(uid, task):
+    graph.set_states(uid, task)
 
 @orchestration.command(name='run-once')
 @click.argument('uid', type=SOLARUID, default='last')
