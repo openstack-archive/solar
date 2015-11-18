@@ -40,34 +40,6 @@ input:
                 'Trying to connect value-.* to itself'):
             xs.connect(sample, sample, {'value'})
 
-    @pytest.mark.xfail(reason="No cycle detection in new_db")
-    def test_no_cycles(self):
-        sample_meta_dir = self.make_resource_meta("""
-id: sample
-handler: ansible
-version: 1.0.0
-input:
-  value:
-    schema: str!
-    value:
-        """)
-
-        sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'value': 'x'}
-        )
-
-        sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'value': 'y'}
-        )
-
-        xs.connect(sample1, sample2)
-
-        with self.assertRaisesRegexp(
-                Exception,
-                'Prevented creating a cycle'):
-            xs.connect(sample2, sample1)
-
-        # TODO: more complex cycles
 
     def test_input_dict_type(self):
         sample_meta_dir = self.make_resource_meta("""
