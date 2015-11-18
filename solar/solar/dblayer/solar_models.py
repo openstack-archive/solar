@@ -130,20 +130,52 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         other_ind_name = '{}_emit_bin'.format(self.fname)
-        other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
-                                             other_inp_name,
-                                             my_resource.key,
-                                             my_inp_name)
 
         real_my_type = self._input_type(my_resource, my_inp_name)
-        if real_my_type == InputTypes.simple:
+        if real_my_type == InputTypes.simple or ':' not in my_inp_name:
+            other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
+                                                 other_inp_name,
+                                                 my_resource.key,
+                                                 my_inp_name)
             for ind_name, ind_value in my_resource._riak_object.indexes:
                 if ind_name == other_ind_name:
-                    mr, mn = ind_value.rsplit('|')[2:]
+                    try:
+                        mr, mn = ind_value.rsplit('|')[2:]
+                    except ValueError:
+                        if len(ind_value.split('|')) == 6:
+                            continue
+                        else:
+                            raise
                     if mr == my_resource.key and mn == my_inp_name:
                         my_resource._remove_index(ind_name, ind_value)
                         break
 
+        elif real_my_type in (InputTypes.list_hash, InputTypes.hash, InputTypes.list):
+            my_key, my_val = my_inp_name.split(':', 1)
+            if '|' in my_val:
+                my_val, my_tag = my_val.split('|', 1)
+            else:
+                my_tag = other_resource.name
+            my_inp_name = my_key
+            other_ind_val = '{}|{}|{}|{}|{}|{}'.format(other_resource.key,
+                                                       other_inp_name,
+                                                       my_resource.key,
+                                                       my_inp_name,
+                                                       my_tag,
+                                                       my_val)
+            for ind_name, ind_value in my_resource._riak_object.indexes:
+                if ind_name == other_ind_name:
+                    try:
+                        mr, mn, mt, mv = ind_value.rsplit('|')[2:]
+                    except ValueError:
+                        if len(ind_value.split('|')) == 4:
+                            continue
+                        else:
+                            raise
+                    if mr == my_resource.key and mn == my_inp_name \
+                       and mt == my_tag and mv == my_val:
+                        my_resource._remove_index(ind_name, ind_value)
+                        break
         my_resource._add_index(other_ind_name,
                                other_ind_val)
         return other_inp_name
@@ -184,6 +216,7 @@ class InputsFieldWrp(IndexFieldWrp):
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
+        # import ipdb; ipdb.set_trace()
         if my_type == other_type:
             # if the type is the same map 1:1
             my_type = InputTypes.simple
@@ -290,10 +323,10 @@ class InputsFieldWrp(IndexFieldWrp):
                 return other_res
             return _res
         my_meth = getattr(self, '_map_field_val_{}'.format(my_type.name))
-        return my_meth(recvs, my_name, other=other)
+        return my_meth(recvs, name, my_name, other=other)
 
 
-    def _map_field_val_simple(self, recvs, name, other=None):
+    def _map_field_val_simple(self, recvs, input_name, name, other=None):
         recvs = recvs[0]
         index_val, obj_key = recvs
         _, inp, emitter_key, emitter_inp, _mapping_type = index_val.split('|', 4)
@@ -301,7 +334,7 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
-    def _map_field_val_list(self, recvs, name, other=None):
+    def _map_field_val_list(self, recvs, input_name, name, other=None):
         if len(recvs) == 1:
             recv = recvs[0]
             index_val, obj_key = recv
@@ -319,7 +352,7 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
-    def _map_field_val_hash_single(self, recvs, other):
+    def _map_field_val_hash_single(self, recvs, input_name, other):
         items = []
         tags = set()
         for recv in recvs:
@@ -330,16 +363,39 @@ class InputsFieldWrp(IndexFieldWrp):
             tags.add(my_tag)
         return items, tags
 
-    def _map_field_val_hash(self, recvs, name, other=None):
+    def _map_field_val_hash(self, recvs, input_name, name, other=None):
         if len(recvs) == 1:
+            # just one connected
             recv = recvs[0]
             index_val, obj_key = recv
-            _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-            if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
-                raise NotImplementedError()
+            splitted = index_val.split('|')
+            splen = len(splitted)
+            if splen == 5:
+                # 1:1
+                _, inp, emitter_key, emitter_inp, mapping_type = splitted
+                if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
+                    raise NotImplementedError()
+                res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+            elif splen == 7:
+                # partial
+                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted
+                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                res = {my_val: cres}
+                my_resource = self._instance
+                my_resource_value = my_resource.inputs._get_raw_field_val(input_name)
+                if my_resource_value:
+                    for my_val, cres in my_resource_value.iteritems():
+                        res[my_val] = cres
+            else:
+                raise Exception("Not supported splen %s", splen)
         else:
             items, tags = self._map_field_val_hash_single(recvs, other)
+            my_resource = self._instance
+            my_resource_value = my_resource.inputs._get_raw_field_val(input_name)
+            if my_resource_value:
+                for my_val, cres  in my_resource_value.iteritems():
+                    items.append((my_resource.name, my_val, cres))
+                tags.add(my_resource.name)
             if len(tags) != 1:
                 # TODO: add it also for during connecting
                 raise Exception("Detected dict with different tags")
@@ -349,7 +405,7 @@ class InputsFieldWrp(IndexFieldWrp):
         self._cache[name] = res
         return res
 
-    def _map_field_val_list_hash(self, recvs, name, other=None):
+    def _map_field_val_list_hash(self, recvs, input_name, name, other=None):
         items = []
         tags = set()
         for recv in recvs:

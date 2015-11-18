@@ -554,7 +554,6 @@ input:
             receiver.args['server'],
         )
 
-    @pytest.mark.xfail(reason="Not supported case when some elements of dict are connected and some not")
     def test_hash_input_mixed(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -642,7 +641,6 @@ input:
             receiver.args['server'],
         )
 
-    @pytest.mark.xfail(reason='no idea')
     def test_hash_input_with_multiple_connections(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -681,7 +679,6 @@ input:
             receiver.args['server'],
         )
 
-    @pytest.mark.xfail(reason='no idea')
     def test_hash_input_multiple_resources_with_tag_connect(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
