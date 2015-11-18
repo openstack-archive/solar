@@ -549,6 +549,9 @@ class ModelMeta(type):
         if bases == (object, ):
             return cls
 
+        if issubclass(cls, NestedModel):
+            return cls
+
         cls.bucket = Replacer('bucket', get_bucket, mcs)
         mcs._defined_models.add(cls)
         return cls
