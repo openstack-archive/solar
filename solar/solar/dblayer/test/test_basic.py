@@ -84,7 +84,7 @@ def test_cache_logic(rk):
     k = next(rk)
     M1.session_start()
     assert M1._c.obj_cache == {}
-    
+
     m1 = M1.from_dict(k, {'f1': 'blah', 'f2': 150})
     m1.save()
     M1.session_end()
@@ -115,9 +115,9 @@ def test_normal_index(rk):
     m2 = M1.from_dict(key2, {'f1': 'blah', 'f2': 150,
                             'ind': {'blah': 'something2'}})
     m2.save()
-    assert M1.ind.filter('blah=somethi*') == set([key, key2])
-    assert M1.ind.filter('blah=something') == set([key])
-    assert M1.ind.filter('blah=something2') == set([key2])
+    assert set(M1.ind.filter('blah=somethi*')) == set([key, key2])
+    assert set(M1.ind.filter('blah=something')) == set([key])
+    assert set(M1.ind.filter('blah=something2')) == set([key2])
 
 
 def test_update(rk):

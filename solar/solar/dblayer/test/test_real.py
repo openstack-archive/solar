@@ -394,7 +394,7 @@ def test_dict_to_list_inputs(rk):
     r2.save()
     r3.save()
 
-    assert r1.inputs['modules'] == [{'name': 'blah2'}, {'name': 'blah3'}]
+    assert sorted(r1.inputs['modules']) == sorted([{'name': 'blah2'}, {'name': 'blah3'}])
 
 
 
@@ -502,7 +502,7 @@ def test_events(rk):
     r1.save()
     assert r1.events == ['event1', 'event2']
     r1.events.pop()
-    r1.save()
+
     assert r1.events == ['event1']
 
 
