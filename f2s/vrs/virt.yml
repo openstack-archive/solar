@@ -6,6 +6,7 @@ resources:
   values:
     env: '{{env}}'
     uid: '{{index}}'
+    puppet_modules: '/etc/puppet/modules'
 - id: ssl-keys-saving{{index}}
   from: f2s/resources/ssl-keys-saving
   location: '{{node}}'
