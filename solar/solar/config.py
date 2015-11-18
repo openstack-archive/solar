@@ -6,8 +6,7 @@ CWD = os.getcwd()
 
 C = Bunch()
 C.redis = Bunch(port='6379', host='10.0.0.2')
-C.riak = Bunch(port='8087', host='10.0.0.2', protocol='pbc')
-C.sqlite = Bunch(backend='memory', location=':memory:')
+C.solar_db = Bunch(mode='riak', port='8087', host='10.0.0.2', protocol='pbc')
 C.dblayer = 'riak'
 
 
@@ -51,6 +50,7 @@ def from_configs():
             vals = vals[key]
         config[path[-1]] = vals
     _lookup_vals(_setter, C)
+
 
 def from_env():
     def _setter(config, path):
