@@ -15,9 +15,11 @@
     image_builder_path: /tmp/image_builder
     http_ip: 10.0.0.2
     http_port: 8000
+    supervisor_dir: /etc/supervisor/conf.d/
 
   tasks:
     # Istall and configure dnsmasq
+    - apt: update_cache=yes
     - apt: name=dnsmasq state=present
     - file: path={{tftp_root}} state=directory
     - template: src=files/dnsmasq_pxe.conf dest=/etc/dnsmasq.d/pxe.conf
@@ -33,7 +35,7 @@
     - get_url: url={{insecure_pub_key}} dest={{insecure_pub_key_path}}
     - apt: name=debootstrap state=present
     - file: path={{tftp_root}}/ubuntu state=directory
-    - git: repo=https://github.com/rustyrobot/fuel-bootstrap-image-builder dest={{image_builder_path}}
+    - git: repo=https://github.com/Mirantis/fuel-bootstrap-image-builder dest={{image_builder_path}}
     - shell: "{{image_builder_path}}/bin/fuel-bootstrap-image 2>&1 | tee /tmp/image_build.log"
       environment:
         BOOTSTRAP_SSH_KEYS: "{{insecure_pub_key_path}}"
@@ -52,9 +54,29 @@
     - service: name=nginx state=restarted
 
     # Install discovery service
-    - shell: pip install git+https://github.com/rustyrobot/discovery.git
-    - shell: 'discovery &'
+    - shell: pip install git+https://github.com/Mirantis/discovery.git
 
     # Install bareon-api
+    # Workaround is required because pbr does not handle git-eggs correctly and fails to install fuel-agent
+    - shell: 'pip install git+git://github.com/gitfred/fuel-agent.git@iso-build#egg=fuel_agent'
     - shell: pip install git+https://github.com/Mirantis/bareon-api.git
-    - shell: 'bareon-api &'
+
+    # Install and configure supervisor
+    - apt: name=supervisor state=present
+
+    - set_fact: {'name': 'discovery', 'cmd': 'discovery'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/discovery.conf
+
+    - set_fact: {'name': 'discovery-scan', 'cmd': 'discovery-scan --ssh_key /vagrant/tmp/keys/ssh_private'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/discovery-scan.conf
+
+    - set_fact: {'name': 'bareon-api', 'cmd': 'bareon-api'}
+    - template: src=files/supervisor.conf dest={{supervisor_dir}}/bareon-api.conf
+
+    - service: name=supervisor state=restarted
+
+    # Add nat rules so slaves have internet access via solar-dev
+    - shell: iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
+
+    # build IBP images
+    - shell: fa_build_image --image_build_dir /tmp/ibp --log-file /tmp/ibp-image-build.log -d --data_driver nailgun_build_image --input_data_file files/prov.json

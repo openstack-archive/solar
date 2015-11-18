@@ -134,7 +134,7 @@ def test_add_connections(mocker, resources):
             'alias': 'ser1'
            }
     vr.update_inputs('service1', args)
-    assert mocked_signals.call_count == 3
+    assert mocked_signals.call_count == 2
 
 
 def test_add_list_values(mocker, resources):

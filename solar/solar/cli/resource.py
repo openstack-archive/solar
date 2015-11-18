@@ -62,6 +62,24 @@ def action(dry_run_mapping, dry_run, action, resource):
                 str(key)
             ))
 
+def backtrack_single(i):
+    def format_input(i):
+        return '{}::{}'.format(i.resource.name, i.name)
+
+    if isinstance(i, list):
+        return [backtrack_single(bi) for bi in i]
+
+    if isinstance(i, dict):
+        return {
+            k: backtrack_single(bi) for k, bi in i.items()
+        }
+
+    bi = i.backtrack_value_emitter(level=1)
+    if isinstance(i, orm.DBResourceInput) and isinstance(bi, orm.DBResourceInput) and i == bi:
+        return (format_input(i), )
+
+    return (format_input(i), backtrack_single(bi))
+
 @resource.command()
 @click.option('-v', '--values', default=False, is_flag=True)
 @click.option('-i', '--input', default=None)

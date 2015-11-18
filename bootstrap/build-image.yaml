@@ -4,5 +4,5 @@
   sudo: yes
   tasks:
      #- shell: vagrant init ubuntu/trusty64
-
-     - shell: /usr/local/bin/packer build solar.json -var 'is_master=true'
+    - shell: /usr/local/bin/packer build -only=qemu solar-master.json -var 'is_master=true'
+    - shell: /usr/local/bin/packer build -only=virtualbox-iso solar-master.json -var 'is_master=true'

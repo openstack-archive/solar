@@ -1,4 +1,5 @@
 {
+    "partitioning": {{ partitioning | to_pretty_json }},
     "profile": "ubuntu_1404_x86_64",
     "name_servers_search": "\"example.com\"",
     "uid": "2",
@@ -8,8 +9,8 @@
             "mac_address": "08:00:27:6e:6d:b4"
         },
         "eth0": {
-            "ip_address": "10.0.2.15",
-            "dns_name": "node-8.test.domain.local",
+            "ip_address": "{{ ip }}",
+            "dns_name": "{{ name }}.test.domain.local",
             "netmask": "255.255.255.0",
             "static": "0",
             "mac_address": "08:00:27:ea:35:e7"
@@ -42,72 +43,7 @@
                 "local": "/var/www/nailgun/ubuntu/x86_64/images/linux",
                 "remote_relative": "dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/linux"
             },
-            "repos": [
-                {
-                    "name": "ubuntu",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty",
-                    "type": "deb"
-                },
-                {
-                    "name": "ubuntu-updates",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty-updates",
-                    "type": "deb"
-                },
-                {
-                    "name": "ubuntu-security",
-                    "section": "main universe multiverse",
-                    "uri": "http://archive.ubuntu.com/ubuntu/",
-                    "priority": null,
-                    "suite": "trusty-security",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos",
-                    "section": "main restricted",
-                    "uri": "http://127.0.0.1:8080/2015.1.0-7.0/ubuntu/x86_64",
-                    "priority": 1050,
-                    "suite": "mos7.0",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-updates",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1050,
-                    "suite": "mos7.0-updates",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-security",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1050,
-                    "suite": "mos7.0-security",
-                    "type": "deb"
-                },
-                {
-                    "name": "mos-holdback",
-                    "section": "main restricted",
-                    "uri": "http://mirror.fuel-infra.org/mos/ubuntu/",
-                    "priority": 1100,
-                    "suite": "mos7.0-holdback",
-                    "type": "deb"
-                },
-                {
-                    "name": "Auxiliary",
-                    "section": "main restricted",
-                    "uri": "http://127.0.0.1:8080/2015.1.0-7.0/ubuntu/auxiliary",
-                    "priority": 1150,
-                    "suite": "auxiliary",
-                    "type": "deb"
-                }
-            ],
+            "repos": {{ repos | to_pretty_json }},
             "metadata": {
                 "always_editable": true,
                 "weight": 50,
@@ -118,7 +54,7 @@
                 "remote_relative": "dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/initrd.gz"
             }
         },
-        "authorized_keys": [],
+        "authorized_keys": ["{{ master_key }}"],
         "mlnx_iser_enabled": false,
         "mco_pskey": "Gie6iega9ohngaenahthohngu8aebohxah9seidi",
         "mco_user": "guest",
@@ -128,12 +64,12 @@
         "image_data": {
             "/boot": {
                 "container": "gzip",
-                "uri": "http://10.0.0.2:8001/tmp/targetimages/env_3_ubuntu_1404_amd64-boot.img.gz",
+                "uri": "http://10.0.0.2:8001/tmp/targetimages/env_1_ubuntu_1404_amd64-boot.img.gz",
                 "format": "ext2"
             },
             "/": {
                 "container": "gzip",
-                "uri": "http://10.0.0.2:8001/tmp/targetimages/env_3_ubuntu_1404_amd64.img.gz",
+                "uri": "http://10.0.0.2:8001/tmp/targetimages/env_1_ubuntu_1404_amd64.img.gz",
                 "format": "ext4"
             }
         },
@@ -212,9 +148,9 @@
         "admin_net": "10.20.0.0/24",
         "mco_host": "localhost"
     },
-    "name": "node-2",
-    "hostname": "node-2.example.com",
-    "slave_name": "node-2",
+    "name": "{{ name }}",
+    "hostname": "{{ name }}.example.com",
+    "slave_name": "{{ name }}",
     "power_pass": "/root/.ssh/bootstrap.rsa",
     "netboot_enabled": "1"
 }

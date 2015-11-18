@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections import defaultdict
 import os
 from StringIO import StringIO
 import yaml
@@ -168,14 +169,19 @@ def update_resources(template_resources):
 def update_inputs(child, args):
     child = load_resource(child)
     connections, assignments = parse_inputs(args)
+    parents = defaultdict(lambda: defaultdict(dict))
     for c in connections:
-        mapping = {}
-        parent = load_resource(c['parent'])
-        events = c['events']
-        use_defaults = not c['events'] is False
-        mapping[c['parent_input']] = c['child_input']
+        mapping = {c['parent_input']: c['child_input']}
+        parents[c['parent']]['mapping'].update(mapping)
+        if parents[c['parent']].get('events', None) is None:
+            parents[c['parent']]['events'] = c['events']
+
+    for parent, data in parents.iteritems():
+        parent = load_resource(parent)
+        use_defaults = not data['events'] is False
+        mapping = data['mapping']
         parent.connect_with_events(
-            child, mapping, events, use_defaults=use_defaults)
+            child, mapping, {}, use_defaults=use_defaults)
 
     child.update(assignments)
 
