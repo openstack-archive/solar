@@ -7,7 +7,6 @@ CWD = os.getcwd()
 C = Bunch()
 C.redis = Bunch(port='6379', host='10.0.0.2')
 C.solar_db = Bunch(mode='riak', port='8087', host='10.0.0.2', protocol='pbc')
-C.dblayer = 'riak'
 
 
 def _lookup_vals(setter, config, prefix=None):
