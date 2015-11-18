@@ -176,6 +176,8 @@ class InputsFieldWrp(IndexFieldWrp):
                        and mt == my_tag and mv == my_val:
                         my_resource._remove_index(ind_name, ind_value)
                         break
+        else:
+            raise Exception("Unsupported connection type")
         my_resource._add_index(other_ind_name,
                                other_ind_val)
         return other_inp_name
