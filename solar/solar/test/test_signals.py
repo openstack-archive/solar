@@ -383,88 +383,89 @@ input:
             [sample1.args['port']]
         )
 
-    @pytest.mark.xfail(reason="Nested lists are not supported in new_db")
-    def test_nested_list_input(self):
-        """
-        Make sure that single input change is propagated along the chain of
-        lists.
-        """
+# XXX: not used for now, not implemented in new db (jnowak)
+#     @pytest.mark.xfail(reason="Nested lists are not supported in new_db")
+#     def test_nested_list_input(self):
+#         """
+#         Make sure that single input change is propagated along the chain of
+#         lists.
+#         """
 
-        sample_meta_dir = self.make_resource_meta("""
-id: sample
-handler: ansible
-version: 1.0.0
-input:
-  ip:
-    schema: str
-    value:
-  port:
-    schema: int
-    value:
-        """)
-        list_input_meta_dir = self.make_resource_meta("""
-id: list-input
-handler: ansible
-version: 1.0.0
-input:
-  ips:
-    schema: [str]
-    value: []
-  ports:
-    schema: [int]
-    value: []
-        """)
-        list_input_nested_meta_dir = self.make_resource_meta("""
-id: list-input-nested
-handler: ansible
-version: 1.0.0
-input:
-  ipss:
-    schema: [[str]]
-    value: []
-  portss:
-    schema: [[int]]
-    value: []
-        """)
+#         sample_meta_dir = self.make_resource_meta("""
+# id: sample
+# handler: ansible
+# version: 1.0.0
+# input:
+#   ip:
+#     schema: str
+#     value:
+#   port:
+#     schema: int
+#     value:
+#         """)
+#         list_input_meta_dir = self.make_resource_meta("""
+# id: list-input
+# handler: ansible
+# version: 1.0.0
+# input:
+#   ips:
+#     schema: [str]
+#     value: []
+#   ports:
+#     schema: [int]
+#     value: []
+#         """)
+#         list_input_nested_meta_dir = self.make_resource_meta("""
+# id: list-input-nested
+# handler: ansible
+# version: 1.0.0
+# input:
+#   ipss:
+#     schema: [[str]]
+#     value: []
+#   portss:
+#     schema: [[int]]
+#     value: []
+#         """)
 
-        sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': 1000}
-        )
-        sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': 1001}
-        )
-        list_input = self.create_resource(
-            'list-input', list_input_meta_dir,
-        )
-        list_input_nested = self.create_resource(
-            'list-input-nested', list_input_nested_meta_dir,
-        )
+#         sample1 = self.create_resource(
+#             'sample1', sample_meta_dir, {'ip': '10.0.0.1', 'port': 1000}
+#         )
+#         sample2 = self.create_resource(
+#             'sample2', sample_meta_dir, {'ip': '10.0.0.2', 'port': 1001}
+#         )
+#         list_input = self.create_resource(
+#             'list-input', list_input_meta_dir,
+#         )
+#         list_input_nested = self.create_resource(
+#             'list-input-nested', list_input_nested_meta_dir,
+#         )
 
-        sample1.connect(list_input, mapping={'ip': 'ips', 'port': 'ports'})
-        sample2.connect(list_input, mapping={'ip': 'ips', 'port': 'ports'})
-        list_input.connect(list_input_nested, mapping={'ips': 'ipss', 'ports': 'portss'})
-        self.assertListEqual(
-            #[ips['value'] for ips in list_input_nested.args['ipss']],
-            list_input_nested.args['ipss'],
-            [list_input.args['ips']]
-        )
-        self.assertListEqual(
-            #[ps['value'] for ps in list_input_nested.args['portss']],
-            list_input_nested.args['portss'],
-            [list_input.args['ports']]
-        )
+#         sample1.connect(list_input, mapping={'ip': 'ips', 'port': 'ports'})
+#         sample2.connect(list_input, mapping={'ip': 'ips', 'port': 'ports'})
+#         list_input.connect(list_input_nested, mapping={'ips': 'ipss', 'ports': 'portss'})
+#         self.assertListEqual(
+#             #[ips['value'] for ips in list_input_nested.args['ipss']],
+#             list_input_nested.args['ipss'],
+#             [list_input.args['ips']]
+#         )
+#         self.assertListEqual(
+#             #[ps['value'] for ps in list_input_nested.args['portss']],
+#             list_input_nested.args['portss'],
+#             [list_input.args['ports']]
+#         )
 
-        # Test disconnect
-        xs.disconnect(sample1, list_input)
-        self.assertListEqual(
-            #[[ip['value'] for ip in ips['value']] for ips in list_input_nested.args['ipss']],
-            list_input_nested.args['ipss'],
-            [[sample2.args['ip']]]
-        )
-        self.assertListEqual(
-            list_input_nested.args['portss'],
-            [[sample2.args['port']]]
-        )
+#         # Test disconnect
+#         xs.disconnect(sample1, list_input)
+#         self.assertListEqual(
+#             #[[ip['value'] for ip in ips['value']] for ips in list_input_nested.args['ipss']],
+#             list_input_nested.args['ipss'],
+#             [[sample2.args['ip']]]
+#         )
+#         self.assertListEqual(
+#             list_input_nested.args['portss'],
+#             [[sample2.args['port']]]
+#         )
 
 
 class TestHashInput(base.BaseResourceTest):
@@ -513,7 +514,7 @@ input:
             {'ip': sample1.args['ip'], 'port': sample1.args['port']},
             receiver.args['server'],
         )
-        # XXX: We need to disconnect first 
+        # XXX: We need to disconnect first
         # XXX: it should raise error when connecting already connected inputs
         xs.connect(sample2, receiver, mapping={'ip': 'server:ip'})
         self.assertDictEqual(
