@@ -559,6 +559,8 @@ class ModelMeta(type):
 
     @classmethod
     def setup(mcs, riak_client):
+        if hasattr(mcs, 'riak_client'):
+            raise DBLayerException("Setup already done")
         mcs.riak_client = riak_client
 
 
