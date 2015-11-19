@@ -5,9 +5,43 @@ actions:
   run: run.pp
   update: run.pp
 input:
+  access:
+    value: null
+  auto_assign_floating_ip:
+    value: null
+  ceph_monitor_nodes:
+    value: null
+  ceph_primary_monitor_node:
+    value: null
+  debug:
+    value: null
   fqdn:
+    value: null
+  keystone:
+    value: null
+  management_vip:
+    value: null
+  mp:
+    value: null
+  network_scheme:
+    value: null
+  neutron_mellanox:
+    value: null
+  public_vip:
     value: null
   puppet_modules:
     value: null
   role:
+    value: null
+  storage:
+    value: null
+  syslog:
+    value: null
+  syslog_log_facility_ceph:
+    value: null
+  syslog_log_level_ceph:
+    value: null
+  use_neutron:
+    value: null
+  use_syslog:
     value: null

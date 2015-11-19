@@ -7,7 +7,15 @@ actions:
 input:
   fqdn:
     value: null
+  management_vrouter_vip:
+    value: null
+  nodes:
+    value: null
+  ntp_servers:
+    value: null
   puppet_modules:
     value: null
   role:
+    value: null
+  uid:
     value: null

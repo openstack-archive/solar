@@ -7,7 +7,21 @@ actions:
 input:
   fqdn:
     value: null
+  management_vip:
+    value: null
+  neutron_config:
+    value: null
+  neutron_endpoint:
+    value: null
+  nova:
+    value: null
   puppet_modules:
     value: null
+  region:
+    value: null
   role:
+    value: null
+  service_endpoint:
+    value: null
+  use_neutron:
     value: null

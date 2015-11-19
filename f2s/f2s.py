@@ -24,7 +24,7 @@ ensure_dir(RESOURCE_TMP_WORKDIR)
 RESOURCE_DIR = os.path.join(CURDIR, 'resources')
 VR_TMP_DIR = os.path.join(CURDIR, 'tmp/vrs')
 ensure_dir(VR_TMP_DIR)
-INPUTS_LOCATION = "/root/latest/"
+INPUTS_LOCATION = "/root/current/"
 DEPLOYMENT_GROUP_PATH = os.path.join(LIBRARY_PATH,
     'deployment', 'puppet', 'deployment_groups', 'tasks.yaml')
 

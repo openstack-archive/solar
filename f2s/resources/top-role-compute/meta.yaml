@@ -5,9 +5,129 @@ actions:
   run: run.pp
   update: run.pp
 input:
+  access:
+    value: null
+  amqp_hosts:
+    value: null
+  auto_assign_floating_ip:
+    value: null
+  base_syslog:
+    value: null
+  block_device_allocate_retries:
+    value: null
+  block_device_allocate_retries_interval:
+    value: null
+  ceilometer_hash:
+    value: null
+  cinder_hash:
+    value: null
+  compute:
+    value: null
+  database_vip:
+    value: null
+  debug:
+    value: null
   fqdn:
+    value: null
+  glance_api_servers:
+    value: null
+  glance_hash:
+    value: null
+  keystone_hash:
+    value: null
+  libvirt_type:
+    value: null
+  management_vip:
+    value: null
+  memcache_roles:
+    value: null
+  mp:
+    value: null
+  murano:
+    value: null
+  network_config:
+    value: null
+  network_manager:
+    value: null
+  network_metadata:
+    value: null
+  network_scheme:
+    value: null
+  neutron_mellanox:
+    value: null
+  node_name:
+    value: null
+  nodes:
+    value: null
+  nova_custom_hash:
+    value: null
+  nova_hash:
+    value: null
+  nova_rate_limits:
+    value: null
+  nova_report_interval:
+    value: null
+  nova_service_down_time:
+    value: null
+  openstack_version:
+    value: null
+  primary_controller:
+    value: null
+  public_int:
+    value: null
+  public_ssl:
+    value: null
+  public_vip:
     value: null
   puppet_modules:
     value: null
+  quantum_settings:
+    value: null
+  queue_provider:
+    value: null
+  rabbit_hash:
+    value: null
+  resume_guests_state_on_host_boot:
+    value: null
   role:
+    value: null
+  sahara:
+    value: null
+  service_endpoint:
+    value: null
+  storage_hash:
+    value: null
+  swift_hash:
+    value: null
+  swift_master_role:
+    value: null
+  swift_proxies:
+    value: null
+  syslog:
+    value: null
+  syslog_log_facility_cinder:
+    value: null
+  syslog_log_facility_glance:
+    value: null
+  syslog_log_facility_keystone:
+    value: null
+  syslog_log_facility_murano:
+    value: null
+  syslog_log_facility_neutron:
+    value: null
+  syslog_log_facility_nova:
+    value: null
+  syslog_log_facility_sahara:
+    value: null
+  use_cow_images:
+    value: null
+  use_neutron:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  use_vcenter:
+    value: null
+  vcenter:
     value: null

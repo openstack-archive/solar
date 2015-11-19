@@ -4,4 +4,10 @@ version: '8.0'
 actions:
   run: run.pp
   update: run.pp
-input: {}
+input:
+  fqdn:
+    value: null
+  puppet_modules:
+    value: null
+  role:
+    value: null

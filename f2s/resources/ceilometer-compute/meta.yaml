@@ -5,9 +5,33 @@ actions:
   run: run.pp
   update: run.pp
 input:
+  amqp_hosts:
+    value: null
+  ceilometer:
+    value: null
+  ceilometer_hash:
+    value: null
+  debug:
+    value: null
   fqdn:
+    value: null
+  management_vip:
     value: null
   puppet_modules:
     value: null
+  rabbit_hash:
+    value: null
+  region:
+    value: null
   role:
+    value: null
+  service_endpoint:
+    value: null
+  syslog_log_facility_ceilometer:
+    value: null
+  use_stderr:
+    value: null
+  use_syslog:
+    value: null
+  verbose:
     value: null
