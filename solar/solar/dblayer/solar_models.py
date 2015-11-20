@@ -225,7 +225,10 @@ class InputsFieldWrp(IndexFieldWrp):
         elif my_type == InputTypes.list_hash and other_type == InputTypes.hash:
             # whole dict to list with dicts
             # TODO: solve this problem
-            my_type = InputTypes.list
+            if ':' in my_inp_name:
+                my_type = InputTypes.hash
+            else:
+                my_type = InputTypes.list
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
@@ -436,6 +439,7 @@ class InputsFieldWrp(IndexFieldWrp):
     def _map_field_val_list_hash(self, recvs, input_name, name, other=None):
         items = []
         tags = set()
+        maybe_list = set()
         for recv in recvs:
             index_val, obj_key = recv
             splitted_val = index_val.split('|', 6)
@@ -447,16 +451,27 @@ class InputsFieldWrp(IndexFieldWrp):
             else:
                 _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
                 cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-                items.append((my_tag, my_val, cres))
+                mapping_type = splitted_val[-1]
+                if mapping_type == '{}_{}'.format(InputTypes.hash.value, InputTypes.hash.value):
+                    items.append((mapping_type, my_val, cres))
+                    maybe_list.add((mapping_type, my_val))
+                else:
+                    items.append((my_tag, my_val, cres))
         tmp_res = {}
-        for my_tag, my_val, value in items:
+        for first, my_val, value in items:
             if my_val is None:
-                tmp_res[my_tag] = value
+                tmp_res[first] = value
             else:
-                try:
-                    tmp_res[my_tag][my_val] = value
-                except KeyError:
-                    tmp_res[my_tag] = {my_val: value}
+                if (first, my_val) in maybe_list:
+                    try:
+                        tmp_res[first][my_val].append(value)
+                    except KeyError:
+                        tmp_res[first] = {my_val: [value]}
+                else:
+                    try:
+                        tmp_res[first][my_val] = value
+                    except KeyError:
+                        tmp_res[first] = {my_val: value}
         res = tmp_res.values()
         self._cache[name] = res
         return res
@@ -691,7 +706,6 @@ class Resource(Model):
             # name there?
             if not emitter[0] == self.key:
                 return False
-            # TODO: `delete_hash` test works with receiver[1], while lists works with emitter[1]
             key = emitter[1]
             if not key in converted:
                 return False

@@ -564,10 +564,11 @@ def test_nested_simple_listdict(rk):
     k5 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                              'inputs': {'config': [{}]}})
+                              'inputs': {'config': [{"backends": [{}],
+                                                     'listen_port': 1}]}})
     r2 = create_resource(k2, {'name': 'second',
                               'inputs': {'backend': {}}})
-    r3 = create_resource(k3, {'name': 'second',
+    r3 = create_resource(k3, {'name': 'third',
                               'inputs': {'backend': {}}})
     r5 = create_resource(k5, {'name': 'fifth',
                               'inputs': {"port": 5,
@@ -585,9 +586,12 @@ def test_nested_simple_listdict(rk):
     assert r2.inputs['backend'] == {'host': 'fourth_host', 'port': 4}
     assert r3.inputs['backend'] == {'host': 'fifth_host', 'port': 5}
 
-    r2.connect(r1, {'backend': 'config'})
-    r3.connect(r1, {'backend': 'config'})
+    r2.connect(r1, {'backend': 'config:backends'})
+    r3.connect(r1, {'backend': 'config:backends'})
 
-    print r1.inputs['config']
+    Resource.save_all_lazy()
+
+    backends = next(x['backends'] for x in r1.inputs['config'] if 'backends' in x)
+    assert len(backends) == 2
 
 
