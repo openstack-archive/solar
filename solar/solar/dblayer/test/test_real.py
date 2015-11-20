@@ -554,3 +554,40 @@ def test_delete_hash(rk):
         if 'recv' in index[0] or 'emit' in index[0]:
             recv_emit_bin.append(index)
     assert recv_emit_bin == []
+
+
+def test_nested_simple_listdict(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+    k4 = next(rk)
+    k5 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'config': [{}]}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {'backend': {}}})
+    r3 = create_resource(k3, {'name': 'second',
+                              'inputs': {'backend': {}}})
+    r5 = create_resource(k5, {'name': 'fifth',
+                              'inputs': {"port": 5,
+                                         "host": "fifth_host"}})
+    r4 = create_resource(k4, {'name': 'fourth',
+                              'inputs': {"port": 4,
+                                         "host": "fourth_host"}})
+
+    r4.connect(r2, {'port': "backend:port",
+                    'host': 'backend:host'})
+    r5.connect(r3, {'port': "backend:port",
+                    'host': 'backend:host'})
+
+
+    assert r2.inputs['backend'] == {'host': 'fourth_host', 'port': 4}
+    assert r3.inputs['backend'] == {'host': 'fifth_host', 'port': 5}
+
+    r2.connect(r1, {'backend': 'config'})
+    r3.connect(r1, {'backend': 'config'})
+
+    print r1.inputs['config']
+
+
