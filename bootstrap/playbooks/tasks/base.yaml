@@ -32,6 +32,9 @@
   - build-essential
   # for torrent transport
   - python-libtorrent
+  # for riak python package
+  - libffi-dev
+  - libssl-dev
 
 # PIP
 #- apt: name=python-pip state=absent
