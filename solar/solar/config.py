@@ -48,7 +48,8 @@ def from_configs():
         for key in path:
             vals = vals[key]
         config[path[-1]] = vals
-    _lookup_vals(_setter, C)
+    if data:
+        _lookup_vals(_setter, C)
 
 
 def from_env():
