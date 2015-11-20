@@ -17,6 +17,7 @@ import subprocess
 import time
 
 from celery.app import task
+from celery.signals import task_prerun, task_postrun
 
 from solar.orchestration import graph
 from solar.core import actions
@@ -26,6 +27,7 @@ from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
 from solar.orchestration import limits
 from solar.orchestration import executor
+from solar.dblayer import ModelMeta
 
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
@@ -51,6 +53,14 @@ class ReportTask(task.Task):
 
 
 report_task = partial(app.task, base=ReportTask, bind=True)
+
+@task_prerun.connect
+def start_solar_session(task_id, task, *args, **kwargs):
+    ModelMeta.session_start()
+
+@task_postrun.connect
+def end_solar_session(task_id, task, *args, **kwargs):
+    ModelMeta.session_end()
 
 
 @report_task(name='solar_resource')
