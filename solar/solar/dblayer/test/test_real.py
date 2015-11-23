@@ -595,3 +595,28 @@ def test_nested_simple_listdict(rk):
     assert len(backends) == 2
 
 
+def test_nested_two_listdict(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'config': [{"backends": [{}],
+                                                     'something': 0}]}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {"backends": [{"host": "second_host", "port": 2}],
+                                         'something': 1}})
+    r3 = create_resource(k3, {'name': 'third',
+                              'inputs': {"backends": [{"host": "third_host", "port": 3}],
+                                         'something': 2}})
+
+    r2.connect(r1, {'backends': 'config:backends',
+                    'something': 'config:something'})
+    r3.connect(r1, {'backends': 'config:backends',
+                    'something': 'config:something'})
+
+    Resource.save_all_lazy()
+
+    for sc in r1.inputs['config']:
+        assert 'something' in sc
+        assert 'backends' in sc
