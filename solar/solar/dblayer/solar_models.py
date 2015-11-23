@@ -185,6 +185,9 @@ class InputsFieldWrp(IndexFieldWrp):
     def _connect_other_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
 
+    def _connect_other_list_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+
     def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
         return ret
@@ -218,14 +221,17 @@ class InputsFieldWrp(IndexFieldWrp):
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
-        if my_type == other_type:
-            # if the type is the same map 1:1
+        if my_type == other_type and not ':' in my_inp_name:
+            # if the type is the same map 1:1, and flat
             my_type = InputTypes.simple
             other_type = InputTypes.simple
         elif my_type == InputTypes.list_hash and other_type == InputTypes.hash:
             # whole dict to list with dicts
             # TODO: solve this problem
-            my_type = InputTypes.list
+            if ':' in my_inp_name:
+                my_type = InputTypes.hash
+            else:
+                my_type = InputTypes.list
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
@@ -447,16 +453,17 @@ class InputsFieldWrp(IndexFieldWrp):
             else:
                 _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
                 cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                mapping_type = splitted_val[-1]
                 items.append((my_tag, my_val, cres))
         tmp_res = {}
-        for my_tag, my_val, value in items:
+        for first, my_val, value in items:
             if my_val is None:
-                tmp_res[my_tag] = value
+                tmp_res[first] = value
             else:
                 try:
-                    tmp_res[my_tag][my_val] = value
+                    tmp_res[first][my_val] = value
                 except KeyError:
-                    tmp_res[my_tag] = {my_val: value}
+                    tmp_res[first] = {my_val: value}
         res = tmp_res.values()
         self._cache[name] = res
         return res
@@ -691,7 +698,6 @@ class Resource(Model):
             # name there?
             if not emitter[0] == self.key:
                 return False
-            # TODO: `delete_hash` test works with receiver[1], while lists works with emitter[1]
             key = emitter[1]
             if not key in converted:
                 return False
