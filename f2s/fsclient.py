@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 
 import click
 from solar.core.resource import virtual_resource as vr
@@ -39,7 +40,10 @@ class DumbSource(object):
     def master(self):
         return 'master', '0.0.0.0'
 
-source = NailgunSource()
+if os.environ.get('DEBUG_FSCLIENT'):
+    source = DumbSource()
+else:
+    source = NailgunSource()
 
 @main.command()
 @click.argument('uids', nargs=-1)
