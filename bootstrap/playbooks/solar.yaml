@@ -4,10 +4,9 @@
   sudo: yes
   tasks:
     # Setup development env for solar
-    - apt: name=libssl-dev state=present
-    - apt: name=libffi-dev state=present
     - shell: pip install -e . chdir=/vagrant
     - shell: pip install -e . chdir=/vagrant/solard
+    - shell: docker-compose up -d chdir=/vagrant
 
 - hosts: all
   tasks:

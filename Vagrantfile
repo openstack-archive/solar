@@ -54,10 +54,6 @@ solar_script = ansible_playbook_command("solar.yaml")
 
 slave_script = ansible_playbook_command("custom-configs.yaml", ["-e", "master_ip=10.0.0.2"])
 
-master_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "slave"])
-
-slave_celery = ansible_playbook_command("celery.yaml", ["--skip-tags", "master"])
-
 master_pxe = ansible_playbook_command("pxe.yaml")
 
 
@@ -67,7 +63,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = MASTER_IMAGE
 
     config.vm.provision "shell", inline: solar_script, privileged: true
-    config.vm.provision "shell", inline: master_celery, privileged: true
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
@@ -126,7 +121,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
         config.vm.provision "shell", inline: slave_script, privileged: true
         config.vm.provision "shell", inline: solar_script, privileged: true
-        config.vm.provision "shell", inline: slave_celery, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
         SLAVES_IPS.each do |ip|
