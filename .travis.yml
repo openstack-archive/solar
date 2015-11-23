@@ -8,10 +8,10 @@ cache:
 install:
     - pip install pip-accel
     - pip-accel install coveralls
-    - pip-accel install -r solar/test-requirements.txt
+    - pip-accel install -r test-requirements.txt
 script:
-    - cd solar && py.test --cov=solar -s solar && cd ..
+    - py.test --cov=solar -s solar && cd ..
 services:
     - riak
 after_success:
-    cd solar && coveralls
+    cd && coveralls
