@@ -442,7 +442,6 @@ class InputsFieldWrp(IndexFieldWrp):
     def _map_field_val_list_hash(self, recvs, input_name, name, other=None):
         items = []
         tags = set()
-        maybe_list = set()
         for recv in recvs:
             index_val, obj_key = recv
             splitted_val = index_val.split('|', 6)
