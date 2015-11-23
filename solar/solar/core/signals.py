@@ -16,7 +16,7 @@
 import networkx
 
 from solar.core.log import log
-from solar.interfaces import orm
+from solar.dblayer.solar_models import Resource as DBResource
 
 
 def guess_mapping(emitter, receiver):
@@ -38,10 +38,10 @@ def guess_mapping(emitter, receiver):
     :return:
     """
     guessed = {}
-    for key in emitter.args:
-        if key in receiver.args:
-            guessed[key] = key
 
+    for key in emitter.db_obj.meta_inputs:
+        if key in receiver.db_obj.meta_inputs:
+            guessed[key] = key
     return guessed
 
 
@@ -68,10 +68,12 @@ def location_and_transports(emitter, receiver, orig_mapping):
         #     will be deleted too
         if inps_emitter and inps_receiver:
             if not inps_emitter == inps_receiver:
-                log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
+                if not '::' in inps_receiver:
+                    pass
+                    # log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
                 return
             else:
-                log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
+                # log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
                 return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
@@ -92,7 +94,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
             # like adding ssh_transport for solard_transport and we don't want then
             # transports_id to be messed
             # it forbids passing this value around
-            log.debug("Disabled %r mapping for %r", single, emitter.name)
+            # log.debug("Disabled %r mapping for %r", single, emitter.name)
             return
         if receiver_single.get('is_own') is False:
             # this case is when we connect resource which has location_id but that is
@@ -102,11 +104,13 @@ def location_and_transports(emitter, receiver, orig_mapping):
         # connect in other direction
         if emitter_single_reverse:
             if receiver_single_reverse:
-                connect_single(receiver, single, emitter, single)
+                # TODO: this should be moved to other place
+                receiver._connect_inputs(emitter, {single: single})
                 _remove_from_mapping(single)
                 return
         if receiver_single_reverse:
-            connect_single(receiver, single, emitter, single)
+            # TODO: this should be moved to other place
+            receiver._connect_inputs(emitter, {single: single})
             _remove_from_mapping(single)
             return
         if isinstance(orig_mapping, dict):
@@ -114,11 +118,12 @@ def location_and_transports(emitter, receiver, orig_mapping):
 
     # XXX: that .args is slow on current backend
     # would be faster or another
-    inps_emitter = emitter.args
-    inps_receiver = receiver.args
+    inps_emitter = emitter.db_obj.inputs
+    inps_receiver = receiver.db_obj.inputs
     # XXX: should be somehow parametrized (input attribute?)
+    # with dirty_state_ok(DBResource, ('index', )):
     for single in ('transports_id', 'location_id'):
-        if single in inps_emitter and inps_receiver:
+        if single in inps_emitter and single in inps_receiver:
             _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'
@@ -127,136 +132,58 @@ def location_and_transports(emitter, receiver, orig_mapping):
     return
 
 
-def connect(emitter, receiver, mapping=None):
+def get_mapping(emitter, receiver, mapping=None):
     if mapping is None:
         mapping = guess_mapping(emitter, receiver)
-
-    # XXX: we didn't agree on that "reverse" there
     location_and_transports(emitter, receiver, mapping)
-
-    if isinstance(mapping, set):
-        mapping = {src: src for src in mapping}
-
-    for src, dst in mapping.items():
-        if not isinstance(dst, list):
-            dst = [dst]
-
-        for d in dst:
-            connect_single(emitter, src, receiver, d)
+    return mapping
 
 
-def connect_single(emitter, src, receiver, dst):
-    if ':' in dst:
-        return connect_multi(emitter, src, receiver, dst)
-
-    # Disconnect all receiver inputs
-    # Check if receiver input is of list type first
-    emitter_input = emitter.resource_inputs()[src]
-    receiver_input = receiver.resource_inputs()[dst]
-
-    if emitter_input.id == receiver_input.id:
-        raise Exception(
-            'Trying to connect {} to itself, this is not possible'.format(
-                emitter_input.id)
-        )
-
-    if not receiver_input.is_list:
-        receiver_input.receivers.delete_all_incoming(receiver_input)
-
-    # Check for cycles
-    # TODO: change to get_paths after it is implemented in drivers
-    if emitter_input in receiver_input.receivers.as_set():
-        raise Exception('Prevented creating a cycle on %s::%s' % (emitter.name,
-                                                                  emitter_input.name))
-
-    log.debug('Connecting {}::{} -> {}::{}'.format(
-        emitter.name, emitter_input.name, receiver.name, receiver_input.name
-    ))
-    emitter_input.receivers.add(receiver_input)
-
-
-def connect_multi(emitter, src, receiver, dst):
-    receiver_input_name, receiver_input_key = dst.split(':')
-    if '|' in receiver_input_key:
-        receiver_input_key, receiver_input_tag = receiver_input_key.split('|')
-    else:
-        receiver_input_tag = None
-
-    emitter_input = emitter.resource_inputs()[src]
-    receiver_input = receiver.resource_inputs()[receiver_input_name]
-
-    if not receiver_input.is_list or receiver_input_tag:
-        receiver_input.receivers.delete_all_incoming(
-            receiver_input,
-            destination_key=receiver_input_key,
-            tag=receiver_input_tag
-        )
-
-    # We can add default tag now
-    receiver_input_tag = receiver_input_tag or emitter.name
-
-    # NOTE: make sure that receiver.args[receiver_input] is of dict type
-    if not receiver_input.is_hash:
-        raise Exception(
-            'Receiver input {} must be a hash or a list of hashes'.format(receiver_input_name)
-        )
-
-    log.debug('Connecting {}::{} -> {}::{}[{}], tag={}'.format(
-        emitter.name, emitter_input.name, receiver.name, receiver_input.name,
-        receiver_input_key,
-        receiver_input_tag
-    ))
-    emitter_input.receivers.add_hash(
-        receiver_input,
-        receiver_input_key,
-        tag=receiver_input_tag
-    )
+def connect(emitter, receiver, mapping=None):
+    emitter.connect(receiver, mapping)
 
 
 def disconnect_receiver_by_input(receiver, input_name):
-    input_node = receiver.resource_inputs()[input_name]
+    # input_node = receiver.resource_inputs()[input_name]
 
-    input_node.receivers.delete_all_incoming(input_node)
-
-
-def disconnect(emitter, receiver):
-    for emitter_input in emitter.resource_inputs().values():
-        for receiver_input in receiver.resource_inputs().values():
-            emitter_input.receivers.remove(receiver_input)
+    # input_node.receivers.delete_all_incoming(input_node)
+    receiver.db_obj.inputs.disconnect(input_name)
 
 
-def detailed_connection_graph(start_with=None, end_with=None):
-    resource_inputs_graph = orm.DBResource.inputs.graph()
-    inputs_graph = orm.DBResourceInput.receivers.graph()
+def detailed_connection_graph(start_with=None, end_with=None, details=False):
+    from solar.core.resource import Resource, load_all
 
-    def node_attrs(n):
-        if isinstance(n, orm.DBResource):
-            return {
-                'color': 'yellowgreen',
-                'style': 'filled',
-            }
-        elif isinstance(n, orm.DBResourceInput):
-            return {
-                'color': 'lightskyblue',
-                'style': 'filled, rounded',
-            }
+    if details:
+        def format_for_edge(resource, input):
+            return '"{}/{}"'.format(resource, input)
+    else:
+        def format_for_edge(resource, input):
+            input = input.split(':', 1)[0]
+            return '"{}/{}"'.format(resource, input)
 
-    def format_name(i):
-        if isinstance(i, orm.DBResource):
-            return '"{}"'.format(i.name)
-        elif isinstance(i, orm.DBResourceInput):
-            return '{}/{}'.format(i.resource.name, i.name)
+    res_props = {'color': 'yellowgreen',
+                 'style': 'filled'}
+    inp_props = {'color': 'lightskyblue',
+                 'style': 'filled, rounded'}
 
-    for r, i in resource_inputs_graph.edges():
-        inputs_graph.add_edge(r, i)
+    graph = networkx.DiGraph()
 
-    ret = networkx.MultiDiGraph()
+    resources = load_all()
 
-    for u, v in inputs_graph.edges():
-        u_n = format_name(u)
-        v_n = format_name(v)
-        ret.add_edge(u_n, v_n)
-        ret.node[u_n] = node_attrs(u)
-        ret.node[v_n] = node_attrs(v)
-
-    return ret
+    for resource in resources:
+        res_node = '{}'.format(resource.name)
+        for name in resource.db_obj.meta_inputs:
+            resource_input = format_for_edge(resource.name, name)
+            graph.add_edge(resource.name, resource_input)
+            graph.node[resource_input] = inp_props
+        conns = resource.connections
+        for (emitter_resource, emitter_input, receiver_resource, receiver_input) in conns:
+            e = format_for_edge(emitter_resource, emitter_input)
+            r = format_for_edge(receiver_resource, receiver_input)
+            graph.add_edge(emitter_resource, e)
+            graph.add_edge(receiver_resource, r)
+            graph.add_edge(e, r)
+            graph.node[e] = inp_props
+            graph.node[r] = inp_props
+        graph.node[res_node] = res_props
+    return graph

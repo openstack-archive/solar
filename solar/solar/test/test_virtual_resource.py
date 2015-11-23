@@ -128,23 +128,23 @@ def test_parse_bad_event(bad_event_type):
 
 
 def test_add_connections(mocker, resources):
-    mocked_signals = mocker.patch('solar.core.resource.resource.signals')
+    mocked_signals = mocker.patch('solar.core.resource.resource.Resource.connect_with_events')
     args = {'ip': 'node1::ip',
             'servers': ['node1::ip', 'node2::ip'],
             'alias': 'ser1'
            }
     vr.update_inputs('service1', args)
-    assert mocked_signals.connect.call_count == 2
+    assert mocked_signals.call_count == 2
 
 
 def test_add_list_values(mocker, resources):
-    mocked_signals = mocker.patch('solar.core.resource.resource.signals')
+    mocked_signals = mocker.patch('solar.core.resource.resource.Resource.connect_with_events')
     args = {'ip': 'node1::ip',
             'servers': ['server1', 'server2'],
             'alias': 'ser1'
            }
     vr.update_inputs('service1', args)
-    assert mocked_signals.connect.call_count == 1
+    assert mocked_signals.call_count == 1
 
 
 def test_parse_connection():

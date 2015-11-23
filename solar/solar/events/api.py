@@ -18,9 +18,9 @@ __all__ = ['add_dep', 'add_react', 'Dep', 'React', 'add_event']
 import networkx as nx
 
 from solar.core.log import log
-from solar.interfaces import orm
 from solar.events.controls import Dep, React, StateChange
 
+from solar.dblayer.solar_models import Resource
 
 def create_event(event_dict):
     etype = event_dict['etype']
@@ -52,11 +52,7 @@ def add_event(ev):
         if ev == rev:
             break
     else:
-        rst.append(ev)
-        resource_events = orm.DBResourceEvents.get_or_create(ev.parent)
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
+        add_events(ev.parent, [ev])
 
 
 def add_dep(parent, dep, actions, state='success'):
@@ -76,34 +72,28 @@ def add_react(parent, dep, actions, state='success'):
 
 
 def add_events(resource, lst):
-    resource_events = orm.DBResourceEvents.get_or_create(resource)
-    for ev in lst:
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
-
-
-def set_events(resource, lst):
-    resource_events = orm.DBResourceEvents.get_or_create(resource)
-    for ev in resource_events.events.as_set():
-        ev.delete()
-    for ev in lst:
-        event_db = orm.DBEvent(**ev.to_dict())
-        event_db.save()
-        resource_events.events.add(event_db)
+    resource = Resource.get(resource)
+    events = resource.events
+    # TODO: currently we don't track mutable objects
+    events.extend([ev.to_dict() for ev in lst])
+    resource.events = events
+    # import pdb; pdb.settrace()
+    resource.save_lazy()
 
 
 def remove_event(ev):
-    event_db = orm.DBEvent(**ev.to_dict())
-    event_db.delete()
+    to_remove = ev.to_dict()
+    resource = ev.parent
+    resource = Resource.get(resource)
+    # TODO: currently we don't track mutable objects
+    events = resource.events
+    events.remove(to_remove)
+    resource.events = events
+    resource.save_lazy()
 
 
 def all_events(resource):
-    events = orm.DBResourceEvents.get_or_create(resource).events.as_set()
-
-    if not events:
-        return []
-    return [create_event(i.to_dict()) for i in events]
+    return [create_event(e) for e in Resource.get(resource).events]
 
 
 def bft_events_graph(start):
@@ -161,6 +151,5 @@ def build_edges(changes_graph, events):
             for parent, child, data in events_graph.edges(event_name, data=True):
                 succ_ev = data['event']
                 succ_ev.insert(stack, changes_graph)
-
         visited.add(event_name)
     return changes_graph

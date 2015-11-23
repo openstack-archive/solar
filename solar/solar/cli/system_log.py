@@ -42,24 +42,25 @@ def validate():
 @changes.command()
 @click.option('-d', default=False, is_flag=True, help='detailed view')
 def stage(d):
-    log = list(change.stage_changes().reverse())
+    log = change.stage_changes()
+    log.reverse()
     for item in log:
-        click.echo(item)
+        click.echo(data.compact(item))
         if d:
-            for line in item.details:
+            for line in data.details(item.diff):
                 click.echo(' '*4+line)
     if not log:
         click.echo('No changes')
 
 @changes.command(name='staged-item')
-@click.argument('log_action')
-def staged_item(log_action):
-    item = data.SL().get(log_action)
+@click.argument('uid')
+def staged_item(uid):
+    item = data.LogItem.get(uid)
     if not item:
         click.echo('No staged changes for {}'.format(log_action))
     else:
-        click.echo(item)
-        for line in item.details:
+        click.echo(data.compact(item))
+        for line in data.details(item.diff):
             click.echo(' '*4+line)
 
 @changes.command()
@@ -80,15 +81,15 @@ def commit(uid):
 @click.option('-d', default=False, is_flag=True, help='detailed view')
 @click.option('-s', default=False, is_flag=True, help='short view, only uid')
 def history(n, d, s):
-    log = list(data.CL().collection(n))
+    log = data.CL()
     for item in log:
         if s:
             click.echo(item.uid)
             continue
 
-        click.echo(item)
+        click.echo(data.compact(item))
         if d:
-            for line in item.details:
+            for line in data.details(item.diff):
                 click.echo(' '*4+line)
     if not log:
         click.echo('No history')
@@ -141,8 +142,7 @@ def test(name):
 
 @changes.command(name='clean-history')
 def clean_history():
-    data.CL().clean()
-    data.CD().clean()
+    change.clear_history()
 
 @changes.command(help='USE ONLY FOR TESTING')
 def commit():

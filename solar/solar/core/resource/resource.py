@@ -22,13 +22,20 @@ import os
 from solar import utils
 
 from solar.core import validation
-from solar.interfaces import orm
 from solar.core import signals
 from solar.events import api
 
 from uuid import uuid4
 from hashlib import md5
+import networkx
 
+from solar.dblayer.solar_models import CommitedResource
+
+from solar.dblayer.solar_models import Resource as DBResource
+from solar.dblayer.model import StrInt
+from solar.core.signals import get_mapping
+
+from solar.dblayer.model import StrInt
 
 
 def read_meta(base_path):
@@ -73,29 +80,29 @@ class Resource(object):
         inputs = metadata.get('input', {})
 
         self.auto_extend_inputs(inputs)
-
-        self.db_obj = orm.DBResource(**{
-            'id': name,
-            'name': name,
-            'actions_path': metadata.get('actions_path', ''),
-            'actions': metadata.get('actions', ''),
-            'base_name': metadata.get('base_name', ''),
-            'base_path': metadata.get('base_path', ''),
-            'handler': metadata.get('handler', ''),
-            'puppet_module': metadata.get('puppet_module', ''),
-            'version': metadata.get('version', ''),
-            'meta_inputs': inputs,
-            'tags': tags
-
-        })
-        self.db_obj.state = RESOURCE_STATE.created.name
-        self.db_obj.tags = tags or []
-        self.db_obj.save()
-
+        self.db_obj = DBResource.from_dict(
+            name,
+            {
+                'id': name,
+                'name': name,
+                'actions_path': metadata.get('actions_path', ''),
+                'actions': metadata.get('actions', {}),
+                'base_name': metadata.get('base_name', ''),
+                'base_path': metadata.get('base_path', ''),
+                'handler': metadata.get('handler', ''),
+                'puppet_module': metadata.get('puppet_module', ''),
+                'version': metadata.get('version', ''),
+                'meta_inputs': inputs,
+                'tags': tags,
+                'state': RESOURCE_STATE.created.name
+            })
         self.create_inputs(args)
 
+        self.db_obj.save()
+
+
     # Load
-    @dispatch(orm.DBResource)
+    @dispatch(DBResource)
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
@@ -116,14 +123,12 @@ class Resource(object):
                 inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
 
     def transports(self):
-        inputs = self.resource_inputs()
-        transports_id = inputs['transports_id']
-        return transports_id.backtrack_value(other_val='transports')
+        db_obj = self.db_obj
+        return db_obj.inputs._get_field_val('transports_id', other='transports')
 
     def ip(self):
-        inputs = self.resource_inputs()
-        transports_id = inputs['location_id']
-        return transports_id.backtrack_value(other_val='ip')
+        db_obj = self.db_obj
+        return db_obj.inputs._get_field_val('location_id', other='ip')
 
     @property
     def actions(self):
@@ -147,15 +152,15 @@ class Resource(object):
         args = args or {}
         for name, v in self.db_obj.meta_inputs.items():
             value = args.get(name, v.get('value'))
-
-            self.db_obj.add_input(name, v['schema'], value)
+            self.db_obj.inputs[name] = value
 
     @property
     def args(self):
-        ret = {}
-        for i in self.resource_inputs().values():
-            ret[i.name] = i.backtrack_value()
-        return ret
+        return self.db_obj.inputs.as_dict()
+        # ret = {}
+        # for i in self.resource_inputs().values():
+        #     ret[i.name] = i.backtrack_value()
+        # return ret
 
     def update(self, args):
         # TODO: disconnect input when it is updated and end_node
@@ -164,9 +169,8 @@ class Resource(object):
         resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
-            i = resource_inputs[k]
-            i.value = v
-            i.save()
+            self.db_obj.inputs[k] = v
+        self.db_obj.save_lazy()
 
     def delete(self):
         return self.db_obj.delete()
@@ -176,19 +180,19 @@ class Resource(object):
             self.delete()
         else:
             self.db_obj.state = RESOURCE_STATE.removed.name
-            self.db_obj.save()
+            self.db_obj.save_lazy()
 
     def set_operational(self):
         self.db_obj.state = RESOURCE_STATE.operational.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def set_error(self):
         self.db_obj.state = RESOURCE_STATE.error.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def set_created(self):
         self.db_obj.state = RESOURCE_STATE.created.name
-        self.db_obj.save()
+        self.db_obj.save_lazy()
 
     def to_be_removed(self):
         return self.db_obj.state == RESOURCE_STATE.removed.name
@@ -198,10 +202,14 @@ class Resource(object):
         return self.db_obj.tags
 
     def add_tags(self, *tags):
-        self.db_obj.add_tags(*tags)
+        for tag in tags:
+            self.db_obj.tags.set(tag)
+        self.db_obj.save_lazy()
 
     def remove_tags(self, *tags):
-        self.db_obj.remove_tags(*tags)
+        for tag in tags:
+            self.db_obj.tags.remove(tag)
+        self.db_obj.save_lazy()
 
     @property
     def connections(self):
@@ -210,55 +218,64 @@ class Resource(object):
         stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
-        rst = []
-        for emitter, receiver, meta in self.db_obj.graph().edges(data=True):
+        rst = set()
+        for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
             if meta:
-                receiver_input = '{}:{}|{}'.format(receiver.name,
+                receiver_input = '{}:{}|{}'.format(receiver_input,
                     meta['destination_key'], meta['tag'])
-            else:
-                receiver_input = receiver.name
 
-            rst.append(
-                [emitter.resource.name, emitter.name,
-                 receiver.resource.name, receiver_input])
-        return rst
+            rst.add(
+                (emitter_resource, emitter_input,
+                 receiver_resource, receiver_input))
+        return [list(i) for i in rst]
+
+    def graph(self):
+        mdg = networkx.MultiDiGraph()
+        for u, v, data in self.db_obj.inputs._edges():
+            mdg.add_edge(u, v, attr_dict=data)
+        return mdg
 
     def resource_inputs(self):
-        return {
-            i.name: i for i in self.db_obj.inputs.as_set()
-        }
+        return self.db_obj.inputs
 
-    def to_dict(self):
+    def to_dict(self, inputs=False):
         ret = self.db_obj.to_dict()
-        ret['input'] = {}
-        for k, v in self.args.items():
-            ret['input'][k] = {
-                'value': v,
-            }
-
+        if inputs:
+            ret['inputs'] = self.db_obj.inputs.as_dict()
         return ret
 
-    def color_repr(self):
+    def color_repr(self, inputs=False):
         import click
 
         arg_color = 'yellow'
 
-        return ("{resource_s}({name_s}='{id}', {base_path_s}={base_path} "
-                "{args_s}={input}, {tags_s}={tags})").format(
+        return ("{resource_s}({name_s}='{key}', {base_path_s}={base_path} "
+                "{args_s}={inputs}, {tags_s}={tags})").format(
             resource_s=click.style('Resource', fg='white', bold=True),
             name_s=click.style('name', fg=arg_color, bold=True),
             base_path_s=click.style('base_path', fg=arg_color, bold=True),
             args_s=click.style('args', fg=arg_color, bold=True),
             tags_s=click.style('tags', fg=arg_color, bold=True),
-            **self.to_dict()
+            **self.to_dict(inputs)
         )
 
     def load_commited(self):
-        return orm.DBCommitedState.get_or_create(self.name)
+        return CommitedResource.get_or_create(self.name)
+
+    def _connect_inputs(self, receiver, mapping):
+        if isinstance(mapping, set):
+            mapping = dict((x, x) for x in mapping)
+        self.db_obj.connect(receiver.db_obj, mapping=mapping)
+        self.db_obj.save_lazy()
+        receiver.db_obj.save_lazy()
+
 
     def connect_with_events(self, receiver, mapping=None, events=None,
             use_defaults=False):
-        signals.connect(self, receiver, mapping=mapping)
+        mapping = get_mapping(self, receiver, mapping)
+        self._connect_inputs(receiver, mapping)
+        # signals.connect(self, receiver, mapping=mapping)
+        # TODO: implement events
         if use_defaults:
             api.add_default_events(self, receiver)
         if events:
@@ -268,10 +285,16 @@ class Resource(object):
         return self.connect_with_events(
             receiver, mapping=mapping, events=events, use_defaults=True)
 
+    def disconnect(self, receiver):
+        inputs = self.db_obj.inputs.keys()
+        self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
+        receiver.db_obj.save_lazy()
+        self.db_obj.save_lazy()
+
 
 
 def load(name):
-    r = orm.DBResource.load(name)
+    r = DBResource.get(name)
 
     if not r:
         raise Exception('Resource {} does not exist in DB'.format(name))
@@ -279,14 +302,29 @@ def load(name):
     return Resource(r)
 
 
+def load_updated(since=None, with_childs=True):
+    if since is None:
+        startkey = StrInt.p_min()
+    else:
+        startkey = since
+    candids = DBResource.updated.filter(startkey, StrInt.p_max())
+    if with_childs:
+        candids = DBResource.childs(candids)
+    return [Resource(r) for r in DBResource.multi_get(candids)]
+
 # TODO
 def load_all():
-    return [Resource(r) for r in orm.DBResource.load_all()]
+    candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
+    return [Resource(r) for r in DBResource.multi_get(candids)]
+
 
 def load_by_tags(tags):
     tags = set(tags)
-    return [Resource(r) for r in orm.DBResource.load_all()
-            if tags.issubset(set(r.tags))]
+    candids_all = set()
+    for tag in tags:
+        candids = DBResource.tags.filter(tag)
+        candids_all.update(set(candids))
+    return [Resource(r) for r in DBResource.multi_get(candids_all)]
 
 
 def validate_resources():

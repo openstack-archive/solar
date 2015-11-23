@@ -1,7 +1,7 @@
 language: python
 python: 2.7
 env:
-  - PIP_ACCEL_CACHE=$HOME/.pip-accel-cache
+  - PIP_ACCEL_CACHE=$HOME/.pip-accel-cache SOLAR_CONFIG=$TRAVIS_BUILD_DIR/.config SOLAR_SOLAR_DB_HOST=localhost
 cache:
     directories:
         - $HOME/.pip-accel-cache
@@ -12,6 +12,6 @@ install:
 script:
     - cd solar && py.test --cov=solar -s solar && cd ..
 services:
-    - redis-server
+    - riak
 after_success:
     cd solar && coveralls

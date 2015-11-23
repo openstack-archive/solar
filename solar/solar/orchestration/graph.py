@@ -23,35 +23,53 @@ from solar import errors
 
 from collections import Counter
 
-
-from solar.interfaces.db import get_db
-
-db = get_db()
+from solar.dblayer.solar_models import Task
+from solar.dblayer.model import clear_cache
 
 
 def save_graph(graph):
     # maybe it is possible to store part of information in AsyncResult backend
     uid = graph.graph['uid']
-    db.create(uid, graph.graph, db.COLLECTIONS.plan_graph)
 
+    for n in nx.topological_sort(graph):
+        t = Task.new(
+            {'name': n,
+             'execution': uid,
+             'status': graph.node[n].get('status', ''),
+             'target': graph.node[n].get('target', '') or '',
+             'task_type': graph.node[n].get('type', ''),
+             'args': graph.node[n].get('args', []),
+             'errmsg': graph.node[n].get('errmsg', '') or ''})
+        graph.node[n]['task'] = t
+        for pred in graph.predecessors(n):
+            pred_task = graph.node[pred]['task']
+            t.parents.add(pred_task)
+            pred_task.save()
+        t.save()
+
+
+def update_graph(graph):
     for n in graph:
-        collection = db.COLLECTIONS.plan_node.name + ':' + uid
-        db.create(n, properties=graph.node[n], collection=collection)
-        db.create_relation_str(uid, n, type_=db.RELATION_TYPES.graph_to_node)
-
-    for u, v, properties in graph.edges(data=True):
-        type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
-        db.create_relation_str(u, v, properties, type_=type_)
+        task = graph.node[n]['task']
+        task.status = graph.node[n]['status']
+        task.errmsg = graph.node[n]['errmsg'] or ''
+        task.save()
 
 
 def get_graph(uid):
     dg = nx.MultiDiGraph()
-    collection = db.COLLECTIONS.plan_node.name + ':' + uid
-    type_ = db.RELATION_TYPES.plan_edge.name + ':' + uid
-    dg.graph = db.get(uid, collection=db.COLLECTIONS.plan_graph).properties
-    dg.add_nodes_from([(n.uid, n.properties) for n in db.all(collection=collection)])
-    dg.add_edges_from([(i['source'], i['dest'], i['properties'])
-                       for i in db.all_relations(type_=type_, db_convert=False)])
+    dg.graph['uid'] = uid
+    dg.graph['name'] = uid.split(':')[0]
+    tasks = map(Task.get, Task.execution.filter(uid))
+    for t in tasks:
+        dg.add_node(
+            t.name, status=t.status,
+            type=t.task_type, args=t.args,
+            target=t.target or None,
+            errmsg=t.errmsg or None,
+            task=t)
+        for u in t.parents.all_names():
+            dg.add_edge(u, t.name)
     return dg
 
 
@@ -67,7 +85,7 @@ def parse_plan(plan_path):
     for task in plan['tasks']:
         defaults = {
             'status': 'PENDING',
-            'errmsg': None,
+            'errmsg': '',
             }
         defaults.update(task['parameters'])
         dg.add_node(
@@ -111,24 +129,6 @@ def create_plan(plan_path, save=True):
     return create_plan_from_graph(dg, save=save)
 
 
-def update_plan(uid, plan_path):
-    """update preserves old status of tasks if they werent removed
-    """
-
-    new = parse_plan(plan_path)
-    old = get_graph(uid)
-    return update_plan_from_graph(new, old).graph['uid']
-
-
-def update_plan_from_graph(new, old):
-    new.graph = old.graph
-    for n in new:
-        if n in old:
-            new.node[n]['status'] = old.node[n]['status']
-
-    save_graph(new)
-    return new
-
 
 def reset_by_uid(uid, state_list=None):
     dg = get_graph(uid)
@@ -139,7 +139,7 @@ def reset(graph, state_list=None):
     for n in graph:
         if state_list is None or graph.node[n]['status'] in state_list:
             graph.node[n]['status'] = states.PENDING.name
-    save_graph(graph)
+    update_graph(graph)
 
 
 def reset_filtered(uid):
@@ -170,6 +170,8 @@ def wait_finish(uid, timeout):
     start_time = time.time()
 
     while start_time + timeout >= time.time():
+        # need to clear cache before fetching updated status
+        clear_cache()
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})
@@ -177,6 +179,7 @@ def wait_finish(uid, timeout):
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return
+
     else:
         raise errors.ExecutionTimeout(
             'Run %s wasnt able to finish' % uid)

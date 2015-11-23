@@ -1,10 +1,8 @@
 
 from solar.core.resource import virtual_resource as vr
-from solar.interfaces.db import get_db
-
+from solar.dblayer.model import ModelMeta
 import yaml
 
-db = get_db()
 
 STORAGE = {'objects_ceph': True,
            'osd_pool_size': 2,
@@ -34,7 +32,7 @@ NETWORK_METADATA = yaml.load("""
 
 
 def deploy():
-    db.clear()
+    ModelMeta.remove_all()
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 2})
     first_node, second_node = [x for x in resources if x.name.startswith('node')]
     first_transp = next(x for x in resources if x.name.startswith('transport'))

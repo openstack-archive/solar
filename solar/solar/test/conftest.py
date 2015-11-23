@@ -12,11 +12,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 import os
+import time
+
+from solar.core.resource import Resource
+from solar.dblayer.model import Model, ModelMeta, get_bucket
 
 import pytest
 
-from solar.core.resource import Resource
-from solar.interfaces import db
+
+def patched_get_bucket_name(cls):
+    return cls.__name__ + str(time.time())
 
 @pytest.fixture
 def resources():
@@ -35,20 +40,31 @@ def resources():
             'service1': service1
            }
 
+@pytest.fixture(autouse=True)
+def setup(request):
 
-def pytest_configure():
-    if db.CURRENT_DB == 'redis_graph_db':
-        db.DB = db.get_db(backend='fakeredis_graph_db')
-    elif db.CURRENT_DB == 'redis_db':
-        db.DB = db.get_db(backend='fakeredis_db')
-    else:
-        db.DB = db.get_db(backend=db.CURRENT_DB)
+    for model in ModelMeta._defined_models:
+        model.bucket = get_bucket(None, model, ModelMeta)
 
 
 @pytest.fixture(autouse=True)
-def cleanup(request):
+def setup(request):
 
-    def fin():
-        db.get_db().clear()
+    for model in ModelMeta._defined_models:
+        model.bucket = get_bucket(None, model, ModelMeta)
 
-    request.addfinalizer(fin)
+def pytest_runtest_teardown(item, nextitem):
+    ModelMeta.session_end(result=True)
+    return nextitem
+
+# It will run before all fixtures
+def pytest_runtest_setup(item):
+    ModelMeta.session_start()
+
+# it will run after fixtures but before test
+def pytest_runtest_call(item):
+    ModelMeta.session_end()
+    ModelMeta.session_start()
+
+
+Model.get_bucket_name = classmethod(patched_get_bucket_name)

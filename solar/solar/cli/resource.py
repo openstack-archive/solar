@@ -25,7 +25,6 @@ from solar.core import resource as sresource
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
-from solar.interfaces import orm
 from solar import utils
 
 from solar.cli import executors
@@ -82,26 +81,43 @@ def backtrack_single(i):
     return (format_input(i), backtrack_single(bi))
 
 @resource.command()
+@click.option('-v', '--values', default=False, is_flag=True)
+@click.option('-r', '--real_values', default=False, is_flag=True)
+@click.option('-i', '--input', default=None)
 @click.argument('resource')
-def backtrack_inputs(resource):
+def backtrack_inputs(resource, input, values, real_values):
     r = sresource.load(resource)
 
-    for i in r.resource_inputs().values():
-        click.echo(yaml.safe_dump({i.name: backtrack_single(i)}, default_flow_style=False))
+    db_obj = r.db_obj
+    def single(resource, name, get_val=False):
+        db_obj = sresource.load(resource).db_obj
+        se = db_obj.inputs._single_edge(name)
+        se = tuple(se)
+        if not se:
+            if get_val:
+                return dict(resource=resource, name=name, value=db_obj.inputs[name])
+            else:
+                return dict(resource=resource, name=name)
+        l = []
+        for (rname, rinput), _, meta in se:
+            l.append(dict(resource=resource, name=name))
+            val = single(rname, rinput, get_val)
+            if meta and isinstance(val, dict):
+                val['meta'] = meta
+            l.append(val)
+        return l
 
+    inps = {}
+    if input:
+        inps[input] = single(resource, input, values)
+    else:
+        for _inp in db_obj.inputs:
+            inps[_inp] = single(resource, _inp, values)
 
-@resource.command()
-@click.argument('resource')
-@click.argument('input_name')
-def effective_input_value(resource, input_name):
-    r = sresource.load(resource)
-    inp = r.resource_inputs()[input_name]
-    click.echo(yaml.safe_dump(backtrack_single(inp), default_flow_style=False))
-    click.echo('-' * 20)
-    val = inp.backtrack_value()
-    click.echo(val)
-    click.echo('-' * 20)
-
+    for name, values in inps.iteritems():
+        click.echo(yaml.safe_dump({name: values}, default_flow_style=False))
+        if real_values:
+            click.echo('! Real value: %r' % sresource.load(resource).db_obj.inputs[name] , nl=True)
 
 @resource.command()
 def compile_all():
@@ -120,8 +136,10 @@ def compile_all():
 
 @resource.command()
 def clear_all():
+    from solar.dblayer.model import ModelMeta
     click.echo('Clearing all resources and connections')
-    orm.db.clear()
+    ModelMeta.remove_all()
+
 
 @resource.command()
 @click.argument('name')
@@ -145,23 +163,24 @@ def create(args, base_path, name):
 @resource.command()
 @click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
-@click.option('--json', default=False, is_flag=True)
+@click.option('--as_json', default=False, is_flag=True)
 @click.option('--color', default=True, is_flag=True)
-def show(name, tag, json, color):
+def show(name, tag, as_json, color):
+    echo = click.echo_via_pager
     if name:
         resources = [sresource.load(name)]
+        echo = click.echo
     elif tag:
         resources = sresource.load_by_tags(set(tag))
     else:
         resources = sresource.load_all()
 
-    echo = click.echo_via_pager
-    if json:
-        output = json.dumps([r.to_dict() for r in resources], indent=2)
+    if as_json:
+        output = json.dumps([r.to_dict(inputs=True) for r in resources], indent=2)
         echo = click.echo
     else:
         if color:
-            formatter = lambda r: r.color_repr()
+            formatter = lambda r: r.color_repr(inputs=True)
         else:
             formatter = lambda r: unicode(r)
         output = '\n'.join(formatter(r) for r in resources)

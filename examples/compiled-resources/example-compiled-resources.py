@@ -19,10 +19,8 @@ from solar.core import actions
 from solar.core.resource import virtual_resource as vr
 from solar.core import resource
 from solar.core import signals
-
-from solar.interfaces.db import get_db
+from solar.dblayer.model import ModelMeta
 from solar.core.resource_provider import  GitProvider, RemoteZipProvider
-
 
 import resources_compiled
 
@@ -34,9 +32,7 @@ def main():
 
 @click.command()
 def deploy():
-    db = get_db()
-    db.clear()
-
+    ModelMeta.remove_all()
     signals.Connections.clear()
 
     node1 = resources_compiled.RoNodeResource('node1', None, {})
@@ -75,18 +71,16 @@ def deploy():
 
 @click.command()
 def undeploy():
-    db = get_db()
+    ModelMeta.remove_all()
 
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = resource.load_all()
     resources = {r.name: r for r in resources}
 
     actions.resource_action(resources['openstack_rabbitmq_user'], 'remove')
     actions.resource_action(resources['openstack_vhost'], 'remove')
     actions.resource_action(resources['rabbitmq_service1'], 'remove')
 
-    db.clear()
-
-    signals.Connections.clear()
+    ModelMeta.remove_all()
 
 
 main.add_command(deploy)

@@ -20,22 +20,22 @@ from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
 
-from solar.interfaces.db import get_db
+from solar.dblayer.model import ModelMeta
 
 from solar.events.controls import React, Dep
 from solar.events.api import add_event
 
-
-db = get_db()
+from solar.dblayer.solar_models import Resource
 
 
 def setup_riak():
-    db.clear()
 
+    ModelMeta.remove_all()
     resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})
     nodes = [x for x in resources if x.name.startswith('node')]
     hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
     node1, node2, node3 = nodes
+    hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
 
     riak_services = []
     ips = '10.0.0.%d'
@@ -44,6 +44,7 @@ def setup_riak():
         r = vr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
+                       'storage_backend': 'leveldb',
                        'riak_hostname': 'riak_server%d.solar' % num,
                        'riak_name': 'riak%d@riak_server%d.solar' % (num, num)})[0]
         riak_services.append(r)
@@ -60,6 +61,7 @@ def setup_riak():
                 {'riak_hostname': 'hosts:name',
                  'ip': 'hosts:ip'})
 
+    Resource.save_all_lazy()
     errors = resource.validate_resources()
     for r, error in errors:
         click.echo('ERROR: %s: %s' % (r.name, error))

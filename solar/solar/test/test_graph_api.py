@@ -13,12 +13,12 @@
 #    under the License.
 
 import os
-from copy import deepcopy
 
 from pytest import fixture
 
 from solar.orchestration import graph
 from solar.orchestration.traversal import states
+from solar.dblayer.model import ModelMeta
 
 
 @fixture
@@ -33,28 +33,6 @@ def simple():
 def test_simple_plan_created_and_loaded(simple):
     plan = graph.get_plan(simple.graph['uid'])
     assert set(plan.nodes()) == {'just_fail', 'echo_stuff'}
-
-
-def test_update_plan_with_new_node(simple):
-    new = deepcopy(simple)
-    new.add_node('one_more', {})
-    graph.update_plan_from_graph(new, simple)
-    updated = graph.get_plan(new.graph['uid'])
-    assert set(updated.nodes()) == {'one_more', 'just_fail', 'echo_stuff'}
-
-
-def test_status_preserved_on_update(simple):
-    new = deepcopy(simple)
-    task_under_test = 'echo_stuff'
-
-    assert new.node[task_under_test]['status'] == states.PENDING.name
-
-    simple.node[task_under_test]['status'] = states.SUCCESS.name
-    graph.update_plan_from_graph(new, simple)
-
-    updated = graph.get_plan(new.graph['uid'])
-    assert new.node[task_under_test]['status'] == states.SUCCESS.name
-
 
 def test_reset_all_states(simple):
     for n in simple:
@@ -78,18 +56,17 @@ def test_reset_only_provided(simple):
 def test_wait_finish(simple):
     for n in simple:
         simple.node[n]['status'] = states.SUCCESS.name
-    graph.save_graph(simple)
-
+    graph.update_graph(simple)
     assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 2, 'NOOP': 0, 'ERROR': 0, 'INPROGRESS': 0, 'PENDING': 0}
 
 
 def test_several_updates(simple):
     simple.node['just_fail']['status'] = states.ERROR.name
-    graph.save_graph(simple)
+    graph.update_graph(simple)
 
     assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 1, 'INPROGRESS': 0, 'PENDING': 1}
 
     simple.node['echo_stuff']['status'] = states.ERROR.name
-    graph.save_graph(simple)
+    graph.update_graph(simple)
 
     assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 2, 'INPROGRESS': 0, 'PENDING': 0}

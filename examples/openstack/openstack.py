@@ -8,9 +8,7 @@ from solar.core import signals
 from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import events as evapi
-
-from solar.interfaces.db import get_db
-
+from solar.dblayer.model import ModelMeta
 
 PROFILE = False
 #PROFILE = True
@@ -34,8 +32,6 @@ if PROFILE:
 # No copy of manifests, pull from upstream (implemented in the librarian resource)
 # Official puppet manifests, not fuel-library
 
-
-db = get_db()
 
 
 @click.group()
@@ -247,7 +243,7 @@ def setup_neutron(node, librarian, rabbitmq_service, openstack_rabbitmq_user, op
     return {'neutron_puppet': neutron_puppet}
 
 def setup_neutron_api(node, mariadb_service, admin_user, keystone_puppet, services_tenant, neutron_puppet):
-    # NEUTRON PLUGIN AND  NEUTRON API (SERVER) 
+    # NEUTRON PLUGIN AND  NEUTRON API (SERVER)
     neutron_plugins_ml2 = vr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
     node.connect(neutron_plugins_ml2)
 
@@ -830,7 +826,7 @@ def create_compute(node):
 
 @click.command()
 def create_all():
-    db.clear()
+    ModelMeta.remove_all()
     r = prepare_nodes(2)
     r.update(create_controller('node0'))
     r.update(create_compute('node1'))
@@ -856,7 +852,7 @@ def add_controller(node):
 
 @click.command()
 def clear():
-    db.clear()
+    ModelMeta.remove_all()
 
 
 if __name__ == '__main__':

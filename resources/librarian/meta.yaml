@@ -7,7 +7,7 @@ actions:
     remove: remove.yaml
 input:
     modules:
-      schema: [str]
+      schema: [{}]
       value: []
     modules_path:
       schema: str!

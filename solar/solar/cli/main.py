@@ -25,6 +25,7 @@ import os
 import sys
 import tabulate
 import yaml
+from collections import defaultdict
 
 from solar.core import actions
 from solar.core import resource as sresource
@@ -33,7 +34,6 @@ from solar.core.tags_set_parser import Expression
 from solar.core.resource import virtual_resource as vr
 from solar.core.log import log
 from solar import errors
-from solar.interfaces import orm
 from solar import utils
 
 from solar.cli import base
@@ -45,27 +45,24 @@ from solar.cli.resource import resource as cli_resource
 
 
 # HELPERS
-def format_resource_input(resource_input):
+def format_resource_input(resource_name, resource_input):
     return '{}::{}'.format(
-        #click.style(resource_name, fg='white', bold=True),
-        resource_input.resource.name,
-        click.style(resource_input.name, fg='yellow')
+        resource_name,
+        click.style(resource_input, fg='yellow')
     )
 
 
-def show_emitter_connections(emitter):
-    for emitter_input in emitter.resource_inputs().values():
-        click.echo(
-            '{} -> {}'.format(
-                format_resource_input(emitter_input),
-                '[{}]'.format(
-                    ', '.join(
-                        format_resource_input(r)
-                        for r in emitter_input.receivers.as_set()
-                    )
-                )
-            )
-        )
+def show_emitter_connections(res):
+    db_obj = res.db_obj
+    d = defaultdict(list)
+    for emitter, receiver, _meta in db_obj.inputs._edges():
+        d[emitter].append(receiver)
+
+    for emitter, receivers in d.iteritems():
+        click.echo("{} -> {}".format(
+            format_resource_input(*emitter),
+            '[{}]'.format(', '.join(
+                format_resource_input(*recv) for recv in receivers))))
 
 
 @click.group(cls=base.AliasedGroup)
@@ -80,25 +77,26 @@ def init_actions():
     @click.option('-d', '--dry-run', default=False, is_flag=True)
     @click.option('-m', '--dry-run-mapping', default='{}')
     def run(dry_run_mapping, dry_run, action, tags):
-        if dry_run:
-            dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
+        raise NotImplementedError("Not yet implemented")
+        # if dry_run:
+        #     dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
 
-        resources = filter(
-            lambda r: Expression(tags, r.tags).evaluate(),
-            orm.DBResource.all()
-        )
+        # resources = filter(
+        #     lambda r: Expression(tags, r.tags).evaluate(),
+        #     orm.DBResource.all()
+        # )
 
-        for r in resources:
-            resource_obj = sresource.load(r['id'])
-            actions.resource_action(resource_obj, action)
+        # for r in resources:
+        #     resource_obj = sresource.load(r['id'])
+        #     actions.resource_action(resource_obj, action)
 
-        if dry_run:
-            click.echo('EXECUTED:')
-            for key in dry_run_executor.executed:
-                click.echo('{}: {}'.format(
-                    click.style(dry_run_executor.compute_hash(key), fg='green'),
-                    str(key)
-                ))
+        # if dry_run:
+        #     click.echo('EXECUTED:')
+        #     for key in dry_run_executor.executed:
+        #         click.echo('{}: {}'.format(
+        #             click.style(dry_run_executor.compute_hash(key), fg='green'),
+        #             str(key)
+        #         ))
 
 
 def init_cli_connect():
@@ -133,7 +131,7 @@ def init_cli_connect():
         receiver = sresource.load(receiver)
         click.echo(emitter)
         click.echo(receiver)
-        signals.disconnect(emitter, receiver)
+        emitter.disconnect(receiver)
 
         show_emitter_connections(emitter)
 
@@ -152,9 +150,11 @@ def init_cli_connections():
     @connections.command()
     @click.option('--start-with', default=None)
     @click.option('--end-with', default=None)
-    def graph(start_with, end_with):
+    @click.option('--details', is_flag=True, default=False)
+    def graph(start_with, end_with, details):
         g = signals.detailed_connection_graph(start_with=start_with,
-                                              end_with=end_with)
+                                              end_with=end_with,
+                                              details=details)
 
         nx.write_dot(g, 'graph.dot')
         fabric_api.local('dot -Tsvg graph.dot -o graph.svg')

@@ -48,13 +48,6 @@ def create(plan):
     click.echo(uid)
 
 
-@orchestration.command()
-@click.argument('uid', type=SOLARUID)
-@click.argument('plan')
-def update(uid, plan):
-    graph.update_plan(uid, plan)
-
-
 def wait_report(uid, timeout, interval=3):
     try:
         if timeout:
@@ -114,7 +107,7 @@ def filter(uid, start, end):
     errors = filters.filter(plan, start=start, end=end)
     if errors:
         raise click.ClickException('\n'.join(errors))
-    graph.save_graph(uid, plan)
+    graph.update_graph(plan)
     utils.write_graph(plan)
     click.echo('Created {name}.png'.format(name=plan.graph['name']))
 

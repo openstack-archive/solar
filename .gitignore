@@ -25,6 +25,7 @@ celery*.log
 
 *.dot
 *.png
+*.svg
 resources_compiled.py
 
 # bootstrap
@@ -45,3 +46,4 @@ solar/.coverage
 
 # pytest cache
 solar/.cache
+.config.override

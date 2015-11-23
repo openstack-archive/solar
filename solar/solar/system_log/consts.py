@@ -18,3 +18,6 @@ CHANGES = Enum(
         'Changes',
         'run remove update'
     )
+
+
+STATES = Enum('States', 'error inprogress pending success')

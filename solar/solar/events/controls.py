@@ -31,6 +31,8 @@ trigger action even if no changes noticed on dependent resource.
         - parent:update -> ok -> dependent:update
 """
 
+from solar.dblayer.solar_models import Resource
+from solar.dblayer.model import DBLayerNotFound
 
 class Event(object):
 
@@ -96,19 +98,14 @@ class React(Event):
 
         if self.parent_node in changes_graph:
             if self.child_node not in changes_graph:
-                # TODO: solve this circular import problem
-                from solar.core import resource
                 try:
-                    loaded_resource = resource.load(self.child)
-                except KeyError:
-                    # orm throws this error when we're NOT using resource there
+                    location_id = Resource.get(self.child).inputs['location_id']
+                except DBLayerNotFound:
                     location_id = None
-                else:
-                    location_id = loaded_resource.args['location_id']
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
                     target=location_id,
-                    errmsg=None, type='solar_resource',
+                    errmsg='', type='solar_resource',
                     args=[self.child, self.child_action])
 
             changes_graph.add_edge(
@@ -121,18 +118,13 @@ class StateChange(Event):
     etype = 'state_change'
 
     def insert(self, changed_resources, changes_graph):
-        changed_resources.append(self.parent)
-        # TODO: solve this circular import problem
-        from solar.core import resource
+        changed_resources.append(self.parent_node)
         try:
-            loaded_resource = resource.load(self.parent)
-        except KeyError:
-            # orm throws this error when we're NOT using resource there
+            location_id = Resource.get(self.parent).inputs['location_id']
+        except DBLayerNotFound:
             location_id = None
-        else:
-            location_id = loaded_resource.args['location_id']
         changes_graph.add_node(
             self.parent_node, status='PENDING',
             target=location_id,
-            errmsg=None, type='solar_resource',
+            errmsg='', type='solar_resource',
             args=[self.parent, self.parent_action])

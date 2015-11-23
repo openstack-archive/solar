@@ -25,7 +25,7 @@ from solar import errors
 # - puppet is installed
 class Puppet(TempFileHandler):
     def action(self, resource, action_name):
-        log.debug('Executing Puppet manifest %s %s', action_name, resource)
+        log.debug('Executing Puppet manifest %s %s', action_name, resource.name)
 
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)
@@ -62,7 +62,7 @@ class Puppet(TempFileHandler):
         return cmd
 
     def _make_args(self, resource):
-        return {resource.name: resource.to_dict()}
+        return {resource.name: {'input': resource.args}}
 
     def upload_hiera_resource(self, resource):
         src = '/tmp/puppet_{}.yaml'.format(resource.name)
