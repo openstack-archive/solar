@@ -1,0 +1,4 @@
+id: openstack-network-end
+handler: none
+version: '8.0'
+inputs: {}

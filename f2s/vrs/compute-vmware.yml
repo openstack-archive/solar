@@ -5,6 +5,7 @@ resources:
   location: '{{node}}'
   values:
     env: '{{env}}'
+    puppet_modules: /etc/puppet/modules
     uid: '{{index}}'
     puppet_modules: '/etc/puppet/modules'
 - id: logging{{index}}

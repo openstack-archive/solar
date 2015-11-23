@@ -28,6 +28,8 @@ INPUTS_LOCATION = "/root/current/"
 DEPLOYMENT_GROUP_PATH = os.path.join(LIBRARY_PATH,
     'deployment', 'puppet', 'deployment_groups', 'tasks.yaml')
 
+VALID_TASKS = ('puppet', 'skipped')
+
 def clean_resources():
     shutil.rmtree(RESOURCE_TMP_WORKDIR)
     ensure_dir(RESOURCE_TMP_WORKDIR)
@@ -74,6 +76,8 @@ class Task(object):
 
     @property
     def manifest(self):
+        if self.data['type'] != 'puppet':
+            return None
         after_naily = self.data['parameters']['puppet_manifest'].split('osnailyfacter/')[-1]
         return os.path.join(
             LIBRARY_PATH, 'deployment', 'puppet', 'osnailyfacter',
@@ -99,19 +103,29 @@ class Task(object):
         return os.path.join(self.dst_path, 'meta.yaml')
 
     def meta(self):
-        data = OrderedDict([('id', self.name),
-                ('handler', 'puppetv2'),
+        if self.data['type'] == 'skipped':
+            data = OrderedDict([('id', self.name),
+                ('handler', 'none'),
                 ('version', '8.0'),
-                ('actions', {
-                    'run': 'run.pp',
-                    'update': 'run.pp'}),
-                ('input', self.inputs()),])
+                ('inputs', {})])
+        elif self.data['type'] == 'puppet':
+            data = OrderedDict([('id', self.name),
+                    ('handler', 'puppetv2'),
+                    ('version', '8.0'),
+                    ('actions', {
+                        'run': 'run.pp',
+                        'update': 'run.pp'}),
+                    ('input', self.inputs()),])
+        else:
+            raise NotImplemented('Support for %s' % self.data['type'])
         return ordered_dump(data, default_flow_style=False)
 
     @property
     def actions(self):
         """yield an iterable of src/dst
         """
+        if self.manifest is None:
+            return
         yield self.manifest, os.path.join(self.actions_path, 'run.pp')
 
     def inputs(self):
@@ -290,7 +304,7 @@ def t2r(tasks, t, p, c):
         clean_resources()
 
     for task in get_tasks():
-        if task.type != 'puppet':
+        if not task.type in VALID_TASKS:
             continue
 
         if task.name in tasks or tasks == ():
@@ -320,7 +334,7 @@ def g2vr(groups, c):
             inner_preds = []
             outer_preds = []
             for p in dg.predecessors(t):
-                if dg.node[p]['t'].type != 'puppet':
+                if not dg.node[p]['t'].type in VALID_TASKS:
                     continue
 
                 if p in dsub:
@@ -328,7 +342,7 @@ def g2vr(groups, c):
                 else:
                     outer_preds.append(p)
 
-            if dg.node[t]['t'].type == 'puppet':
+            if dg.node[t]['t'].type in VALID_TASKS:
                 ordered.append((dg.node[t]['t'], inner_preds, outer_preds))
 
         obj = DGroup(group, ordered)

@@ -5,8 +5,8 @@ resources:
   location: '{{node}}'
   values:
     env: '{{env}}'
+    puppet_modules: /etc/puppet/modules
     uid: '{{index}}'
-    puppet_modules: '/etc/puppet/modules'
 - id: fuel_pkgs{{index}}
   from: f2s/resources/fuel_pkgs
   location: '{{node}}'
@@ -51,6 +51,10 @@ resources:
   from: f2s/resources/ceilometer-compute
   location: '{{node}}'
   values_from: role_data{{index}}
+- id: openstack-network-start{{index}}
+  from: f2s/resources/openstack-network-start
+  location: '{{node}}'
+  values_from: role_data{{index}}
 - id: openstack-network-common-config{{index}}
   from: f2s/resources/openstack-network-common-config
   location: '{{node}}'
@@ -65,6 +69,10 @@ resources:
   values_from: role_data{{index}}
 - id: openstack-network-compute-nova{{index}}
   from: f2s/resources/openstack-network-compute-nova
+  location: '{{node}}'
+  values_from: role_data{{index}}
+- id: openstack-network-end{{index}}
+  from: f2s/resources/openstack-network-end
   location: '{{node}}'
   values_from: role_data{{index}}
 events:
@@ -178,6 +186,50 @@ events:
 - type: depends_on
   state: success
   parent_action: role_data{{index}}.run
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: netconfig{{index}}.run
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: top-role-compute{{index}}.run
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=ironic-compute
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=neutron-keystone
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=neutron-db
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-controller
+  depend_action: openstack-network-start{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: role_data{{index}}.run
+  depend_action: openstack-network-common-config{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: openstack-network-start{{index}}.run
   depend_action: openstack-network-common-config{{index}}.run
 - type: depends_on
   state: success
@@ -228,3 +280,79 @@ events:
   state: success
   parent_action: openstack-network-common-config{{index}}.run
   depend_action: openstack-network-compute-nova{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: role_data{{index}}.run
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: openstack-network-agents-l3{{index}}.run
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: openstack-network-compute-nova{{index}}.run
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: openstack-network-plugins-l2{{index}}.run
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent_action: openstack-network-common-config{{index}}.run
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=neutron-keystone
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-server-config
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=neutron-db
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-networks
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-routers
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-server-nova
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-agents-metadata
+  depend_action: openstack-network-end{{index}}.run
+- type: depends_on
+  state: success
+  parent:
+    action: run
+    with_tags:
+    - resource=openstack-network-agents-dhcp
+  depend_action: openstack-network-end{{index}}.run

@@ -5,6 +5,7 @@ resources:
   location: '{{node}}'
   values:
     env: '{{env}}'
+    puppet_modules: /etc/puppet/modules
     uid: '{{index}}'
 - id: logging{{index}}
   from: f2s/resources/logging
