@@ -2,11 +2,11 @@ from solar.core.transports.base import SyncTransport, RunTransport, SolarTranspo
 from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 from solar.core.transports.rsync import RsyncSyncTransport
 try:
-    from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+    from solar.core.transports.solar_agent_transport import SolarAgentRunTransport, SolarAgentSyncTransport
 except ImportError:
-    _solard_available = False
+    _solar_agent_available = False
 else:
-    _solard_available = True
+    _solar_agent_available = True
 
 try:
     from solar.core.transports.torrent import TorrentSyncTransport
@@ -29,9 +29,9 @@ KNOWN_RUN_TRANSPORTS = {
 
 if _torrent_available:
     KNOWN_SYNC_TRANSPORTS['torrent'] = TorrentSyncTransport
-if _solard_available:
-    KNOWN_SYNC_TRANSPORTS['solard'] = SolardSyncTransport
-    KNOWN_RUN_TRANSPORTS['solard'] = SolardRunTransport
+if _solar_agent_available:
+    KNOWN_SYNC_TRANSPORTS['solar_agent'] = SolarAgentSyncTransport
+    KNOWN_RUN_TRANSPORTS['solar_agent'] = SolarAgentRunTransport
 
 
 class OnAll(object):
@@ -87,7 +87,7 @@ class BatTransport(SolarTransport):
 class BatSyncTransport(SyncTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ('torrent', 'solard', 'rsync', 'ssh')
+    _order = ('torrent', 'solar_agent', 'rsync', 'ssh')
     _bat_transports = KNOWN_SYNC_TRANSPORTS
 
     def __init__(self, *args, **kwargs):
@@ -105,7 +105,7 @@ class BatSyncTransport(SyncTransport, BatTransport):
 class BatRunTransport(RunTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ('solard', 'ssh')
+    _order = ('solar_agent', 'ssh')
     _bat_transports = KNOWN_RUN_TRANSPORTS
 
     def __init__(self, *args, **kwargs):

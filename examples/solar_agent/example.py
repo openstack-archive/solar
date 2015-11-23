@@ -17,18 +17,18 @@ def run():
                                                    })[0]
 
     transports = vr.create('transports_node1', 'resources/transports')[0]
-    transports_for_solard = vr.create('transports_for_solard', 'resources/transports')[0]
+    transports_for_solar_agent = vr.create('transports_for_solar_agent', 'resources/transports')[0]
 
     ssh_transport  = vr.create('ssh_transport', 'resources/transport_ssh',
                                {'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
                                 'ssh_user': 'vagrant'})[0]
 
-    solard_transport  = vr.create('solard_transport', 'resources/transport_solard',
-                                  {'solard_user': 'vagrant',
-                                   'solard_password': 'password'})[0]
+    solar_agent_transport  = vr.create('solar_agent_transport', 'resources/transport_solar_agent',
+                                  {'solar_agent_user': 'vagrant',
+                                   'solar_agent_password': 'password'})[0]
 
-    transports_for_solard.connect(solard_transport, {})
-    ssh_transport.connect(transports_for_solard,{'ssh_key': 'transports:key',
+    transports_for_solar_agent.connect(solar_agent_transport, {})
+    ssh_transport.connect(transports_for_solar_agent,{'ssh_key': 'transports:key',
                                                  'ssh_user': 'transports:user',
                                                  'ssh_port': 'transports:port',
                                                  'name': 'transports:name'})
@@ -40,9 +40,9 @@ def run():
                                         'ssh_user': 'transports:user',
                                         'ssh_port': 'transports:port',
                                         'name': 'transports:name'})
-    solard_transport.connect(transports, {'solard_user': 'transports:user',
-                                           'solard_port': 'transports:port',
-                                           'solard_password': 'transports:password',
+    solar_agent_transport.connect(transports, {'solar_agent_user': 'transports:user',
+                                           'solar_agent_port': 'transports:port',
+                                           'solar_agent_password': 'transports:password',
                                            'name': 'transports:name'})
 
 
