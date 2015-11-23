@@ -82,9 +82,10 @@ def backtrack_single(i):
 
 @resource.command()
 @click.option('-v', '--values', default=False, is_flag=True)
+@click.option('-r', '--real_values', default=False, is_flag=True)
 @click.option('-i', '--input', default=None)
 @click.argument('resource')
-def backtrack_inputs(resource, input, values):
+def backtrack_inputs(resource, input, values, real_values):
     r = sresource.load(resource)
 
     db_obj = r.db_obj
@@ -101,7 +102,7 @@ def backtrack_inputs(resource, input, values):
         for (rname, rinput), _, meta in se:
             l.append(dict(resource=resource, name=name))
             val = single(rname, rinput, get_val)
-            if meta:
+            if meta and isinstance(val, dict):
                 val['meta'] = meta
             l.append(val)
         return l
@@ -115,6 +116,8 @@ def backtrack_inputs(resource, input, values):
 
     for name, values in inps.iteritems():
         click.echo(yaml.safe_dump({name: values}, default_flow_style=False))
+        if real_values:
+            click.echo('! Real value: %r' % sresource.load(resource).db_obj.inputs[name] , nl=True)
 
 @resource.command()
 def compile_all():
