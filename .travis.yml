@@ -10,8 +10,8 @@ install:
     - pip-accel install coveralls
     - pip-accel install -r test-requirements.txt
 script:
-    - py.test --cov=solar -s solar && cd ..
+    - py.test --cov=solar -s solar
 services:
     - riak
 after_success:
-    cd && coveralls
+    coveralls
