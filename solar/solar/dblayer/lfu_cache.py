@@ -36,9 +36,24 @@ class LFUCache(object):
             self._store[item] = value
             return value
 
+    def is_empty(self):
+        return False if self._store else True
+
     def get(self, item):
         obj = self._store[item]
         return DBLayerProxy(obj)
+
+    def __eq__(self, other):
+        if isinstance(other, dict):
+            for k, v in other.iteritems():
+                if not k in self._store:
+                    return False
+                mv = self._store[k]
+                if not v == mv:
+                    return False
+            return True
+        else:
+            return self == other
 
     def __setitem__(self, item, value):
         self.set(item, value)

@@ -57,7 +57,7 @@ def test_from_dict(rk):
     m11 = M1.get(key)
     assert m1.key == key
     assert m1.f3 == 250
-    assert m1 is m11
+    assert hash(m1) == hash(m11)
 
 
 def test_not_exists(rk):
@@ -100,21 +100,21 @@ def test_lazy(rk):
 def test_cache_logic(rk):
     k = next(rk)
     M1.session_start()
-    assert M1._c.obj_cache == {}
+    assert M1._c.obj_cache.is_empty()
 
     m1 = M1.from_dict(k, {'f1': 'blah', 'f2': 150})
     m1.save()
     M1.session_end()
 
     M1.session_start()
-    assert M1._c.obj_cache == {}
+    assert M1._c.obj_cache.is_empty()
     m11 = M1.get(k)
     pid = id(M1._c)
     assert M1._c.obj_cache == {k: m11}
     M1.session_end()
 
     M1.session_start()
-    assert M1._c.obj_cache == {}
+    assert M1._c.obj_cache.is_empty()
     M1.get(k)
     aid = id(M1._c)
 
@@ -181,16 +181,16 @@ def test_cache_behaviour(rk):
     m1 = M1.from_dict(key1, {'f1': 'm1'})
 
     m11 = M1.get(key1)
-    assert m1 is m11
+    assert m1 == m11
     m1.save()
-    assert m1 is m11
+    assert m1 == m11
 
     m12 = M1.get(key1)
-    assert m1 is m12
+    assert m1 == m12
 
     clear_cache()
     m13 = M1.get(key1)
-    assert m1 is not m13
+    assert m1 != m13
 
 
 def test_save_lazy(rk):
@@ -205,10 +205,10 @@ def test_save_lazy(rk):
     m1g = M1.get(key1)
     m2g = M1.get(key2)
 
-    assert m1 is m1g
-    assert m2 is m2g
+    assert m1 == m1g
+    assert m2 == m2g
 
-    assert M1._c.lazy_save == {m1, m2}
+    assert set(x.key for x in M1._c.lazy_save) == {m1.key, m2.key}
     M1.session_end()
     assert M1._c.lazy_save == set()
 
@@ -216,8 +216,8 @@ def test_save_lazy(rk):
     m1g2 = M1.get(key1)
     m2g2 = M1.get(key2)
 
-    assert m1g is not m1g2
-    assert m2g is not m2g2
+    assert m1g != m1g2
+    assert m2g != m2g2
 
 
 def test_changed_index(rk):
