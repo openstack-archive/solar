@@ -185,6 +185,9 @@ class InputsFieldWrp(IndexFieldWrp):
     def _connect_other_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
 
+    def _connect_other_list_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+        return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+
     def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
         ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
         return ret
@@ -218,8 +221,8 @@ class InputsFieldWrp(IndexFieldWrp):
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
-        if my_type == other_type:
-            # if the type is the same map 1:1
+        if my_type == other_type and not ':' in my_inp_name:
+            # if the type is the same map 1:1, and flat
             my_type = InputTypes.simple
             other_type = InputTypes.simple
         elif my_type == InputTypes.list_hash and other_type == InputTypes.hash:
@@ -452,26 +455,16 @@ class InputsFieldWrp(IndexFieldWrp):
                 _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
                 cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
                 mapping_type = splitted_val[-1]
-                if mapping_type == '{}_{}'.format(InputTypes.hash.value, InputTypes.hash.value):
-                    items.append((mapping_type, my_val, cres))
-                    maybe_list.add((mapping_type, my_val))
-                else:
-                    items.append((my_tag, my_val, cres))
+                items.append((my_tag, my_val, cres))
         tmp_res = {}
         for first, my_val, value in items:
             if my_val is None:
                 tmp_res[first] = value
             else:
-                if (first, my_val) in maybe_list:
-                    try:
-                        tmp_res[first][my_val].append(value)
-                    except KeyError:
-                        tmp_res[first] = {my_val: [value]}
-                else:
-                    try:
-                        tmp_res[first][my_val] = value
-                    except KeyError:
-                        tmp_res[first] = {my_val: value}
+                try:
+                    tmp_res[first][my_val] = value
+                except KeyError:
+                    tmp_res[first] = {my_val: value}
         res = tmp_res.values()
         self._cache[name] = res
         return res

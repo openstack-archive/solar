@@ -620,3 +620,5 @@ def test_nested_two_listdict(rk):
     for sc in r1.inputs['config']:
         assert 'something' in sc
         assert 'backends' in sc
+        assert isinstance(sc['backends'], list)
+        assert isinstance(sc['something'], int)
