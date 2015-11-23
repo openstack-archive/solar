@@ -10,7 +10,7 @@ input:
       value: {src: /etc/solar/haproxy, dst: /etc/haproxy}
     config:
       schema: [{backends: [{server: str!, port: int!}], listen_port: int!, protocol: str!, name: str!}]
-      value: []
+      value: [{}]
     # ssh_user:
     #   schema: str!
     #   value:
