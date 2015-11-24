@@ -3,3 +3,5 @@ hacking==0.7
 pytest-cov
 pytest-mock
 tox
+pytest-subunit
+os-testr
