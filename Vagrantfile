@@ -52,8 +52,6 @@ end
 
 solar_script = ansible_playbook_command("solar.yaml")
 
-slave_script = ansible_playbook_command("custom-configs.yaml", ["-e", "master_ip=10.0.0.2"])
-
 master_pxe = ansible_playbook_command("pxe.yaml")
 
 
@@ -119,7 +117,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if PREPROVISIONED
         config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-        config.vm.provision "shell", inline: slave_script, privileged: true
         config.vm.provision "shell", inline: solar_script, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
