@@ -4,8 +4,9 @@
   sudo: yes
   tasks:
     # Setup development env for solar
-    - shell: pip install -e . chdir=/vagrant/solar
+    - shell: pip install -e . chdir=/vagrant
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
+    - shell: docker-compose up -d chdir=/vagrant
 
 - hosts: all
   tasks:
