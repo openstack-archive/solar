@@ -19,7 +19,8 @@ RUN apt-get install -y libffi-dev libssl-dev
 RUN pip install riak peewee
 RUN pip install -U setuptools>=17.1
 RUN cd /solar && python setup.py install
-RUN cd /solard && python setup.py install
+RUN pip install git+git://github.com/Mirantis/solar-agent.git
+
 RUN ansible-playbook -v -i "localhost," -c local /celery.yaml --skip-tags slave
 
 CMD ["/run.sh"]
