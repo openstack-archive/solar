@@ -1,21 +1,21 @@
-id: transport_solard
+id: transport_solar_agent
 handler: ansible
 input:
-  solard_user:
+  solar_agent_user:
     schema: str!
     value:
-  solard_password:
+  solar_agent_password:
     schema: str!
     value:
-  # solard_transport_class:
+  # solar_agent_transport_class:
   #   schema: str!
   #   value: 
-  solard_port:
+  solar_agent_port:
     schema: int!
     value: 5555
   name:
     schema: str!
-    value: solard
+    value: solar_agent
   location_id:
     schema: str
     value:
