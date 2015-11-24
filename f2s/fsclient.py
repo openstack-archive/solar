@@ -22,8 +22,11 @@ class NailgunSource(object):
 
     def roles(self, uid):
         from fuelclient.objects.node import Node
+        from fuelclient.objects.environment import Environment
         node = Node(uid)
-        return node.data['roles'] + node.data['pending_roles']
+        env = Environment(node.data['cluster'])
+        facts = env.get_default_facts('deployment', [uid])
+        return [f['role'] for f in facts]
 
     def master(self):
         return 'master', '10.20.0.2'
