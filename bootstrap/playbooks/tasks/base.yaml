@@ -13,8 +13,6 @@
   - python-setuptools
   - ruby-dev
   - unzip
-  # Redis
-  - redis-server
   # Graph drawing
   - python-pygraphviz
   # Other tools
@@ -49,8 +47,6 @@
 
 # Redis
 - shell: sudo pip install redis
-- lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
-- service: name=redis-server state=restarted
 
 # Ubuntu OpenStack packages
 #- apt: name=ubuntu-cloud-keyring state=present
