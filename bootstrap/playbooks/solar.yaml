@@ -5,7 +5,7 @@
   tasks:
     # Setup development env for solar
     - shell: pip install -e . chdir=/vagrant/solar
-    - shell: pip install -e . chdir=/vagrant/solard
+    - shell: pip install git+git://github.com/Mirantis/solar-agent.git
 
 - hosts: all
   tasks:

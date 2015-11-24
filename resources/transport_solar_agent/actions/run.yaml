@@ -1,7 +1,7 @@
 - hosts: [{{ host }}]
   sudo: yes
   tasks:
-    - shell: pip install -e /vagrant/solar_agent
-    - shell: start-stop-daemon --stop --make-pidfile --pidfile /tmp/solar_agent.pid --chdir /vagrant/solar_agent --startas /bin/bash -- -c "exec /usr/local/bin/solar_agent run --port {{solar_agent_port}} --base tcp > /tmp/solar_agent.log 2>&1"
+    - shell: pip install git+git://github.com/Mirantis/solar-agent.git
+    - shell: start-stop-daemon --stop --make-pidfile --pidfile /tmp/solar_agent.pid --startas /bin/bash -- -c "exec /usr/local/bin/solar_agent run --port {{solar_agent_port}} --base tcp > /tmp/solar_agent.log 2>&1"
       ignore_errors: True
-    - shell: start-stop-daemon -b --start --make-pidfile --pidfile /tmp/solar_agent.pid --chdir /vagrant/solar_agent --startas /bin/bash -- -c "exec /usr/local/bin/solar_agent run --port {{solar_agent_port}} --base tcp > /tmp/solar_agent.log 2>&1"
+    - shell: start-stop-daemon -b --start --make-pidfile --pidfile /tmp/solar_agent.pid --startas /bin/bash -- -c "exec /usr/local/bin/solar_agent run --port {{solar_agent_port}} --base tcp > /tmp/solar_agent.log 2>&1"
