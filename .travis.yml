@@ -10,7 +10,7 @@ install:
     - pip-accel install coveralls
     - pip-accel install -r test-requirements.txt
 script:
-    - tox -e py27
+    - py.test --cov=solar -s solar
 services:
     - riak
 after_success:
