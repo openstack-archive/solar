@@ -10,7 +10,7 @@
     - shell: pip install celery
     - shell: hostname
       register: hostname
-    - shell: celery multi stop 2  -A solar.orchestration.runner
+    - shell: celery multi stopwait 2  -A solar.orchestration.runner
              chdir={{ celery_dir }}
       tags: [stop]
     - shell: celery multi start 2 -A solar.orchestration.runner -P:2 prefork -c:1 1 -c:2 3 -Q:1 scheduler,system_log -Q:2 celery,{{ hostname.stdout }}
