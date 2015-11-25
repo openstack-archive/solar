@@ -38,6 +38,8 @@ def from_configs():
     for path in paths:
         if not os.path.exists(path):
             continue
+        if not os.path.isfile(path):
+            continue
         with open(path) as f:
             loaded = yaml.load(f)
             if loaded:
