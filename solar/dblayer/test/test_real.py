@@ -21,6 +21,7 @@ def create_resource(key, data):
     data['meta_inputs'] = mi
     return Resource.from_dict(key, data)
 
+
 @pytest.mark.xfail(reason="Not YET decided how it should work")
 def test_changes_state(rk):
     key = next(rk)
@@ -50,8 +51,8 @@ def test_basic_input(rk):
 def test_input_in_dict(rk):
     key = next(rk)
     r = create_resource(key, {'name': 'a name',
-                                 'inputs': {'input1': 15,
-                                            'input2': None}})
+                              'inputs': {'input1': 15,
+                                         'input2': None}})
     r.save()
     assert r._riak_object.data['inputs']['input1'] == 15
     assert r.inputs['input1'] == 15
@@ -65,11 +66,11 @@ def test_basic_connect(rk):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
 
     r1.connect(r2, {'input1': 'input1', 'input2': 'input2'})
     r1.save()
@@ -94,12 +95,12 @@ def test_adv_connect(rk, depth):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     prev = create_resource(k2, {'name': 'second',
-                                     'inputs': {'input1': None,
-                                                'input2': None,
-                                                'input3': 0}})
+                                'inputs': {'input1': None,
+                                           'input2': None,
+                                           'input3': 0}})
     conn = {'input1': 'input1', 'input2': 'input2'}
     r1.save()
     r1.connect(prev, conn)
@@ -109,9 +110,9 @@ def test_adv_connect(rk, depth):
     for x in xrange(depth - 1):
         k = next(rk)
         res = create_resource(k, {'name': 'next %d' % (x + 1),
-                                     'inputs': {'input1': None,
-                                                'input2': None,
-                                                'input3': x + 1}})
+                                  'inputs': {'input1': None,
+                                             'input2': None,
+                                             'input3': x + 1}})
         created.append(res)
         prev.connect(res, conn)
         res.save()
@@ -126,15 +127,14 @@ def test_adv_connect(rk, depth):
 @pytest.mark.parametrize('depth', (1, 3, 5, 10, 50, 100))
 def test_perf_inputs(rk, depth):
     k1 = next(rk)
-    r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 'target'}})
+    r1 = create_resource(k1, {'name': 'first', 'inputs': {'input1': 'target'}})
 
     r1.save()
     prev = r1
     for x in xrange(depth):
         k = next(rk)
         res = create_resource(k, {'name': 'next %d' % (x + 1),
-                                     'inputs': {'input1': None}})
+                                  'inputs': {'input1': None}})
         prev.connect(res, {'input1': 'input1'})
         res.save()
         prev = res
@@ -152,15 +152,15 @@ def test_change_connect(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input1': None,
-                                            'input2': None,
-                                            'input3': 0}})
+                              'inputs': {'input1': None,
+                                         'input2': None,
+                                         'input3': 0}})
     r3 = create_resource(k3, {'name': 'first',
-                                'inputs': {'input1': 30,
-                                            'input2': 35}})
+                              'inputs': {'input1': 30,
+                                         'input2': 35}})
 
     r1.connect(r2, {'input1': 'input1', 'input2': 'input2'})
     r3.connect(r2, {'input1': 'input1'})
@@ -173,13 +173,12 @@ def test_change_connect(rk):
     assert r2.inputs['input2'] == 15
 
 
-
 def test_simple_tag(rk, rt):
     k1 = next(rk)
     tag = next(rt)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'tags': ['%s' % tag, '%s=10' % tag]})
+                              'tags': ['%s' % tag, '%s=10' % tag]})
 
     r1.save()
     assert list(r1.tags) == ['%s=' % tag, '%s=10' % tag]
@@ -190,12 +189,10 @@ def test_list_by_tag(rk, rt):
     k2 = next(rk)
     tag1 = next(rt)
     tag2 = next(rt)
-    r1 = create_resource(k1, {'name': 'first',
-                                     'tags': [tag1, '%s=10' % tag1]})
+    r1 = create_resource(k1, {'name': 'first', 'tags': [tag1, '%s=10' % tag1]})
     r1.save()
 
-    r2 = create_resource(k2, {'name': 'first',
-                                     'tags': [tag1, '%s=10' % tag2]})
+    r2 = create_resource(k2, {'name': 'first', 'tags': [tag1, '%s=10' % tag2]})
     r2.save()
 
     assert len(Resource.tags.filter(tag1)) == 2
@@ -234,10 +231,9 @@ def test_list_inputs(rk):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
-    r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': []}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
+    r2 = create_resource(k2, {'name': 'second', 'inputs': {'input': []}})
 
     r1.connect(r2, {'input1': 'input'})
     r1.connect(r2, {'input2': 'input'})
@@ -252,15 +248,13 @@ def test_dict_to_dict_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
 
-
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input': {'input1': 10,
-                                                      'input2': 15}
-                                            }})
+                              'inputs': {'input': {'input1': 10,
+                                                   'input2': 15}}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': {'input1': None,
-                                                      'input2': None,
-                                                      'input3': None}}})
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None,
+                                                   'input3': None}}})
 
     r1.connect(r2, {'input': 'input'})
     r1.save()
@@ -275,10 +269,8 @@ def test_list_to_list_inputs(rk):
     k1 = next(rk)
     k2 = next(rk)
 
-    r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input': [10, 15]}})
-    r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': []}})
+    r1 = create_resource(k1, {'name': 'first', 'inputs': {'input': [10, 15]}})
+    r2 = create_resource(k2, {'name': 'second', 'inputs': {'input': []}})
 
     r1.connect(r2, {'input': 'input'})
 
@@ -293,15 +285,13 @@ def test_simple_to_dict_inputs(rk):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': {'input1': None,
-                                                      'input2': None}}})
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None}}})
 
-
-    r1.connect(r2, {'input1': 'input:input1',
-                    'input2': 'input:input2'})
+    r1.connect(r2, {'input1': 'input:input1', 'input2': 'input:input2'})
 
     r1.save()
     r2.save()
@@ -316,15 +306,14 @@ def test_simple_to_dict_inputs_with_tag(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r3 = create_resource(k3, {'name': 'first',
-                                 'inputs': {'input1': 110,
-                                            'input2': 115}})
+                              'inputs': {'input1': 110,
+                                         'input2': 115}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': {'input1': None,
-                                                      'input2': None}}})
-
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None}}})
 
     r1.connect(r2, {'input1': 'input:input1|tag'})
     r3.connect(r2, {'input2': 'input:input2|tag'})
@@ -345,21 +334,19 @@ def test_simple_to_listdict_inputs(rk):
     k4 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r3 = create_resource(k3, {'name': 'first',
-                                 'inputs': {'input1': 110,
-                                            'input2': 115}})
+                              'inputs': {'input1': 110,
+                                         'input2': 115}})
     r4 = create_resource(k4, {'name': 'first',
-                                 'inputs': {'input1': 1110,
-                                            'input2': 1115}})
+                              'inputs': {'input1': 1110,
+                                         'input2': 1115}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': [{'input1': None,
-                                                       'input2': None}]}})
+                              'inputs': {'input': [{'input1': None,
+                                                    'input2': None}]}})
 
-
-    r1.connect(r2, {'input1': 'input:input1',
-                    'input2': 'input:input2'})
+    r1.connect(r2, {'input1': 'input:input1', 'input2': 'input:input2'})
     r3.connect(r2, {'input2': 'input:input2|tag2',
                     'input1': 'input:input1|tag1'})
     r4.connect(r2, {'input2': 'input:input2|tag1',
@@ -370,9 +357,11 @@ def test_simple_to_listdict_inputs(rk):
     r3.save()
     r4.save()
 
-    assert r2.inputs['input'] == [{u'input2': 1115, u'input1': 110},
-                                  {u'input2': 115, u'input1': 1110},
-                                  {u'input2': 15, u'input1': 10}]
+    assert r2.inputs['input'] == [{u'input2': 1115,
+                                   u'input1': 110}, {u'input2': 115,
+                                                     u'input1': 1110},
+                                  {u'input2': 15,
+                                   u'input1': 10}]
 
 
 def test_dict_to_list_inputs(rk):
@@ -381,8 +370,7 @@ def test_dict_to_list_inputs(rk):
     k2 = next(rk)
     k3 = next(rk)
 
-    r1 = create_resource(k1, {'name': 'first',
-                              'inputs': {'modules': [{}]}})
+    r1 = create_resource(k1, {'name': 'first', 'inputs': {'modules': [{}]}})
     r2 = create_resource(k2, {'name': 'second',
                               'inputs': {'module': {'name': 'blah2'}}})
     r3 = create_resource(k3, {'name': 'third',
@@ -394,9 +382,8 @@ def test_dict_to_list_inputs(rk):
     r2.save()
     r3.save()
 
-    assert sorted(r1.inputs['modules']) == sorted([{'name': 'blah2'}, {'name': 'blah3'}])
-
-
+    assert sorted(r1.inputs['modules']) == sorted([{'name': 'blah2'},
+                                                   {'name': 'blah3'}])
 
 
 def test_passthrough_inputs(rk):
@@ -406,19 +393,17 @@ def test_passthrough_inputs(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
     r3 = create_resource(k3, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
 
-    r2.connect(r3, {'input1': 'input1',
-                    'input2': 'input2'})
-    r1.connect(r2, {'input1': 'input1',
-                    'input2': 'input2'})
+    r2.connect(r3, {'input1': 'input1', 'input2': 'input2'})
+    r1.connect(r2, {'input1': 'input1', 'input2': 'input2'})
 
     r1.save()
     r2.save()
@@ -434,19 +419,17 @@ def test_disconnect_by_input(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
     r3 = create_resource(k3, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
 
-    r2.connect(r3, {'input1': 'input1',
-                    'input2': 'input2'})
-    r1.connect(r2, {'input1': 'input1',
-                    'input2': 'input2'})
+    r2.connect(r3, {'input1': 'input1', 'input2': 'input2'})
+    r1.connect(r2, {'input1': 'input1', 'input2': 'input2'})
 
     r1.save()
     r2.save()
@@ -477,14 +460,14 @@ def test_resource_childs(rk):
     k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
     r3 = create_resource(k3, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
 
     r2.connect(r3, {'input1': 'input1'})
     r1.connect(r2, {'input1': 'input1'})
@@ -511,11 +494,11 @@ def test_delete(rk):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'first',
-                                 'inputs': {'input1': None,
-                                            'input2': None}})
+                              'inputs': {'input1': None,
+                                         'input2': None}})
 
     r1.connect(r2, {'input1': 'input1'})
     r1.save()
@@ -535,15 +518,13 @@ def test_delete_hash(rk):
     k2 = next(rk)
 
     r1 = create_resource(k1, {'name': 'first',
-                                 'inputs': {'input1': 10,
-                                            'input2': 15}})
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
     r2 = create_resource(k2, {'name': 'second',
-                                 'inputs': {'input': {'input1': None,
-                                                      'input2': None}}})
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None}}})
 
-
-    r1.connect(r2, {'input1': 'input:input1',
-                    'input2': 'input:input2'})
+    r1.connect(r2, {'input1': 'input:input1', 'input2': 'input:input2'})
 
     r1.save()
     r2.save()
@@ -566,10 +547,8 @@ def test_nested_simple_listdict(rk):
     r1 = create_resource(k1, {'name': 'first',
                               'inputs': {'config': [{"backends": [{}],
                                                      'listen_port': 1}]}})
-    r2 = create_resource(k2, {'name': 'second',
-                              'inputs': {'backend': {}}})
-    r3 = create_resource(k3, {'name': 'third',
-                              'inputs': {'backend': {}}})
+    r2 = create_resource(k2, {'name': 'second', 'inputs': {'backend': {}}})
+    r3 = create_resource(k3, {'name': 'third', 'inputs': {'backend': {}}})
     r5 = create_resource(k5, {'name': 'fifth',
                               'inputs': {"port": 5,
                                          "host": "fifth_host"}})
@@ -577,11 +556,8 @@ def test_nested_simple_listdict(rk):
                               'inputs': {"port": 4,
                                          "host": "fourth_host"}})
 
-    r4.connect(r2, {'port': "backend:port",
-                    'host': 'backend:host'})
-    r5.connect(r3, {'port': "backend:port",
-                    'host': 'backend:host'})
-
+    r4.connect(r2, {'port': "backend:port", 'host': 'backend:host'})
+    r5.connect(r3, {'port': "backend:port", 'host': 'backend:host'})
 
     assert r2.inputs['backend'] == {'host': 'fourth_host', 'port': 4}
     assert r3.inputs['backend'] == {'host': 'fifth_host', 'port': 5}
@@ -591,7 +567,8 @@ def test_nested_simple_listdict(rk):
 
     Resource.save_all_lazy()
 
-    backends = next(x['backends'] for x in r1.inputs['config'] if 'backends' in x)
+    backends = next(x['backends'] for x in r1.inputs['config']
+                    if 'backends' in x)
     assert len(backends) == 2
 
 
@@ -604,10 +581,12 @@ def test_nested_two_listdict(rk):
                               'inputs': {'config': [{"backends": [{}],
                                                      'something': 0}]}})
     r2 = create_resource(k2, {'name': 'second',
-                              'inputs': {"backends": [{"host": "second_host", "port": 2}],
+                              'inputs': {"backends": [{"host": "second_host",
+                                                       "port": 2}],
                                          'something': 1}})
     r3 = create_resource(k3, {'name': 'third',
-                              'inputs': {"backends": [{"host": "third_host", "port": 3}],
+                              'inputs': {"backends": [{"host": "third_host",
+                                                       "port": 3}],
                                          'something': 2}})
 
     r2.connect(r1, {'backends': 'config:backends',

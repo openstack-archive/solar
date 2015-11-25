@@ -1,10 +1,8 @@
 import pytest
-from solar.dblayer.model import (Field, IndexField,
-                                 clear_cache, Model,
-                                 StrInt,
-                                 DBLayerNotFound,
-                                 DBLayerNoRiakObj,
+from solar.dblayer.model import (Field, IndexField, clear_cache, Model, StrInt,
+                                 DBLayerNotFound, DBLayerNoRiakObj,
                                  DBLayerException)
+
 
 class M1(Model):
 
@@ -25,7 +23,6 @@ class M3(Model):
     f1 = Field(str)
 
     ind = IndexField(default=dict)
-
 
 
 def test_from_dict(rk):
@@ -108,12 +105,14 @@ def test_normal_index(rk):
     key = next(rk)
     key2 = next(rk)
 
-    m1 = M1.from_dict(key, {'f1': 'blah', 'f2': 150,
+    m1 = M1.from_dict(key, {'f1': 'blah',
+                            'f2': 150,
                             'ind': {'blah': 'something'}})
     m1.save()
 
-    m2 = M1.from_dict(key2, {'f1': 'blah', 'f2': 150,
-                            'ind': {'blah': 'something2'}})
+    m2 = M1.from_dict(key2, {'f1': 'blah',
+                             'f2': 150,
+                             'ind': {'blah': 'something2'}})
     m2.save()
     assert set(M1.ind.filter('blah=somethi*')) == set([key, key2])
     assert set(M1.ind.filter('blah=something')) == set([key])

@@ -11,23 +11,22 @@ from peewee import CharField, BlobField, IntegerField, \
 from solar.dblayer.model import clear_cache
 from threading import RLock
 
-
 # msgpack is way faster but less readable
 # using json for easier debug
 import json
 encoder = json.dumps
+
 
 def wrapped_loads(data, *args, **kwargs):
     if not isinstance(data, basestring):
         data = str(data)
     return json.loads(data, *args, **kwargs)
 
+
 decoder = wrapped_loads
 
 
-
 class _DataField(BlobField):
-
     def db_value(self, value):
         return super(_DataField, self).db_value(encoder(value))
 
@@ -36,7 +35,6 @@ class _DataField(BlobField):
 
 
 class _LinksField(_DataField):
-
     def db_value(self, value):
         return super(_LinksField, self).db_value(list(value))
 
@@ -46,7 +44,6 @@ class _LinksField(_DataField):
 
 
 class _SqlBucket(Model):
-
     def __init__(self, *args, **kwargs):
         self._new = kwargs.pop('_new', False)
         ed = kwargs.pop('encoded_data', None)
@@ -82,7 +79,6 @@ class _SqlBucket(Model):
 
 
 class FieldWrp(object):
-
     def __init__(self, name):
         self.name = name
 
@@ -138,8 +134,8 @@ class RiakObj(object):
         # TODO:  possible optimization
         # update only what's needed
         # don't delete all at first
-        q = self.bucket._sql_idx.delete().where(
-            self.bucket._sql_idx.key == self.key)
+        q = self.bucket._sql_idx.delete().where(self.bucket._sql_idx.key ==
+                                                self.key)
         q.execute()
 
         for iname, ival in self.indexes:
@@ -174,7 +170,8 @@ class RiakObj(object):
             #     (self.bucket._sql_idx.name == field) &
             #     (self.bucket._sql_idx.value == value))
             # q.execute()
-            to_rem = set((x for x in self.indexes if x[0] == field and x[1] == value))
+            to_rem = set((
+                x for x in self.indexes if x[0] == field and x[1] == value))
             self.indexes.difference_update(to_rem)
         return self
 
@@ -224,8 +221,8 @@ class RiakObj(object):
 
 
 class IndexPage(object):
-
-    def __init__(self, index, results, return_terms, max_results, continuation):
+    def __init__(self, index, results, return_terms, max_results,
+                 continuation):
         self.max_results = max_results
         self.index = index
         if not return_terms:
@@ -247,7 +244,6 @@ class IndexPage(object):
 
 
 class Bucket(object):
-
     def __init__(self, name, client):
         self.client = client
         table_name = "bucket_%s" % name.lower()
@@ -258,19 +254,17 @@ class Bucket(object):
             db_table = table_name
             database = self.client.sql_session
 
-        self._sql_model = type(table_name, (_SqlBucket,),
-                               {'Meta': ModelMeta,
-                                'bucket': self})
+        self._sql_model = type(table_name, (_SqlBucket, ), {'Meta': ModelMeta,
+                                                            'bucket': self})
         _idx_key = ForeignKeyField(self._sql_model, null=False, index=True)
 
         class IdxMeta:
             db_table = idx_table_name
             database = self.client.sql_session
 
-        self._sql_idx = type(idx_table_name, (_SqlIdx,),
-                             {'Meta': IdxMeta,
-                              'bucket': self,
-                              'key': _idx_key})
+        self._sql_idx = type(idx_table_name, (_SqlIdx, ), {'Meta': IdxMeta,
+                                                           'bucket': self,
+                                                           'key': _idx_key})
 
     def search(self, q, rows=10, start=0, sort=''):
         raise NotImplementedError()
@@ -323,8 +317,15 @@ class Bucket(object):
         ret.vclock = "new"
         return RiakObj(ret, new)
 
-    def get_index(self, index, startkey, endkey=None, return_terms=None,
-                  max_results=None, continuation=None, timeout=None, fmt=None,
+    def get_index(self,
+                  index,
+                  startkey,
+                  endkey=None,
+                  return_terms=None,
+                  max_results=None,
+                  continuation=None,
+                  timeout=None,
+                  fmt=None,
                   term_regex=None):
         if startkey and endkey is None:
             endkey = startkey
@@ -333,33 +334,31 @@ class Bucket(object):
 
         if index == '$key':
             if return_terms:
-                q = self._sql_model.select(
-                    self._sql_model.value, self._sql_model.key)
+                q = self._sql_model.select(self._sql_model.value,
+                                           self._sql_model.key)
             else:
                 q = self._sql_model.select(self._sql_model.key)
             q = q.where(
-                self._sql_model.key >= startkey, self._sql_model.key <= endkey
-            ).order_by(self._sql_model.key)
+                self._sql_model.key >= startkey,
+                self._sql_model.key <= endkey).order_by(self._sql_model.key)
         elif index == '$bucket':
             if return_terms:
-                q = self._sql_model.select(
-                    self._sql_model.value, self._sql_model.key)
+                q = self._sql_model.select(self._sql_model.value,
+                                           self._sql_model.key)
             else:
                 q = self._sql_model.select(self._sql_model.key)
             if not startkey == '_' and endkey == '_':
-                q = q.where(
-                    self._sql_model.key >= startkey, self._sql_model.key <= endkey
-                )
+                q = q.where(self._sql_model.key >= startkey,
+                            self._sql_model.key <= endkey)
         else:
             if return_terms:
-                q = self._sql_idx.select(
-                    self._sql_idx.value, self._sql_idx.key)
+                q = self._sql_idx.select(self._sql_idx.value,
+                                         self._sql_idx.key)
             else:
                 q = self._sql_idx.select(self._sql_idx.key)
             q = q.where(
-                self._sql_idx.name == index,
-                self._sql_idx.value >= startkey, self._sql_idx.value <= endkey
-            ).order_by(self._sql_idx.value)
+                self._sql_idx.name == index, self._sql_idx.value >= startkey,
+                self._sql_idx.value <= endkey).order_by(self._sql_idx.value)
 
         max_results = int(max_results or 0)
         continuation = int(continuation or 0)
@@ -376,7 +375,8 @@ class Bucket(object):
         if not keys:
             return []
         else:
-            q = self._sql_model.select().where(self._sql_model.key << list(keys))
+            q = self._sql_model.select().where(self._sql_model.key << list(
+                keys))
             print q
             return map(RiakObj, list(q))
 
@@ -431,6 +431,8 @@ class SqlClient(object):
 
     def delete_all(self, cls):
         # naive way for SQL, we could delete whole table contents
-        rst = cls.bucket.get_index('$bucket', startkey='_', max_results=100000).results
+        rst = cls.bucket.get_index('$bucket',
+                                   startkey='_',
+                                   max_results=100000).results
         for key in rst:
             cls.bucket.delete(key)

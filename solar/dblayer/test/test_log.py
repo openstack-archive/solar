@@ -30,8 +30,10 @@ def test_multiple_filter():
 
     l1.save()
     l2.save()
-    assert LogItem.composite.filter({'log': 'history', 'resource': 'a'}) == [l1.key]
-    assert LogItem.composite.filter({'log': 'history', 'resource': 'b'}) == [l2.key]
+    assert LogItem.composite.filter({'log': 'history',
+                                     'resource': 'a'}) == [l1.key]
+    assert LogItem.composite.filter({'log': 'history',
+                                     'resource': 'b'}) == [l2.key]
 
 
 def test_changed_index():
@@ -60,8 +62,9 @@ def test_reversed_order_is_preserved():
         li.save()
         added.append(li.key)
     added.reverse()
-    assert list(LogItem.history.filter(
-        StrInt.n_max(), StrInt.n_min(), max_results=2)) == added[:2]
+    assert list(LogItem.history.filter(StrInt.n_max(),
+                                       StrInt.n_min(),
+                                       max_results=2)) == added[:2]
 
 
 def test_staged_not_indexed():
@@ -75,8 +78,10 @@ def test_staged_not_indexed():
         li.log = 'history'
         li.save()
 
-    assert set(LogItem.history.filter(
-        StrInt.n_max(), StrInt.n_min())) == {li.key for li in added[:2]}
+    assert set(LogItem.history.filter(StrInt.n_max(), StrInt.n_min())) == {
+        li.key
+        for li in added[:2]
+    }
 
 
 def test_history_last_filter():
@@ -90,4 +95,3 @@ def test_history_last_filter():
 
 def test_history_last_returns_none():
     assert LogItem.history_last() == None
-

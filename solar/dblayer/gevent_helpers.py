@@ -12,14 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 from gevent.pool import Pool
 import gevent
 from solar.dblayer.solar_models import Resource
 
 
 class DBLayerPool(Pool):
-
     def __init__(self, *args, **kwargs):
         super(DBLayerPool, self).__init__(*args, **kwargs)
         self.parent = gevent.getcurrent()

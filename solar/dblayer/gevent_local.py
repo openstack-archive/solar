@@ -77,6 +77,7 @@ class _localimpl(object):
                 _local = wrlocal()
                 if _local is not None:
                     _local.dicts.pop(idt, None)
+
             wrlocal = ref(self, local_deleted)
             wrthread = ref(thread, thread_deleted)
             thread.__dict__[key] = wrlocal
@@ -87,6 +88,7 @@ class _localimpl(object):
                 dicts = wrdicts()
                 if dicts:
                     dicts.pop(idt, None)
+
             rawlink(clear)
             wrthread = None
 
@@ -118,7 +120,8 @@ class local(object):
 
     def __new__(cls, *args, **kw):
         if args or kw:
-            if (PYPY and cls.__init__ == object.__init__) or (not PYPY and cls.__init__ is object.__init__):
+            if (PYPY and cls.__init__ == object.__init__) or (
+                    not PYPY and cls.__init__ is object.__init__):
                 raise TypeError("Initialization arguments are not supported")
         self = object.__new__(cls)
         impl = _localimpl()
@@ -137,17 +140,15 @@ class local(object):
 
     def __setattr__(self, name, value):
         if name == '__dict__':
-            raise AttributeError(
-                "%r object attribute '__dict__' is read-only"
-                % self.__class__.__name__)
+            raise AttributeError("%r object attribute '__dict__' is read-only"
+                                 % self.__class__.__name__)
         with _patch(self):
             return object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
         if name == '__dict__':
-            raise AttributeError(
-                "%r object attribute '__dict__' is read-only"
-                % self.__class__.__name__)
+            raise AttributeError("%r object attribute '__dict__' is read-only"
+                                 % self.__class__.__name__)
         with _patch(self):
             return object.__delattr__(self, name)
 
@@ -159,7 +160,8 @@ class local(object):
         duplicate = copy(d)
 
         cls = type(self)
-        if (PYPY and cls.__init__ != object.__init__) or (not PYPY and cls.__init__ is not object.__init__):
+        if (PYPY and cls.__init__ != object.__init__) or (
+                not PYPY and cls.__init__ is not object.__init__):
             args, kw = impl.localargs
             instance = cls(*args, **kw)
         else:

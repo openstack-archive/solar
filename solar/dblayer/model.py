@@ -27,7 +27,6 @@ class NONE:
 
 
 class SingleIndexCache(object):
-
     def __init__(self):
         self.lock = RLock()
         self.cached_vals = []
@@ -64,11 +63,9 @@ class SingleIndexCache(object):
         self.lock.release()
 
 
-
 class SingleClassCache(object):
 
-    __slots__ = ['obj_cache', 'db_ch_state',
-                 'lazy_save', 'origin_class']
+    __slots__ = ['obj_cache', 'db_ch_state', 'lazy_save', 'origin_class']
 
     def __init__(self, origin_class):
         self.obj_cache = {}
@@ -78,7 +75,6 @@ class SingleClassCache(object):
 
 
 class ClassCache(object):
-
     def __init__(self, *args, **kwargs):
         self._l = RLock()
 
@@ -130,7 +126,9 @@ def changes_state_for(_type):
             obj._c.db_ch_state['index'].add(obj.key)
             obj.save_lazy()
             return f(obj, *args, **kwargs)
+
         return _inner2
+
     return _inner1
 
 
@@ -143,7 +141,9 @@ def clears_state_for(_type):
             except KeyError:
                 pass
             return f(obj, *args, **kwargs)
+
         return _inner2
+
     return _inner1
 
 
@@ -153,7 +153,9 @@ def requires_clean_state(_type):
         def _inner2(obj, *args, **kwargs):
             check_state_for(_type, obj)
             return f(obj, *args, **kwargs)
+
         return _inner2
+
     return _inner1
 
 
@@ -167,7 +169,8 @@ def check_state_for(_type, obj):
             state = obj._c.db_ch_state.get(_type)
             if not state:
                 return
-        raise Exception("Dirty state, save all %r objects first" % obj.__class__)
+        raise Exception("Dirty state, save all %r objects first" %
+                        obj.__class__)
 
 
 @total_ordering
@@ -177,7 +180,6 @@ class StrInt(object):
     positive_char = 'p'
     negative_char = 'n'
     format_size = 10 + precision
-
 
     def __init__(self, val=None):
         self._val = self._make_val(val)
@@ -251,7 +253,7 @@ class StrInt(object):
             val = time.time()
         if isinstance(val, (long, int, float)):
             if isinstance(val, float):
-                val = int(val * (10 ** cls.precision))
+                val = int(val * (10**cls.precision))
             val = cls.to_hex(val)
         elif isinstance(val, cls):
             val = val._val
@@ -293,9 +295,7 @@ class StrInt(object):
             return other._val[1:] < self._val[1:]
 
 
-
 class Replacer(object):
-
     def __init__(self, name, fget, *args):
         self.name = name
         self.fget = fget
@@ -339,11 +339,12 @@ class Field(FieldBase):
 
     # in from_dict, when you set value to None, then types that are *not* there are set to NONE
     _not_nullable_types = {int, float, long, str, unicode, basestring}
-    _simple_types = {int, float, long, str, unicode, basestring, list, tuple, dict}
+    _simple_types = {int, float, long, str, unicode, basestring, list, tuple,
+                     dict}
 
     def __init__(self, _type, fname=None, default=NONE):
         if _type == str:
-           _type = basestring
+            _type = basestring
         self._type = _type
         super(Field, self).__init__(fname=fname, default=default)
 
@@ -358,7 +359,8 @@ class Field(FieldBase):
 
     def __set__(self, instance, value):
         if not isinstance(value, self._type):
-            raise Exception("Invalid type %r for %r, expected %r" % (type(value), self.fname, self._type))
+            raise Exception("Invalid type %r for %r, expected %r" %
+                            (type(value), self.fname, self._type))
         if self._type not in self._simple_types:
             value = self._type.to_simple(value)
         instance._field_changed(self)
@@ -372,16 +374,17 @@ class Field(FieldBase):
 
 
 class IndexedField(Field):
-
     def __set__(self, instance, value):
         value = super(IndexedField, self).__set__(instance, value)
         instance._set_index('{}_bin'.format(self.fname), value)
         return value
 
     def _filter(self, startkey, endkey=None, **kwargs):
-        if isinstance(startkey, self._type) and self._type not in self._simple_types:
+        if isinstance(startkey,
+                      self._type) and self._type not in self._simple_types:
             startkey = self._type.to_simple(startkey)
-        if isinstance(endkey, self._type) and self._type not in self._simple_types:
+        if isinstance(endkey,
+                      self._type) and self._type not in self._simple_types:
             endkey = self._type.to_simple(endkey)
         kwargs.setdefault('max_results', 1000000)
         res = self._declared_in._get_index('{}_bin'.format(self.fname),
@@ -397,7 +400,6 @@ class IndexedField(Field):
 
 
 class IndexFieldWrp(object):
-
     def __init__(self, field_obj, instance):
         self._field_obj = field_obj
         self._instance = instance
@@ -486,7 +488,6 @@ class IndexField(FieldBase):
 
 
 class CompositeIndexFieldWrp(IndexFieldWrp):
-
     def reset(self):
         index = []
         for f in self._field_obj.fields:
@@ -503,6 +504,7 @@ class CompositeIndexFieldWrp(IndexFieldWrp):
             self._instance._remove_index(index_name, index_val)
 
         self._instance._add_index('%s_bin' % self.fname, index)
+
 
 class CompositeIndexField(IndexField):
 
@@ -523,8 +525,10 @@ class ModelMeta(type):
 
     def __new__(mcs, name, bases, attrs):
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, attrs)
-        model_fields = set((name for (name, attr) in attrs.items()
-                            if isinstance(attr, FieldBase) and not name.startswith('_')))
+        model_fields = set((name
+                            for (name, attr) in attrs.items()
+                            if isinstance(attr, FieldBase) and
+                            not name.startswith('_')))
         for f in model_fields:
             field = getattr(cls, f)
             if hasattr(field, 'fname') and field.fname is None:
@@ -536,13 +540,12 @@ class ModelMeta(type):
 
         for base in bases:
             try:
-                model_fields_base  = base._model_fields
+                model_fields_base = base._model_fields
             except AttributeError:
                 continue
             else:
                 for given in base._model_fields:
                     model_fields.add(given)
-
 
         cls._model_fields = [getattr(cls, x) for x in model_fields]
 
@@ -556,13 +559,11 @@ class ModelMeta(type):
         mcs._defined_models.add(cls)
         return cls
 
-
     @classmethod
     def setup(mcs, riak_client):
         if hasattr(mcs, 'riak_client'):
             raise DBLayerException("Setup already done")
         mcs.riak_client = riak_client
-
 
     @classmethod
     def remove_all(mcs):
@@ -591,7 +592,6 @@ class ModelMeta(type):
 
 
 class NestedField(FieldBase):
-
     def __init__(self, _class, fname=None, default=NONE, hash_key=None):
         self._class = _class
         self._hash_key = hash_key
@@ -665,9 +665,7 @@ class NestedModel(object):
             del self._parent._data_container[self._field.fname]
 
 
-
 class NestedModelHash(object):
-
     def __init__(self, field, parent, _class, hash_key):
         self._field = field
         self._parent = parent
@@ -696,7 +694,6 @@ class NestedModelHash(object):
     def from_dict(self, data):
         hk = data[self._hash_key]
         self[hk] = data
-
 
 
 class Model(object):
@@ -741,7 +738,6 @@ class Model(object):
         if self._real_riak_object is not None:
             raise DBLayerException("Already have _riak_object")
         self._real_riak_object = value
-
 
     @property
     def _data_container(self):
@@ -791,8 +787,8 @@ class Model(object):
     def __str__(self):
         if self._riak_object is None:
             return "<%s not initialized>" % (self.__class__.__name__)
-        return "<%s %s:%s>" % (self.__class__.__name__, self._riak_object.bucket.name, self.key)
-
+        return "<%s %s:%s>" % (self.__class__.__name__,
+                               self._riak_object.bucket.name, self.key)
 
     @classmethod
     def new(cls, key, data):
@@ -878,7 +874,6 @@ class Model(object):
             except DBLayerException:
                 continue
             cls._c.lazy_save.clear()
-
 
     @clears_state_for('index')
     def save(self, force=False):
