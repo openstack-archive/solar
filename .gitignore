@@ -41,9 +41,11 @@ vagrant-settings.yaml
 
 .tox
 
-solar/.coverage
+.coverage
 
 
 # pytest cache
 solar/.cache
 .config.override
+
+.testrepository/
