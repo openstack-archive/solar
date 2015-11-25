@@ -1,4 +1,3 @@
-import pytest
 
 from solar.dblayer.solar_models import Task
 

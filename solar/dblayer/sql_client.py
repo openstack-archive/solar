@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-from collections import deque
-import inspect
-import os
 import uuid
 import sys
 
-from peewee import CharField, BlobField, IntegerField, \
-    ForeignKeyField, Model, BooleanField, TextField, Field, Database
+from peewee import CharField, BlobField, \
+    ForeignKeyField, Model
 
 from solar.dblayer.model import clear_cache
 from threading import RLock

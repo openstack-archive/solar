@@ -1,4 +1,3 @@
-import pytest
 
 from solar.dblayer.solar_models import LogItem, NegativeCounter
 from solar.dblayer.model import StrInt
@@ -94,4 +93,4 @@ def test_history_last_filter():
 
 
 def test_history_last_returns_none():
-    assert LogItem.history_last() == None
+    assert LogItem.history_last() is None

@@ -103,8 +103,10 @@ def _patch(self):
     try:
         dct = impl.get_dict()
     except KeyError:
-        # it's OK to acquire the lock here and not earlier, because the above code won't switch out
-        # however, subclassed __init__ might switch, so we do need to acquire the lock here
+        # it's OK to acquire the lock here and not earlier,
+        # because the above code won't switch out
+        # however, subclassed __init__ might switch,
+        # so we do need to acquire the lock here
         dct = impl.create_dict()
         args, kw = impl.localargs
         with impl.locallock:

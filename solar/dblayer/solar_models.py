@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from solar.dblayer.model import (Model, Field, IndexField, IndexFieldWrp,
-                                 DBLayerException, requires_clean_state,
+                                 DBLayerException,
                                  check_state_for, StrInt, SingleIndexCache,
                                  IndexedField, CompositeIndexField)
 from types import NoneType
@@ -223,7 +223,7 @@ class InputsFieldWrp(IndexFieldWrp):
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
-        if my_type == other_type and not ':' in my_inp_name:
+        if my_type == other_type and ':' not in my_inp_name:
             # if the type is the same map 1:1, and flat
             my_type = InputTypes.simple
             other_type = InputTypes.simple
@@ -407,8 +407,8 @@ class InputsFieldWrp(IndexFieldWrp):
         tags = set()
         for recv in recvs:
             index_val, obj_key = recv
-            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split(
-                '|', 6)
+            (_, _, emitter_key, emitter_inp,
+             my_tag, my_val, mapping_type) = index_val.split('|', 6)
             cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
                                                                    other)
             items.append((my_tag, my_val, cres))
@@ -432,7 +432,8 @@ class InputsFieldWrp(IndexFieldWrp):
                     emitter_inp, other)
             elif splen == 7:
                 # partial
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted
+                (_, _, emitter_key, emitter_inp,
+                 my_tag, my_val, mapping_type) = splitted
                 cres = Resource.get(emitter_key).inputs._get_field_val(
                     emitter_inp, other)
                 res = {my_val: cres}
@@ -464,7 +465,6 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _map_field_val_list_hash(self, recvs, input_name, name, other=None):
         items = []
-        tags = set()
         for recv in recvs:
             index_val, obj_key = recv
             splitted_val = index_val.split('|', 6)
@@ -475,10 +475,10 @@ class InputsFieldWrp(IndexFieldWrp):
                     emitter_inp, other)
                 items.append((emitter_key, None, cres))
             else:
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
+                (_, _, emitter_key, emitter_inp,
+                 my_tag, my_val, mapping_type) = splitted_val
                 cres = Resource.get(emitter_key).inputs._get_field_val(
                     emitter_inp, other)
-                mapping_type = splitted_val[-1]
                 items.append((my_tag, my_val, cres))
         tmp_res = {}
         for first, my_val, value in items:
@@ -611,7 +611,7 @@ class TagsFieldWrp(IndexFieldWrp):
 
     def has_tag(self, name, subval=None):
         fld = self._instance._data_container[self.fname]
-        if not name in fld:
+        if name not in fld:
             return False
         if subval is not None:
             subvals = fld[name]
@@ -627,7 +627,7 @@ class TagsFieldWrp(IndexFieldWrp):
         fld = inst._data_container[self.fname]
         full_value = '{}={}'.format(name, value)
         try:
-            vals = fld.remove(full_value)
+            fld.remove(full_value)
         except ValueError:
             pass
         else:
@@ -655,19 +655,20 @@ class TagsField(IndexField):
             subval = str(subval)
         # maxresults because of riak bug with small number of results
         # https://github.com/basho/riak/issues/608
+        declared = self._declared_in
         if not subval.endswith('*'):
-            res = self._declared_in._get_index('{}_bin'.format(self.fname),
-                                               startkey='{}~{}'.format(name, subval),
-                                               endkey='{}~{} '.format(name, subval),  # space required
-                                               max_results=100000,
-                                               return_terms=True).results
+            res = declared._get_index('{}_bin'.format(self.fname),
+                                      startkey='{}~{}'.format(name, subval),
+                                      endkey='{}~{} '.format(name, subval),
+                                      max_results=100000,
+                                      return_terms=True).results
         else:
             subval = subval.replace('*', '')
-            res = self._declared_in._get_index('{}_bin'.format(self.fname),
-                                               startkey='{}~{}'.format(name, subval),
-                                               endkey='{}~{}~'.format(name, subval),  # space required
-                                               max_results=100000,
-                                               return_terms=True).results
+            res = declared._get_index('{}_bin'.format(self.fname),
+                                      startkey='{}~{}'.format(name, subval),
+                                      endkey='{}~{}~'.format(name, subval),
+                                      max_results=100000,
+                                      return_terms=True).results
         return set(map(itemgetter(1), res))
 
 # class MetaInput(NestedModel):
@@ -708,14 +709,15 @@ class Resource(Model):
             other_inputs.connect(other_name, self, my_name)
 
     def connect(self, other, mapping):
-        my_inputs = self.inputs
         other_inputs = other.inputs
         if mapping is None:
             return
         if self == other:
             raise Exception('Trying to connect value-.* to itself')
         solar_map(
-            lambda (my_name, other_name): self._connect_single(other_inputs, other_name, my_name),
+            lambda (my_name, other_name): self._connect_single(other_inputs,
+                                                               other_name,
+                                                               my_name),
             mapping.iteritems(),
             concurrency=2)
 
@@ -727,7 +729,7 @@ class Resource(Model):
             if not emitter[0] == self.key:
                 return False
             key = emitter[1]
-            if not key in converted:
+            if key not in converted:
                 return False
             convs = converted[key]
             for conv in convs:
@@ -810,7 +812,8 @@ class Resource(Model):
             index_vals = emit_bin[0].split('|')
             index_vals_len = len(index_vals)
             if index_vals_len == 6:  # hash
-                _, my_input, other_res, other_input, my_tag, my_val = index_vals
+                (_, my_input, other_res,
+                 other_input, my_tag, my_val) = index_vals
                 to_disconnect_all[other_res].append("{}|{}|{}".format(
                     my_input, my_tag, my_val))
             elif index_vals_len == 4:
@@ -837,7 +840,8 @@ class CommitedResource(Model):
 Type of operations:
 
 - load all tasks for execution
-- load single task + childs + all parents of childs (and transitions between them)
+- load single task + childs + all parents
+  of childs (and transitions between them)
 """
 
 

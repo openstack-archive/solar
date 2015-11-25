@@ -2,9 +2,7 @@ from solar.utils import get_local
 from random import getrandbits
 import uuid
 from functools import wraps, total_ordering
-from operator import itemgetter
 import time
-from contextlib import contextmanager
 from threading import RLock
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
 
@@ -164,7 +162,6 @@ def check_state_for(_type, obj):
     if state:
         if True:
             # TODO: solve it
-            orig_state = state
             obj.save_all_lazy()
             state = obj._c.db_ch_state.get(_type)
             if not state:
@@ -233,7 +230,7 @@ class StrInt(object):
     def from_hex(cls, value):
         v = int(value[1:], 16)
         if value[0] == cls.negative_char:
-            v -= int('9' * self.format_size)
+            v -= int('9' * cls.format_size)
         return v
 
     def int_val(self):
@@ -253,7 +250,7 @@ class StrInt(object):
             val = time.time()
         if isinstance(val, (long, int, float)):
             if isinstance(val, float):
-                val = int(val * (10**cls.precision))
+                val = int(val * (10 ** cls.precision))
             val = cls.to_hex(val)
         elif isinstance(val, cls):
             val = val._val
@@ -271,7 +268,7 @@ class StrInt(object):
         so = other._val[0]
         ss = self._val[0]
         son = so == other.negative_char
-        ssn = so == self.negative_char
+        ssn = ss == self.negative_char
         if son != ssn:
             return False
         return self._val[1:] == other._val[1:]
@@ -337,7 +334,8 @@ class FieldBase(object):
 
 class Field(FieldBase):
 
-    # in from_dict, when you set value to None, then types that are *not* there are set to NONE
+    # in from_dict, when you set value to None,
+    # then types that are *not* there are set to NONE
     _not_nullable_types = {int, float, long, str, unicode, basestring}
     _simple_types = {int, float, long, str, unicode, basestring, list, tuple,
                      dict}
@@ -544,7 +542,7 @@ class ModelMeta(type):
             except AttributeError:
                 continue
             else:
-                for given in base._model_fields:
+                for given in model_fields_base:
                     model_fields.add(given)
 
         cls._model_fields = [getattr(cls, x) for x in model_fields]

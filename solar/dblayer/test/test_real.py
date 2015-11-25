@@ -1,7 +1,7 @@
 import pytest
-import random
 
-from solar.dblayer.model import Model, Field, IndexField, clear_cache, check_state_for, StrInt
+from solar.dblayer.model import StrInt
+from solar.dblayer.model import check_state_for
 from solar.dblayer.solar_models import Resource, DBLayerSolarException
 
 
@@ -29,7 +29,7 @@ def test_changes_state(rk):
     r.inputs['a'] = 1
     with pytest.raises(Exception):
         # raise exception when something is changed
-        val = r.inputs['a']
+        r.inputs['a']
     r.save()
     check_state_for('index', r)
 
@@ -57,8 +57,8 @@ def test_input_in_dict(rk):
     assert r._riak_object.data['inputs']['input1'] == 15
     assert r.inputs['input1'] == 15
 
-    assert r._riak_object.data['inputs']['input2'] == None
-    assert r.inputs['input2'] == None
+    assert r._riak_object.data['inputs']['input2'] is None
+    assert r.inputs['input2'] is None
 
 
 def test_basic_connect(rk):
@@ -79,13 +79,13 @@ def test_basic_connect(rk):
     assert r1._riak_object.data['inputs']['input1'] == 10
     assert r1.inputs['input1'] == 10
 
-    assert r2._riak_object.data['inputs']['input1'] == None
+    assert r2._riak_object.data['inputs']['input1'] is None
     assert r2.inputs['input1'] == 10
 
     assert r1._riak_object.data['inputs']['input2'] == 15
     assert r1.inputs['input2'] == 15
 
-    assert r2._riak_object.data['inputs']['input2'] == None
+    assert r2._riak_object.data['inputs']['input2'] is None
     assert r2.inputs['input2'] == 15
 
 

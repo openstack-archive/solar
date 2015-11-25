@@ -11,9 +11,9 @@ def naive_resolver(riak_object):
     if len(c) > 2:
         raise RuntimeError(
             "Too many different siblings, not sure what to do with siblings")
-    if not 0 in c:
-        raise RuntimeError(
-            "No empty object for resolution, not sure what to do with siblings")
+    if 0 not in c:
+        raise RuntimeError("No empty object for resolution"
+                           " not sure what to do with siblings")
     selected = max(siblings_len)
     # TODO: pass info to obj save_lazy too
     riak_object.siblings = [selected[1]]

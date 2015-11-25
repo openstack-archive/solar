@@ -25,7 +25,6 @@ def patch_all():
         raise RuntimeError(
             "You should run patch_multi_get before defining models")
     from solar.dblayer.model import Model
-    from solar.dblayer.solar_models import InputsFieldWrp
 
     from solar.dblayer.gevent_helpers import (multi_get, solar_map, get_local)
     from solar import utils

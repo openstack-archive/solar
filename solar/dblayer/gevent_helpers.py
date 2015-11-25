@@ -14,7 +14,6 @@
 
 from gevent.pool import Pool
 import gevent
-from solar.dblayer.solar_models import Resource
 
 
 class DBLayerPool(Pool):

@@ -1,7 +1,5 @@
-import pytest
-from solar.dblayer.model import (Field, IndexField, clear_cache, Model,
-                                 NestedField, NestedModel, DBLayerNotFound,
-                                 DBLayerNoRiakObj, DBLayerException)
+from solar.dblayer.model import (Field, Model,
+                                 NestedField, NestedModel)
 
 
 class N1(NestedModel):
