@@ -24,7 +24,7 @@ from solar import errors
 env.warn_only = True
 
 
-# if we would have something like solard that would render this then
+# if we would have something like solar_agent that would render this then
 # we would not need to render it there
 # for now we redender it locally, sync to remote, run ansible on remote host as local
 class AnsibleTemplate(TempFileHandler):

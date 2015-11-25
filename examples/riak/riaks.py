@@ -206,26 +206,26 @@ def setup_haproxies():
 
 @click.command()
 @click.argument('i', type=int, required=True)
-def add_solard(i):
-    solard_transport  = vr.create('solard_transport%s' % i, 'resources/transport_solard',
-                                  {'solard_user': 'vagrant',
-                                   'solard_password': 'password'})[0]
+def add_solar_agent(i):
+    solar_agent_transport  = vr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
+                                  {'solar_agent_user': 'vagrant',
+                                   'solar_agent_password': 'password'})[0]
     transports = resource.load('transports%s' % i)
     ssh_transport = resource.load('ssh_transport%s' % i)
-    transports_for_solard = vr.create('transports_for_solard%s' % i, 'resources/transports')[0]
+    transports_for_solar_agent = vr.create('transports_for_solar_agent%s' % i, 'resources/transports')[0]
 
-    # install solard with ssh
-    signals.connect(transports_for_solard, solard_transport, {})
+    # install solar_agent with ssh
+    signals.connect(transports_for_solar_agent, solar_agent_transport, {})
 
-    signals.connect(ssh_transport, transports_for_solard, {'ssh_key': 'transports:key',
+    signals.connect(ssh_transport, transports_for_solar_agent, {'ssh_key': 'transports:key',
                                                            'ssh_user': 'transports:user',
                                                            'ssh_port': 'transports:port',
                                                            'name': 'transports:name'})
 
-    # add solard to transports on this node
-    signals.connect(solard_transport, transports, {'solard_user': 'transports:user',
-                                                   'solard_port': 'transports:port',
-                                                   'solard_password': 'transports:password',
+    # add solar_agent to transports on this node
+    signals.connect(solar_agent_transport, transports, {'solar_agent_user': 'transports:user',
+                                                   'solar_agent_port': 'transports:port',
+                                                   'solar_agent_password': 'transports:password',
                                                    'name': 'transports:name'})
 
 
@@ -252,7 +252,7 @@ def undeploy():
 main.add_command(deploy)
 main.add_command(undeploy)
 main.add_command(add_haproxies)
-main.add_command(add_solard)
+main.add_command(add_solar_agent)
 
 
 if __name__ == '__main__':

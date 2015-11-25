@@ -13,13 +13,13 @@
 #    under the License.
 
 
-from solard.client import SolardClient
+from solar_agent.client import SolarAgentClient
 
 from solar.core.transports.base import RunTransport, SyncTransport, Executor, SolarRunResult
 from solar.core.log import log
 
 
-class SolardTransport(object):
+class SolarAgentTransport(object):
 
     def get_client(self, resource):
         transport = self.get_transport_data(resource)
@@ -28,18 +28,18 @@ class SolardTransport(object):
         port = transport['port']
         auth = transport['password']
         transport_class = transport.get('transport_class')
-        client = SolardClient(auth={'user': user, 'auth': auth},
+        client = SolarAgentClient(auth={'user': user, 'auth': auth},
                             transport_args=(host, port),
                             transport_class=transport_class)
         return client
 
 
-class SolardSyncTransport(SyncTransport, SolardTransport):
+class SolarAgentSyncTransport(SyncTransport, SolarAgentTransport):
 
-    preffered_transport_name = 'solard'
+    preffered_transport_name = 'solar_agent'
 
     def copy(self, resource, _from, _to, use_sudo=False):
-        log.debug("Solard copy: %s -> %s", _from, _to)
+        log.debug("SolarAgent copy: %s -> %s", _from, _to)
 
         client = self.get_client(resource)
         executor = lambda transport: client.copy(_from, _to, use_sudo)
@@ -49,15 +49,15 @@ class SolardSyncTransport(SyncTransport, SolardTransport):
         self.executors.append(executor)
 
 
-class SolardRunTransport(RunTransport, SolardTransport):
+class SolarAgentRunTransport(RunTransport, SolarAgentTransport):
 
-    preffered_transport_name = 'solard'
+    preffered_transport_name = 'solar_agent'
 
     def get_result(self, result):
         return SolarRunResult(result)
 
     def run(self, resource, *args, **kwargs):
-        log.debug("Solard run: %s", args)
+        log.debug("SolarAgent run: %s", args)
         client = self.get_client(resource)
         res = client.run(' '.join(args), **kwargs)
         return self.get_result(res)

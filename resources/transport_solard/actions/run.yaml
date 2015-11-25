@@ -1,7 +1,0 @@
-- hosts: [{{ host }}]
-  sudo: yes
-  tasks:
-    - shell: pip install -e /vagrant/solard
-    - shell: start-stop-daemon --stop --make-pidfile --pidfile /tmp/solard.pid --chdir /vagrant/solard --startas /bin/bash -- -c "exec /usr/local/bin/solard run --port {{solard_port}} --base tcp > /tmp/solard.log 2>&1"
-      ignore_errors: True
-    - shell: start-stop-daemon -b --start --make-pidfile --pidfile /tmp/solard.pid --chdir /vagrant/solard --startas /bin/bash -- -c "exec /usr/local/bin/solard run --port {{solard_port}} --base tcp > /tmp/solard.log 2>&1"

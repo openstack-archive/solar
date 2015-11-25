@@ -17,7 +17,7 @@ import handlers
 
 # from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
 # from solar.core.transports.rsync import RsyncSyncTransport
-# from solar.core.transports.solard_transport import SolardRunTransport, SolardSyncTransport
+# from solar.core.transports.solar_agent_transport import SolarAgentRunTransport, SolarAgentSyncTransport
 
 from solar.core.transports.bat import BatRunTransport, BatSyncTransport
 
@@ -25,8 +25,8 @@ _default_transports = {
     # 'sync': RsyncSyncTransport,
     # 'sync': SSHSyncTransport,
     # 'run': SSHRunTransport,
-    # 'run': SolardRunTransport,
-    # 'sync': SolardSyncTransport
+    # 'run': SolarAgentRunTransport,
+    # 'sync': SolarAgentSyncTransport
     'run': BatRunTransport,
     'sync': BatSyncTransport
 }
