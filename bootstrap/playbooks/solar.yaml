@@ -13,3 +13,7 @@
         dest: /home/vagrant/.bashrc
         line: eval "$(_SOLAR_COMPLETE=source solar)"
         state: present
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export PYTHONWARNINGS="ignore"
+        state: present
