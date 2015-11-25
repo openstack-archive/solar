@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from solar.dblayer.model import (Model, Field, IndexField,
-                                 IndexFieldWrp,
+from solar.dblayer.model import (Model, Field, IndexField, IndexFieldWrp,
                                  DBLayerException,
-                                 requires_clean_state, check_state_for,
-                                 StrInt, SingleIndexCache,
+                                 check_state_for, StrInt, SingleIndexCache,
                                  IndexedField, CompositeIndexField)
 from types import NoneType
 from operator import itemgetter
@@ -13,8 +11,7 @@ from collections import defaultdict
 
 from solar.utils import solar_map
 
-InputTypes = Enum('InputTypes',
-                  'simple list hash list_hash')
+InputTypes = Enum('InputTypes', 'simple list hash list_hash')
 
 
 class DBLayerSolarException(DBLayerException):
@@ -57,8 +54,7 @@ class InputsFieldWrp(IndexFieldWrp):
             if dlen == 5:
                 meta = None
             elif dlen == 7:
-                meta = {'destination_key': data[5],
-                        'tag': data[4]}
+                meta = {'destination_key': data[5], 'tag': data[4]}
             else:
                 raise Exception("Unsupported case")
             yield (other_resource, other_input), (my_resource, my_input), meta
@@ -104,16 +100,17 @@ class InputsFieldWrp(IndexFieldWrp):
         return list(self.__iter__())
 
     def as_dict(self):
-        items = solar_map(lambda x: (x, self._get_field_val(x)), [x for x in self], concurrency=3)
+        items = solar_map(lambda x: (x, self._get_field_val(x)),
+                          [x for x in self],
+                          concurrency=3)
         return dict(items)
 
-    def _connect_my_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+    def _connect_my_simple(self, my_resource, my_inp_name, other_resource,
+                           other_inp_name, my_type, other_type):
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
-        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key,
-                                          my_inp_name,
-                                          other_resource.key,
-                                          other_inp_name)
+        my_ind_val = '{}|{}|{}|{}'.format(my_resource.key, my_inp_name,
+                                          other_resource.key, other_inp_name)
         my_ind_val += types_mapping
 
         real_my_type = self._input_type(my_resource, my_inp_name)
@@ -128,15 +125,15 @@ class InputsFieldWrp(IndexFieldWrp):
         my_resource._add_index(my_ind_name, my_ind_val)
         return my_inp_name
 
-    def _connect_other_simple(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+    def _connect_other_simple(self, my_resource, my_inp_name, other_resource,
+                              other_inp_name, my_type, other_type):
         other_ind_name = '{}_emit_bin'.format(self.fname)
 
         real_my_type = self._input_type(my_resource, my_inp_name)
         if real_my_type == InputTypes.simple or ':' not in my_inp_name:
             other_ind_val = '{}|{}|{}|{}'.format(other_resource.key,
                                                  other_inp_name,
-                                                 my_resource.key,
-                                                 my_inp_name)
+                                                 my_resource.key, my_inp_name)
             for ind_name, ind_value in my_resource._riak_object.indexes:
                 if ind_name == other_ind_name:
                     try:
@@ -150,19 +147,17 @@ class InputsFieldWrp(IndexFieldWrp):
                         my_resource._remove_index(ind_name, ind_value)
                         break
 
-        elif real_my_type in (InputTypes.list_hash, InputTypes.hash, InputTypes.list):
+        elif real_my_type in (InputTypes.list_hash, InputTypes.hash,
+                              InputTypes.list):
             my_key, my_val = my_inp_name.split(':', 1)
             if '|' in my_val:
                 my_val, my_tag = my_val.split('|', 1)
             else:
                 my_tag = other_resource.name
             my_inp_name = my_key
-            other_ind_val = '{}|{}|{}|{}|{}|{}'.format(other_resource.key,
-                                                       other_inp_name,
-                                                       my_resource.key,
-                                                       my_inp_name,
-                                                       my_tag,
-                                                       my_val)
+            other_ind_val = '{}|{}|{}|{}|{}|{}'.format(
+                other_resource.key, other_inp_name, my_resource.key,
+                my_inp_name, my_tag, my_val)
             for ind_name, ind_value in my_resource._riak_object.indexes:
                 if ind_name == other_ind_name:
                     try:
@@ -178,21 +173,30 @@ class InputsFieldWrp(IndexFieldWrp):
                         break
         else:
             raise Exception("Unsupported connection type")
-        my_resource._add_index(other_ind_name,
-                               other_ind_val)
+        my_resource._add_index(other_ind_name, other_ind_val)
         return other_inp_name
 
-    def _connect_other_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
-        return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+    def _connect_other_hash(self, my_resource, my_inp_name, other_resource,
+                            other_inp_name, my_type, other_type):
+        return self._connect_other_simple(
+            my_resource, my_inp_name, other_resource, other_inp_name, my_type,
+            other_type)
 
-    def _connect_other_list_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
-        return self._connect_other_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+    def _connect_other_list_hash(self, my_resource, my_inp_name,
+                                 other_resource, other_inp_name, my_type,
+                                 other_type):
+        return self._connect_other_simple(
+            my_resource, my_inp_name, other_resource, other_inp_name, my_type,
+            other_type)
 
-    def _connect_my_list(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
-        ret = self._connect_my_simple(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+    def _connect_my_list(self, my_resource, my_inp_name, other_resource,
+                         other_inp_name, my_type, other_type):
+        ret = self._connect_my_simple(my_resource, my_inp_name, other_resource,
+                                      other_inp_name, my_type, other_type)
         return ret
 
-    def _connect_my_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
+    def _connect_my_hash(self, my_resource, my_inp_name, other_resource,
+                         other_inp_name, my_type, other_type):
 
         my_key, my_val = my_inp_name.split(':', 1)
         if '|' in my_val:
@@ -201,27 +205,25 @@ class InputsFieldWrp(IndexFieldWrp):
             my_tag = other_resource.name
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
-        my_ind_val = '{}|{}|{}|{}|{}|{}'.format(my_resource.key,
-                                                my_key,
+        my_ind_val = '{}|{}|{}|{}|{}|{}'.format(my_resource.key, my_key,
                                                 other_resource.key,
-                                                other_inp_name,
-                                                my_tag,
-                                                my_val
-        )
+                                                other_inp_name, my_tag, my_val)
         my_ind_val += types_mapping
 
         my_resource._add_index(my_ind_name, my_ind_val)
         return my_key
 
-    def _connect_my_list_hash(self, my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type):
-        return self._connect_my_hash(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+    def _connect_my_list_hash(self, my_resource, my_inp_name, other_resource,
+                              other_inp_name, my_type, other_type):
+        return self._connect_my_hash(my_resource, my_inp_name, other_resource,
+                                     other_inp_name, my_type, other_type)
 
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
         other_type = self._input_type(other_resource, other_inp_name)
         my_type = self._input_type(my_resource, my_inp_name)
 
-        if my_type == other_type and not ':' in my_inp_name:
+        if my_type == other_type and ':' not in my_inp_name:
             # if the type is the same map 1:1, and flat
             my_type = InputTypes.simple
             other_type = InputTypes.simple
@@ -235,11 +237,13 @@ class InputsFieldWrp(IndexFieldWrp):
 
         # set my side
         my_meth = getattr(self, '_connect_my_{}'.format(my_type.name))
-        my_affected = my_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+        my_affected = my_meth(my_resource, my_inp_name, other_resource,
+                              other_inp_name, my_type, other_type)
 
         # set other side
         other_meth = getattr(self, '_connect_other_{}'.format(other_type.name))
-        other_meth(my_resource, my_inp_name, other_resource, other_inp_name, my_type, other_type)
+        other_meth(my_resource, my_inp_name, other_resource, other_inp_name,
+                   my_type, other_type)
 
         try:
             del self._cache[my_affected]
@@ -261,7 +265,7 @@ class InputsFieldWrp(IndexFieldWrp):
             # emit_name = '{}|{}'.format(my_tag, my_val)
             full_name = '{}|{}|{}'.format(normalized_name, my_tag, my_val)
             name = normalized_name
-        elif '|'in name:
+        elif '|' in name:
             # disconnect everything from given input|resource
             my_input, other_resource, other_input = name.split('|', 2)
             full_name = my_input
@@ -277,20 +281,24 @@ class InputsFieldWrp(IndexFieldWrp):
             my_val, my_tag = None, None
         indexes = self._instance._riak_object.indexes
         to_dels = []
-        recvs = filter(lambda x: x[0] == '{}_recv_bin'.format(self.fname), indexes)
+        recvs = filter(lambda x: x[0] == '{}_recv_bin'.format(self.fname),
+                       indexes)
         for recv in recvs:
             _, ind_value = recv
-            if ind_value.startswith('{}|{}|'.format(self._instance.key, normalized_name)):
+            if ind_value.startswith('{}|{}|'.format(self._instance.key,
+                                                    normalized_name)):
                 spl = ind_value.split('|')
                 if len(spl) == 7 and my_tag and my_val:
                     if spl[-3] == my_tag and spl[-2] == my_val:
                         to_dels.append(recv)
                 else:
                     to_dels.append(recv)
-        emits = filter(lambda x: x[0] == '{}_emit_bin'.format(self.fname), indexes)
+        emits = filter(lambda x: x[0] == '{}_emit_bin'.format(self.fname),
+                       indexes)
         for emit in emits:
             _, ind_value = emit
-            if ind_value.endswith('|{}|{}'.format(self._instance.key, full_name)):
+            if ind_value.endswith('|{}|{}'.format(self._instance.key,
+                                                  full_name)):
                 if emit_name:
                     if ind_value.startswith(emit_name):
                         to_dels.append(emit)
@@ -317,7 +325,8 @@ class InputsFieldWrp(IndexFieldWrp):
         try:
             self._get_raw_field_val(name)
         except KeyError:
-            raise DBLayerSolarException('No input {} for {}'.format(name, my_name))
+            raise DBLayerSolarException('No input {} for {}'.format(name,
+                                                                    my_name))
         else:
             return True
 
@@ -360,12 +369,13 @@ class InputsFieldWrp(IndexFieldWrp):
         my_meth = getattr(self, '_map_field_val_{}'.format(my_type.name))
         return my_meth(recvs, name, my_name, other=other)
 
-
     def _map_field_val_simple(self, recvs, input_name, name, other=None):
         recvs = recvs[0]
         index_val, obj_key = recvs
-        _, inp, emitter_key, emitter_inp, _mapping_type = index_val.split('|', 4)
-        res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+        _, inp, emitter_key, emitter_inp, _mapping_type = index_val.split('|',
+                                                                          4)
+        res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
+                                                              other)
         self._cache[name] = res
         return res
 
@@ -373,16 +383,21 @@ class InputsFieldWrp(IndexFieldWrp):
         if len(recvs) == 1:
             recv = recvs[0]
             index_val, obj_key = recv
-            _, inp, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-            if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
+            _, inp, emitter_key, emitter_inp, mapping_type = index_val.split(
+                '|', 4)
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
+                                                                  other)
+            if mapping_type != "{}_{}".format(InputTypes.simple.value,
+                                              InputTypes.simple.value):
                 res = [res]
         else:
             res = []
             for recv in recvs:
                 index_val, obj_key = recv
-                _, _, emitter_key, emitter_inp, mapping_type = index_val.split('|', 4)
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                _, _, emitter_key, emitter_inp, mapping_type = index_val.split(
+                    '|', 4)
+                cres = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
                 res.append(cres)
         self._cache[name] = res
         return res
@@ -392,8 +407,10 @@ class InputsFieldWrp(IndexFieldWrp):
         tags = set()
         for recv in recvs:
             index_val, obj_key = recv
-            _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = index_val.split('|', 6)
-            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+            (_, _, emitter_key, emitter_inp,
+             my_tag, my_val, mapping_type) = index_val.split('|', 6)
+            cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
+                                                                   other)
             items.append((my_tag, my_val, cres))
             tags.add(my_tag)
         return items, tags
@@ -408,25 +425,32 @@ class InputsFieldWrp(IndexFieldWrp):
             if splen == 5:
                 # 1:1
                 _, inp, emitter_key, emitter_inp, mapping_type = splitted
-                if mapping_type != "{}_{}".format(InputTypes.simple.value, InputTypes.simple.value):
+                if mapping_type != "{}_{}".format(InputTypes.simple.value,
+                                                  InputTypes.simple.value):
                     raise NotImplementedError()
-                res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                res = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
             elif splen == 7:
                 # partial
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                (_, _, emitter_key, emitter_inp,
+                 my_tag, my_val, mapping_type) = splitted
+                cres = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
                 res = {my_val: cres}
                 my_resource = self._instance
-                my_resource_value = my_resource.inputs._get_raw_field_val(input_name)
+                my_resource_value = my_resource.inputs._get_raw_field_val(
+                    input_name)
                 if my_resource_value:
                     for my_val, cres in my_resource_value.iteritems():
                         res[my_val] = cres
             else:
                 raise Exception("Not supported splen %s", splen)
         else:
-            items, tags = self._map_field_val_hash_single(recvs, input_name, other)
+            items, tags = self._map_field_val_hash_single(recvs, input_name,
+                                                          other)
             my_resource = self._instance
-            my_resource_value = my_resource.inputs._get_raw_field_val(input_name)
+            my_resource_value = my_resource.inputs._get_raw_field_val(
+                input_name)
             if my_resource_value:
                 res = my_resource_value
             else:
@@ -441,19 +465,20 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _map_field_val_list_hash(self, recvs, input_name, name, other=None):
         items = []
-        tags = set()
         for recv in recvs:
             index_val, obj_key = recv
             splitted_val = index_val.split('|', 6)
             if len(splitted_val) == 5:
                 # it was list hash but with whole dict mapping
                 _, _, emitter_key, emitter_inp, mapping_type = splitted_val
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
+                cres = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
                 items.append((emitter_key, None, cres))
             else:
-                _, _, emitter_key, emitter_inp, my_tag, my_val, mapping_type = splitted_val
-                cres = Resource.get(emitter_key).inputs._get_field_val(emitter_inp, other)
-                mapping_type = splitted_val[-1]
+                (_, _, emitter_key, emitter_inp,
+                 my_tag, my_val, mapping_type) = splitted_val
+                cres = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
                 items.append((my_tag, my_val, cres))
         tmp_res = {}
         for first, my_val, value in items:
@@ -482,7 +507,8 @@ class InputsFieldWrp(IndexFieldWrp):
         except KeyError:
             pass
         inst = self._instance
-        inst._riak_object.remove_index('%s_bin' % self.fname, '{}|{}'.format(self._instance.key, name))
+        inst._riak_object.remove_index('%s_bin' % self.fname, '{}|{}'.format(
+            self._instance.key, name))
         del inst._data_container[self.fname][name]
 
     def __setitem__(self, name, value):
@@ -502,19 +528,22 @@ class InputsFieldWrp(IndexFieldWrp):
         fname = self.fname
         my_name = self._instance.key
         ind_name = '{}_recv_bin'.format(fname)
-        recvs = self._instance._get_index(ind_name,
-                                 startkey='{}|{}|'.format(my_name, name),
-                                 endkey='{}|{}|~'.format(my_name,name),
-                                 max_results=1,
-                                 return_terms=True).results
+        recvs = self._instance._get_index(
+            ind_name,
+            startkey='{}|{}|'.format(my_name, name),
+            endkey='{}|{}|~'.format(my_name, name),
+            max_results=1,
+            return_terms=True).results
         if recvs:
             recvs = recvs[0]
             res, inp, emitter_name, emitter_inp = recvs[0].split('|')[:4]
-            raise Exception("%s:%s is connected with resource %s:%s" % (res, inp, emitter_name, emitter_inp))
+            raise Exception("%s:%s is connected with resource %s:%s" %
+                            (res, inp, emitter_name, emitter_inp))
         # inst = self._instance
         robj = self._instance._riak_object
         if name not in robj.data[self.fname]:
-            self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(my_name, name))
+            self._instance._add_index('%s_bin' % self.fname, '{}|{}'.format(
+                my_name, name))
         robj.data[self.fname][name] = value
 
         with self.inputs_index_cache as c:
@@ -540,7 +569,6 @@ class InputsField(IndexField):
 
 
 class TagsFieldWrp(IndexFieldWrp):
-
     def __getitem__(self, name):
         raise TypeError('You cannot get tags like this')
 
@@ -573,7 +601,8 @@ class TagsFieldWrp(IndexFieldWrp):
         if full_value in fld:
             return
         # indexes = inst._riak_object.indexes.copy()  # copy it
-        inst._add_index('{}_bin'.format(self.fname), '{}~{}'.format(name, value))
+        inst._add_index('{}_bin'.format(self.fname), '{}~{}'.format(name,
+                                                                    value))
         try:
             fld.append(full_value)
         except KeyError:
@@ -582,7 +611,7 @@ class TagsFieldWrp(IndexFieldWrp):
 
     def has_tag(self, name, subval=None):
         fld = self._instance._data_container[self.fname]
-        if not name in fld:
+        if name not in fld:
             return False
         if subval is not None:
             subvals = fld[name]
@@ -598,13 +627,13 @@ class TagsFieldWrp(IndexFieldWrp):
         fld = inst._data_container[self.fname]
         full_value = '{}={}'.format(name, value)
         try:
-            vals = fld.remove(full_value)
+            fld.remove(full_value)
         except ValueError:
             pass
         else:
-            inst._remove_index('{}_bin'.format(self.fname), '{}~{}'.format(name, value))
+            inst._remove_index('{}_bin'.format(self.fname), '{}~{}'.format(
+                name, value))
         return True
-
 
 
 class TagsField(IndexField):
@@ -626,22 +655,21 @@ class TagsField(IndexField):
             subval = str(subval)
         # maxresults because of riak bug with small number of results
         # https://github.com/basho/riak/issues/608
+        declared = self._declared_in
         if not subval.endswith('*'):
-            res = self._declared_in._get_index('{}_bin'.format(self.fname),
-                                               startkey='{}~{}'.format(name, subval),
-                                               endkey='{}~{} '.format(name, subval),  # space required
-                                               max_results=100000,
-                                               return_terms=True).results
+            res = declared._get_index('{}_bin'.format(self.fname),
+                                      startkey='{}~{}'.format(name, subval),
+                                      endkey='{}~{} '.format(name, subval),
+                                      max_results=100000,
+                                      return_terms=True).results
         else:
             subval = subval.replace('*', '')
-            res = self._declared_in._get_index('{}_bin'.format(self.fname),
-                                               startkey='{}~{}'.format(name, subval),
-                                               endkey='{}~{}~'.format(name, subval),  # space required
-                                               max_results=100000,
-                                               return_terms=True).results
+            res = declared._get_index('{}_bin'.format(self.fname),
+                                      startkey='{}~{}'.format(name, subval),
+                                      endkey='{}~{}~'.format(name, subval),
+                                      max_results=100000,
+                                      return_terms=True).results
         return set(map(itemgetter(1), res))
-
-
 
 # class MetaInput(NestedModel):
 
@@ -670,7 +698,6 @@ class Resource(Model):
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)
 
-
     updated = IndexedField(StrInt)
 
     def _connect_single(self, other_inputs, other_name, my_name):
@@ -682,14 +709,17 @@ class Resource(Model):
             other_inputs.connect(other_name, self, my_name)
 
     def connect(self, other, mapping):
-        my_inputs = self.inputs
         other_inputs = other.inputs
         if mapping is None:
             return
         if self == other:
             raise Exception('Trying to connect value-.* to itself')
-        solar_map(lambda (my_name, other_name): self._connect_single(other_inputs, other_name, my_name),
-                  mapping.iteritems(), concurrency=2)
+        solar_map(
+            lambda (my_name, other_name): self._connect_single(other_inputs,
+                                                               other_name,
+                                                               my_name),
+            mapping.iteritems(),
+            concurrency=2)
 
     def disconnect(self, other, inputs):
         def _to_disconnect((emitter, receiver, meta)):
@@ -699,7 +729,7 @@ class Resource(Model):
             if not emitter[0] == self.key:
                 return False
             key = emitter[1]
-            if not key in converted:
+            if key not in converted:
                 return False
             convs = converted[key]
             for conv in convs:
@@ -718,8 +748,7 @@ class Resource(Model):
                 # normal input
                 return input, None
             elif spl_len == 3:
-                return spl[0], {'tag': spl[1],
-                                'destination_key': spl[2]}
+                return spl[0], {'tag': spl[1], 'destination_key': spl[2]}
             else:
                 raise Exception("Cannot convert input %r" % input)
 
@@ -730,7 +759,6 @@ class Resource(Model):
             dest_key = meta['destination_key']
             tag = meta.get('tag', other.name)
             return '{}:{}|{}'.format(input, dest_key, tag)
-
 
         converted = defaultdict(list)
         for k, v in map(_convert_input, inputs):
@@ -749,12 +777,11 @@ class Resource(Model):
     @classmethod
     def childs(cls, parents):
 
-        all_indexes = cls.bucket.get_index(
-            'inputs_recv_bin',
-            startkey='',
-            endkey='~',
-            return_terms=True,
-            max_results=999999)
+        all_indexes = cls.bucket.get_index('inputs_recv_bin',
+                                           startkey='',
+                                           endkey='~',
+                                           return_terms=True,
+                                           max_results=999999)
 
         tmp = defaultdict(set)
         to_visit = parents[:]
@@ -774,20 +801,21 @@ class Resource(Model):
         return visited
 
     def delete(self):
-        inputs_index = self.bucket.get_index(
-            'inputs_emit_bin',
-            startkey=self.key,
-            endkey=self.key+'~',
-            return_terms=True,
-            max_results=999999)
+        inputs_index = self.bucket.get_index('inputs_emit_bin',
+                                             startkey=self.key,
+                                             endkey=self.key + '~',
+                                             return_terms=True,
+                                             max_results=999999)
 
         to_disconnect_all = defaultdict(list)
         for emit_bin in inputs_index.results:
             index_vals = emit_bin[0].split('|')
             index_vals_len = len(index_vals)
             if index_vals_len == 6:  # hash
-                _, my_input, other_res, other_input, my_tag, my_val = index_vals
-                to_disconnect_all[other_res].append("{}|{}|{}".format(my_input, my_tag, my_val))
+                (_, my_input, other_res,
+                 other_input, my_tag, my_val) = index_vals
+                to_disconnect_all[other_res].append("{}|{}|{}".format(
+                    my_input, my_tag, my_val))
             elif index_vals_len == 4:
                 _, my_input, other_res, other_input = index_vals
                 to_disconnect_all[other_res].append(other_input)
@@ -812,11 +840,12 @@ class CommitedResource(Model):
 Type of operations:
 
 - load all tasks for execution
-- load single task + childs + all parents of childs (and transitions between them)
+- load single task + childs + all parents
+  of childs (and transitions between them)
 """
 
-class TasksFieldWrp(IndexFieldWrp):
 
+class TasksFieldWrp(IndexFieldWrp):
     def add(self, task):
         return True
 
@@ -857,9 +886,7 @@ class TasksField(IndexField):
         return startkey
 
 
-
 class ChildFieldWrp(TasksFieldWrp):
-
     def add(self, task):
         return self._add(self._instance, task)
 
@@ -870,7 +897,6 @@ class ChildField(TasksField):
 
 
 class ParentFieldWrp(TasksFieldWrp):
-
     def add(self, task):
         return self._add(task, self._instance)
 
@@ -910,6 +936,7 @@ system log
 5. keep order of history
 """
 
+
 class NegativeCounter(Model):
 
     count = Field(int, default=int)
@@ -928,11 +955,11 @@ class LogItem(Model):
     diff = Field(list)
     connections_diff = Field(list)
     state = Field(basestring)
-    base_path = Field(basestring) # remove me
+    base_path = Field(basestring)  # remove me
     updated = Field(StrInt)
 
     history = IndexedField(StrInt)
-    log = Field(basestring) # staged/history
+    log = Field(basestring)  # staged/history
 
     composite = CompositeIndexField(fields=('log', 'resource', 'action'))
 
@@ -942,7 +969,9 @@ class LogItem(Model):
 
     @classmethod
     def history_last(cls):
-        items = cls.history.filter(StrInt.n_max(), StrInt.n_min(), max_results=1)
+        items = cls.history.filter(StrInt.n_max(),
+                                   StrInt.n_min(),
+                                   max_results=1)
         if not items:
             return None
         return cls.get(items[0])
@@ -952,7 +981,8 @@ class LogItem(Model):
             self.composite.reset()
 
         if 'log' in self._modified_fields and self.log == 'history':
-            self.history = StrInt(next(NegativeCounter.get_or_create('history')))
+            self.history = StrInt(next(NegativeCounter.get_or_create(
+                'history')))
         return super(LogItem, self).save()
 
     @classmethod
