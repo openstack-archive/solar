@@ -15,8 +15,12 @@
 
 import os
 
-from ansible import utils  # noqa, otherwise ansible has circural import
+# this has to be before callbacks, otherwise ansible circural import problem
+from ansible import utils
+
+# intentional line, otherwise H306
 from ansible import callbacks
+
 import ansible.constants as C
 from ansible.playbook import PlayBook
 from fabric import api as fabric_api
