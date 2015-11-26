@@ -12,16 +12,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import glob
 import io
 import json
-import glob
-import yaml
 import logging
 import os
-
-from uuid import uuid4
+import uuid
+import yaml
 
 from jinja2 import Environment
+
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ def load_by_mask(mask):
 
 
 def generate_uuid():
-    return str(uuid4())
+    return str(uuid.uuid4())
 
 
 def render_template(template_path, **params):
@@ -134,5 +134,5 @@ def solar_map(funct, args, **kwargs):
 
 
 def get_local():
-    from threading import local
-    return local
+    import threading
+    return threading.local

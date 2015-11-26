@@ -99,7 +99,8 @@ def rmq_deps():
         'rmq.2': [evapi.Dep('rmq.2', 'run', 'success', 'rmq_cluster.2', 'join')],
         'rmq.3': [evapi.Dep('rmq.3', 'run', 'success', 'rmq_cluster.3', 'join')],
         'rmq_cluster.1': [
-            evapi.Dep('rmq_cluster.1', 'create', 'success', 'rmq_cluster.2', 'join'),
+            evapi.Dep('rmq_cluster.1', 'create',
+                      'success', 'rmq_cluster.2', 'join'),
             evapi.Dep('rmq_cluster.1', 'create', 'success', 'rmq_cluster.3', 'join')]}
 
 
@@ -121,13 +122,16 @@ def test_riak():
 
     events = {
         'riak_service1': [
-            evapi.React('riak_service1', 'run', 'success', 'riak_service2', 'run'),
+            evapi.React('riak_service1', 'run', 'success',
+                        'riak_service2', 'run'),
             evapi.React('riak_service1', 'run', 'success', 'riak_service3', 'run')],
         'riak_service3': [
-            evapi.React('riak_service3', 'join', 'success', 'riak_service1', 'commit'),
+            evapi.React('riak_service3', 'join', 'success',
+                        'riak_service1', 'commit'),
             evapi.React('riak_service3', 'run', 'success', 'riak_service3', 'join')],
         'riak_service2': [
-            evapi.React('riak_service2', 'run', 'success', 'riak_service2', 'join'),
+            evapi.React('riak_service2', 'run', 'success',
+                        'riak_service2', 'join'),
             evapi.React('riak_service2', 'join', 'success', 'riak_service1', 'commit')],
 
     }
@@ -135,4 +139,5 @@ def test_riak():
     changes_graph = nx.MultiDiGraph()
     changes_graph.add_node('riak_service1.run')
     evapi.build_edges(changes_graph, events)
-    assert set(changes_graph.predecessors('riak_service1.commit')) == {'riak_service2.join', 'riak_service3.join'}
+    assert set(changes_graph.predecessors('riak_service1.commit')) == {
+        'riak_service2.join', 'riak_service3.join'}

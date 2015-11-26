@@ -63,7 +63,8 @@ class BatTransport(SolarTransport):
         except AttributeError:
             transports = resource.transports()
             for pref in self._order:
-                selected = next((x for x in transports if x['name'] == pref), None)
+                selected = next(
+                    (x for x in transports if x['name'] == pref), None)
                 if selected:
                     break
             if not selected:

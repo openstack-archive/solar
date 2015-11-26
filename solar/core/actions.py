@@ -39,5 +39,5 @@ def resource_action(resource, action):
 
 
 def tag_action(tag, action):
-    #TODO
+    # TODO
     pass

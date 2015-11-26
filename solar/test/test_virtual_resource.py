@@ -36,6 +36,7 @@ def good_events():
 '''
     return yaml.load(StringIO(events))
 
+
 @pytest.fixture
 def bad_event_type():
     events = '''
@@ -46,11 +47,13 @@ def bad_event_type():
 '''
     return yaml.load(StringIO(events))
 
+
 def test_create_path_does_not_exists():
     with pytest.raises(Exception) as excinfo:
         vr.create('node1', '/path/does/not/exists')
     err = 'Base resource does not exist: /path/does/not/exists'
     assert str(excinfo.value) == err
+
 
 def test_create_resource():
     node_path = os.path.join(
@@ -59,6 +62,7 @@ def test_create_resource():
     resources = vr.create('node1', node_path)
     assert len(resources) == 1
     assert resources[0].name == 'node1'
+
 
 def test_create_virtual_resource(tmpdir):
     base_path = os.path.join(
@@ -72,6 +76,7 @@ def test_create_virtual_resource(tmpdir):
     vr_file.write(vr_data)
     resources = vr.create('nodes', str(vr_file))
     assert len(resources) == 2
+
 
 def test_create_virtual_resource_with_list(tmpdir):
     base_path = os.path.join(
@@ -110,15 +115,17 @@ def test_update(tmpdir):
     vr.create('updates', str(update_file))
     assert resources[0].args['ip'] == '10.0.0.4'
 
+
 def test_parse_events(good_events):
-    events =[Dep(parent='service1', parent_action='run',
-                 child='config1', child_action='run',
-                 state='success'),
-             React(parent='config1', parent_action='run',
-                   child='service1', child_action='apply_config',
-                   state='success')]
+    events = [Dep(parent='service1', parent_action='run',
+                  child='config1', child_action='run',
+                  state='success'),
+              React(parent='config1', parent_action='run',
+                    child='service1', child_action='apply_config',
+                    state='success')]
     parsed = vr.parse_events(good_events)
     assert events == parsed
+
 
 def test_parse_bad_event(bad_event_type):
     with pytest.raises(Exception) as execinfo:
@@ -128,42 +135,46 @@ def test_parse_bad_event(bad_event_type):
 
 
 def test_add_connections(mocker, resources):
-    mocked_signals = mocker.patch('solar.core.resource.resource.Resource.connect_with_events')
+    mocked_signals = mocker.patch(
+        'solar.core.resource.resource.Resource.connect_with_events')
     args = {'ip': 'node1::ip',
             'servers': ['node1::ip', 'node2::ip'],
             'alias': 'ser1'
-           }
+            }
     vr.update_inputs('service1', args)
     assert mocked_signals.call_count == 2
 
 
 def test_add_list_values(mocker, resources):
-    mocked_signals = mocker.patch('solar.core.resource.resource.Resource.connect_with_events')
+    mocked_signals = mocker.patch(
+        'solar.core.resource.resource.Resource.connect_with_events')
     args = {'ip': 'node1::ip',
             'servers': ['server1', 'server2'],
             'alias': 'ser1'
-           }
+            }
     vr.update_inputs('service1', args)
     assert mocked_signals.call_count == 1
 
 
 def test_parse_connection():
     correct_connection = {'child_input': 'ip',
-     'parent' : 'node1',
-     'parent_input': 'ip',
-     'events' : None
-    }
+                          'parent': 'node1',
+                          'parent_input': 'ip',
+                          'events': None
+                          }
     connection = vr.parse_connection('ip', 'node1::ip')
     assert correct_connection == connection
 
+
 def test_parse_connection_disable_events():
     correct_connection = {'child_input': 'ip',
-     'parent' : 'node1',
-     'parent_input': 'ip',
-     'events' : False
-    }
+                          'parent': 'node1',
+                          'parent_input': 'ip',
+                          'events': False
+                          }
     connection = vr.parse_connection('ip', 'node1::ip::NO_EVENTS')
     assert correct_connection == connection
+
 
 def test_setting_location(tmpdir):
     # XXX: make helper for it

@@ -62,8 +62,6 @@ import requests
 from solar.core.log import log
 
 
-
-
 def schema_input_type(schema):
     """Input type from schema
 
@@ -99,7 +97,8 @@ def _construct_jsonschema(schema, definition_base=''):
         return {'type': 'boolean'}, {}
 
     if isinstance(schema, list):
-        items, definitions = _construct_jsonschema(schema[0], definition_base=definition_base)
+        items, definitions = _construct_jsonschema(
+            schema[0], definition_base=definition_base)
 
         return {
             'type': 'array',
@@ -114,9 +113,11 @@ def _construct_jsonschema(schema, definition_base=''):
             if isinstance(v, dict) or isinstance(v, list):
                 key = '{}_{}'.format(definition_base, k)
                 properties[k] = {'$ref': '#/definitions/{}'.format(key)}
-                definitions[key], new_definitions = _construct_jsonschema(v, definition_base=key)
+                definitions[key], new_definitions = _construct_jsonschema(
+                    v, definition_base=key)
             else:
-                properties[k], new_definitions = _construct_jsonschema(v, definition_base=definition_base)
+                properties[k], new_definitions = _construct_jsonschema(
+                    v, definition_base=definition_base)
 
             definitions.update(new_definitions)
 
@@ -177,7 +178,7 @@ def validate_resource(r):
     for input_name, _ in inputs.items():
         errors = validate_input(
             args.get(input_name),
-            #jsonschema=input_definition.get('jsonschema'),
+            # jsonschema=input_definition.get('jsonschema'),
             schema=r.db_obj.meta_inputs[input_name]['schema']
         )
         if errors:

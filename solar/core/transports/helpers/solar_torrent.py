@@ -7,7 +7,7 @@ import time
 import sys
 import os
 
-state_str = ['queued', 'checking', 'downloading metadata', \
+state_str = ['queued', 'checking', 'downloading metadata',
              'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
 
 
@@ -31,7 +31,8 @@ class MultiTorrent(object):
 
     @property
     def progress(self):
-        total_progress = map(attrgetter('progress'), map(lambda x: x.status(), self.torrents))
+        total_progress = map(attrgetter('progress'), map(
+            lambda x: x.status(), self.torrents))
         return sum(total_progress) / len(total_progress)
 
     def numbers(self):
@@ -52,10 +53,10 @@ def init_session(args, seed=False):
         if os.path.exists(magnet_or_path):
             e = lt.bdecode(open(magnet_or_path, 'rb').read())
             info = lt.torrent_info(e)
-            params = { 'save_path': save_path,
-                       'storage_mode': lt.storage_mode_t.storage_mode_sparse,
-                       'ti': info,
-                       'seed_mode': seed}
+            params = {'save_path': save_path,
+                      'storage_mode': lt.storage_mode_t.storage_mode_sparse,
+                      'ti': info,
+                      'seed_mode': seed}
             h = ses.add_torrent(params)
         else:
             h = ses.add_torrent({
@@ -119,7 +120,6 @@ def _seeder(torrents, save_path='.', max_seed_ratio=5):
     sys.exit(0)
 
 
-
 def _getter(torrents, max_seed_ratio=3):
     ses = lt.session()
     ses.listen_on(6881, 6981)
@@ -137,7 +137,7 @@ def _getter(torrents, max_seed_ratio=3):
         s = ses.status()
         if i % 5 == 0:
             print '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
-                (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, \
+                (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000,
                  s.num_peers, mt.numbers())
         now = time.time()
         current_state = (now, mt.progress)

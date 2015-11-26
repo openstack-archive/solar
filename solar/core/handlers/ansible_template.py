@@ -26,7 +26,8 @@ env.warn_only = True
 
 # if we would have something like solar_agent that would render this then
 # we would not need to render it there
-# for now we redender it locally, sync to remote, run ansible on remote host as local
+# for now we redender it locally, sync to remote, run ansible on remote
+# host as local
 class AnsibleTemplate(TempFileHandler):
 
     def action(self, resource, action_name):
@@ -42,10 +43,13 @@ class AnsibleTemplate(TempFileHandler):
         self.transport_sync.sync_all()
 
         # remote paths are not nested inside solar_local
-        remote_playbook_file = playbook_file.replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-        remote_inventory_file = inventory_file.replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_playbook_file = playbook_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_inventory_file = inventory_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        call_args = ['ansible-playbook', '--module-path', '/tmp/library', '-i', remote_inventory_file, remote_playbook_file]
+        call_args = ['ansible-playbook', '--module-path', '/tmp/library',
+                     '-i', remote_inventory_file, remote_playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         out = self.transport_run.run(resource, *call_args)

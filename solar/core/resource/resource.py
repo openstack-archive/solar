@@ -51,7 +51,8 @@ def read_meta(base_path):
     return metadata
 
 
-RESOURCE_STATE = Enum('ResourceState', 'created operational removed error updated')
+RESOURCE_STATE = Enum(
+    'ResourceState', 'created operational removed error updated')
 
 
 class Resource(object):
@@ -100,7 +101,6 @@ class Resource(object):
 
         self.db_obj.save()
 
-
     # Load
     @dispatch(DBResource)
     def __init__(self, resource_db):
@@ -117,7 +117,7 @@ class Resource(object):
         inputs.setdefault('location_id', {'value': "",
                                           'schema': 'str!'})
         inputs.setdefault('transports_id', {'value': "",
-                                          'schema': 'str'})
+                                            'schema': 'str'})
         for inp in ('transports_id', 'location_id'):
             if inputs[inp].get('value') == '$uuid':
                 inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
@@ -222,7 +222,7 @@ class Resource(object):
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
             if meta:
                 receiver_input = '{}:{}|{}'.format(receiver_input,
-                    meta['destination_key'], meta['tag'])
+                                                   meta['destination_key'], meta['tag'])
 
             rst.add(
                 (emitter_resource, emitter_input,
@@ -269,9 +269,8 @@ class Resource(object):
         self.db_obj.save_lazy()
         receiver.db_obj.save_lazy()
 
-
     def connect_with_events(self, receiver, mapping=None, events=None,
-            use_defaults=False):
+                            use_defaults=False):
         mapping = get_mapping(self, receiver, mapping)
         self._connect_inputs(receiver, mapping)
         # signals.connect(self, receiver, mapping=mapping)
@@ -290,7 +289,6 @@ class Resource(object):
         self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
         receiver.db_obj.save_lazy()
         self.db_obj.save_lazy()
-
 
 
 def load(name):
@@ -313,6 +311,8 @@ def load_updated(since=None, with_childs=True):
     return [Resource(r) for r in DBResource.multi_get(candids)]
 
 # TODO
+
+
 def load_all():
     candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
     return [Resource(r) for r in DBResource.multi_get(candids)]

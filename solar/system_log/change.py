@@ -29,6 +29,7 @@ from solar.errors import CannotFindID
 
 from solar.dblayer.solar_models import Resource, LogItem, CommitedResource, StrInt
 
+
 def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
     # something where this action will be excplicitly specified
@@ -47,12 +48,12 @@ def create_diff(staged, commited):
 def create_logitem(resource, action, diffed, connections_diffed,
                    base_path=''):
     return LogItem.new(
-                {'resource': resource,
-                 'action': action,
-                 'diff': diffed,
-                 'connections_diff': connections_diffed,
-                 'base_path': base_path,
-                 'log': 'staged'})
+        {'resource': resource,
+         'action': action,
+         'diff': diffed,
+         'connections_diff': connections_diffed,
+         'base_path': base_path,
+         'log': 'staged'})
 
 
 def create_sorted_diff(staged, commited):
@@ -104,7 +105,7 @@ def stage_changes():
     last = LogItem.history_last()
     since = StrInt.greater(last.updated) if last else None
     staged_log = utils.solar_map(make_single_stage_item,
-        resource.load_updated(since), concurrency=10)
+                                 resource.load_updated(since), concurrency=10)
     staged_log = filter(None, staged_log)
     return staged_log
 
@@ -139,9 +140,10 @@ def _get_args_to_update(args, connections):
     """
     inherited = [i[3].split(':')[0] for i in connections]
     return {
-        key:args[key] for key in args
+        key: args[key] for key in args
         if key not in inherited
-        }
+    }
+
 
 def revert_uids(uids):
     """
@@ -167,14 +169,16 @@ def _revert_remove(logitem):
     """
     commited = CommitedResource.get(logitem.resource)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
-    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+    connections = dictdiffer.revert(
+        logitem.connections_diff, sorted(commited.connections))
 
     resource.Resource(logitem.resource, logitem.base_path,
-        args=_get_args_to_update(args, connections), tags=commited.tags)
+                      args=_get_args_to_update(args, connections), tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
-        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
+        signals.connect(emmiter_obj, receiver_obj, {
+                        emitter_input: receiver_input})
 
 
 def _update_inputs_connections(res_obj, args, old_connections, new_connections):
@@ -213,7 +217,8 @@ def _revert_update(logitem):
     res_obj = resource.load(logitem.resource)
     commited = res_obj.load_commited()
 
-    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+    connections = dictdiffer.revert(
+        logitem.connections_diff, sorted(commited.connections))
     args = dictdiffer.revert(logitem.diff, commited.inputs)
 
     _update_inputs_connections(
@@ -237,11 +242,13 @@ def _discard_remove(item):
 def _discard_update(item):
     resource_obj = resource.load(item.resource)
     old_connections = resource_obj.connections
-    new_connections = dictdiffer.revert(item.connections_diff, sorted(old_connections))
+    new_connections = dictdiffer.revert(
+        item.connections_diff, sorted(old_connections))
     args = dictdiffer.revert(item.diff, resource_obj.args)
 
     _update_inputs_connections(
         resource_obj, _get_args_to_update(args, new_connections), old_connections, new_connections)
+
 
 def _discard_run(item):
     resource.load(item.resource).remove(force=True)
@@ -265,6 +272,7 @@ def discard_uids(uids):
 def discard_uid(uid):
     return discard_uids([uid])
 
+
 def discard_all():
     staged_log = data.SL()
     return discard_uids([l.uid for l in staged_log])
@@ -276,6 +284,7 @@ def commit_all():
     from .operations import move_to_commited
     for item in data.SL():
         move_to_commited(item.log_action)
+
 
 def clear_history():
     LogItem.delete_all()

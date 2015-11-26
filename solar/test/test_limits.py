@@ -46,8 +46,8 @@ def test_type_limit_rule(dg):
 
 def test_items_rule(dg):
 
-    assert limits.items_rule(dg, ['1']*99, '2')
-    assert limits.items_rule(dg, ['1']*99, '2', limit=10) == False
+    assert limits.items_rule(dg, ['1'] * 99, '2')
+    assert limits.items_rule(dg, ['1'] * 99, '2', limit=10) == False
 
 
 @fixture

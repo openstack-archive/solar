@@ -68,8 +68,9 @@ class SolarUIDParameterType(click.types.StringParamType):
         try:
             value = get_uid(value)
         except IOError:
-            raise click.BadParameter("Unable to locate file %r so"
-                                     "you can't use 'last' shortcuts" % UIDS_HISTORY)
+            msg = ("Unable to locate file %r so"
+                  "you can't use 'last' shortcuts" % UIDS_HISTORY)
+            raise click.BadParameter(msg)
         return value
 
 

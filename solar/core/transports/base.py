@@ -90,7 +90,8 @@ class SolarTransport(object):
         except AttributeError:
             if name is None:
                 name = self.preffered_transport_name
-            transport = next(x for x in resource.transports() if x['name'] == name)
+            transport = next(x for x in resource.transports()
+                             if x['name'] == name)
             setattr(resource, key, transport)
         return transport
 

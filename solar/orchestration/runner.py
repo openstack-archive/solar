@@ -22,5 +22,5 @@ app = Celery(
     include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
     backend=_url,
     broker=_url)
-app.conf.update(CELERY_ACCEPT_CONTENT = ['json'])
-app.conf.update(CELERY_TASK_SERIALIZER = 'json')
+app.conf.update(CELERY_ACCEPT_CONTENT=['json'])
+app.conf.update(CELERY_TASK_SERIALIZER='json')

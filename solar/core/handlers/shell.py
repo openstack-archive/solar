@@ -21,12 +21,14 @@ from solar.core.handlers.base import TempFileHandler, SOLAR_TEMP_LOCAL_LOCATION
 
 
 class Shell(TempFileHandler):
+
     def action(self, resource, action_name):
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)
 
         action_file_name = os.path.join(self.dirs[resource.name], action_file)
-        action_file_name = action_file_name.replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        action_file_name = action_file_name.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
         self._copy_templates_and_scripts(resource, action_name)
 

@@ -33,7 +33,6 @@ class _RawSSHTransport(object):
         return ('ssh', '-i', props['ssh_key'])
 
 
-
 class RawSSHRunTransport(RunTransport, _RawSSHTransport):
 
     def run(self, resource, *args, **kwargs):
@@ -59,4 +58,3 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         log.debug("SSH CMD: %r", ssh_cmd)
 
         return fabric_api.local(' '.join(ssh_cmd))
-

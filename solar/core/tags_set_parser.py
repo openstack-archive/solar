@@ -26,10 +26,10 @@ tokens = (
     "RPAREN")
 
 t_STRING = r'[A-Za-z0-9-_/\\]+'
-t_AND  = '&|,'
-t_OR  = r'\|'
-t_LPAREN  = r'\('
-t_RPAREN  = r'\)'
+t_AND = '&|,'
+t_OR = r'\|'
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
 t_ignore = ' \t\r\n'
 
 
@@ -48,6 +48,7 @@ class SubexpressionWrapper(object):
 
 
 class ScalarWrapper(object):
+
     def __init__(self, value):
         global expression
         self.value = (set([value]) <= set(expression.tags))
@@ -90,10 +91,12 @@ def t_error(t):
 
 
 def p_error(p):
-    raise errors.ParseError("Syntax error at '{0}'".format(getattr(p, 'value', '')))
+    raise errors.ParseError(
+        "Syntax error at '{0}'".format(getattr(p, 'value', '')))
 
 
 class Expression(object):
+
     def __init__(self, expression_text, tags):
         self.expression_text = expression_text
         self.tags = tags

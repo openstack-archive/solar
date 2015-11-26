@@ -49,6 +49,7 @@ class BaseHandler(object):
 
 
 class TempFileHandler(BaseHandler):
+
     def __init__(self, resources, handlers=None):
         super(TempFileHandler, self).__init__(resources, handlers)
         self.dst = None
@@ -122,7 +123,8 @@ class TempFileHandler(BaseHandler):
         base_path = resource.db_obj.base_path
         src_templates_dir = os.path.join(base_path, 'templates')
         if os.path.exists(src_templates_dir):
-            trg_templates_dir = os.path.join(self.dirs[resource.name], 'templates')
+            trg_templates_dir = os.path.join(
+                self.dirs[resource.name], 'templates')
             shutil.copytree(src_templates_dir, trg_templates_dir)
 
         src_scripts_dir = os.path.join(base_path, 'scripts')
@@ -153,5 +155,6 @@ class TempFileHandler(BaseHandler):
 
 
 class Empty(BaseHandler):
+
     def action(self, resource, action):
         pass

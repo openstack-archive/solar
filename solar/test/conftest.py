@@ -23,6 +23,7 @@ import pytest
 def patched_get_bucket_name(cls):
     return cls.__name__ + str(time.time())
 
+
 @pytest.fixture
 def resources():
     base_path = os.path.join(
@@ -30,21 +31,15 @@ def resources():
         'resource_fixtures')
 
     node_path = os.path.join(base_path, 'node')
-    node1 = Resource('node1', node_path, args={'ip':'10.0.0.1'})
-    node2 = Resource('node2', node_path, args={'ip':'10.0.0.2'})
+    node1 = Resource('node1', node_path, args={'ip': '10.0.0.1'})
+    node2 = Resource('node2', node_path, args={'ip': '10.0.0.2'})
 
     base_service_path = os.path.join(base_path, 'base_service')
     service1 = Resource('service1', base_service_path)
-    return {'node1' : node1,
-            'node2' : node2,
+    return {'node1': node1,
+            'node2': node2,
             'service1': service1
-           }
-
-@pytest.fixture(autouse=True)
-def setup(request):
-
-    for model in ModelMeta._defined_models:
-        model.bucket = get_bucket(None, model, ModelMeta)
+            }
 
 
 @pytest.fixture(autouse=True)
@@ -52,16 +47,28 @@ def setup(request):
 
     for model in ModelMeta._defined_models:
         model.bucket = get_bucket(None, model, ModelMeta)
+
+
+@pytest.fixture(autouse=True)
+def setup(request):
+
+    for model in ModelMeta._defined_models:
+        model.bucket = get_bucket(None, model, ModelMeta)
+
 
 def pytest_runtest_teardown(item, nextitem):
     ModelMeta.session_end(result=True)
     return nextitem
 
 # It will run before all fixtures
+
+
 def pytest_runtest_setup(item):
     ModelMeta.session_start()
 
 # it will run after fixtures but before test
+
+
 def pytest_runtest_call(item):
     ModelMeta.session_end()
     ModelMeta.session_start()

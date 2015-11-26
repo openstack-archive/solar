@@ -45,7 +45,8 @@ class TorrentSyncTransport(SyncTransport):
     def _create_torrent(self, resource, fs, root='.', use_sudo=False):
         t = lt.create_torrent(fs)
         transports = resource.transports()
-        torrent_transport = next((x for x in transports if x['name'] == 'torrent'))
+        torrent_transport = next(
+            (x for x in transports if x['name'] == 'torrent'))
         trackers = torrent_transport['trackers']
         for tracker in trackers:
             t.add_tracker(tracker)
@@ -77,7 +78,8 @@ class TorrentSyncTransport(SyncTransport):
         # we don't need use sudo there for now
         from fabric import api as fabric_api
         torrents = self._torrents + self._sudo_torrents
-        to_seed = ["%s|%s" % (os.path.abspath(os.path.join(x[2], '..')), x[0]) for x in torrents]
+        to_seed = ["%s|%s" % (os.path.abspath(
+            os.path.join(x[2], '..')), x[0]) for x in torrents]
         seed_args = ';'.join(to_seed)
         # TODO: 'g' is just for debug, it should be 's', remove when sure
         cmd = ['/usr/bin/python',
@@ -95,7 +97,8 @@ class TorrentSyncTransport(SyncTransport):
             torrents = self._torrents
         else:
             torrents = self._sudo_torrents
-        to_get = ["%s|%s" % (os.path.abspath(os.path.join(x[2], '..')), x[1]) for x in torrents]
+        to_get = ["%s|%s" % (os.path.abspath(
+            os.path.join(x[2], '..')), x[1]) for x in torrents]
         get_args = ';'.join(to_get)
         cmd = ['/usr/bin/python',
                '/var/tmp/solar_torrent.py',
@@ -115,4 +118,3 @@ class TorrentSyncTransport(SyncTransport):
             self._start_remote_fetch(resource, use_sudo=False)
         if self._sudo_torrents:
             self._start_remote_fetch(resource, use_sudo=True)
-

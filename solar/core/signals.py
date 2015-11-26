@@ -81,7 +81,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
         receiver_single_reverse = receiver_single.get('reverse')
         if inps_receiver is None and inps_emitter is not None:
             # we don't connect automaticaly when receiver is None and emitter is not None
-            # for cases when we connect existing transports to other data containers
+            # for cases when we connect existing transports to other data
+            # containers
             if receiver_single_reverse:
                 log.info("Didn't connect automaticaly %s::%s -> %s::%s",
                          receiver.name,
@@ -124,7 +125,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
     # with dirty_state_ok(DBResource, ('index', )):
     for single in ('transports_id', 'location_id'):
         if single in inps_emitter and single in inps_receiver:
-            _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
+            _single(single, emitter, receiver, inps_emitter[
+                    single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'
                         ' emitter %s, receiver %s',

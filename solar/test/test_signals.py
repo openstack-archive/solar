@@ -20,6 +20,7 @@ import pytest
 
 
 class TestBaseInput(base.BaseResourceTest):
+
     def test_no_self_connection(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -39,7 +40,6 @@ input:
                 Exception,
                 'Trying to connect value-.* to itself'):
             xs.connect(sample, sample, {'value'})
-
 
     def test_input_dict_type(self):
         sample_meta_dir = self.make_resource_meta("""
@@ -83,7 +83,7 @@ input:
             sample1.args['values'],
             {'a': 3}
         )
-        #self.assertEqual(
+        # self.assertEqual(
         #    sample2.args['values'],
         #    {'a': 2}
         #)
@@ -138,11 +138,11 @@ input:
         xs.connect(sample_port, sample)
         self.assertEqual(sample.args['ip'], sample_ip.args['ip'])
         self.assertEqual(sample.args['port'], sample_port.args['port'])
-        #self.assertEqual(
+        # self.assertEqual(
         #    sample.args['ip'].emitter,
         #    sample_ip.args['ip']
         #)
-        #self.assertEqual(
+        # self.assertEqual(
         #    sample.args['port'].emitter,
         #    sample_port.args['port']
         #)
@@ -171,7 +171,7 @@ input:
         xs.connect(sample1, sample)
         self.assertEqual(sample1.args['ip'], sample.args['ip'])
         #self.assertEqual(len(list(sample1.args['ip'].receivers)), 1)
-        #self.assertEqual(
+        # self.assertEqual(
         #    sample.args['ip'].emitter,
         #    sample1.args['ip']
         #)
@@ -211,6 +211,7 @@ input:
 
 
 class TestListInput(base.BaseResourceTest):
+
     def test_list_input_single(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -249,7 +250,7 @@ input:
                 sample1.args['ip'],
             ]
         )
-        #self.assertListEqual(
+        # self.assertListEqual(
         #    [(e['emitter_attached_to'], e['emitter']) for e in list_input_single.args['ips']],
         #    [(sample1.args['ip'].attached_to.name, 'ip')]
         #)
@@ -263,7 +264,7 @@ input:
                 sample2.args['ip'],
             ]
         )
-        #self.assertListEqual(
+        # self.assertListEqual(
         #    [(e['emitter_attached_to'], e['emitter']) for e in list_input_single.args['ips']],
         #    [(sample1.args['ip'].attached_to.name, 'ip'),
         #     (sample2.args['ip'].attached_to.name, 'ip')]
@@ -289,7 +290,7 @@ input:
                 sample1.args['ip'],
             ]
         )
-        #self.assertListEqual(
+        # self.assertListEqual(
         #    [(e['emitter_attached_to'], e['emitter']) for e in list_input_single.args['ips']],
         #    [(sample1.args['ip'].attached_to.name, 'ip')]
         #)
@@ -330,7 +331,8 @@ input:
             'list-input-multi', list_input_multi_meta_dir, args={'ips': [], 'ports': []}
         )
 
-        xs.connect(sample1, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
+        xs.connect(sample1, list_input_multi, mapping={
+                   'ip': 'ips', 'port': 'ports'})
         self.assertItemsEqual(
             #[ip['value'] for ip in list_input_multi.args['ips']],
             list_input_multi.args['ips'],
@@ -342,7 +344,8 @@ input:
             [sample1.args['port']]
         )
 
-        xs.connect(sample2, list_input_multi, mapping={'ip': 'ips', 'port': 'ports'})
+        xs.connect(sample2, list_input_multi, mapping={
+                   'ip': 'ips', 'port': 'ports'})
         self.assertItemsEqual(
             #[ip['value'] for ip in list_input_multi.args['ips']],
             list_input_multi.args['ips'],
@@ -351,7 +354,7 @@ input:
                 sample2.args['ip'],
             ]
         )
-        #self.assertListEqual(
+        # self.assertListEqual(
         #    [(e['emitter_attached_to'], e['emitter']) for e in list_input_multi.args['ips']],
         #    [(sample1.args['ip'].attached_to.name, 'ip'),
         #     (sample2.args['ip'].attached_to.name, 'ip')]
@@ -364,7 +367,7 @@ input:
                 sample2.args['port'],
             ]
         )
-        #self.assertListEqual(
+        # self.assertListEqual(
         #    [(e['emitter_attached_to'], e['emitter']) for e in list_input_multi.args['ports']],
         #    [(sample1.args['port'].attached_to.name, 'port'),
         #     (sample2.args['port'].attached_to.name, 'port')]
@@ -469,6 +472,7 @@ input:
 
 
 class TestHashInput(base.BaseResourceTest):
+
     @pytest.mark.xfail(reason="Connect should raise an error if already connected")
     def test_hash_input_basic(self):
         sample_meta_dir = self.make_resource_meta("""
@@ -504,7 +508,8 @@ input:
         receiver = self.create_resource(
             'receiver', receiver_meta_dir
         )
-        xs.connect(sample1, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        xs.connect(sample1, receiver, mapping={
+                   'ip': 'server:ip', 'port': 'server:port'})
         self.assertDictEqual(
             {'ip': sample1.args['ip'], 'port': sample1.args['port']},
             receiver.args['server'],
@@ -521,7 +526,8 @@ input:
             {'ip': sample2.args['ip'], 'port': sample1.args['port']},
             receiver.args['server'],
         )
-        xs.connect(sample3, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        xs.connect(sample3, receiver, mapping={
+                   'ip': 'server:ip', 'port': 'server:port'})
         self.assertDictEqual(
             {'ip': sample3.args['ip'], 'port': sample3.args['port']},
             receiver.args['server'],
@@ -594,7 +600,8 @@ input:
         receiver = self.create_resource(
             'receiver', receiver_meta_dir
         )
-        xs.connect(sample1, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        xs.connect(sample1, receiver, mapping={
+                   'ip': 'server:ip', 'port': 'server:port'})
         self.assertItemsEqual(
             [{'ip': sample1.args['ip'], 'port': sample1.args['port']}],
             receiver.args['server'],
@@ -602,7 +609,8 @@ input:
         sample2 = self.create_resource(
             'sample2', sample_meta_dir, args={'ip': '10.0.0.2', 'port': 5001}
         )
-        xs.connect(sample2, receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        xs.connect(sample2, receiver, mapping={
+                   'ip': 'server:ip', 'port': 'server:port'})
         self.assertItemsEqual(
             [{'ip': sample1.args['ip'], 'port': sample1.args['port']},
              {'ip': sample2.args['ip'], 'port': sample2.args['port']}],
@@ -692,7 +700,8 @@ input:
         sample3 = self.create_resource(
             'sample3', sample_meta_dir, args={'ip': '10.0.0.3', 'port': 5002}
         )
-        sample3.connect(receiver, mapping={'ip': 'server:ip', 'port': 'server:port'})
+        sample3.connect(receiver, mapping={
+                        'ip': 'server:ip', 'port': 'server:port'})
         self.assertItemsEqual(
             [{'ip': sample1.args['ip'], 'port': sample2.args['port']},
              {'ip': sample3.args['ip'], 'port': sample3.args['port']}],

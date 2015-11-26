@@ -24,8 +24,10 @@ from solar import errors
 # NOTE: We assume that:
 # - puppet is installed
 class Puppet(TempFileHandler):
+
     def action(self, resource, action_name):
-        log.debug('Executing Puppet manifest %s %s', action_name, resource.name)
+        log.debug('Executing Puppet manifest %s %s',
+                  action_name, resource.name)
 
         action_file = self._compile_action_file(resource, action_name)
         log.debug('action_file: %s', action_file)

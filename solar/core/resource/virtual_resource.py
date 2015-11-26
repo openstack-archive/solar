@@ -109,7 +109,8 @@ def _get_template(name, content, kwargs, inputs):
         if input not in kwargs:
             missing.append(input)
     if missing:
-        raise Exception('[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
+        raise Exception(
+            '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
     template = Template(content, trim_blocks=True, lstrip_blocks=True)
     template = template.render(str=str, zip=zip, **kwargs)
     return template
@@ -158,6 +159,7 @@ def extend_resources(template_resources):
                 log.debug('Warrning: no resources with tags: {}'.format(tags))
     return resources
 
+
 def update_resources(template_resources):
     resources = extend_resources(template_resources)
     for r in resources:
@@ -197,13 +199,14 @@ def extend_events(template_events):
             resources = load_by_tags(tags)
             for r in resources:
                 parent_action = '{}.{}'.format(r.name, parent['action'])
-                event = {'type' : e['type'],
+                event = {'type': e['type'],
                          'state': e['state'],
                          'depend_action': e['depend_action'],
                          'parent_action': parent_action
                          }
                 events.append(event)
     return events
+
 
 def parse_events(template_events):
     parsed_events = []
@@ -221,8 +224,6 @@ def parse_events(template_events):
             raise Exception('Invalid event type: {0}'.format(event_type))
         parsed_events.append(event)
     return parsed_events
-
-
 
 
 def parse_inputs(args):
@@ -272,7 +273,7 @@ def parse_connection(child_input, element):
     except ValueError:
         events = None
     return {'child_input': child_input,
-            'parent' : parent,
+            'parent': parent,
             'parent_input': parent_input,
-            'events' : events
+            'events': events
             }

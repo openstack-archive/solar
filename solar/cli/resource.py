@@ -34,6 +34,7 @@ from solar.cli import executors
 def resource():
     pass
 
+
 @resource.command()
 @click.argument('action')
 @click.argument('resource')
@@ -41,7 +42,8 @@ def resource():
 @click.option('-m', '--dry-run-mapping', default='{}')
 def action(dry_run_mapping, dry_run, action, resource):
     if dry_run:
-        dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
+        dry_run_executor = executors.DryRunExecutor(
+            mapping=json.loads(dry_run_mapping))
 
     click.echo(
         'action {} for resource {}'.format(action, resource)
@@ -72,13 +74,16 @@ def backtrack_inputs(resource, input, values, real_values):
     r = sresource.load(resource)
 
     db_obj = r.db_obj
+
     def single(resource, name, get_val=False):
         db_obj = sresource.load(resource).db_obj
         se = db_obj.inputs._single_edge(name)
         se = tuple(se)
         if not se:
             if get_val:
-                return dict(resource=resource, name=name, value=db_obj.inputs[name])
+                return dict(resource=resource,
+                            name=name,
+                            value=db_obj.inputs[name])
             else:
                 return dict(resource=resource, name=name)
         l = []
@@ -100,7 +105,9 @@ def backtrack_inputs(resource, input, values, real_values):
     for name, values in inps.iteritems():
         click.echo(yaml.safe_dump({name: values}, default_flow_style=False))
         if real_values:
-            click.echo('! Real value: %r' % sresource.load(resource).db_obj.inputs[name] , nl=True)
+            click.echo('! Real value: %r' % sresource.load(
+                resource).db_obj.inputs[name], nl=True)
+
 
 @resource.command()
 def compile_all():
@@ -111,11 +118,13 @@ def compile_all():
     if os.path.exists(destination_path):
         os.remove(destination_path)
 
-    for path in utils.find_by_mask(utils.read_config()['resources-files-mask']):
+    resources_files_mask = utils.read_config()['resources-files-mask']
+    for path in utils.find_by_mask(resources_files_mask):
         meta = utils.yaml_load(path)
         meta['base_path'] = os.path.dirname(path)
 
         compiler.compile(meta)
+
 
 @resource.command()
 def clear_all():
@@ -143,6 +152,7 @@ def create(args, base_path, name):
     for res in resources:
         click.echo(res.color_repr())
 
+
 @resource.command()
 @click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
@@ -159,7 +169,8 @@ def show(name, tag, as_json, color):
         resources = sresource.load_all()
 
     if as_json:
-        output = json.dumps([r.to_dict(inputs=True) for r in resources], indent=2)
+        output = json.dumps([r.to_dict(inputs=True)
+                             for r in resources], indent=2)
         echo = click.echo
     else:
         if color:
@@ -170,6 +181,7 @@ def show(name, tag, as_json, color):
 
     if output:
         echo(output)
+
 
 @resource.command()
 @click.argument('resource_name')
@@ -183,6 +195,7 @@ def tag(add, tags, resource_name):
     else:
         r.remove_tags(*tags)
         click.echo('Tag(s) {} removed from {}'.format(tags, resource_name))
+
 
 @resource.command()
 @click.argument('name')
@@ -198,6 +211,7 @@ def update(name, args):
     click.echo('Updating resource {} with args {}'.format(name, args_parsed))
     res = sresource.load(name)
     res.update(args_parsed)
+
 
 @resource.command()
 @click.option('--check-missing-connections', default=False, is_flag=True)
@@ -220,6 +234,7 @@ def validate(check_missing_connections):
                 ])
             )
 
+
 @resource.command()
 @click.argument('path', type=click.Path(exists=True, dir_okay=False))
 def get_inputs(path):
@@ -231,7 +246,8 @@ def get_inputs(path):
 @resource.command()
 @click.option('--name', '-n', default=None)
 @click.option('--tag', '-t', multiple=True)
-@click.option('-f', default=False, is_flag=True, help='force removal from database')
+@click.option('-f', default=False, is_flag=True,
+              help='force removal from database')
 def remove(name, tag, f):
     if name:
         resources = [sresource.load(name)]
@@ -244,4 +260,5 @@ def remove(name, tag, f):
         if f:
             click.echo('Resource %s removed from database' % res.name)
         else:
-            click.echo('Resource %s will be removed after commiting changes.' % res.name)
+            click.echo(
+             'Resource %s will be removed after commiting changes.' % res.name)

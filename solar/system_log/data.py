@@ -16,15 +16,14 @@
 from solar.dblayer.solar_models import LogItem
 
 
-
 def SL():
     rst = LogItem.composite.filter({'log': 'staged'})
     return LogItem.multi_get(rst)
 
+
 def CL():
     rst = LogItem.composite.filter({'log': 'history'})
     return LogItem.multi_get(rst)
-
 
 
 def compact(logitem):
@@ -36,13 +35,13 @@ def details(diff):
     for type_, val, change in diff:
         if type_ == 'add':
             for key, val in change:
-                rst.append('++ {}: {}'.format(key ,val))
+                rst.append('++ {}: {}'.format(key, val))
         elif type_ == 'change':
             rst.append('-+ {}: {} >> {}'.format(
                 unwrap_change_val(val), change[0], change[1]))
         elif type_ == 'remove':
             for key, val in change:
-                rst.append('-- {}: {}'.format(key ,val))
+                rst.append('-- {}: {}'.format(key, val))
     return rst
 
 
@@ -62,4 +61,3 @@ def unwrap_change_val(val):
         return '{}:[{}] '.format(val[0], val[1])
     else:
         return val
-

@@ -18,12 +18,13 @@ import time
 
 import click
 
+from solar.orchestration import filters
 from solar.orchestration import graph
 from solar.orchestration import tasks
-from solar.orchestration import filters
-from solar.orchestration import utils
 from solar.orchestration.traversal import states
-from solar.cli.uids_history import SOLARUID, remember_uid
+from solar.orchestration import utils
+from solar.cli.uids_history import remember_uid
+from solar.cli.uids_history import SOLARUID
 from solar import errors
 
 
@@ -53,11 +54,13 @@ def wait_report(uid, timeout, interval=3):
         if timeout:
             for summary in graph.wait_finish(uid, timeout=timeout):
                 stringified_summary = '\r' + ' '.join(
-                    ['{}: {}'.format(state, count) for state, count in summary.items()])
-                length = len(stringified_summary)
+                    ['{}: {}'.format(state, count)
+                        for state, count in summary.items()])
                 click.echo(stringified_summary, nl=False)
                 sys.stdout.flush()
-                if summary[states.PENDING.name] + summary[states.INPROGRESS.name] != 0:
+                pending = states.PENDING.name
+                in_progress = states.INPROGRESS.name
+                if summary[pending] + summary[in_progress] != 0:
                     time.sleep(interval)
     except errors.SolarError as err:
         click.echo('')
@@ -83,7 +86,7 @@ def click_report(uid):
         if item[2]:
             msg += ' :: {}'.format(item[2])
         if item[4] and item[3]:
-            delta = float(item[4])-float(item[3])
+            delta = float(item[4]) - float(item[3])
             total += delta
             msg += ' D: {}'.format(delta)
         click.echo(click.style(msg, fg=colors[item[1]]))

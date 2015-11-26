@@ -19,6 +19,7 @@ from solar.core import validation as sv
 
 
 class TestInputValidation(base.BaseResourceTest):
+
     def test_input_str_type(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
