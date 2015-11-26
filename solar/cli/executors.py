@@ -1,7 +1,22 @@
-from hashlib import md5
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import hashlib
 
 
 class DryRunExecutor(object):
+
     def __init__(self, mapping=None):
         from fabric import api as fabric_api
         from fabric.contrib import project as fabric_project
@@ -26,10 +41,11 @@ class DryRunExecutor(object):
         fabric_api.put = mock.Mock(side_effect=dry_run_executor('PUT'))
         fabric_api.run = mock.Mock(side_effect=dry_run_executor('SSH RUN'))
         fabric_api.sudo = mock.Mock(side_effect=dry_run_executor('SSH SUDO'))
-        fabric_project.rsync_project = mock.Mock(side_effect=dry_run_executor('RSYNC PROJECT'))
+        fabric_project.rsync_project = mock.Mock(
+            side_effect=dry_run_executor('RSYNC PROJECT'))
 
     def compute_hash(self, key):
-        return md5(str(key)).hexdigest()
+        return hashlib.md5(str(key)).hexdigest()
 
     def find_hash(self, hash):
         stripped_hashes = {k.replace('>', ''): k for k in self.mapping}
@@ -37,7 +53,7 @@ class DryRunExecutor(object):
         hashes = [k for k in stripped_hashes if hash.startswith(k)]
 
         if len(hashes) == 0:
-            #raise Exception('Hash {} not found'.format(hash))
+            # raise Exception('Hash {} not found'.format(hash))
             return ''
         elif len(hashes) > 1:
             raise Exception('Hash {} not unique in {}'.format(

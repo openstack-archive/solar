@@ -19,6 +19,7 @@ from solar.core import signals
 
 
 class TestResource(base.BaseResourceTest):
+
     def test_resource_args(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample

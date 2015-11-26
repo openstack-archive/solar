@@ -16,8 +16,9 @@ import click
 
 
 class AliasedGroup(click.Group):
-    """This class introduces iproute2-like behaviour, command will be inferred
-    by matching patterns.
+    """This class introduces iproute2-like behaviour,
+
+    command will be inferredby matching patterns.
     If there will be more than 1 matches - exception will be raised
 
     Examples:
@@ -25,6 +26,7 @@ class AliasedGroup(click.Group):
     >> solar cha process
     >> solar res action run rabbitmq_service1
     """
+
     def get_command(self, ctx, cmd_name):
         rv = click.Group.get_command(self, ctx, cmd_name)
         if rv is not None:

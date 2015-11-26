@@ -16,13 +16,14 @@ import sys
 
 import click
 
-from solar import errors
-from solar.core import testing
+from solar.cli.uids_history import remember_uid
+from solar.cli.uids_history import SOLARUID
 from solar.core import resource
+from solar.core import testing
+from solar import errors
 from solar.system_log import change
-from solar.system_log import operations
 from solar.system_log import data
-from solar.cli.uids_history import get_uid, remember_uid, SOLARUID
+from solar.system_log import operations
 
 
 @click.group()
@@ -35,7 +36,7 @@ def validate():
     errors = resource.validate_resources()
     if errors:
         for r, error in errors:
-            print 'ERROR: %s: %s' % (r.name, error)
+            print('ERROR: %s: %s' % (r.name, error))
         sys.exit(1)
 
 
@@ -48,20 +49,22 @@ def stage(d):
         click.echo(data.compact(item))
         if d:
             for line in data.details(item.diff):
-                click.echo(' '*4+line)
+                click.echo(' ' * 4 + line)
     if not log:
         click.echo('No changes')
+
 
 @changes.command(name='staged-item')
 @click.argument('uid')
 def staged_item(uid):
     item = data.LogItem.get(uid)
     if not item:
-        click.echo('No staged changes for {}'.format(log_action))
+        click.echo('No staged changes for {}'.format(uid))
     else:
         click.echo(data.compact(item))
         for line in data.details(item.diff):
-            click.echo(' '*4+line)
+            click.echo(' ' * 4 + line)
+
 
 @changes.command()
 def process():
@@ -90,7 +93,7 @@ def history(n, d, s):
         click.echo(data.compact(item))
         if d:
             for line in data.details(item.diff):
-                click.echo(' '*4+line)
+                click.echo(' ' * 4 + line)
     if not log:
         click.echo('No history')
 
@@ -103,17 +106,17 @@ def revert(uid):
     except errors.SolarError as er:
         raise click.BadParameter(str(er))
 
+
 @changes.command()
 @click.argument('uids', nargs=-1)
 @click.option('--all', is_flag=True, default=True)
 def discard(uids, all):
-    """
-    uids argument should be of a higher priority than all flag
-    """
+    """uids argument should be of a higher priority than all flag."""
     if uids:
         change.discard_uids(uids)
     elif all:
         change.discard_all()
+
 
 @changes.command()
 @click.option('--name', default=None)
@@ -143,6 +146,7 @@ def test(name):
 @changes.command(name='clean-history')
 def clean_history():
     change.clear_history()
+
 
 @changes.command(help='USE ONLY FOR TESTING')
 def commit():

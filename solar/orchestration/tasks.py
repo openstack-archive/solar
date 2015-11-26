@@ -54,9 +54,11 @@ class ReportTask(task.Task):
 
 report_task = partial(app.task, base=ReportTask, bind=True)
 
+
 @task_prerun.connect
 def start_solar_session(task_id, task, *args, **kwargs):
     ModelMeta.session_start()
+
 
 @task_postrun.connect
 def end_solar_session(task_id, task, *args, **kwargs):
@@ -104,7 +106,7 @@ def fault_tolerance(ctxt, percent):
         if dg.node[s]['status'] == 'SUCCESS':
             success += 1
 
-    succes_percent = (success/lth) * 100
+    succes_percent = (success / lth) * 100
     if succes_percent < percent:
         raise Exception('Cant proceed with, {0} < {1}'.format(
             succes_percent, percent))
@@ -117,7 +119,8 @@ def echo(ctxt, message):
 
 @report_task(name='anchor')
 def anchor(ctxt, *args):
-    # such tasks should be walked when atleast 1/3/exact number of resources visited
+    # such tasks should be walked when atleast 1/3/exact number of resources
+    # visited
     dg = graph.get_graph('current')
     for s in dg.predecessors(ctxt.request.id):
         if dg.node[s]['status'] != 'SUCCESS':
@@ -154,6 +157,7 @@ def soft_stop(plan_uid):
         if dg.node[n]['status'] == 'PENDING':
             dg.node[n]['status'] = 'SKIPPED'
     graph.update_graph(dg)
+
 
 @app.task(name='schedule_next')
 def schedule_next(task_id, status, errmsg=None):

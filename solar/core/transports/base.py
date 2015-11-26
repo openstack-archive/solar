@@ -16,7 +16,8 @@
 class Executor(object):
 
     def __init__(self, resource, executor, params=None):
-        """
+        """Executor
+
         :param resource: solar resource
         :param executor: callable executor, that will perform action
         :param params: optional argument
@@ -90,7 +91,8 @@ class SolarTransport(object):
         except AttributeError:
             if name is None:
                 name = self.preffered_transport_name
-            transport = next(x for x in resource.transports() if x['name'] == name)
+            transport = next(x for x in resource.transports()
+                             if x['name'] == name)
             setattr(resource, key, transport)
         return transport
 
@@ -102,9 +104,7 @@ class SolarTransport(object):
 
 
 class SyncTransport(SolarTransport):
-    """
-    Transport that is responsible for file / directory syncing.
-    """
+    """Transport that is responsible for file / directory syncing."""
 
     preffered_transport_name = None
     _mode = 'sync'
@@ -135,7 +135,8 @@ class SyncTransport(SolarTransport):
             executor.run(self)
 
     def sync_all(self):
-        """
+        """Syncs all
+
         It checks if action is required first,
         then runs all sequentially.
         Could be someday changed to parallel thing.
@@ -146,8 +147,9 @@ class SyncTransport(SolarTransport):
 
 
 class RunTransport(SolarTransport):
-    """
-    Transport that is responsible for executing remote commands, rpc like thing.
+    """Transport that is responsible for executing remote commands,
+
+    rpc like thing
     """
 
     preffered_transport_name = None

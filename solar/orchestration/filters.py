@@ -44,7 +44,6 @@ def start_from(dg, start_nodes):
         if not preds and node in start_nodes:
             visited.add(node)
 
-
         if preds:
             for pred in preds:
                 if pred not in visited:
@@ -63,9 +62,11 @@ def validate(dg, start_nodes, end_nodes, err_msgs):
     for n in end_nodes:
         if n not in dg:
             if start_nodes:
-                error_msgs.append('No path from {} to {}'.format(start_nodes, n))
+                error_msgs.append(
+                    'No path from {} to {}'.format(start_nodes, n))
             else:
-                error_msgs.append(not_in_the_graph_msg.format(n, dg.graph['uid']))
+                error_msgs.append(
+                    not_in_the_graph_msg.format(n, dg.graph['uid']))
     return error_msgs
 
 

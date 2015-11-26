@@ -27,6 +27,7 @@ HANDLERS = {'ansible': AnsibleTemplate,
             'none': Empty,
             'puppetv2': PuppetV2}
 
+
 def get(handler_name):
     handler = HANDLERS.get(handler_name, None)
     if handler:

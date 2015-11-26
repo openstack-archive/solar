@@ -42,6 +42,7 @@ def dg_ex1():
 def test_end_at(dg_ex1, end_nodes, visited):
     assert set(filters.end_at(dg_ex1, end_nodes)) == visited
 
+
 @mark.parametrize("start_nodes,visited", [
     (['n3'], {'n3'}),
     (['n1'], {'n1', 'n2', 'n4'}),
@@ -49,6 +50,7 @@ def test_end_at(dg_ex1, end_nodes, visited):
 ])
 def test_start_from(dg_ex1, start_nodes, visited):
     assert set(filters.start_from(dg_ex1, start_nodes)) == visited
+
 
 @fixture
 def dg_ex2():
@@ -68,11 +70,13 @@ def riak_plan():
 
 
 def test_riak_start_node1(riak_plan):
-    assert filters.start_from(riak_plan, ['node1.run']) == {'node1.run', 'hosts_file1.run', 'riak_service1.run'}
+    assert filters.start_from(riak_plan, ['node1.run']) == {
+        'node1.run', 'hosts_file1.run', 'riak_service1.run'}
 
 
 def test_riak_end_hosts_file1(riak_plan):
-    assert filters.end_at(riak_plan, ['hosts_file1.run']) == {'node1.run', 'hosts_file1.run'}
+    assert filters.end_at(riak_plan, ['hosts_file1.run']) == {
+        'node1.run', 'hosts_file1.run'}
 
 
 def test_start_at_two_nodes(riak_plan):
@@ -83,7 +87,8 @@ def test_start_at_two_nodes(riak_plan):
 
 def test_initial_from_node1_traverse(riak_plan):
     filters.filter(riak_plan, start=['node1.run'])
-    pending = {n for n in riak_plan if riak_plan.node[n]['status'] == states.PENDING.name}
+    pending = {n for n in riak_plan if riak_plan.node[
+        n]['status'] == states.PENDING.name}
     assert pending == {'hosts_file1.run', 'riak_service1.run', 'node1.run'}
 
 
@@ -92,7 +97,8 @@ def test_second_from_node2_with_node1_walked(riak_plan):
     for n in success:
         riak_plan.node[n]['status'] = states.SUCCESS.name
     filters.filter(riak_plan, start=['node2.run'])
-    pending = {n for n in riak_plan if riak_plan.node[n]['status'] == states.PENDING.name}
+    pending = {n for n in riak_plan if riak_plan.node[
+        n]['status'] == states.PENDING.name}
     assert pending == {'hosts_file2.run', 'riak_service2.run',
                        'node2.run', 'riak_service2.join'}
 
@@ -102,6 +108,7 @@ def test_end_joins(riak_plan):
         riak_plan,
         start=['node1.run', 'node2.run', 'node3.run'],
         end=['riak_service2.join', 'riak_service3.join'])
-    skipped = {n for n in riak_plan if riak_plan.node[n]['status'] == states.SKIPPED.name}
+    skipped = {n for n in riak_plan if riak_plan.node[
+        n]['status'] == states.SKIPPED.name}
 
     assert skipped == {'riak_service1.commit'}

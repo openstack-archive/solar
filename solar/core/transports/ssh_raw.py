@@ -2,16 +2,18 @@
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
-#    a copy of the License attached#
+#    a copy of the License at
+#
 #         http://www.apache.org/licenses/LICENSE-2.0
 #
 #    Unless required by applicable law or agreed to in writing, software
 #    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See then
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
 from fabric import api as fabric_api
+
 from solar.core.log import log
 from solar.core.transports.base import RunTransport
 
@@ -31,7 +33,6 @@ class _RawSSHTransport(object):
     def _ssh_cmd(self, resource):
         props = self._ssh_props(resource)
         return ('ssh', '-i', props['ssh_key'])
-
 
 
 class RawSSHRunTransport(RunTransport, _RawSSHTransport):
@@ -59,4 +60,3 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         log.debug("SSH CMD: %r", ssh_cmd)
 
         return fabric_api.local(' '.join(ssh_cmd))
-

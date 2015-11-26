@@ -86,7 +86,7 @@ def parse_plan(plan_path):
         defaults = {
             'status': 'PENDING',
             'errmsg': '',
-            }
+        }
         defaults.update(task['parameters'])
         dg.add_node(
             task['uid'], **defaults)
@@ -127,7 +127,6 @@ def create_plan(plan_path, save=True):
     """
     dg = parse_plan(plan_path)
     return create_plan_from_graph(dg, save=save)
-
 
 
 def reset_by_uid(uid, state_list=None):

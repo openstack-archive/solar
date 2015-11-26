@@ -22,10 +22,11 @@ def host_diff():
     return [
         [u'add', u'', [
             [u'ip', u'10.0.0.3'],
-            [u'hosts_names', ['riak_server1.solar', 'riak_server2.solar', 'riak_server3.solar']],
+            [u'hosts_names', ['riak_server1.solar',
+                              'riak_server2.solar', 'riak_server3.solar']],
             [u'ssh_user', u'vagrant'],
             [u'ssh_key', u'/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'],
-    ]]]
+        ]]]
 
 
 def test_details_for_add(host_diff):
@@ -39,8 +40,10 @@ def test_details_for_add(host_diff):
 def list_change():
     return [[u'change', [u'configs_ports', 0, u'value', 0, u'value'], [18098, 88888]]]
 
+
 def test_list_details_for_change(list_change):
-    assert data.details(list_change) == ['-+ configs_ports:[0] : 18098 >> 88888']
+    assert data.details(list_change) == [
+        '-+ configs_ports:[0] : 18098 >> 88888']
 
 
 @fixture

@@ -1,14 +1,30 @@
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
 # TODO: change to something less naive
 #
 
-import libtorrent as lt
 from operator import attrgetter
-import time
-import sys
 import os
+import sys
+import time
 
-state_str = ['queued', 'checking', 'downloading metadata', \
-             'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
+import libtorrent as lt
+
+state_str = ['queued', 'checking', 'downloading metadata',
+             'downloading', 'finished', 'seeding', 'allocating',
+             'checking fastresume']
 
 
 class MultiTorrent(object):
@@ -31,7 +47,8 @@ class MultiTorrent(object):
 
     @property
     def progress(self):
-        total_progress = map(attrgetter('progress'), map(lambda x: x.status(), self.torrents))
+        total_progress = map(attrgetter('progress'), map(
+            lambda x: x.status(), self.torrents))
         return sum(total_progress) / len(total_progress)
 
     def numbers(self):
@@ -52,10 +69,10 @@ def init_session(args, seed=False):
         if os.path.exists(magnet_or_path):
             e = lt.bdecode(open(magnet_or_path, 'rb').read())
             info = lt.torrent_info(e)
-            params = { 'save_path': save_path,
-                       'storage_mode': lt.storage_mode_t.storage_mode_sparse,
-                       'ti': info,
-                       'seed_mode': seed}
+            params = {'save_path': save_path,
+                      'storage_mode': lt.storage_mode_t.storage_mode_sparse,
+                      'ti': info,
+                      'seed_mode': seed}
             h = ses.add_torrent(params)
         else:
             h = ses.add_torrent({
@@ -105,19 +122,16 @@ def _seeder(torrents, save_path='.', max_seed_ratio=5):
         if peers_0 < now - no_peers:
             sys.exit("No peers for %d seconds exiting" % no_peers)
         if i % 5 == 0:
-            print "%.2f%% up=%.1f kB/s peers=%s total_upload_B=%.1f" \
-                % (mt.progress * 100,
-                   s.upload_rate / 1000,
-                   s.num_peers,
-                   (s.total_upload))
+            print("%.2f%% up=%.1f kB/s peers=%s total_upload_B=%.1f"
+                  % (mt.progress * 100, s.upload_rate / 1000, s.num_peers,
+                s.total_upload))
         if s.num_peers != 0:
             peers_0 = now
         sys.stdout.flush()
         time.sleep(1)
     else:
-        print 'Seed timeout exiting'
+        print('Seed timeout exiting')
     sys.exit(0)
-
 
 
 def _getter(torrents, max_seed_ratio=3):
@@ -136,9 +150,9 @@ def _getter(torrents, max_seed_ratio=3):
         #     mt.force_reannounce()
         s = ses.status()
         if i % 5 == 0:
-            print '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
-                (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, \
-                 s.num_peers, mt.numbers())
+            print('%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' %
+                (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000,
+                 s.num_peers, mt.numbers()))
         now = time.time()
         current_state = (now, mt.progress)
         if current_state[-1] != last_state[-1]:
@@ -154,7 +168,7 @@ def _getter(torrents, max_seed_ratio=3):
         args = sys.argv[:]
         args[-2] = 's'
         args.insert(0, sys.executable)
-        print "Entering seeder mode"
+        print("Entering seeder mode")
         check_output(args, shell=False)
     else:
         # err
@@ -164,7 +178,7 @@ if __name__ == '__main__':
     mode = sys.argv[1]
     torrents = sys.argv[2]
     torrents = [x.split('|') for x in torrents.split(';')]
-    print repr(torrents)
+    print(repr(torrents))
     if mode == 'g':
         _getter(torrents, *sys.argv[3:])
     elif mode == 's':

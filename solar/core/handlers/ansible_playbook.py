@@ -15,16 +15,17 @@
 
 import os
 
-from ansible.playbook import PlayBook
-from ansible import utils
 from ansible import callbacks
 import ansible.constants as C
+from ansible.playbook import PlayBook
+from ansible import utils
 from fabric import api as fabric_api
 
-from solar.core.log import log
 from solar.core.handlers import base
-from solar import errors
+from solar.core.log import log
 from solar.core.provider import SVNProvider
+from solar import errors
+
 
 ROLES_PATH = '/etc/ansible/roles'
 
@@ -48,14 +49,16 @@ class AnsiblePlaybook(base.BaseHandler):
             resource.metadata['actions'][action])
         stats = callbacks.AggregateStats()
         playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        runner_cb = callbacks.PlaybookRunnerCallbacks(stats, verbose=utils.VERBOSITY)
+        runner_cb = callbacks.PlaybookRunnerCallbacks(
+            stats, verbose=utils.VERBOSITY)
 
         variables = resource.args_dict()
         if 'roles' in variables:
             self.download_roles(variables['roles'])
 
         remote_user = variables.get('ssh_user') or C.DEFAULT_REMOTE_USER
-        private_key_file = variables.get('ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
+        private_key_file = variables.get(
+            'ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
         if variables.get('ip'):
             host = variables['ip']
             transport = C.DEFAULT_TRANSPORT

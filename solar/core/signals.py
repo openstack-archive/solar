@@ -16,7 +16,6 @@
 import networkx
 
 from solar.core.log import log
-from solar.dblayer.solar_models import Resource as DBResource
 
 
 def guess_mapping(emitter, receiver):
@@ -59,29 +58,35 @@ def location_and_transports(emitter, receiver, orig_mapping):
                 orig_mapping.remove(single)
 
     def _single(single, emitter, receiver, inps_emitter, inps_receiver):
-        # this function is responsible for doing magic with transports_id and location_id
+        # this function is responsible for doing magic with
+        # transports_id and location_id
         # it tries to be safe and smart as possible
         # it connects only when 100% that it can and should
         # user can always use direct mappings,
         # we also use direct mappings in VR
-        # when we will remove location_id and transports_id from inputs then this function,
+        # when we will remove location_id and transports_id from
+        # inputs then this function,
         #     will be deleted too
         if inps_emitter and inps_receiver:
             if not inps_emitter == inps_receiver:
-                if not '::' in inps_receiver:
+                if '::' not in inps_receiver:
                     pass
-                    # log.warning("Different %r defined %r => %r", single, emitter.name, receiver.name)
+                    # log.warning("Different %r defined %r => %r",
+                    #             single, emitter.name, receiver.name)
                 return
             else:
-                # log.debug("The same %r defined for %r => %r, skipping", single, emitter.name, receiver.name)
+                # log.debug("The same %r defined for %r => %r, skipping",
+                # single, emitter.name, receiver.name)
                 return
         emitter_single = emitter.db_obj.meta_inputs[single]
         receiver_single = receiver.db_obj.meta_inputs[single]
         emitter_single_reverse = emitter_single.get('reverse')
         receiver_single_reverse = receiver_single.get('reverse')
         if inps_receiver is None and inps_emitter is not None:
-            # we don't connect automaticaly when receiver is None and emitter is not None
-            # for cases when we connect existing transports to other data containers
+            # we don't connect automaticaly when
+            # receiver is None and emitter is not None
+            # for cases when we connect existing transports to other data
+            # containers
             if receiver_single_reverse:
                 log.info("Didn't connect automaticaly %s::%s -> %s::%s",
                          receiver.name,
@@ -91,13 +96,15 @@ def location_and_transports(emitter, receiver, orig_mapping):
                 return
         if emitter_single.get('is_emit') is False:
             # this case is when we connect resource to transport itself
-            # like adding ssh_transport for solar_agent_transport and we don't want then
+            # like adding ssh_transport for solar_agent_transport
+            # and we don't want then
             # transports_id to be messed
             # it forbids passing this value around
             # log.debug("Disabled %r mapping for %r", single, emitter.name)
             return
         if receiver_single.get('is_own') is False:
-            # this case is when we connect resource which has location_id but that is
+            # this case is when we connect resource which has
+            # location_id but that is
             # from another resource
             log.debug("Not is_own %r for %r ", single, emitter.name)
             return
@@ -124,7 +131,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
     # with dirty_state_ok(DBResource, ('index', )):
     for single in ('transports_id', 'location_id'):
         if single in inps_emitter and single in inps_receiver:
-            _single(single, emitter, receiver, inps_emitter[single], inps_receiver[single])
+            _single(single, emitter, receiver, inps_emitter[
+                    single], inps_receiver[single])
         else:
             log.warning('Unable to create connection for %s with'
                         ' emitter %s, receiver %s',
@@ -151,7 +159,7 @@ def disconnect_receiver_by_input(receiver, input_name):
 
 
 def detailed_connection_graph(start_with=None, end_with=None, details=False):
-    from solar.core.resource import Resource, load_all
+    from solar.core.resource import load_all
 
     if details:
         def format_for_edge(resource, input):
@@ -177,7 +185,7 @@ def detailed_connection_graph(start_with=None, end_with=None, details=False):
             graph.add_edge(resource.name, resource_input)
             graph.node[resource_input] = inp_props
         conns = resource.connections
-        for (emitter_resource, emitter_input, receiver_resource, receiver_input) in conns:
+        for (emitter_resource, emitter_input, receiver_resource, receiver_input) in conns:  # NOQA
             e = format_for_edge(emitter_resource, emitter_input)
             r = format_for_edge(receiver_resource, receiver_input)
             graph.add_edge(emitter_resource, e)

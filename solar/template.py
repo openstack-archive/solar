@@ -260,7 +260,9 @@ class ResourceListTemplate(BaseTemplate):
                 )
 
     def on_each(self, resource_path, args=None):
-        """Create resource form resource_path on each resource in self.resources.
+        """Create resource form resource_path
+
+        on each resource in self.resources
         """
         args = args or {}
 

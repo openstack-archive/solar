@@ -22,6 +22,7 @@ from solar.events.controls import Dep, React, StateChange
 
 from solar.dblayer.solar_models import Resource
 
+
 def create_event(event_dict):
     etype = event_dict['etype']
     kwargs = {'child': event_dict['child'],
@@ -125,7 +126,6 @@ def bft_events_graph(start):
     return dg
 
 
-
 def build_edges(changes_graph, events):
     """
     :param changes_graph: nx.DiGraph object with actions to be executed
@@ -143,7 +143,8 @@ def build_edges(changes_graph, events):
         event_name = stack.pop(0)
 
         if event_name in events_graph:
-            log.debug('Next events after %s are %s', event_name, events_graph.successors(event_name))
+            log.debug('Next events after %s are %s', event_name,
+                      events_graph.successors(event_name))
         else:
             log.debug('No outgoing events based on %s', event_name)
 
