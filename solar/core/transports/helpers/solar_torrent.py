@@ -15,17 +15,19 @@
 # TODO: change to something less naive
 #
 
+from __future__ import print_function
+
+import libtorrent as lt
 from operator import attrgetter
 import os
 import sys
 import time
 
-state_str = ['queued', 'checking', 'downloading metadata',
-             'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
+state_str = ['queued', 'checking', 'downloading metadata', 'downloading',
+             'finished', 'seeding', 'allocating', 'checking fastresume']
 
 
 class MultiTorrent(object):
-
     def __init__(self, torrents, ses):
         self.torrents = torrents
         self.ses = ses
@@ -44,8 +46,8 @@ class MultiTorrent(object):
 
     @property
     def progress(self):
-        total_progress = map(attrgetter('progress'), map(
-            lambda x: x.status(), self.torrents))
+        total_progress = map(
+            attrgetter('progress'), map(lambda x: x.status(), self.torrents))
         return sum(total_progress) / len(total_progress)
 
     def numbers(self):
@@ -76,7 +78,8 @@ def init_session(args, seed=False):
                 'save_path': save_path,
                 'storage_mode': lt.storage_mode_t.storage_mode_sparse,
                 'url': magnet_or_path,
-                'seed_mode': seed})
+                'seed_mode': seed
+            })
         all_torrents.append(h)
     return ses, all_torrents
 
@@ -119,9 +122,9 @@ def _seeder(torrents, save_path='.', max_seed_ratio=5):
         if peers_0 < now - no_peers:
             sys.exit("No peers for %d seconds exiting" % no_peers)
         if i % 5 == 0:
-            print("%.2f%% up=%.1f kB/s peers=%s total_upload_B=%.1f"
-                  % (mt.progress * 100, s.upload_rate / 1000, s.num_peers,
-                s.total_upload))
+            print("%.2f%% up=%.1f kB/s peers=%s total_upload_B=%.1f" %
+                  (mt.progress * 100, s.upload_rate / 1000, s.num_peers,
+                   s.total_upload))
         if s.num_peers != 0:
             peers_0 = now
         sys.stdout.flush()
@@ -147,9 +150,12 @@ def _getter(torrents, max_seed_ratio=3):
         #     mt.force_reannounce()
         s = ses.status()
         if i % 5 == 0:
-            print '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
-                (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000,
-                 s.num_peers, mt.numbers())
+            print('%.2f%% complete (down: %.1f kb/s up: %.1f kB/s p: %d) %s' %
+                  (mt.progress * 100,
+                   s.download_rate / 1000,
+                   s.upload_rate / 1000,
+                   s.num_peers,
+                   mt.numbers()))
         now = time.time()
         current_state = (now, mt.progress)
         if current_state[-1] != last_state[-1]:
@@ -170,6 +176,7 @@ def _getter(torrents, max_seed_ratio=3):
     else:
         # err
         sys.exit(1)
+
 
 if __name__ == '__main__':
     mode = sys.argv[1]
