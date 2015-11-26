@@ -15,19 +15,19 @@
 import dictdiffer
 import networkx as nx
 
-from solar.system_log import data
 from solar.core.log import log
-from solar.core import signals
 from solar.core import resource
+from solar.core.resource.resource import RESOURCE_STATE
+from solar.core import signals
+from solar.dblayer.solar_models import CommitedResource
+from solar.dblayer.solar_models import LogItem
+from solar.dblayer.solar_models import StrInt
+from solar.events import api as evapi
+from solar.orchestration import graph
+from solar.system_log import data
 from solar import utils
 
-from solar.orchestration import graph
-from solar.events import api as evapi
-from .consts import CHANGES
-from solar.core.resource.resource import RESOURCE_STATE
-from solar.errors import CannotFindID
-
-from solar.dblayer.solar_models import Resource, LogItem, CommitedResource, StrInt
+from solar.core.consts import CHANGES
 
 
 def guess_action(from_, to):
@@ -135,7 +135,9 @@ def parameters(res, action, data):
 
 
 def _get_args_to_update(args, connections):
-    """For each resource we can update only args that are not provided
+    """Returns args to update
+
+    For each resource we can update only args that are not provided
     by connections
     """
     inherited = [i[3].split(':')[0] for i in connections]
@@ -146,7 +148,8 @@ def _get_args_to_update(args, connections):
 
 
 def revert_uids(uids):
-    """
+    """Reverts uids
+
     :param uids: iterable not generator
     """
     items = LogItem.multi_get(uids)
@@ -165,15 +168,15 @@ def revert_uids(uids):
 
 
 def _revert_remove(logitem):
-    """Resource should be created with all previous connections
-    """
+    """Resource should be created with all previous connections"""
     commited = CommitedResource.get(logitem.resource)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
     connections = dictdiffer.revert(
         logitem.connections_diff, sorted(commited.connections))
 
     resource.Resource(logitem.resource, logitem.base_path,
-                      args=_get_args_to_update(args, connections), tags=commited.tags)
+                      args=_get_args_to_update(args, connections),
+                      tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
@@ -181,7 +184,7 @@ def _revert_remove(logitem):
                         emitter_input: receiver_input})
 
 
-def _update_inputs_connections(res_obj, args, old_connections, new_connections):
+def _update_inputs_connections(res_obj, args, old_connections, new_connections):  # NOQA
 
     removed = []
     for item in old_connections:
@@ -204,7 +207,8 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
         emmiter_obj.connect(receiver_obj, {emitter_input: receiver_input})
 
     if removed or added:
-        # TODO without save we will get error that some values can not be updated
+        # TODO without save we will get error
+        # that some values can not be updated
         # even if connection was removed
         receiver_obj.db_obj.save()
 
@@ -212,8 +216,7 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
 
 
 def _revert_update(logitem):
-    """Revert of update should update inputs and connections
-    """
+    """Revert of update should update inputs and connections"""
     res_obj = resource.load(logitem.resource)
     commited = res_obj.load_commited()
 
@@ -222,7 +225,8 @@ def _revert_update(logitem):
     args = dictdiffer.revert(logitem.diff, commited.inputs)
 
     _update_inputs_connections(
-        res_obj, _get_args_to_update(args, connections), commited.connections, connections)
+        res_obj, _get_args_to_update(args, connections),
+        commited.connections, connections)
 
 
 def _revert_run(logitem):
@@ -247,7 +251,8 @@ def _discard_update(item):
     args = dictdiffer.revert(item.diff, resource_obj.args)
 
     _update_inputs_connections(
-        resource_obj, _get_args_to_update(args, new_connections), old_connections, new_connections)
+        resource_obj, _get_args_to_update(args, new_connections),
+        old_connections, new_connections)
 
 
 def _discard_run(item):
@@ -279,9 +284,8 @@ def discard_all():
 
 
 def commit_all():
-    """Helper mainly for ease of testing
-    """
-    from .operations import move_to_commited
+    """Helper mainly for ease of testing"""
+    from solar.system_log.operations import move_to_commited
     for item in data.SL():
         move_to_commited(item.log_action)
 
