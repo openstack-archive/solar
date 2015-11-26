@@ -74,7 +74,7 @@ Used in transport layer to find ip address of a node. ::
   'location_id': '96bc779540d832284680785ecd948a2d'
 
 transports_id
-------------
+-------------
 Used to find transports array that will be used for transport selection. ::
 
   'transports_id': '3889e1790e68b80b4f255cf0e13494b1'

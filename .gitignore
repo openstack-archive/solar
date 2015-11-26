@@ -11,6 +11,10 @@ tmp/
 #vim
 *.swp
 
+.eggs
+build
+docs/_build
+
 state/
 clients.json
 rs/
