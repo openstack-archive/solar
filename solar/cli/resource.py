@@ -259,5 +259,5 @@ def remove(name, tag, f):
         if f:
             msg = 'Resource %s removed from database' % res.name
         else:
-            click.echo(
-             'Resource %s will be removed after commiting changes.' % res.name)
+            msg = 'Resource %s will be removed after commiting changes.' % res.name  # NOQA
+        click.echo(msg)

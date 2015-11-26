@@ -113,7 +113,7 @@ def _get_template(name, content, kwargs, inputs):
             missing.append(input)
     if missing:
         raise Exception(
-            '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
+            '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))  # NOQA
     template = Template(content, trim_blocks=True, lstrip_blocks=True)
     template = template.render(str=str, zip=zip, **kwargs)
     return template

@@ -21,7 +21,6 @@ import collections
 import json
 
 import click
-import collections
 from fabric import api as fabric_api
 import networkx as nx
 

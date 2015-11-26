@@ -17,13 +17,11 @@ import sys
 import click
 
 from solar.cli.uids_history import remember_uid
-from solar.cli.uids_history import SOLARUID
 from solar.core import resource
 from solar.core import testing
 from solar import errors
 from solar.system_log import change
 from solar.system_log import data
-from solar.system_log import operations
 
 
 @click.group()
@@ -71,12 +69,6 @@ def process():
     uid = change.send_to_orchestration().graph['uid']
     remember_uid(uid)
     click.echo(uid)
-
-
-@changes.command()
-@click.argument('uid', type=SOLARUID)
-def commit(uid):
-    operations.commit(uid)
 
 
 @changes.command()
