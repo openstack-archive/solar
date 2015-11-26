@@ -14,7 +14,8 @@
 
 import networkx as nx
 
-from .traversal import VISITED, states
+from solar.orchestration.traversal import states
+from solar.orchestration.traversal import VISITED
 
 
 def get_dfs_postorder_subgraph(dg, nodes):
@@ -26,6 +27,7 @@ def get_dfs_postorder_subgraph(dg, nodes):
 
 def end_at(dg, nodes):
     """Returns subgraph that will guarantee that predecessors are visited
+
     dg - directed graph
     nodes - iterable with node names
     """
@@ -33,8 +35,7 @@ def end_at(dg, nodes):
 
 
 def start_from(dg, start_nodes):
-    """Guarantee that all paths starting from specific *nodes* will be visited
-    """
+    """Ensures that all paths starting from specific *nodes* will be visited"""
     visited = {n for n in dg if dg.node[n].get('status') in VISITED}
 
     # sorting nodes in topological order will guarantee that all predecessors
@@ -71,7 +72,8 @@ def validate(dg, start_nodes, end_nodes, err_msgs):
 
 
 def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
-    """
+    """Filters a graph
+
     TODO(dshulyak) skip_with should also support NOOP, which will instead
     of blocking task, and its successors, should mark task as visited
 
