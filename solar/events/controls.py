@@ -36,7 +36,6 @@ from solar.dblayer.model import DBLayerNotFound
 from solar.dblayer.solar_models import Resource
 
 
-
 class Event(object):
 
     etype = None

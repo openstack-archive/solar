@@ -23,7 +23,6 @@ from solar.events.controls import Dep
 from solar.events.controls import React
 
 
-
 def create_event(event_dict):
     etype = event_dict['etype']
     kwargs = {'child': event_dict['child'],

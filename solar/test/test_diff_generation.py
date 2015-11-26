@@ -32,7 +32,6 @@ def staged():
             ]}
 
 
-
 @fixture
 def commited():
     return {'id': 'res.1',
@@ -43,7 +42,6 @@ def commited():
             'connections': [
                 ['node.1', 'res.1', ['ip', 'ip']]
             ]}
-
 
 
 @fixture

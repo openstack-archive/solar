@@ -13,9 +13,9 @@
 #    under the License.
 
 import networkx as nx
+
 from mock import patch
 from pytest import fixture
-
 from solar.orchestration import executor
 
 

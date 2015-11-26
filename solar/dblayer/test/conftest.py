@@ -4,9 +4,10 @@ import time
 
 import pytest
 
+
+from solar.dblayer.model import get_bucket
 from solar.dblayer.model import Model
 from solar.dblayer.model import ModelMeta
-from solar.dblayer.model import get_bucket
 
 
 def patched_get_bucket_name(cls):
