@@ -15,10 +15,10 @@
 
 import os
 
+from ansible import utils  # noqa, otherwise ansible has circural import
 from ansible import callbacks
 import ansible.constants as C
 from ansible.playbook import PlayBook
-from ansible import utils
 from fabric import api as fabric_api
 
 from solar.core.handlers import base
