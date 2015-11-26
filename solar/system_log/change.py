@@ -23,11 +23,12 @@ from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import LogItem
 from solar.dblayer.solar_models import StrInt
 from solar.events import api as evapi
+from solar.events.controls import StateChange
 from solar.orchestration import graph
 from solar.system_log import data
 from solar import utils
 
-from solar.core.consts import CHANGES
+from solar.system_log.consts import CHANGES
 
 
 def guess_action(from_, to):
@@ -119,7 +120,7 @@ def send_to_orchestration():
         events[logitem.resource] = evapi.all_events(logitem.resource)
         changed_nodes.append(logitem.resource)
 
-        state_change = evapi.StateChange(logitem.resource, logitem.action)
+        state_change = StateChange(logitem.resource, logitem.action)
         state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)

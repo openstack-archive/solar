@@ -1,3 +1,4 @@
+# flake8: noqa
 # Except when otherwise stated (look at the beginning of each file) the
 # software and the documentation in this project are copyrighted by:
 #

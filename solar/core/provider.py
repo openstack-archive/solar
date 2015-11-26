@@ -20,6 +20,17 @@ import zipfile
 
 from solar import utils
 
+GIT_TPL = """
+---
+- hosts: all
+  tasks:
+    - git: repo={repository}
+           dest={destination}
+           clone={clone}
+           update=yes
+           version={branch}
+"""
+
 
 class BaseProvider(object):
 
@@ -72,12 +83,7 @@ class GitProvider(BaseProvider):
         directory = self._directory()
 
         with open('/tmp/git-provider.yaml', 'w') as f:
-            f.write("""
----
-- hosts: all
-  tasks:
-    - git: repo={repository} dest={destination} clone={clone} update=yes version={branch}
-            """.format(
+            f.write(GIT_TPL.format(
                 repository=self.repository,
                 branch=self.branch,
                 destination=directory,
