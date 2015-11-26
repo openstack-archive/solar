@@ -18,9 +18,10 @@ __all__ = ['add_dep', 'add_react', 'Dep', 'React', 'add_event']
 import networkx as nx
 
 from solar.core.log import log
-from solar.events.controls import Dep, React, StateChange
-
 from solar.dblayer.solar_models import Resource
+from solar.events.controls import Dep
+from solar.events.controls import React
+
 
 
 def create_event(event_dict):
@@ -99,6 +100,7 @@ def all_events(resource):
 
 def bft_events_graph(start):
     """Builds graph of events traversing events in breadth-first order
+
     This graph doesnt necessary reflect deployment order, it is used
     to show dependencies between resources
     """
@@ -127,7 +129,8 @@ def bft_events_graph(start):
 
 
 def build_edges(changes_graph, events):
-    """
+    """Builds graph edges
+
     :param changes_graph: nx.DiGraph object with actions to be executed
     :param events: {res: [controls.Event objects]}
     """
@@ -149,7 +152,8 @@ def build_edges(changes_graph, events):
             log.debug('No outgoing events based on %s', event_name)
 
         if event_name not in visited:
-            for parent, child, data in events_graph.edges(event_name, data=True):
+            for parent, child, data in events_graph.edges(event_name,
+                                                          data=True):
                 succ_ev = data['event']
                 succ_ev.insert(stack, changes_graph)
         visited.add(event_name)

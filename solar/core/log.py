@@ -23,7 +23,7 @@ def setup_logger():
     handler = logging.FileHandler('solar.log')
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        '%(asctime)s %(levelname)s %(funcName)s (%(filename)s::%(lineno)s)::%(message)s')  # NOQA
+        '%(asctime)s %(levelname)s %(funcName)s (%(filename)s::%(lineno)s)::%(message)s')
     handler.setFormatter(formatter)
     log.addHandler(handler)
 

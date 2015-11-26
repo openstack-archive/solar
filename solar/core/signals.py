@@ -83,8 +83,7 @@ def location_and_transports(emitter, receiver, orig_mapping):
         emitter_single_reverse = emitter_single.get('reverse')
         receiver_single_reverse = receiver_single.get('reverse')
         if inps_receiver is None and inps_emitter is not None:
-            # we don't connect automaticaly when
-            # receiver is None and emitter is not None
+            # we don't connect automaticaly when receiver is None and emitter is not None
             # for cases when we connect existing transports to other data
             # containers
             if receiver_single_reverse:

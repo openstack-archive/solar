@@ -12,11 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.system_log import data
-from solar.dblayer.solar_models import CommitedResource
 from dictdiffer import patch
+
 from solar.core.resource import resource
-from .consts import CHANGES
+from solar.dblayer.solar_models import CommitedResource
+from solar.system_log import data
+
+from solar.system_log.consts import CHANGES
 
 
 def set_error(log_action, *args, **kwargs):

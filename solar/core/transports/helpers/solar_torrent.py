@@ -20,11 +20,8 @@ import os
 import sys
 import time
 
-import libtorrent as lt
-
 state_str = ['queued', 'checking', 'downloading metadata',
-             'downloading', 'finished', 'seeding', 'allocating',
-             'checking fastresume']
+             'downloading', 'finished', 'seeding', 'allocating', 'checking fastresume']
 
 
 class MultiTorrent(object):
@@ -150,9 +147,9 @@ def _getter(torrents, max_seed_ratio=3):
         #     mt.force_reannounce()
         s = ses.status()
         if i % 5 == 0:
-            print('%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' %
+            print '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s' % \
                 (mt.progress * 100, s.download_rate / 1000, s.upload_rate / 1000,
-                 s.num_peers, mt.numbers()))
+                 s.num_peers, mt.numbers())
         now = time.time()
         current_state = (now, mt.progress)
         if current_state[-1] != last_state[-1]:

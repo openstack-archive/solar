@@ -18,14 +18,14 @@ import time
 
 import click
 
-from solar.cli.uids_history import remember_uid
-from solar.cli.uids_history import SOLARUID
-from solar import errors
 from solar.orchestration import filters
 from solar.orchestration import graph
 from solar.orchestration import tasks
 from solar.orchestration.traversal import states
 from solar.orchestration import utils
+from solar.cli.uids_history import remember_uid
+from solar.cli.uids_history import SOLARUID
+from solar import errors
 
 
 @click.group(name='orch')

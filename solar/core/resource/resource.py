@@ -216,8 +216,7 @@ class Resource(object):
         for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):  # NOQA
             if meta:
                 receiver_input = '{}:{}|{}'.format(receiver_input,
-                                                   meta['destination_key'],
-                                                   meta['tag'])
+                                                   meta['destination_key'], meta['tag'])
 
             rst.add(
                 (emitter_resource, emitter_input,

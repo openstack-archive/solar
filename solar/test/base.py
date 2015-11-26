@@ -15,12 +15,13 @@
 import os
 import shutil
 import tempfile
-import unittest
-import yaml
 import time
+import unittest
+
+import yaml
 
 from solar.core.resource import virtual_resource as vr
-from solar.dblayer.model import Model, Replacer, ModelMeta, get_bucket
+from solar.dblayer.model import Model
 
 
 def patched_get_bucket_name(cls):

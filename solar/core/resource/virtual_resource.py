@@ -112,9 +112,8 @@ def _get_template(name, content, kwargs, inputs):
         if input not in kwargs:
             missing.append(input)
     if missing:
-        err = '[{0}] Validation error. Missing data in input: {1}'
-        err = err.format(name, missing)
-        raise Exception(err)
+        raise Exception(
+            '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
     template = Template(content, trim_blocks=True, lstrip_blocks=True)
     template = template.render(str=str, zip=zip, **kwargs)
     return template

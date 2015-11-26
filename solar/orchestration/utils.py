@@ -18,7 +18,8 @@ import networkx as nx
 
 
 def write_graph(plan):
-    """
+    """Writes graph to dot then to svg
+
     :param plan: networkx Graph object
     """
     colors = {

@@ -14,10 +14,12 @@
 import os
 import time
 
-from solar.core.resource import Resource
-from solar.dblayer.model import Model, ModelMeta, get_bucket
-
 import pytest
+
+from solar.core.resource import Resource
+from solar.dblayer.model import Model
+from solar.dblayer.model import ModelMeta
+from solar.dblayer.model import get_bucket
 
 
 def patched_get_bucket_name(cls):
@@ -40,13 +42,6 @@ def resources():
             'node2': node2,
             'service1': service1
             }
-
-
-@pytest.fixture(autouse=True)
-def setup(request):
-
-    for model in ModelMeta._defined_models:
-        model.bucket = get_bucket(None, model, ModelMeta)
 
 
 @pytest.fixture(autouse=True)

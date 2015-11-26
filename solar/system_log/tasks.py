@@ -13,7 +13,8 @@
 #    under the License.
 
 from solar.orchestration.runner import app
-from solar.system_log.operations import set_error, move_to_commited
+from solar.system_log.operations import move_to_commited
+from solar.system_log.operations import set_error
 
 __all__ = ['error_logitem', 'commit_logitem']
 

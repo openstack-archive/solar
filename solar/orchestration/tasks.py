@@ -14,21 +14,22 @@
 
 from functools import partial
 import subprocess
-import time
 
 from celery.app import task
-from celery.signals import task_prerun, task_postrun
+from celery.signals import task_postrun
+from celery.signals import task_prerun
 
-from solar.orchestration import graph
 from solar.core import actions
 from solar.core import resource
-from solar.system_log.tasks import commit_logitem, error_logitem
+from solar.dblayer import ModelMeta
+from solar.orchestration import executor
+from solar.orchestration import graph
+from solar.orchestration import limits
 from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
-from solar.orchestration import limits
-from solar.orchestration import executor
-from solar.dblayer import ModelMeta
-
+from solar.system_log.tasks import commit_logitem
+from solar.system_log.tasks import error_logitem
+import time
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']

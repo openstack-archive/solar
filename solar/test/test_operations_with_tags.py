@@ -15,8 +15,8 @@
 from pytest import fixture
 
 from solar.core import resource
-from solar.dblayer.solar_models import Resource
 from solar.dblayer.model import ModelMeta
+from solar.dblayer.solar_models import Resource
 
 
 @fixture
