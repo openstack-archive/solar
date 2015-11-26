@@ -6,11 +6,14 @@ Original file is MIT licensed.
 For details please refer for gevent license
 """
 
-from copy import copy
-from weakref import ref
 from contextlib import contextmanager
-from gevent.hub import getcurrent, PYPY
+from copy import copy
+
+from gevent.hub import getcurrent
+from gevent.hub import PYPY
 from gevent.lock import RLock
+
+from weakref import ref
 
 __all__ = ["local"]
 
@@ -32,9 +35,7 @@ class _localimpl(object):
         self.dicts = _wrefdict()
 
     def find_parent(self):
-        """
-        Iterate to top most parent, and use it as a base
-        """
+        """Iterate to top most parent, and use it as a base"""
         c = getcurrent()
         while 1:
             tmp_c = getattr(c, '_nested_parent', c.parent)
@@ -43,8 +44,10 @@ class _localimpl(object):
             c = tmp_c
 
     def get_dict(self):
-        """Return the dict for the current thread. Raises KeyError if none
-        defined."""
+        """Return the dict for the current thread.
+
+        Raises KeyError if none defined.
+        """
         # thread = getcurrent()
         thread = self.find_parent()
         return self.dicts[id(thread)][1]

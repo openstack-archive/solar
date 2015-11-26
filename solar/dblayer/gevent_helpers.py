@@ -12,8 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from gevent.pool import Pool
 import gevent
+from gevent.pool import Pool
 
 
 class DBLayerPool(Pool):

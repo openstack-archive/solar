@@ -1,5 +1,6 @@
-from riak import RiakClient as OrigRiakClient
 import time
+
+from riak import RiakClient as OrigRiakClient
 
 from solar.dblayer.model import clear_cache
 

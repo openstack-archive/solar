@@ -1,7 +1,13 @@
 import pytest
-from solar.dblayer.model import (Field, IndexField, clear_cache, Model, StrInt,
-                                 DBLayerNotFound, DBLayerNoRiakObj,
-                                 DBLayerException)
+
+from solar.dblayer.model import clear_cache
+from solar.dblayer.model import DBLayerException
+from solar.dblayer.model import DBLayerNoRiakObj
+from solar.dblayer.model import DBLayerNotFound
+from solar.dblayer.model import Field
+from solar.dblayer.model import IndexField
+from solar.dblayer.model import Model
+from solar.dblayer.model import StrInt
 
 
 class M1(Model):

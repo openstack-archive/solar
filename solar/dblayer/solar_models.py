@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
-from solar.dblayer.model import (Model, Field, IndexField, IndexFieldWrp,
-                                 DBLayerException,
-                                 check_state_for, StrInt, SingleIndexCache,
-                                 IndexedField, CompositeIndexField)
-from types import NoneType
-from operator import itemgetter
-from enum import Enum
-from uuid import uuid4
 from collections import defaultdict
+from operator import itemgetter
+from types import NoneType
+from uuid import uuid4
 
+from enum import Enum
+from solar.dblayer.model import check_state_for
+from solar.dblayer.model import CompositeIndexField
+from solar.dblayer.model import DBLayerException
+from solar.dblayer.model import Field
+from solar.dblayer.model import IndexedField
+from solar.dblayer.model import IndexField
+from solar.dblayer.model import IndexFieldWrp
+from solar.dblayer.model import Model
+from solar.dblayer.model import SingleIndexCache
+from solar.dblayer.model import StrInt
 from solar.utils import solar_map
 
 InputTypes = Enum('InputTypes', 'simple list hash list_hash')

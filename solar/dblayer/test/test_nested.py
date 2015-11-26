@@ -1,5 +1,7 @@
-from solar.dblayer.model import (Field, Model,
-                                 NestedField, NestedModel)
+from solar.dblayer.model import Field
+from solar.dblayer.model import Model
+from solar.dblayer.model import NestedField
+from solar.dblayer.model import NestedModel
 
 
 class N1(NestedModel):
