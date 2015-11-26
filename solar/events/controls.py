@@ -23,16 +23,17 @@ if dependent resource isnt changed.
     depends_on:
         - parent:run -> ok -> dependent:run
 
-*react_on* - relationship which will guarantee that action on dependent resource
-will be executed if parent action is going to be executed. This control will
-trigger action even if no changes noticed on dependent resource.
+*react_on* - relationship which will guarantee that action on dependent
+resource will be executed if parent action is going to be executed.
+This control will trigger action even
+if no changes noticed on dependent resource.
 
     react_on:
         - parent:update -> ok -> dependent:update
 """
 
-from solar.dblayer.solar_models import Resource
 from solar.dblayer.model import DBLayerNotFound
+from solar.dblayer.solar_models import Resource
 
 
 class Event(object):
