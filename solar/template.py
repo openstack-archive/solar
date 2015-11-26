@@ -198,7 +198,9 @@ class ResourceListTemplate(BaseTemplate):
             self.add_react(action_state, ResourceTemplate(r), action)
 
     def filter(self, func):
-        """Return ResourceListeTemplate instance with resources filtered
+        """Filter
+
+        Return ResourceListeTemplate instance with resources filtered
         by func.
 
         func -- predictate function that takes (idx, resource) as parameter
@@ -234,7 +236,9 @@ class ResourceListTemplate(BaseTemplate):
             )
 
     def connect_list_to_each(self, resources, mapping=None, events=None):
-        """Connect each resource in self.resources to each resource in
+        """Connect resources
+
+        Connect each resource in self.resources to each resource in
         resources.
 
         mapping -- optional mapping
@@ -262,9 +266,7 @@ class ResourceListTemplate(BaseTemplate):
                 )
 
     def on_each(self, resource_path, args=None):
-        """Create resource form resource_path on each resource in
-        self.resources.
-        """
+        """Create resource form resource_path on each resource."""
         args = args or {}
 
         created_resources = ResourceListTemplate.create(

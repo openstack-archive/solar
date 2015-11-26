@@ -18,11 +18,9 @@ import json
 import logging
 import os
 import uuid
-import yaml
 
 from jinja2 import Environment
 import yaml
-
 
 
 logger = logging.getLogger(__name__)
