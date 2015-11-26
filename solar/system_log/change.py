@@ -30,7 +30,6 @@ from solar import utils
 from solar.core.consts import CHANGES
 
 
-
 def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
     # something where this action will be excplicitly specified
@@ -254,7 +253,6 @@ def _discard_update(item):
     _update_inputs_connections(
         resource_obj, _get_args_to_update(args, new_connections),
         old_connections, new_connections)
-
 
 
 def _discard_run(item):
