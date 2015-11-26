@@ -14,40 +14,49 @@
 
 import os
 
-from pytest import fixture
 import networkx as nx
+from pytest import fixture
 
-from solar.orchestration import limits
 from solar.orchestration import graph
+from solar.orchestration import limits
 
 
 @fixture
 def dg():
     ex = nx.DiGraph()
-    ex.add_node('t1', status='PENDING', target='1',
-                resource_type='node', type_limit=2)
-    ex.add_node('t2', status='PENDING', target='1',
-                resource_type='node', type_limit=2)
-    ex.add_node('t3', status='PENDING', target='1',
-                resource_type='node', type_limit=2)
+    ex.add_node('t1',
+                status='PENDING',
+                target='1',
+                resource_type='node',
+                type_limit=2)
+    ex.add_node('t2',
+                status='PENDING',
+                target='1',
+                resource_type='node',
+                type_limit=2)
+    ex.add_node('t3',
+                status='PENDING',
+                target='1',
+                resource_type='node',
+                type_limit=2)
     return ex
 
 
 def test_target_rule(dg):
 
-    assert limits.target_based_rule(dg, [], 't1') == True
-    assert limits.target_based_rule(dg, ['t1'], 't2') == False
+    assert limits.target_based_rule(dg, [], 't1') is True
+    assert limits.target_based_rule(dg, ['t1'], 't2') is False
 
 
 def test_type_limit_rule(dg):
-    assert limits.type_based_rule(dg, ['t1'], 't2') == True
-    assert limits.type_based_rule(dg, ['t1', 't2'], 't3') == False
+    assert limits.type_based_rule(dg, ['t1'], 't2') is True
+    assert limits.type_based_rule(dg, ['t1', 't2'], 't3') is False
 
 
 def test_items_rule(dg):
 
     assert limits.items_rule(dg, ['1'] * 99, '2')
-    assert limits.items_rule(dg, ['1'] * 99, '2', limit=10) == False
+    assert limits.items_rule(dg, ['1'] * 99, '2', limit=10) is False
 
 
 @fixture
@@ -68,8 +77,7 @@ def test_filtering_chain(target_dg):
 @fixture
 def seq_plan():
     seq_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'orch_fixtures',
+        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
         'sequential.yaml')
     return graph.create_plan(seq_path, save=False)
 
@@ -78,6 +86,6 @@ def test_limits_sequential(seq_plan):
     stack_to_execute = seq_plan.nodes()
     while stack_to_execute:
         left = stack_to_execute[0]
-        assert list(limits.get_default_chain(
-            seq_plan, [], stack_to_execute)) == [left]
+        assert list(limits.get_default_chain(seq_plan, [],
+                                             stack_to_execute)) == [left]
         stack_to_execute.pop(0)

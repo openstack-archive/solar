@@ -13,25 +13,27 @@
 #    under the License.
 
 import mock
-from pytest import fixture
 from pytest import mark
 
+from solar.core.resource import resource
+from solar.core.resource import RESOURCE_STATE
+from solar.core import signals
+from solar.dblayer.model import ModelMeta
+from solar.dblayer.solar_models import CommitedResource
+from solar.dblayer.solar_models import Resource as DBResource
 from solar.system_log import change
 from solar.system_log import data
 from solar.system_log import operations
-from solar.core import signals
-from solar.core.resource import resource, RESOURCE_STATE
-from solar.dblayer.solar_models import Resource as DBResource
-from solar.dblayer.solar_models import CommitedResource
-from solar.dblayer.model import ModelMeta
 
 
 def test_revert_update():
     commit = {'a': '10'}
     previous = {'a': '9'}
     res = DBResource.from_dict('test1',
-                               {'name': 'test1', 'base_path': 'x',
-                                'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                               {'name': 'test1',
+                                'base_path': 'x',
+                                'meta_inputs': {'a': {'value': None,
+                                                      'schema': 'str'}}})
     res.save()
     action = 'update'
     res.inputs['a'] = '9'
@@ -40,9 +42,11 @@ def test_revert_update():
     assert resource_obj.args == previous
 
     log = data.SL()
-    logitem = change.create_logitem(
-        res.name, action, change.create_diff(commit, previous), [],
-        base_path=res.base_path)
+    logitem = change.create_logitem(res.name,
+                                    action,
+                                    change.create_diff(commit, previous),
+                                    [],
+                                    base_path=res.base_path)
     log.append(logitem)
     resource_obj.update(commit)
     operations.move_to_commited(logitem.log_action)
@@ -56,23 +60,29 @@ def test_revert_update():
 
 def test_revert_update_connected():
     res1 = DBResource.from_dict('test1',
-                                {'name': 'test1', 'base_path': 'x',
+                                {'name': 'test1',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res1.inputs['a'] = '9'
     res1.save_lazy()
 
     res2 = DBResource.from_dict('test2',
-                                {'name': 'test2', 'base_path': 'x',
+                                {'name': 'test2',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res2.inputs['a'] = ''
     res2.save_lazy()
 
     res3 = DBResource.from_dict('test3',
-                                {'name': 'test3', 'base_path': 'x',
+                                {'name': 'test3',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res3.inputs['a'] = ''
     res3.save_lazy()
 
@@ -113,15 +123,16 @@ def test_revert_update_connected():
 
 def test_revert_removal():
     res = DBResource.from_dict('test1',
-                               {'name': 'test1', 'base_path': 'x',
+                               {'name': 'test1',
+                                'base_path': 'x',
                                 'state': RESOURCE_STATE.created.name,
-                                'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                'meta_inputs': {'a': {'value': None,
+                                                      'schema': 'str'}}})
     res.inputs['a'] = '9'
     res.save_lazy()
 
-    commited = CommitedResource.from_dict('test1',
-                                          {'inputs': {'a': '9'},
-                                           'state': 'operational'})
+    commited = CommitedResource.from_dict('test1', {'inputs': {'a': '9'},
+                                                    'state': 'operational'})
     commited.save_lazy()
 
     resource_obj = resource.load(res.name)
@@ -139,23 +150,31 @@ def test_revert_removal():
 
     with mock.patch.object(resource, 'read_meta') as mread:
         mread.return_value = {
-            'input': {'a': {'schema': 'str!'}}, 'id': 'mocked'}
+            'input': {'a': {'schema': 'str!'}},
+            'id': 'mocked'
+        }
         change.revert(changes[0].uid)
     ModelMeta.save_all_lazy()
     assert len(DBResource.bucket.get('test1').siblings) == 1
 
     resource_obj = resource.load('test1')
     assert resource_obj.args == {
-        'a': '9', 'location_id': '', 'transports_id': ''}
+        'a': '9',
+        'location_id': '',
+        'transports_id': ''
+    }
 
 
-@mark.xfail(reason='With current approach child will be notice changes after parent is removed')
+@mark.xfail(
+    reason="""With current approach child will
+ notice changes after parent is removed"""
+)
 def test_revert_removed_child():
-    res1 = orm.DBResource(id='test1', name='test1', base_path='x')
+    res1 = orm.DBResource(id='test1', name='test1', base_path='x')  # NOQA
     res1.save()
     res1.add_input('a', 'str', '9')
 
-    res2 = orm.DBResource(id='test2', name='test2', base_path='x')
+    res2 = orm.DBResource(id='test2', name='test2', base_path='x')  # NOQA
     res2.save()
     res2.add_input('a', 'str', 0)
 
@@ -184,9 +203,11 @@ def test_revert_removed_child():
 
 def test_revert_create():
     res = DBResource.from_dict('test1',
-                               {'name': 'test1', 'base_path': 'x',
+                               {'name': 'test1',
+                                'base_path': 'x',
                                 'state': RESOURCE_STATE.created.name,
-                                'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                'meta_inputs': {'a': {'value': None,
+                                                      'schema': 'str'}}})
     res.inputs['a'] = '9'
     res.save_lazy()
     ModelMeta.save_all_lazy()
@@ -211,16 +232,20 @@ def test_revert_create():
 
 def test_discard_all_pending_changes_resources_created():
     res1 = DBResource.from_dict('test1',
-                                {'name': 'test1', 'base_path': 'x',
+                                {'name': 'test1',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res1.inputs['a'] = '9'
     res1.save_lazy()
 
     res2 = DBResource.from_dict('test2',
-                                {'name': 'test2', 'base_path': 'x',
+                                {'name': 'test2',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res2.inputs['a'] = '0'
     res2.save_lazy()
     ModelMeta.save_all_lazy()
@@ -236,16 +261,20 @@ def test_discard_all_pending_changes_resources_created():
 
 def test_discard_connection():
     res1 = DBResource.from_dict('test1',
-                                {'name': 'test1', 'base_path': 'x',
+                                {'name': 'test1',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res1.inputs['a'] = '9'
     res1.save_lazy()
 
     res2 = DBResource.from_dict('test2',
-                                {'name': 'test2', 'base_path': 'x',
+                                {'name': 'test2',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res2.inputs['a'] = '0'
     res2.save_lazy()
     ModelMeta.save_all_lazy()
@@ -267,9 +296,11 @@ def test_discard_connection():
 
 def test_discard_removed():
     res1 = DBResource.from_dict('test1',
-                                {'name': 'test1', 'base_path': 'x',
+                                {'name': 'test1',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res1.inputs['a'] = '9'
     res1.save_lazy()
     ModelMeta.save_all_lazy()
@@ -289,9 +320,11 @@ def test_discard_removed():
 
 def test_discard_update():
     res1 = DBResource.from_dict('test1',
-                                {'name': 'test1', 'base_path': 'x',
+                                {'name': 'test1',
+                                 'base_path': 'x',
                                  'state': RESOURCE_STATE.created.name,
-                                 'meta_inputs': {'a': {'value': None, 'schema': 'str'}}})
+                                 'meta_inputs': {'a': {'value': None,
+                                                       'schema': 'str'}}})
     res1.inputs['a'] = '9'
     res1.save_lazy()
     ModelMeta.save_all_lazy()

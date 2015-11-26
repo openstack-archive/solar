@@ -12,10 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.test import base
-
-from solar import errors
 from solar.core import validation as sv
+from solar.test import base
 
 
 class TestInputValidation(base.BaseResourceTest):

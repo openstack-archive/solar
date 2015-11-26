@@ -18,8 +18,9 @@ from StringIO import StringIO
 import pytest
 import yaml
 
-from solar.events.controls import React, Dep
 from solar.core.resource import virtual_resource as vr
+from solar.events.controls import Dep
+from solar.events.controls import React
 
 
 @pytest.fixture
