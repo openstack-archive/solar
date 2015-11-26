@@ -1,10 +1,12 @@
-from solar.utils import get_local
+from functools import total_ordering
+from functools import wraps
 from random import getrandbits
-import uuid
-from functools import wraps, total_ordering
-import time
 from threading import RLock
+import time
+import uuid
+
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
+from solar.utils import get_local
 
 
 class DBLayerException(Exception):
@@ -19,7 +21,7 @@ class DBLayerNoRiakObj(DBLayerException):
     pass
 
 
-class NONE:
+class NONE(object):
     """A None like type"""
     pass
 

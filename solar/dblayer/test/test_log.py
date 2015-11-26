@@ -1,6 +1,7 @@
 
-from solar.dblayer.solar_models import LogItem, NegativeCounter
 from solar.dblayer.model import StrInt
+from solar.dblayer.solar_models import LogItem
+from solar.dblayer.solar_models import NegativeCounter
 
 
 def test_separate_logs():

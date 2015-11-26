@@ -26,7 +26,9 @@ def patch_all():
             "You should run patch_multi_get before defining models")
     from solar.dblayer.model import Model
 
-    from solar.dblayer.gevent_helpers import (multi_get, solar_map, get_local)
+    from solar.dblayer.gevent_helpers import get_local
+    from solar.dblayer.gevent_helpers import multi_get
+    from solar.dblayer.gevent_helpers import solar_map
     from solar import utils
 
     _patch(Model, 'multi_get', multi_get)

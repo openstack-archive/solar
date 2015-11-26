@@ -1,8 +1,10 @@
+from __future__ import print_function
 import pytest
 
-from solar.dblayer.model import StrInt
 from solar.dblayer.model import check_state_for
-from solar.dblayer.solar_models import Resource, DBLayerSolarException
+from solar.dblayer.model import StrInt
+from solar.dblayer.solar_models import DBLayerSolarException
+from solar.dblayer.solar_models import Resource
 
 
 def create_resource(key, data):
@@ -143,7 +145,7 @@ def test_perf_inputs(rk, depth):
     st = time.time()
     assert res.inputs['input1'] == 'target'
     end = time.time()
-    print end - st
+    print(end - st)
 
 
 def test_change_connect(rk):
