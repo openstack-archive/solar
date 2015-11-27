@@ -26,7 +26,6 @@
   - python-pudb
   - python-dev
   - python-virtualenv
-  - tox
   # Required by packer
   - build-essential
   # for torrent transport
@@ -49,6 +48,9 @@
 
 # Redis
 - shell: sudo pip install redis
+
+# fresh tox
+- shell: sudo pip install tox
 
 # Ubuntu OpenStack packages
 #- apt: name=ubuntu-cloud-keyring state=present
