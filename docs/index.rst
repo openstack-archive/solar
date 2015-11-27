@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    source/glossary
+   source/orchestration
 
 
 
