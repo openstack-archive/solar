@@ -13,7 +13,7 @@ Contents:
 
    source/glossary
    source/orchestration
-
+   source/examples
 
 
 Indices and tables

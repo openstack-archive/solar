@@ -1,3 +1,5 @@
+.. _orchestration:
+
 Deployment operations
 =====================
 
@@ -10,8 +12,7 @@ detect which resource requires changes with ::
     solar changes stage
 
 History
---------
-
+-------
 After changes are staged - they will be used to populate history which can be seen
 with command (*n* option used to limit number of items, -1 will return all changes) ::
 
@@ -32,8 +33,7 @@ All commands that are able to manipulate deployment graph located in
 *orch* namespace.
 
 Report
--------
-
+------
 Report will print all deployment tasks in topological order, with status,
 and error if status of task is *ERROR* ::
 
@@ -41,7 +41,6 @@ and error if status of task is *ERROR* ::
 
 Graphviz graph
 --------------
-
 To see picture of deployment dependencies one can use following command ::
 
     solar orch dg <uid>
@@ -52,7 +51,6 @@ order of traversal.
 
 Run deployment
 --------------
-
 Execute deployment ::
 
     solar orch run-once <uid>
@@ -60,28 +58,24 @@ Execute deployment ::
 
 Stop deployment
 ---------------
-
 Gracefully stop deployment, after all already scheduled tasks are finished ::
 
     solar orch stop <uid>
 
 Resume deployment
-------------------
-
+-----------------
 Reset SKIPPED tasks to PENDING and continue deployment ::
 
     solar orch resume <uid>
 
 Restart deployment
 ------------------
-
 All tasks will be returned to PENDING state, and deployment will be restarted ::
 
     solar orch restart <uid>
 
 Retry deployment
 ----------------
-
 Orchestrator will reset all ERROR tasks to PENDING state and restart deployment ::
 
     solar orch retry <uid>
