@@ -45,7 +45,6 @@ setup(
     zip_safe=False,
     install_requires=find_requires(),
     include_package_data=True,
-    setup_requires=['sphinx'],
     entry_points={
         'console_scripts': [
             'solar = solar.cli.main:run']})
