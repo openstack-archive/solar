@@ -26,6 +26,7 @@
   - python-pudb
   - python-dev
   - python-virtualenv
+  - tox
   # Required by packer
   - build-essential
   # for torrent transport
@@ -33,6 +34,7 @@
   # for riak python package
   - libffi-dev
   - libssl-dev
+
 
 # PIP
 #- apt: name=python-pip state=absent
