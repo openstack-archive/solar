@@ -34,6 +34,7 @@
   - libffi-dev
   - libssl-dev
 
+
 # PIP
 #- apt: name=python-pip state=absent
 #- shell: easy_install pip
@@ -47,6 +48,9 @@
 
 # Redis
 - shell: sudo pip install redis
+
+# fresh tox
+- shell: sudo pip install tox
 
 # Ubuntu OpenStack packages
 #- apt: name=ubuntu-cloud-keyring state=present
