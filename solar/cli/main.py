@@ -17,31 +17,21 @@
 On create "golden" resource should be moved to special place
 """
 
+import collections
+import json
+
 import click
 from fabric import api as fabric_api
-import json
 import networkx as nx
-import os
-import sys
-import tabulate
-import yaml
-from collections import defaultdict
 
-from solar.core import actions
 from solar.core import resource as sresource
 from solar.core import signals
-from solar.core.tags_set_parser import Expression
-from solar.core.resource import virtual_resource as vr
-from solar.core.log import log
-from solar import errors
-from solar import utils
 
 from solar.cli import base
-from solar.cli import executors
-from solar.cli.orch import orchestration
-from solar.cli.system_log import changes
 from solar.cli.events import events
+from solar.cli.orch import orchestration
 from solar.cli.resource import resource as cli_resource
+from solar.cli.system_log import changes
 
 
 # HELPERS
@@ -54,7 +44,7 @@ def format_resource_input(resource_name, resource_input):
 
 def show_emitter_connections(res):
     db_obj = res.db_obj
-    d = defaultdict(list)
+    d = collections.defaultdict(list)
     for emitter, receiver, _meta in db_obj.inputs._edges():
         d[emitter].append(receiver)
 
@@ -79,7 +69,8 @@ def init_actions():
     def run(dry_run_mapping, dry_run, action, tags):
         raise NotImplementedError("Not yet implemented")
         # if dry_run:
-        #     dry_run_executor = executors.DryRunExecutor(mapping=json.loads(dry_run_mapping))
+        #     dry_run_executor = executors.DryRunExecutor(
+        #                mapping=json.loads(dry_run_mapping))
 
         # resources = filter(
         #     lambda r: Expression(tags, r.tags).evaluate(),
@@ -94,8 +85,9 @@ def init_actions():
         #     click.echo('EXECUTED:')
         #     for key in dry_run_executor.executed:
         #         click.echo('{}: {}'.format(
-        #             click.style(dry_run_executor.compute_hash(key), fg='green'),
-        #             str(key)
+        #             click.style(dry_run_executor.compute_hash(key),
+        #                         fg='green'),
+        #                         str(key)
         #         ))
 
 

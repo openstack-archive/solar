@@ -15,19 +15,21 @@
 import dictdiffer
 import networkx as nx
 
-from solar.system_log import data
 from solar.core.log import log
-from solar.core import signals
 from solar.core import resource
+from solar.core.resource.resource import RESOURCE_STATE
+from solar.core import signals
+from solar.dblayer.solar_models import CommitedResource
+from solar.dblayer.solar_models import LogItem
+from solar.dblayer.solar_models import StrInt
+from solar.events import api as evapi
+from solar.events.controls import StateChange
+from solar.orchestration import graph
+from solar.system_log import data
 from solar import utils
 
-from solar.orchestration import graph
-from solar.events import api as evapi
-from .consts import CHANGES
-from solar.core.resource.resource import RESOURCE_STATE
-from solar.errors import CannotFindID
+from solar.system_log.consts import CHANGES
 
-from solar.dblayer.solar_models import Resource, LogItem, CommitedResource, StrInt
 
 def guess_action(from_, to):
     # NOTE(dshulyak) imo the way to solve this - is dsl for orchestration,
@@ -47,12 +49,12 @@ def create_diff(staged, commited):
 def create_logitem(resource, action, diffed, connections_diffed,
                    base_path=''):
     return LogItem.new(
-                {'resource': resource,
-                 'action': action,
-                 'diff': diffed,
-                 'connections_diff': connections_diffed,
-                 'base_path': base_path,
-                 'log': 'staged'})
+        {'resource': resource,
+         'action': action,
+         'diff': diffed,
+         'connections_diff': connections_diffed,
+         'base_path': base_path,
+         'log': 'staged'})
 
 
 def create_sorted_diff(staged, commited):
@@ -104,7 +106,7 @@ def stage_changes():
     last = LogItem.history_last()
     since = StrInt.greater(last.updated) if last else None
     staged_log = utils.solar_map(make_single_stage_item,
-        resource.load_updated(since), concurrency=10)
+                                 resource.load_updated(since), concurrency=10)
     staged_log = filter(None, staged_log)
     return staged_log
 
@@ -118,7 +120,7 @@ def send_to_orchestration():
         events[logitem.resource] = evapi.all_events(logitem.resource)
         changed_nodes.append(logitem.resource)
 
-        state_change = evapi.StateChange(logitem.resource, logitem.action)
+        state_change = StateChange(logitem.resource, logitem.action)
         state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)
@@ -134,17 +136,21 @@ def parameters(res, action, data):
 
 
 def _get_args_to_update(args, connections):
-    """For each resource we can update only args that are not provided
+    """Returns args to update
+
+    For each resource we can update only args that are not provided
     by connections
     """
     inherited = [i[3].split(':')[0] for i in connections]
     return {
-        key:args[key] for key in args
+        key: args[key] for key in args
         if key not in inherited
-        }
+    }
+
 
 def revert_uids(uids):
-    """
+    """Reverts uids
+
     :param uids: iterable not generator
     """
     items = LogItem.multi_get(uids)
@@ -163,21 +169,23 @@ def revert_uids(uids):
 
 
 def _revert_remove(logitem):
-    """Resource should be created with all previous connections
-    """
+    """Resource should be created with all previous connections"""
     commited = CommitedResource.get(logitem.resource)
     args = dictdiffer.revert(logitem.diff, commited.inputs)
-    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+    connections = dictdiffer.revert(
+        logitem.connections_diff, sorted(commited.connections))
 
     resource.Resource(logitem.resource, logitem.base_path,
-        args=_get_args_to_update(args, connections), tags=commited.tags)
+                      args=_get_args_to_update(args, connections),
+                      tags=commited.tags)
     for emitter, emitter_input, receiver, receiver_input in connections:
         emmiter_obj = resource.load(emitter)
         receiver_obj = resource.load(receiver)
-        signals.connect(emmiter_obj, receiver_obj, {emitter_input: receiver_input})
+        signals.connect(emmiter_obj, receiver_obj, {
+                        emitter_input: receiver_input})
 
 
-def _update_inputs_connections(res_obj, args, old_connections, new_connections):
+def _update_inputs_connections(res_obj, args, old_connections, new_connections):  # NOQA
 
     removed = []
     for item in old_connections:
@@ -200,7 +208,8 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
         emmiter_obj.connect(receiver_obj, {emitter_input: receiver_input})
 
     if removed or added:
-        # TODO without save we will get error that some values can not be updated
+        # TODO without save we will get error
+        # that some values can not be updated
         # even if connection was removed
         receiver_obj.db_obj.save()
 
@@ -208,16 +217,17 @@ def _update_inputs_connections(res_obj, args, old_connections, new_connections):
 
 
 def _revert_update(logitem):
-    """Revert of update should update inputs and connections
-    """
+    """Revert of update should update inputs and connections"""
     res_obj = resource.load(logitem.resource)
     commited = res_obj.load_commited()
 
-    connections = dictdiffer.revert(logitem.connections_diff, sorted(commited.connections))
+    connections = dictdiffer.revert(
+        logitem.connections_diff, sorted(commited.connections))
     args = dictdiffer.revert(logitem.diff, commited.inputs)
 
     _update_inputs_connections(
-        res_obj, _get_args_to_update(args, connections), commited.connections, connections)
+        res_obj, _get_args_to_update(args, connections),
+        commited.connections, connections)
 
 
 def _revert_run(logitem):
@@ -237,11 +247,14 @@ def _discard_remove(item):
 def _discard_update(item):
     resource_obj = resource.load(item.resource)
     old_connections = resource_obj.connections
-    new_connections = dictdiffer.revert(item.connections_diff, sorted(old_connections))
+    new_connections = dictdiffer.revert(
+        item.connections_diff, sorted(old_connections))
     args = dictdiffer.revert(item.diff, resource_obj.args)
 
     _update_inputs_connections(
-        resource_obj, _get_args_to_update(args, new_connections), old_connections, new_connections)
+        resource_obj, _get_args_to_update(args, new_connections),
+        old_connections, new_connections)
+
 
 def _discard_run(item):
     resource.load(item.resource).remove(force=True)
@@ -265,17 +278,18 @@ def discard_uids(uids):
 def discard_uid(uid):
     return discard_uids([uid])
 
+
 def discard_all():
     staged_log = data.SL()
     return discard_uids([l.uid for l in staged_log])
 
 
 def commit_all():
-    """Helper mainly for ease of testing
-    """
-    from .operations import move_to_commited
+    """Helper mainly for ease of testing"""
+    from solar.system_log.operations import move_to_commited
     for item in data.SL():
         move_to_commited(item.log_action)
+
 
 def clear_history():
     LogItem.delete_all()

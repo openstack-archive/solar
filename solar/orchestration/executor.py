@@ -14,8 +14,9 @@
 
 import time
 
-from solar.orchestration.runner import app
 from celery import group
+
+from solar.orchestration.runner import app
 
 
 def celery_executor(dg, tasks, control_tasks=()):
@@ -28,7 +29,8 @@ def celery_executor(dg, tasks, control_tasks=()):
         task_id = '{}:{}'.format(dg.graph['uid'], task_name)
         task = app.tasks[dg.node[task_name]['type']]
 
-        if all_success(dg, dg.predecessors(task_name)) or task_name in control_tasks:
+        all_ok = all_success(dg, dg.predecessors(task_name))
+        if all_ok or task_name in control_tasks:
             dg.node[task_name]['status'] = 'INPROGRESS'
             dg.node[task_name]['start_time'] = time.time()
             for t in generate_task(task, dg.node[task_name], task_id):

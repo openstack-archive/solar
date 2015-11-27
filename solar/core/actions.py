@@ -15,11 +15,8 @@
 
 import handlers
 
-# from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
-# from solar.core.transports.rsync import RsyncSyncTransport
-# from solar.core.transports.solar_agent_transport import SolarAgentRunTransport, SolarAgentSyncTransport
-
-from solar.core.transports.bat import BatRunTransport, BatSyncTransport
+from solar.core.transports.bat import BatRunTransport
+from solar.core.transports.bat import BatSyncTransport
 
 _default_transports = {
     # 'sync': RsyncSyncTransport,
@@ -39,5 +36,5 @@ def resource_action(resource, action):
 
 
 def tag_action(tag, action):
-    #TODO
+    # TODO
     pass

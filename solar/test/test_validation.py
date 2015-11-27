@@ -12,13 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.test import base
-
-from solar import errors
 from solar.core import validation as sv
+from solar.test import base
 
 
 class TestInputValidation(base.BaseResourceTest):
+
     def test_input_str_type(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample

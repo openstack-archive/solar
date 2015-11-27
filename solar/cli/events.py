@@ -33,7 +33,7 @@ def show(resource):
         click.echo('Resource: {}'.format(resource))
         offset = ' ' * 4
         for ev in all_:
-            click.echo(offset+repr(ev))
+            click.echo(offset + repr(ev))
     else:
         click.echo('No events for resource {}'.format(resource))
 

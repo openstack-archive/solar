@@ -20,8 +20,20 @@ import zipfile
 
 from solar import utils
 
+GIT_TPL = """
+---
+- hosts: all
+  tasks:
+    - git: repo={repository}
+           dest={destination}
+           clone={clone}
+           update=yes
+           version={branch}
+"""
+
 
 class BaseProvider(object):
+
     def __init__(self, base_path=None):
         if base_path is None:
             self.base_path = utils.read_config()['resources-directory']
@@ -33,6 +45,7 @@ class BaseProvider(object):
 
 
 class DirectoryProvider(BaseProvider):
+
     def __init__(self, directory, *args, **kwargs):
         self.directory = directory
 
@@ -40,6 +53,7 @@ class DirectoryProvider(BaseProvider):
 
 
 class GitProvider(BaseProvider):
+
     def __init__(self, repository, branch='master', path='.', *args, **kwargs):
         super(GitProvider, self).__init__(*args, **kwargs)
 
@@ -69,12 +83,7 @@ class GitProvider(BaseProvider):
         directory = self._directory()
 
         with open('/tmp/git-provider.yaml', 'w') as f:
-            f.write("""
----
-- hosts: all
-  tasks:
-    - git: repo={repository} dest={destination} clone={clone} update=yes version={branch}
-            """.format(
+            f.write(GIT_TPL.format(
                 repository=self.repository,
                 branch=self.branch,
                 destination=directory,
@@ -121,18 +130,21 @@ class RemoteZipProvider(BaseProvider):
 
 class SVNProvider(BaseProvider):
     """With git you cant checkout only directory from repo,
+
     but with svn you can
     """
 
     def __init__(self, url, path='.', base_path=None):
         self.url = url
         self.path = path
-        self.base_path = base_path or utils.read_config()['resources-directory']
+        self.base_path = base_path or utils.read_config()[
+            'resources-directory']
         if path != '.':
             self.repo_directory = os.path.join(self.base_path, path)
         else:
             self.repo_directory = self.base_path
-        self.directory = os.path.join(self.repo_directory, self.url.rsplit('/', 1)[-1])
+        self.directory = os.path.join(
+            self.repo_directory, self.url.rsplit('/', 1)[-1])
 
     def run(self):
         if not os.path.exists(self.repo_directory):

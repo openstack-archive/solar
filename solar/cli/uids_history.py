@@ -12,16 +12,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import click
 import os
 import re
+
+import click
+
 
 UIDS_HISTORY = os.path.join(os.getcwd(), '.solar_cli_uids')
 
 
 def remember_uid(uid):
-    """
-    Remembers last 3 uids.
+    """Remembers last 3 uids.
+
     Can be used then as `last`, `last1`, `last2` anywhere
     """
     try:
@@ -37,9 +39,7 @@ def remember_uid(uid):
 
 
 def get_uid(given_uid):
-    """
-    Converts given uid to real uid.
-    """
+    """Converts given uid to real uid."""
     matched = re.search('last(\d*)', given_uid)
     if matched:
         try:
@@ -57,8 +57,8 @@ def get_uid(given_uid):
 
 
 class SolarUIDParameterType(click.types.StringParamType):
-    """
-    Type for solar changes uid.
+    """Type for solar changes uid.
+
     Works like a string but can convert `last(\d+)` to valid uid.
     """
     name = 'uid'
@@ -68,8 +68,9 @@ class SolarUIDParameterType(click.types.StringParamType):
         try:
             value = get_uid(value)
         except IOError:
-            raise click.BadParameter("Unable to locate file %r so"
-                                     "you can't use 'last' shortcuts" % UIDS_HISTORY)
+            msg = ("Unable to locate file %r so"
+                   "you can't use 'last' shortcuts" % UIDS_HISTORY)
+            raise click.BadParameter(msg)
         return value
 
 

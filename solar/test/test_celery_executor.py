@@ -13,9 +13,9 @@
 #    under the License.
 
 import networkx as nx
-from pytest import fixture
-from mock import patch
 
+from mock import patch
+from pytest import fixture
 from solar.orchestration import executor
 
 
@@ -29,7 +29,6 @@ def dg():
 
 @patch.object(executor, 'app')
 def test_celery_executor(mapp, dg):
-    """Just check that it doesnt fail for now.
-    """
+    """Just check that it doesnt fail for now."""
     assert executor.celery_executor(dg, ['t1'])
     assert dg.node['t1']['status'] == 'INPROGRESS'

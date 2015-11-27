@@ -1,16 +1,31 @@
 # -*- coding: utf-8 -*-
-import uuid
-import sys
-
-from peewee import CharField, BlobField, \
-    ForeignKeyField, Model
-
-from solar.dblayer.model import clear_cache
-from threading import RLock
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
 
 # msgpack is way faster but less readable
 # using json for easier debug
 import json
+import sys
+import uuid
+
+from peewee import BlobField
+from peewee import CharField
+from peewee import ForeignKeyField
+from peewee import Model
+from solar.dblayer.model import clear_cache
+from threading import RLock
+
 encoder = json.dumps
 
 
@@ -247,7 +262,7 @@ class Bucket(object):
         self.name = table_name
         idx_table_name = 'idx_%s' % name.lower()
 
-        class ModelMeta:
+        class ModelMeta(object):
             db_table = table_name
             database = self.client.sql_session
 
@@ -255,7 +270,7 @@ class Bucket(object):
                                                             'bucket': self})
         _idx_key = ForeignKeyField(self._sql_model, null=False, index=True)
 
-        class IdxMeta:
+        class IdxMeta(object):
             db_table = idx_table_name
             database = self.client.sql_session
 
@@ -374,7 +389,6 @@ class Bucket(object):
         else:
             q = self._sql_model.select().where(self._sql_model.key << list(
                 keys))
-            print q
             return map(RiakObj, list(q))
 
     @property

@@ -1,16 +1,40 @@
-"""
-This code is slight modification of gevent.local
+# flake8: noqa
+# Except when otherwise stated (look at the beginning of each file) the
+# software and the documentation in this project are copyrighted by:
+#
+#  Denis Bilenko and the contributors, http://www.gevent.org
+#
+# and licensed under the MIT license:
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
-Original file is MIT licensed.
+# Portions copyright 2015 by Mirantis, Inc.
 
-For details please refer for gevent license
-"""
 
-from copy import copy
-from weakref import ref
 from contextlib import contextmanager
-from gevent.hub import getcurrent, PYPY
+from copy import copy
+
+from gevent.hub import getcurrent
+from gevent.hub import PYPY
 from gevent.lock import RLock
+
+from weakref import ref
 
 __all__ = ["local"]
 
@@ -32,9 +56,7 @@ class _localimpl(object):
         self.dicts = _wrefdict()
 
     def find_parent(self):
-        """
-        Iterate to top most parent, and use it as a base
-        """
+        """Iterate to top most parent, and use it as a base"""
         c = getcurrent()
         while 1:
             tmp_c = getattr(c, '_nested_parent', c.parent)
@@ -43,8 +65,10 @@ class _localimpl(object):
             c = tmp_c
 
     def get_dict(self):
-        """Return the dict for the current thread. Raises KeyError if none
-        defined."""
+        """Return the dict for the current thread.
+
+        Raises KeyError if none defined.
+        """
         # thread = getcurrent()
         thread = self.find_parent()
         return self.dicts[id(thread)][1]

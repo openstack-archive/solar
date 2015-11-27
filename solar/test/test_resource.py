@@ -13,12 +13,12 @@
 #    under the License.
 
 import base
-
 from solar.core import resource
 from solar.core import signals
 
 
 class TestResource(base.BaseResourceTest):
+
     def test_resource_args(self):
         sample_meta_dir = self.make_resource_meta("""
 id: sample
@@ -30,9 +30,8 @@ input:
     value: 0
         """)
 
-        sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'value': 1}
-        )
+        sample1 = self.create_resource('sample1', sample_meta_dir,
+                                       {'value': 1})
         self.assertEqual(sample1.args['value'], 1)
 
         # test default value
@@ -40,7 +39,8 @@ input:
         self.assertEqual(sample2.args['value'], 0)
 
     def test_connections_recreated_after_load(self):
-        """
+        """Test if connections are ok after load
+
         Create resource in some process. Then in other process load it.
         All connections should remain the same.
         """
@@ -55,12 +55,9 @@ input:
         """)
 
         def creating_process():
-            sample1 = self.create_resource(
-                'sample1', sample_meta_dir, {'value': 1}
-            )
-            sample2 = self.create_resource(
-                'sample2', sample_meta_dir,
-            )
+            sample1 = self.create_resource('sample1', sample_meta_dir,
+                                           {'value': 1})
+            sample2 = self.create_resource('sample2', sample_meta_dir, )
             signals.connect(sample1, sample2)
             self.assertEqual(sample1.args['value'], sample2.args['value'])
 
@@ -85,9 +82,7 @@ input:
     value: 0
         """)
 
-        sample = self.create_resource(
-            'sample', sample_meta_dir, {'value': 1}
-        )
+        sample = self.create_resource('sample', sample_meta_dir, {'value': 1})
 
         sample_l = resource.load('sample')
 
@@ -106,12 +101,9 @@ input:
     value: 0
         """)
 
-        sample1 = self.create_resource(
-            'sample1', sample_meta_dir, {'value': 1}
-        )
-        sample2 = self.create_resource(
-            'sample2', sample_meta_dir, {}
-        )
+        sample1 = self.create_resource('sample1', sample_meta_dir,
+                                       {'value': 1})
+        sample2 = self.create_resource('sample2', sample_meta_dir, {})
         signals.connect(sample1, sample2)
         self.assertEqual(sample1.args['value'], sample2.args['value'])
 

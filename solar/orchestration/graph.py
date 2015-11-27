@@ -12,19 +12,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid
+from collections import Counter
 import time
+import uuid
 
 import networkx as nx
 
-from solar import utils
-from .traversal import states
-from solar import errors
-
-from collections import Counter
-
-from solar.dblayer.solar_models import Task
 from solar.dblayer.model import clear_cache
+from solar.dblayer.solar_models import Task
+from solar import errors
+from solar import utils
+
+from solar.orchestration.traversal import states
 
 
 def save_graph(graph):
@@ -77,8 +76,7 @@ get_plan = get_graph
 
 
 def parse_plan(plan_path):
-    """ parses yaml definition and returns graph
-    """
+    """parses yaml definition and returns graph"""
     plan = utils.yaml_load(plan_path)
     dg = nx.MultiDiGraph()
     dg.graph['name'] = plan['name']
@@ -86,7 +84,7 @@ def parse_plan(plan_path):
         defaults = {
             'status': 'PENDING',
             'errmsg': '',
-            }
+        }
         defaults.update(task['parameters'])
         dg.add_node(
             task['uid'], **defaults)
@@ -123,11 +121,8 @@ def show(uid):
 
 
 def create_plan(plan_path, save=True):
-    """
-    """
     dg = parse_plan(plan_path)
     return create_plan_from_graph(dg, save=save)
-
 
 
 def reset_by_uid(uid, state_list=None):
@@ -164,8 +159,9 @@ def report_topo(uid):
 
 
 def wait_finish(uid, timeout):
-    """Wait finish will periodically load graph and check if there is no
-    PENDING or INPROGRESS
+    """Check if graph is finished
+
+    Will return when no PENDING or INPROGRESS otherwise yields summary
     """
     start_time = time.time()
 

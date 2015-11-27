@@ -1,8 +1,24 @@
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+from __future__ import print_function
 import pytest
 
-from solar.dblayer.model import StrInt
 from solar.dblayer.model import check_state_for
-from solar.dblayer.solar_models import Resource, DBLayerSolarException
+from solar.dblayer.model import StrInt
+from solar.dblayer.solar_models import DBLayerSolarException
+from solar.dblayer.solar_models import Resource
 
 
 def create_resource(key, data):
@@ -143,7 +159,7 @@ def test_perf_inputs(rk, depth):
     st = time.time()
     assert res.inputs['input1'] == 'target'
     end = time.time()
-    print end - st
+    print(end - st)
 
 
 def test_change_connect(rk):

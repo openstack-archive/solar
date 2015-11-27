@@ -26,10 +26,10 @@ tokens = (
     "RPAREN")
 
 t_STRING = r'[A-Za-z0-9-_/\\]+'
-t_AND  = '&|,'
-t_OR  = r'\|'
-t_LPAREN  = r'\('
-t_RPAREN  = r'\)'
+t_AND = '&|,'
+t_OR = r'\|'
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
 t_ignore = ' \t\r\n'
 
 
@@ -48,6 +48,7 @@ class SubexpressionWrapper(object):
 
 
 class ScalarWrapper(object):
+
     def __init__(self, value):
         global expression
         self.value = (set([value]) <= set(expression.tags))
@@ -60,7 +61,9 @@ class ScalarWrapper(object):
 
 
 def p_expression_logical_op(p):
-    """expression : expression AND expression
+    """Parser
+
+       expression : expression AND expression
                   | expression OR expression
     """
     result, arg1, op, arg2 = p
@@ -73,13 +76,17 @@ def p_expression_logical_op(p):
 
 
 def p_expression_string(p):
-    """expression : STRING
+    """Parser
+
+    expression : STRING
     """
     p[0] = ScalarWrapper(p[1])
 
 
 def p_expression_group(p):
-    """expression : LPAREN expression RPAREN
+    """Parser
+
+    expression : LPAREN expression RPAREN
     """
     p[0] = p[2]
 
@@ -90,10 +97,12 @@ def t_error(t):
 
 
 def p_error(p):
-    raise errors.ParseError("Syntax error at '{0}'".format(getattr(p, 'value', '')))
+    raise errors.ParseError(
+        "Syntax error at '{0}'".format(getattr(p, 'value', '')))
 
 
 class Expression(object):
+
     def __init__(self, expression_text, tags):
         self.expression_text = expression_text
         self.tags = tags

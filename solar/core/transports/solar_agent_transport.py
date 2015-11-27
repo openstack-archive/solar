@@ -15,8 +15,11 @@
 
 from solar_agent.client import SolarAgentClient
 
-from solar.core.transports.base import RunTransport, SyncTransport, Executor, SolarRunResult
 from solar.core.log import log
+from solar.core.transports.base import Executor
+from solar.core.transports.base import RunTransport
+from solar.core.transports.base import SolarRunResult
+from solar.core.transports.base import SyncTransport
 
 
 class SolarAgentTransport(object):
@@ -29,8 +32,8 @@ class SolarAgentTransport(object):
         auth = transport['password']
         transport_class = transport.get('transport_class')
         client = SolarAgentClient(auth={'user': user, 'auth': auth},
-                            transport_args=(host, port),
-                            transport_class=transport_class)
+                                  transport_args=(host, port),
+                                  transport_class=transport_class)
         return client
 
 
@@ -61,4 +64,3 @@ class SolarAgentRunTransport(RunTransport, SolarAgentTransport):
         client = self.get_client(resource)
         res = client.run(' '.join(args), **kwargs)
         return self.get_result(res)
-

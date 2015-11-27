@@ -1,8 +1,27 @@
-from solar.core.transports.base import SyncTransport, RunTransport, SolarTransport
-from solar.core.transports.ssh import SSHSyncTransport, SSHRunTransport
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
+from solar.core.transports.base import RunTransport
+from solar.core.transports.base import SolarTransport
+from solar.core.transports.base import SyncTransport
 from solar.core.transports.rsync import RsyncSyncTransport
+from solar.core.transports.ssh import SSHRunTransport
+from solar.core.transports.ssh import SSHSyncTransport
 try:
-    from solar.core.transports.solar_agent_transport import SolarAgentRunTransport, SolarAgentSyncTransport
+    from solar.core.transports.solar_agent_transport import SolarAgentRunTransport  # NOQA
+    from solar.core.transports.solar_agent_transport import SolarAgentSyncTransport  # NOQA
 except ImportError:
     _solar_agent_available = False
 else:
@@ -63,7 +82,8 @@ class BatTransport(SolarTransport):
         except AttributeError:
             transports = resource.transports()
             for pref in self._order:
-                selected = next((x for x in transports if x['name'] == pref), None)
+                selected = next(
+                    (x for x in transports if x['name'] == pref), None)
                 if selected:
                     break
             if not selected:
@@ -78,7 +98,8 @@ class BatTransport(SolarTransport):
 
     def get_transport_data(self, resource, *args, **kwargs):
         self.select_valid_transport(resource)
-        return super(BatTransport, self).get_transport_data(resource, *args, **kwargs)
+        return super(BatTransport, self).get_transport_data(resource,
+                                                            *args, **kwargs)
 
     def bind_with(self, other):
         self._other_remember = other

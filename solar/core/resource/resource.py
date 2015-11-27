@@ -13,29 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from enum import Enum
-
 from copy import deepcopy
-from multipledispatch import dispatch
-import os
-
-from solar import utils
-
-from solar.core import validation
-from solar.core import signals
-from solar.events import api
-
-from uuid import uuid4
 from hashlib import md5
+import os
+from uuid import uuid4
+
+from enum import Enum
+from multipledispatch import dispatch
 import networkx
 
-from solar.dblayer.solar_models import CommitedResource
-
-from solar.dblayer.solar_models import Resource as DBResource
-from solar.dblayer.model import StrInt
 from solar.core.signals import get_mapping
-
+from solar.core import validation
 from solar.dblayer.model import StrInt
+from solar.dblayer.solar_models import CommitedResource
+from solar.dblayer.solar_models import Resource as DBResource
+from solar.events import api
+from solar import utils
 
 
 def read_meta(base_path):
@@ -51,7 +44,8 @@ def read_meta(base_path):
     return metadata
 
 
-RESOURCE_STATE = Enum('ResourceState', 'created operational removed error updated')
+RESOURCE_STATE = Enum(
+    'ResourceState', 'created operational removed error updated')
 
 
 class Resource(object):
@@ -59,7 +53,8 @@ class Resource(object):
 
     # Create
     @dispatch(basestring, basestring)
-    def __init__(self, name, base_path, args=None, tags=None, virtual_resource=None):
+    def __init__(self, name, base_path, args=None, tags=None,
+                 virtual_resource=None):
         args = args or {}
         self.name = name
         if base_path:
@@ -100,9 +95,8 @@ class Resource(object):
 
         self.db_obj.save()
 
-
     # Load
-    @dispatch(DBResource)
+    @dispatch(DBResource)  # NOQA
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
@@ -117,14 +111,15 @@ class Resource(object):
         inputs.setdefault('location_id', {'value': "",
                                           'schema': 'str!'})
         inputs.setdefault('transports_id', {'value': "",
-                                          'schema': 'str'})
+                                            'schema': 'str'})
         for inp in ('transports_id', 'location_id'):
             if inputs[inp].get('value') == '$uuid':
                 inputs[inp]['value'] = md5(self.name + uuid4().hex).hexdigest()
 
     def transports(self):
         db_obj = self.db_obj
-        return db_obj.inputs._get_field_val('transports_id', other='transports')
+        return db_obj.inputs._get_field_val('transports_id',
+                                            other='transports')
 
     def ip(self):
         db_obj = self.db_obj
@@ -166,7 +161,6 @@ class Resource(object):
         # TODO: disconnect input when it is updated and end_node
         #       for some input_to_input relation
         self.db_obj.state = RESOURCE_STATE.updated.name
-        resource_inputs = self.resource_inputs()
 
         for k, v in args.items():
             self.db_obj.inputs[k] = v
@@ -213,16 +207,17 @@ class Resource(object):
 
     @property
     def connections(self):
-        """
-        Gives you all incoming/outgoing connections for current resource,
-        stored as:
+        """Gives you all incoming/outgoing connections for current resource.
+
+        Stored as:
         [(emitter, emitter_input, receiver, receiver_input), ...]
         """
         rst = set()
-        for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):
+        for (emitter_resource, emitter_input), (receiver_resource, receiver_input), meta in self.graph().edges(data=True):  # NOQA
             if meta:
                 receiver_input = '{}:{}|{}'.format(receiver_input,
-                    meta['destination_key'], meta['tag'])
+                                                   meta['destination_key'],
+                                                   meta['tag'])
 
             rst.add(
                 (emitter_resource, emitter_input,
@@ -269,9 +264,8 @@ class Resource(object):
         self.db_obj.save_lazy()
         receiver.db_obj.save_lazy()
 
-
     def connect_with_events(self, receiver, mapping=None, events=None,
-            use_defaults=False):
+                            use_defaults=False):
         mapping = get_mapping(self, receiver, mapping)
         self._connect_inputs(receiver, mapping)
         # signals.connect(self, receiver, mapping=mapping)
@@ -290,7 +284,6 @@ class Resource(object):
         self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
         receiver.db_obj.save_lazy()
         self.db_obj.save_lazy()
-
 
 
 def load(name):
@@ -313,6 +306,8 @@ def load_updated(since=None, with_childs=True):
     return [Resource(r) for r in DBResource.multi_get(candids)]
 
 # TODO
+
+
 def load_all():
     candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
     return [Resource(r) for r in DBResource.multi_get(candids)]

@@ -18,7 +18,8 @@ import networkx as nx
 
 
 def write_graph(plan):
-    """
+    """Writes graph to dot then to svg
+
     :param plan: networkx Graph object
     """
     colors = {
@@ -34,5 +35,6 @@ def write_graph(plan):
 
     nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
-        'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(name=plan.graph['name']),
+        'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(
+            name=plan.graph['name']),
         shell=True)

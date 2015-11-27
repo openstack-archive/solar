@@ -12,15 +12,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
 from contextlib import nested
+import os
 
 from fabric import api as fabric_api
 from fabric.contrib import project as fabric_project
 
 from solar.core.log import log
-from solar.core.transports.base import RunTransport, SyncTransport, Executor
+from solar.core.transports.base import Executor
+from solar.core.transports.base import RunTransport
 from solar.core.transports.base import SolarRunResult
+from solar.core.transports.base import SyncTransport
 
 
 class _SSHTransport(object):
@@ -88,9 +90,7 @@ class SSHRunTransport(RunTransport, _SSHTransport):
     preffered_transport_name = 'ssh'
 
     def get_result(self, output):
-        """
-        Needed for compatibility with other handlers / transports
-        """
+        """Needed for compatibility with other handlers / transports"""
         return SolarRunResult(output)
 
     def run(self, resource, *args, **kwargs):

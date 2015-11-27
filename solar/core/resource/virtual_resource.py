@@ -16,17 +16,20 @@
 from collections import defaultdict
 import os
 from StringIO import StringIO
+
+from jinja2 import Environment
+from jinja2 import meta
+from jinja2 import Template
 import yaml
 
-from jinja2 import Template, Environment, meta
-
-from solar.core import provider
-from solar.core import signals
 from solar.core.log import log
+from solar.core import provider
 from solar.core.resource import load as load_resource
-from solar.core.resource import Resource, load_by_tags
+from solar.core.resource import load_by_tags
+from solar.core.resource import Resource
 from solar.events.api import add_event
-from solar.events.controls import React, Dep
+from solar.events.controls import Dep
+from solar.events.controls import React
 
 
 def create(name, base_path, args=None, tags=None, virtual_resource=None):
@@ -54,7 +57,8 @@ def create(name, base_path, args=None, tags=None, virtual_resource=None):
     return rs
 
 
-def create_resource(name, base_path, args=None, tags=None, virtual_resource=None):
+def create_resource(name, base_path, args=None, tags=None,
+                    virtual_resource=None):
     args = args or {}
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
@@ -66,9 +70,8 @@ def create_resource(name, base_path, args=None, tags=None, virtual_resource=None
         return filter(lambda res: not is_connection(res), value)
 
     args = {key: _filter(value) for key, value in args.items()}
-    r = Resource(
-        name, base_path, args=args, tags=tags, virtual_resource=virtual_resource
-    )
+    r = Resource(name, base_path, args=args,
+                 tags=tags, virtual_resource=virtual_resource)
     return r
 
 
@@ -109,7 +112,8 @@ def _get_template(name, content, kwargs, inputs):
         if input not in kwargs:
             missing.append(input)
     if missing:
-        raise Exception('[{0}] Validation error. Missing data in input: {1}'.format(name, missing))
+        raise Exception(
+            '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))  # NOQA
     template = Template(content, trim_blocks=True, lstrip_blocks=True)
     template = template.render(str=str, zip=zip, **kwargs)
     return template
@@ -158,6 +162,7 @@ def extend_resources(template_resources):
                 log.debug('Warrning: no resources with tags: {}'.format(tags))
     return resources
 
+
 def update_resources(template_resources):
     resources = extend_resources(template_resources)
     for r in resources:
@@ -197,13 +202,14 @@ def extend_events(template_events):
             resources = load_by_tags(tags)
             for r in resources:
                 parent_action = '{}.{}'.format(r.name, parent['action'])
-                event = {'type' : e['type'],
+                event = {'type': e['type'],
                          'state': e['state'],
                          'depend_action': e['depend_action'],
                          'parent_action': parent_action
                          }
                 events.append(event)
     return events
+
 
 def parse_events(template_events):
     parsed_events = []
@@ -221,8 +227,6 @@ def parse_events(template_events):
             raise Exception('Invalid event type: {0}'.format(event_type))
         parsed_events.append(event)
     return parsed_events
-
-
 
 
 def parse_inputs(args):
@@ -272,7 +276,7 @@ def parse_connection(child_input, element):
     except ValueError:
         events = None
     return {'child_input': child_input,
-            'parent' : parent,
+            'parent': parent,
             'parent_input': parent_input,
-            'events' : events
+            'events': events
             }

@@ -15,7 +15,8 @@
 from fabric import api as fabric_api
 
 from solar.core.log import log
-from solar.core.transports.base import SyncTransport, Executor
+from solar.core.transports.base import Executor
+from solar.core.transports.base import SyncTransport
 
 # XXX:
 # currently we don't support key verification or acceptation
@@ -29,7 +30,7 @@ class RsyncSyncTransport(SyncTransport):
         transport = self.get_transport_data(resource)
         host = resource.ip()
         user = transport['user']
-        port = transport['port']
+        # port = transport['port']
         # TODO: user port somehow
         key = transport['key']
         return {

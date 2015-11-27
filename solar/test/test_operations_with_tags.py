@@ -15,21 +15,21 @@
 from pytest import fixture
 
 from solar.core import resource
-from solar.dblayer.solar_models import Resource
 from solar.dblayer.model import ModelMeta
+from solar.dblayer.solar_models import Resource
 
 
 @fixture
 def tagged_resources():
     tags = ['n1', 'n2', 'n3']
     t1 = Resource.from_dict('t1',
-        {'name': 't1', 'tags': tags, 'base_path': 'x'})
+                            {'name': 't1', 'tags': tags, 'base_path': 'x'})
     t1.save_lazy()
     t2 = Resource.from_dict('t2',
-        {'name': 't2', 'tags': tags, 'base_path': 'x'})
+                            {'name': 't2', 'tags': tags, 'base_path': 'x'})
     t2.save_lazy()
     t3 = Resource.from_dict('t3',
-        {'name': 't3', 'tags': tags, 'base_path': 'x'})
+                            {'name': 't3', 'tags': tags, 'base_path': 'x'})
     t3.save_lazy()
     ModelMeta.save_all_lazy()
     return [t1, t2, t3]

@@ -47,12 +47,16 @@ def get_default_chain(dg, inprogress, added):
 
 
 def type_based_rule(dg, inprogress, item):
-    """condition will be specified like:
+    """Checks type based rules
+
+    condition should be specified like:
         type_limit: 2
     """
     _type = dg.node[item].get('resource_type')
-    if 'type_limit' not in dg.node[item]: return True
-    if not _type: return True
+    if 'type_limit' not in dg.node[item]:
+        return True
+    if not _type:
+        return True
 
     type_count = 0
     for n in inprogress:
@@ -63,7 +67,8 @@ def type_based_rule(dg, inprogress, item):
 
 def target_based_rule(dg, inprogress, item, limit=1):
     target = dg.node[item].get('target')
-    if not target: return True
+    if not target:
+        return True
 
     target_count = 0
     for n in inprogress:

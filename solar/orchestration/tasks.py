@@ -14,21 +14,22 @@
 
 from functools import partial
 import subprocess
-import time
 
 from celery.app import task
-from celery.signals import task_prerun, task_postrun
+from celery.signals import task_postrun
+from celery.signals import task_prerun
 
-from solar.orchestration import graph
 from solar.core import actions
 from solar.core import resource
-from solar.system_log.tasks import commit_logitem, error_logitem
+from solar.dblayer import ModelMeta
+from solar.orchestration import executor
+from solar.orchestration import graph
+from solar.orchestration import limits
 from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
-from solar.orchestration import limits
-from solar.orchestration import executor
-from solar.dblayer import ModelMeta
-
+from solar.system_log.tasks import commit_logitem
+from solar.system_log.tasks import error_logitem
+import time
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
@@ -54,9 +55,11 @@ class ReportTask(task.Task):
 
 report_task = partial(app.task, base=ReportTask, bind=True)
 
+
 @task_prerun.connect
 def start_solar_session(task_id, task, *args, **kwargs):
     ModelMeta.session_start()
+
 
 @task_postrun.connect
 def end_solar_session(task_id, task, *args, **kwargs):
@@ -104,7 +107,7 @@ def fault_tolerance(ctxt, percent):
         if dg.node[s]['status'] == 'SUCCESS':
             success += 1
 
-    succes_percent = (success/lth) * 100
+    succes_percent = (success / lth) * 100
     if succes_percent < percent:
         raise Exception('Cant proceed with, {0} < {1}'.format(
             succes_percent, percent))
@@ -117,7 +120,8 @@ def echo(ctxt, message):
 
 @report_task(name='anchor')
 def anchor(ctxt, *args):
-    # such tasks should be walked when atleast 1/3/exact number of resources visited
+    # such tasks should be walked when atleast 1/3/exact number of resources
+    # visited
     dg = graph.get_graph('current')
     for s in dg.predecessors(ctxt.request.id):
         if dg.node[s]['status'] != 'SUCCESS':
@@ -154,6 +158,7 @@ def soft_stop(plan_uid):
         if dg.node[n]['status'] == 'PENDING':
             dg.node[n]['status'] = 'SKIPPED'
     graph.update_graph(dg)
+
 
 @app.task(name='schedule_next')
 def schedule_next(task_id, status, errmsg=None):

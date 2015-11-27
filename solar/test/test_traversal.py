@@ -17,6 +17,7 @@ from pytest import fixture
 
 from solar.orchestration.traversal import traverse
 
+
 @fixture
 def tasks():
     return [
@@ -25,6 +26,7 @@ def tasks():
         {'id': 't3', 'status': 'PENDING'},
         {'id': 't4', 'status': 'PENDING'},
         {'id': 't5', 'status': 'PENDING'}]
+
 
 @fixture
 def dg(tasks):
@@ -60,6 +62,7 @@ def test_nothing_will_be_walked_if_parent_is_skipped(dg):
     dg.node['t1']['status'] = 'SKIPPED'
 
     assert set(traverse(dg)) == set()
+
 
 def test_node_will_be_walked_if_parent_is_noop(dg):
     dg.add_path(['t1', 't2', 't3', 't4', 't5'])

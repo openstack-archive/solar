@@ -18,14 +18,12 @@ from pytest import fixture
 
 from solar.orchestration import graph
 from solar.orchestration.traversal import states
-from solar.dblayer.model import ModelMeta
 
 
 @fixture
 def simple():
     simple_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'orch_fixtures',
+        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
         'simple.yaml')
     return graph.create_plan(simple_path)
 
@@ -33,6 +31,7 @@ def simple():
 def test_simple_plan_created_and_loaded(simple):
     plan = graph.get_plan(simple.graph['uid'])
     assert set(plan.nodes()) == {'just_fail', 'echo_stuff'}
+
 
 def test_reset_all_states(simple):
     for n in simple:
@@ -57,16 +56,37 @@ def test_wait_finish(simple):
     for n in simple:
         simple.node[n]['status'] = states.SUCCESS.name
     graph.update_graph(simple)
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 2, 'NOOP': 0, 'ERROR': 0, 'INPROGRESS': 0, 'PENDING': 0}
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+        'SKIPPED': 0,
+        'SUCCESS': 2,
+        'NOOP': 0,
+        'ERROR': 0,
+        'INPROGRESS': 0,
+        'PENDING': 0
+    }
 
 
 def test_several_updates(simple):
     simple.node['just_fail']['status'] = states.ERROR.name
     graph.update_graph(simple)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 1, 'INPROGRESS': 0, 'PENDING': 1}
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+        'SKIPPED': 0,
+        'SUCCESS': 0,
+        'NOOP': 0,
+        'ERROR': 1,
+        'INPROGRESS': 0,
+        'PENDING': 1
+    }
 
     simple.node['echo_stuff']['status'] = states.ERROR.name
     graph.update_graph(simple)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {'SKIPPED': 0, 'SUCCESS': 0, 'NOOP': 0, 'ERROR': 2, 'INPROGRESS': 0, 'PENDING': 0}
+    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+        'SKIPPED': 0,
+        'SUCCESS': 0,
+        'NOOP': 0,
+        'ERROR': 2,
+        'INPROGRESS': 0,
+        'PENDING': 0
+    }
