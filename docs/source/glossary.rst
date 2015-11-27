@@ -1,12 +1,18 @@
+.. _glossary:
+
 ==============
 Solar Glossary
 ==============
 
-Resources
-=========
+.. _resource-term:
 
-Inputs
---------
+Resource
+========
+
+.. _res-input-term:
+
+Input
+-----
 Resource configuration that will be used in actions, handlers and orchestration.
 All known inputs should be provided in meta.yaml ::
 
@@ -24,14 +30,18 @@ All known inputs should be provided in meta.yaml ::
         schema: str
         value: 'cinder'
 
-Connections
-------------
+.. _res-connection-term:
+
+Connection
+----------
 Allows to build hierarchy between inputs of several resources,
 parent value will be always used in child while connection is created.
 If connection will be removed - original value of child will be preserved.
 
-Actions
---------
+.. _res-action-term:
+
+Action
+------
 Solar wraps deployment code into actions with specific names.
 Several actions of resource are mandatory:
 - run
@@ -44,21 +54,29 @@ All actions should be provided in meta.yaml ::
       run: run.pp
       update: run.pp
 
-Tags
-------
+.. _res-tag-term:
+
+Tag
+---
 Used to create arbitrary groups of resources, later this groups will be
 used for different user operations.
 
-Handlers
-========
+.. _res-handler-term:
+
+Handler
+=======
+
 Layer that responsible for action execution and tracking result.
 Currently handler specified in resource meta.yaml and used for all resource
 actions ::
 
   handler: puppet
 
-Transports
------------
+.. _res-transports-term:
+
+Transport
+=========
+
 Used in handlers to communicate with managed by solar hosts. List of transports
 should be added to a node. Transports will be added to a resource by means
 of transports id.
@@ -68,7 +86,7 @@ Run transport - reponsible for running command on remote host.
 Sync transport - uploads required information.
 
 location_id
-------------
+-----------
 Used in transport layer to find ip address of a node. ::
 
   'location_id': '96bc779540d832284680785ecd948a2d'
@@ -80,12 +98,15 @@ Used to find transports array that will be used for transport selection. ::
   'transports_id': '3889e1790e68b80b4f255cf0e13494b1'
 
 BAT transport
---------------
+-------------
 According to preferences solar will choose best available transport for
 file uploading and command execution.
 
-Events
-======
+.. _res-event-term:
+
+Event
+=====
+
 Used in solar to describe all possible transitions between resources changes.
 Each event allows to specify two points of transitions, condition of this
 transition and type of event.
@@ -106,39 +127,49 @@ Example ::
   child_action: run
   state: success // condition
 
+.. _res-virtual-term:
 
-Virtual resources/templates
-===========================
+Virtual resource/template
+=========================
+
 Composition layer that allows to:
 
 - group resources
 - specify connections between inputs
 - add list of events
 
+.. _system-log-term:
+
 System log component
 ====================
+
 Component responsible for tracking changes and keeping ordered history of
 them.
 
 Staged log
------------
+----------
 Based on user changes - solar will create log of staged changes.
 This log will be used later to build deployment plan.
 
 History
---------
-After action that is related to change will be executed - it will be moved to history with same uuid.
+-------
+After action that is related to change will be executed - it will be moved to
+history with same uuid.
 
 Commited resource data
 ----------------------
 After each succesfull change commited copy of resource data will be updated
 with diff of that change.
 
+.. _orch-term:
+
 Orchestration component
-========================
+=======================
+
+.. _deploy-plan-term:
 
 Deployment plan
-----------------
+---------------
 Based on changes tracked by system log and configured events - solar build
 deployment plan. In general deployment plan is built with ::
 
@@ -157,4 +188,4 @@ Solar cli provides several commands to work with deployment plan.
 - stop
 - resume/restart/retry
 
-TODO link to ./orchestration.md
+See also :ref:`orchestration`
