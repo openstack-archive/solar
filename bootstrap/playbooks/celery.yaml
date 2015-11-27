@@ -7,7 +7,9 @@
     celery_dir: /var/run/celery
   tasks:
     - shell: mkdir -p {{ celery_dir }}
+      tags: [install]
     - shell: pip install celery
+      tags: [install]
     - shell: hostname
       register: hostname
     - shell: celery multi stopwait 2  -A solar.orchestration.runner

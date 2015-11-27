@@ -17,6 +17,6 @@ RUN apt-get install -y libffi-dev libssl-dev
 RUN pip install https://github.com/Mirantis/solar/archive/master.zip
 RUN pip install https://github.com/Mirantis/solar-agent/archive/master.zip
 
-RUN ansible-playbook -v -i "localhost," -c local /celery.yaml --skip-tags slave
+RUN ansible-playbook -v -i "localhost," -c local /celery.yaml --tags install
 
 CMD ["/run.sh"]
