@@ -9,6 +9,7 @@ detect which resource requires changes with ::
 
     solar changes stage
 
+
 History
 --------
 
@@ -30,6 +31,13 @@ work with.
 
 All commands that are able to manipulate deployment graph located in
 *orch* namespace.
+
+
+.. tip::
+   Solar writes returned deployment graph uid into special file (`.solar_cli_uids`), it
+   allows you to use `last` instead of full returned uid:
+   `solar orch report <uid>` becomes `solar orch report last`
+
 
 Report
 -------
