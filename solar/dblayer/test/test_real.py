@@ -374,13 +374,10 @@ def test_simple_to_listdict_inputs(rk):
     r4.save()
 
     inputs = set(pytest.dicts_to_hashable(r2.inputs['input']))
-    expected_inputs = set(pytest.dicts_to_hashable([
-                                  {u'input2': 1115,
-                                   u'input1': 110},
-                                  {u'input2': 115,
-                                   u'input1': 1110},
-                                  {u'input2': 15,
-                                   u'input1': 10}]))
+    expected_inputs = set(pytest.dicts_to_hashable(
+        [{u'input2': 1115, u'input1': 110},
+         {u'input2': 115, u'input1': 1110},
+         {u'input2': 15, u'input1': 10}]))
 
     assert inputs == expected_inputs
 
