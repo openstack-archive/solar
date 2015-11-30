@@ -9,6 +9,8 @@ Solar Glossary
 Resource
 ========
 
+You can learn more about it in :ref:`Resource Details <resource_details>`
+
 .. _res-input-term:
 
 Input

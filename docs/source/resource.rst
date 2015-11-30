@@ -1,6 +1,5 @@
 .. _resource_details:
 
-
 Resource
 ========
 
