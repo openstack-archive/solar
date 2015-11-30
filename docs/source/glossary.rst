@@ -9,26 +9,14 @@ Solar Glossary
 Resource
 ========
 
+You can learn more about it in :ref:`Resource Details <resource_details>`
+
 .. _res-input-term:
 
 Input
 -----
 Resource configuration that will be used in actions, handlers and orchestration.
-All known inputs should be provided in meta.yaml ::
-
-    input:
-      keystone_password:
-        schema: str!
-        value: 'keystone'
-      keystone_enabled:
-        schema: bool
-        value: true
-      keystone_tenant:
-        schema: str
-        value: 'services'
-      keystone_user:
-        schema: str
-        value: 'cinder'
+All known inputs should be provided in meta.yaml
 
 .. _res-connection-term:
 
@@ -43,16 +31,6 @@ If connection will be removed - original value of child will be preserved.
 Action
 ------
 Solar wraps deployment code into actions with specific names.
-Several actions of resource are mandatory:
-- run
-- remove
-- update
-
-All actions should be provided in meta.yaml ::
-
-    actions:
-      run: run.pp
-      update: run.pp
 
 .. _res-tag-term:
 
@@ -67,10 +45,6 @@ Handler
 =======
 
 Layer that responsible for action execution and tracking result.
-Currently handler specified in resource meta.yaml and used for all resource
-actions ::
-
-  handler: puppet
 
 .. _res-transports-term:
 
