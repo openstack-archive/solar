@@ -21,27 +21,14 @@ from solar.system_log import change
 
 @fixture
 def staged():
-    return {'id': 'res.1',
-            'tags': ['res', 'node.1'],
-            'input': {'ip': {'value': '10.0.0.2'},
-                      'list_val': {'value': [1, 2]}},
-            'metadata': {},
-            'connections': [
-                ['node.1', 'res.1', ['ip', 'ip']],
-                ['node.1', 'res.1', ['key', 'key']]
-            ]}
+    return {'ip': {'value': '10.0.0.2'},
+            'list_val': {'value': [1, 2]}}
 
 
 @fixture
 def commited():
-    return {'id': 'res.1',
-            'tags': ['res', 'node.1'],
-            'input': {'ip': '10.0.0.2',
-                      'list_val': [1]},
-            'metadata': {},
-            'connections': [
-                ['node.1', 'res.1', ['ip', 'ip']]
-            ]}
+    return {'ip': '10.0.0.2',
+            'list_val': [1]}
 
 
 @fixture
@@ -55,25 +42,30 @@ def diff_for_update(staged, commited):
 
 
 def test_create_diff_with_empty_commited(full_diff):
-    # add will be executed
-    expected = [('add', '',
-                 [('connections', [['node.1', 'res.1', ['ip', 'ip']],
-                                   ['node.1', 'res.1', ['key', 'key']]]),
-                  ('input', {
-                      'ip': {'value': '10.0.0.2'},
-                      'list_val': {'value': [1, 2]}
-                  }), ('metadata', {}), ('id', 'res.1'),
-                  ('tags', ['res', 'node.1'])])]
-    assert full_diff == expected
+    operations = set()
+    vals = {}
+    for item in full_diff:
+        operations.add(item[0])
+        for val in item[2]:
+            vals[val[0]] = val[1]
+
+    assert len(full_diff) == 1
+    assert set(['add']) == operations
+    assert vals['ip'] == {'value': '10.0.0.2'}
+    assert vals['list_val'] == {'value': [1, 2]}
 
 
 def test_create_diff_modified(diff_for_update):
-    assert diff_for_update == [
-        ('add', 'connections', [(1, ['node.1', 'res.1', ['key', 'key']])]),
-        ('change', 'input.ip',
-         ('10.0.0.2', {'value': '10.0.0.2'})), ('change', 'input.list_val',
-                                                ([1], {'value': [1, 2]}))
-    ]
+    operations = set()
+    vals = {}
+    for item in diff_for_update:
+        operations.add(item[0])
+        vals[item[1]] = item[2]
+
+    assert len(diff_for_update) == 2
+    assert set(['change']) == operations
+    assert vals['ip'] == ('10.0.0.2', {'value': '10.0.0.2'})
+    assert vals['list_val'] == ([1], {'value': [1, 2]})
 
 
 def test_verify_patch_creates_expected(staged, diff_for_update, commited):
@@ -84,21 +76,3 @@ def test_verify_patch_creates_expected(staged, diff_for_update, commited):
 def test_revert_update(staged, diff_for_update, commited):
     expected = revert(diff_for_update, staged)
     assert expected == commited
-
-
-@fixture
-def resources():
-    r = {'n.1': {'uid': 'n.1',
-                 'args': {'ip': '10.20.0.2'},
-                 'connections': [],
-                 'tags': []},
-         'r.1': {'uid': 'r.1',
-                 'args': {'ip': '10.20.0.2'},
-                 'connections': [['n.1', 'r.1', ['ip', 'ip']]],
-                 'tags': []},
-         'h.1': {'uid': 'h.1',
-                 'args': {'ip': '10.20.0.2',
-                          'ips': ['10.20.0.2']},
-                 'connections': [['n.1', 'h.1', ['ip', 'ip']]],
-                 'tags': []}}
-    return r

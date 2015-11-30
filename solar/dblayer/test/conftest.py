@@ -79,4 +79,15 @@ def pytest_runtest_call(item):
     ModelMeta.session_start()
 
 
+def dicts_to_hashable(list_of_dics):
+    rst = []
+    for item in list_of_dics:
+        rst.append(tuple(item.items()))
+    return tuple(rst)
+
+
+def pytest_namespace():
+    return {'dicts_to_hashable': dicts_to_hashable}
+
+
 Model.get_bucket_name = classmethod(patched_get_bucket_name)
