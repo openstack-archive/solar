@@ -9,7 +9,9 @@ Solar Glossary
 Resource
 ========
 
-You can learn more about it in :ref:`Resource Details <resource_details>`
+.. seealso::
+
+    You can learn more about it in :ref:`Resource Details <resource_details>`
 
 .. _res-input-term:
 
@@ -51,13 +53,13 @@ Layer that responsible for action execution and tracking result.
 Transport
 =========
 
-Used in handlers to communicate with managed by solar hosts. List of transports
-should be added to a node. Transports will be added to a resource by means
-of transports id.
+Used in handlers to communicate with managed by solar hosts.
 
-Two different types of transports are used: run and sync.
-Run transport - reponsible for running command on remote host.
-Sync transport - uploads required information.
+.. seealso::
+
+   :ref:`More details about transports <transports_details>`
+
+.. _location-id-term:
 
 location_id
 -----------
@@ -65,11 +67,14 @@ Used in transport layer to find ip address of a node. ::
 
   'location_id': '96bc779540d832284680785ecd948a2d'
 
+.. _transports-id-term:
+
 transports_id
 -------------
 Used to find transports array that will be used for transport selection. ::
 
   'transports_id': '3889e1790e68b80b4f255cf0e13494b1'
+
 
 BAT transport
 -------------
