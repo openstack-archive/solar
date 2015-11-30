@@ -15,6 +15,7 @@
 
 from copy import deepcopy
 from hashlib import md5
+import json
 import os
 from uuid import uuid4
 
@@ -295,6 +296,7 @@ class Resource(object):
             rst = utils.communicate([manager_path], json.dumps(self.args))
             if rst:
                 self.update(json.loads(rst))
+
 
 def load(name):
     r = DBResource.get(name)

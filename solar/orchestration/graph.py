@@ -12,22 +12,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from collections import Counter
 import time
 import uuid
+
+from collections import Counter
 
 import networkx as nx
 
 from solar.dblayer.model import clear_cache
+from solar.dblayer.model import ModelMeta
 from solar.dblayer.solar_models import Task
 from solar import errors
-from solar import utils
-
 from solar.orchestration.traversal import states
-
-from solar.dblayer.solar_models import Task
-from solar.dblayer.model import clear_cache
-from solar.dblayer.model import ModelMeta
+from solar import utils
 
 
 def save_graph(graph):
@@ -58,6 +55,7 @@ def update_graph(graph):
         task.errmsg = graph.node[n]['errmsg'] or ''
         task.save()
 
+
 def set_states(uid, tasks):
     plan = get_graph(uid)
     for t in tasks:
@@ -66,6 +64,7 @@ def set_states(uid, tasks):
         plan.node[t]['task'].status = states.NOOP.name
         plan.node[t]['task'].save_lazy()
     ModelMeta.save_all_lazy()
+
 
 def get_graph(uid):
     dg = nx.MultiDiGraph()

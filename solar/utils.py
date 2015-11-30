@@ -17,8 +17,8 @@ import io
 import json
 import logging
 import os
+import subprocess
 import uuid
-from subprocess import Popen, PIPE, STDOUT
 
 from jinja2 import Environment
 import yaml
@@ -36,7 +36,11 @@ def to_pretty_json(data):
 
 
 def communicate(command, data):
-    popen = Popen(command, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+    popen = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        stderr=subprocess.PIPE)
     return popen.communicate(input=data)[0]
 
 # Configure jinja2 filters
