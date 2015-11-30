@@ -14,6 +14,7 @@ Contents:
    source/glossary
    source/orchestration
    source/examples
+   source/deployment_plan
 
 
 Indices and tables
