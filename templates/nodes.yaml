@@ -7,13 +7,23 @@ resources:
     values:
       ssh_user: 'vagrant'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev{{j}}/virtualbox/private_key'
+  - id: rsync{{j}}
+    from: resources/transport_rsync
+    values:
+      user: vagrant
+      key: /vagrant/.vagrant/machines/solar-dev{{j}}/virtualbox/private_key
   - id: transports{{j}}
     from: resources/transports
     values:
-      transports:key: ssh_transport{{j}}::ssh_key
-      transports:user: ssh_transport{{j}}::ssh_user
-      transports:port: ssh_transport{{j}}::ssh_port
-      transports:name: ssh_transport{{j}}::name
+      transports:
+        - key: ssh_transport{{j}}::ssh_key
+          user: ssh_transport{{j}}::ssh_user
+          port: ssh_transport{{j}}::ssh_port
+          name: ssh_transport{{j}}::name
+        - key: rsync{{j}}::key
+          name: rsync{{j}}::name
+          user: rsync{{j}}::user
+          port: rsync{{j}}::port
   - id: node{{j}}
     from: resources/ro_node
     values:
