@@ -8,6 +8,7 @@ solar-celery:
     - /vagrant/templates:/vagrant/templates
     - /vagrant/resources:/vagrant/resources
     - /vagrant/library:/vagrant/library
+    - ~/.ssh/known_hosts:/root/.ssh/known_hosts
   environment:
     - REDIS_HOST=redis
     - REDIS_PORT=6379

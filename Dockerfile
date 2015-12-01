@@ -2,6 +2,10 @@ FROM ubuntu:14.04
 
 WORKDIR /
 
+RUN apt-get update
+RUN apt-get install -y python python-dev python-distribute python-pip openssh-client rsync
+RUN pip install ansible
+
 ADD bootstrap/playbooks/celery.yaml /celery.yaml
 ADD resources /resources
 ADD templates /templates
