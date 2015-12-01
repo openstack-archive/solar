@@ -53,7 +53,7 @@ Layer that responsible for action execution and tracking result.
 Transport
 =========
 
-Used in handlers to communicate with managed by solar hosts.
+Used in handlers to communicate with hosts managed by solar.
 
 .. seealso::
 
