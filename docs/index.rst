@@ -14,6 +14,7 @@ Contents:
    source/glossary
    source/resource
    source/orchestration
+   source/handler_ansible
    source/examples
    source/deployment_plan
 
