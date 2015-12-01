@@ -5,7 +5,6 @@ Deployment operations
 
 Stage changes
 -------------
-
 After user created all required resource - it is possible to automatically
 detect which resource requires changes with ::
 
@@ -14,30 +13,30 @@ detect which resource requires changes with ::
 
 History
 -------
-After changes are staged - they will be used to populate history which can be seen
-with command (*n* option used to limit number of items, -1 will return all changes) ::
+After changes are staged - they will be used to populate history which can be
+previewed with command (*n* option used to limit number of items, -1 will
+return all changes) ::
 
     solar changes history -n 5
 
 Prepare deployment plan
 -----------------------
-
-User is able to generate deployment scenario based on changes found by system log. ::
+User is able to generate deployment scenario based on changes found by system
+log. ::
 
     solar changes process
 
-
-This command will prepare deployment graph, and return uid of deployment graph to
-work with.
+This command will prepare deployment graph, and return uid of deployment graph
+to work with.
 
 All commands that are able to manipulate deployment graph located in
 *orch* namespace.
 
 
 .. tip::
-   Solar writes returned deployment graph uid into special file (`.solar_cli_uids`), it
-   allows you to use `last` instead of full returned uid:
-   `solar orch report <uid>` becomes `solar orch report last`
+   Solar writes returned deployment graph uid into special file
+   (`.solar_cli_uids`), it allows you to use `last` instead of full returned
+   uid: `solar orch report <uid>` becomes `solar orch report last`
 
 
 Report
@@ -84,6 +83,7 @@ All tasks will be returned to PENDING state, and deployment will be restarted ::
 
 Retry deployment
 ----------------
-Orchestrator will reset all ERROR tasks to PENDING state and restart deployment ::
+Orchestrator will reset all ERROR tasks to PENDING state and restart
+deployment ::
 
     solar orch retry <uid>
