@@ -1,0 +1,38 @@
+id: ceph_mon
+handler: puppetv2
+version: 1.0.0
+input:
+    ip:
+      schema: str!
+      value:
+    public_vip:
+      schema: str!
+      value:
+    management_vip:
+      schema: str!
+      value:
+    use_syslog:
+      schema: bool
+      value: true
+    keystone:
+      schema: {'admin_token': 'str'}
+      value: {}
+    ceph_monitor_nodes:
+      schema: []
+      value: []
+    ceph_primary_monitor_node:
+      schema: []
+      value: []
+    storage:
+      schema: {}
+      value: {}
+    network_scheme:
+      schema: {}
+      value: {}
+    role:
+      schema: str!
+      value:
+    puppet_modules:
+      schema: str!
+      value:
+tags: []

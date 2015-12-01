@@ -6,3 +6,4 @@
         name: {{ resource_name }}
         image: {{ image }}
         state: absent
+    - file: path=/var/lib/docker/data/{{resource_name}} state=absent

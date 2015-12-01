@@ -1,22 +1,22 @@
 $resource = hiera($::resource_name)
 
-$ip = $resource['input']['ip']['value']
+$ip = $resource['input']['ip']
 
-$package_ensure              = $resource['input']['package_ensure']['value']
-$enabled                     = $resource['input']['enabled']['value']
-$bridge_uplinks              = $resource['input']['bridge_uplinks']['value']
-$bridge_mappings             = $resource['input']['bridge_mappings']['value']
-$integration_bridge          = $resource['input']['integration_bridge']['value']
-$enable_tunneling            = $resource['input']['enable_tunneling']['value']
-$tunnel_types                = $resource['input']['tunnel_types']['value']
-$local_ip                    = $resource['input']['local_ip']['value']
-$tunnel_bridge               = $resource['input']['tunnel_bridge']['value']
-$vxlan_udp_port              = $resource['input']['vxlan_udp_port']['value']
-$polling_interval            = $resource['input']['polling_interval']['value']
-$l2_population               = $resource['input']['l2_population']['value']
-$arp_responder               = $resource['input']['arp_responder']['value']
-$firewall_driver             = $resource['input']['firewall_driver']['value']
-$enable_distributed_routing  = $resource['input']['enable_distributed_routing']['value']
+$package_ensure              = $resource['input']['package_ensure']
+$enabled                     = $resource['input']['enabled']
+$bridge_uplinks              = $resource['input']['bridge_uplinks']
+$bridge_mappings             = $resource['input']['bridge_mappings']
+$integration_bridge          = $resource['input']['integration_bridge']
+$enable_tunneling            = $resource['input']['enable_tunneling']
+$tunnel_types                = $resource['input']['tunnel_types']
+$local_ip                    = $resource['input']['local_ip']
+$tunnel_bridge               = $resource['input']['tunnel_bridge']
+$vxlan_udp_port              = $resource['input']['vxlan_udp_port']
+$polling_interval            = $resource['input']['polling_interval']
+$l2_population               = $resource['input']['l2_population']
+$arp_responder               = $resource['input']['arp_responder']
+$firewall_driver             = $resource['input']['firewall_driver']
+$enable_distributed_routing  = $resource['input']['enable_distributed_routing']
 
 class { 'neutron::agents::ml2::ovs':
   enabled                     => true,

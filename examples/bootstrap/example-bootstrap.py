@@ -10,11 +10,7 @@ from solar.core import signals
 from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
-
-from solar.interfaces.db import get_db
-
-
-db = get_db()
+from solar.dblayer.model import ModelMeta
 
 
 @click.group()
@@ -23,9 +19,7 @@ def main():
 
 
 def setup_resources():
-    db.clear()
-
-    signals.Connections.clear()
+    ModelMeta.remove_all()
 
     node2 = vr.create('node2', 'resources/ro_node/', {
         'ip': '10.0.0.4',
@@ -61,7 +55,7 @@ def deploy():
     setup_resources()
 
     # run
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = resource.load_all()
     resources = {r.name: r for r in resources}
 
     for name in resources_to_run:
@@ -76,7 +70,7 @@ def deploy():
 
 @click.command()
 def undeploy():
-    resources = map(resource.wrap_resource, db.get_list(collection=db.COLLECTIONS.resource))
+    resources = resource.load_all()
     resources = {r.name: r for r in resources}
 
     for name in reversed(resources_to_run):
@@ -85,10 +79,7 @@ def undeploy():
         except errors.SolarError as e:
             print 'WARNING: %s' % str(e)
 
-    db.clear()
-
-    signals.Connections.clear()
-
+    ModelMeta.remove_all()
 
 main.add_command(deploy)
 main.add_command(undeploy)

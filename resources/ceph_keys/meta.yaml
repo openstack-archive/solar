@@ -1,0 +1,17 @@
+id: ceph_keys
+handler: shell
+version: 1.0.0
+input:
+    ip:
+        schema: str!
+        value:
+    target_directory:
+        schema: str!
+        value: /var/lib/astute/
+    key_name:
+        schema: str!
+        value: ceph
+    path:
+        schema: str!
+        value: /var/lib/astute/ceph/
+tags: []

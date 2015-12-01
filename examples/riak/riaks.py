@@ -20,20 +20,22 @@ from solar.core import validation
 from solar.core.resource import virtual_resource as vr
 from solar import errors
 
-from solar.interfaces.db import get_db
+from solar.dblayer.model import ModelMeta
 
 from solar.events.controls import React, Dep
 from solar.events.api import add_event
 
-
-db = get_db()
+from solar.dblayer.solar_models import Resource
 
 
 def setup_riak():
-    db.clear()
 
-    nodes = vr.create('nodes', 'templates/riak_nodes.yaml', {})
+    ModelMeta.remove_all()
+    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})
+    nodes = [x for x in resources if x.name.startswith('node')]
+    hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
     node1, node2, node3 = nodes
+    hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
 
     riak_services = []
     ips = '10.0.0.%d'
@@ -42,31 +44,24 @@ def setup_riak():
         r = vr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
+                       'storage_backend': 'leveldb',
                        'riak_hostname': 'riak_server%d.solar' % num,
                        'riak_name': 'riak%d@riak_server%d.solar' % (num, num)})[0]
         riak_services.append(r)
 
     for i, riak in enumerate(riak_services):
-        signals.connect(nodes[i], riak)
+        nodes[i].connect(riak)
 
     for i, riak in enumerate(riak_services[1:]):
-        signals.connect(riak_services[0], riak, {'riak_name': 'join_to'})
-
-    hosts_services = []
-    for i, riak in enumerate(riak_services):
-        num = i + 1
-        hosts_file = vr.create('hosts_file%d' % num,
-                               'resources/hosts_file', {})[0]
-        hosts_services.append(hosts_file)
-        signals.connect(nodes[i], hosts_file)
+        riak_services[0].connect(riak, {'riak_name': 'join_to'})
 
     for riak in riak_services:
         for hosts_file in hosts_services:
-            signals.connect(riak, hosts_file,
-                            {'riak_hostname': 'hosts:name',
-                             'ip': 'hosts:ip'},
-                            events=False)
+            riak.connect_with_events(hosts_file,
+                {'riak_hostname': 'hosts:name',
+                 'ip': 'hosts:ip'})
 
+    Resource.save_all_lazy()
     errors = resource.validate_resources()
     for r, error in errors:
         click.echo('ERROR: %s: %s' % (r.name, error))
@@ -141,24 +136,26 @@ def setup_haproxies():
 
     for single_hpsc in hpsc_http:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
-                                                'riak_port_http': 'backends:port'})
+            riak.connect(single_hpsc, {
+                'riak_hostname': 'backends:server',
+                'riak_port_http': 'backends:port'})
 
     for single_hpsc in hpsc_pb:
         for riak in riaks:
-            signals.connect(riak, single_hpsc, {'riak_hostname': 'backends:server',
-                                                'riak_port_pb': 'backends:port'})
+            riak.connect(single_hpsc,
+                {'riak_hostname': 'backends:server',
+                 'riak_port_pb': 'backends:port'})
 
     # haproxy config to haproxy service
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_http):
-        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+        single_hpsc.connect(single_hpc, {"backends": "config:backends",
                                                   "listen_port": "config:listen_port",
                                                   "protocol": "config:protocol",
                                                   "name": "config:name"})
 
     for single_hpc, single_hpsc in zip(hpc, hpsc_pb):
-        signals.connect(single_hpsc, single_hpc, {"backends": "config:backends",
+        single_hpsc.connect(single_hpc, {"backends": "config:backends",
                                                   "listen_port": "config:listen_port",
                                                   "protocol": "config:protocol",
                                                   "name": "config:name"})
@@ -172,10 +169,10 @@ def setup_haproxies():
     nodes = [node1, node2, node3]
 
     for single_node, single_hps in zip(nodes, hps):
-        signals.connect(single_node, single_hps)
+        single_node.connect(single_hps)
 
     for single_node, single_hpc in zip(nodes, hpc):
-        signals.connect(single_node, single_hpc)
+        single_node.connect(single_hpc)
 
     has_errors = False
     for r in locals().values():
@@ -207,6 +204,31 @@ def setup_haproxies():
         add_event(event)
 
 
+@click.command()
+@click.argument('i', type=int, required=True)
+def add_solar_agent(i):
+    solar_agent_transport  = vr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
+                                  {'solar_agent_user': 'vagrant',
+                                   'solar_agent_password': 'password'})[0]
+    transports = resource.load('transports%s' % i)
+    ssh_transport = resource.load('ssh_transport%s' % i)
+    transports_for_solar_agent = vr.create('transports_for_solar_agent%s' % i, 'resources/transports')[0]
+
+    # install solar_agent with ssh
+    signals.connect(transports_for_solar_agent, solar_agent_transport, {})
+
+    signals.connect(ssh_transport, transports_for_solar_agent, {'ssh_key': 'transports:key',
+                                                           'ssh_user': 'transports:user',
+                                                           'ssh_port': 'transports:port',
+                                                           'name': 'transports:name'})
+
+    # add solar_agent to transports on this node
+    signals.connect(solar_agent_transport, transports, {'solar_agent_user': 'transports:user',
+                                                   'solar_agent_port': 'transports:port',
+                                                   'solar_agent_password': 'transports:password',
+                                                   'name': 'transports:name'})
+
+
 @click.group()
 def main():
     pass
@@ -230,6 +252,7 @@ def undeploy():
 main.add_command(deploy)
 main.add_command(undeploy)
 main.add_command(add_haproxies)
+main.add_command(add_solar_agent)
 
 
 if __name__ == '__main__':

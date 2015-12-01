@@ -4,6 +4,7 @@ version: 1.0.0
 actions:
     run: run.yaml
     remove: remove.yaml
+    update: run.yaml
 input:
     db_name:
       schema: str!
@@ -31,9 +32,9 @@ input:
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:

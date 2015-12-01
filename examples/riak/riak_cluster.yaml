@@ -1,149 +1,51 @@
-id: riak_node
+id: riak_cluster
 
 resources:
-  - id: riak_service0
-    from: resources/riak_node
+  - id: riak_service1
+    from: examples/riak/riak_service.yaml
     values:
-      riak_self_name: 'riak0'
-      riak_hostname: 'riak_server0.solar'
-      riak_name: 'riak0@riak_server0.solar'
-      ip: '{{nodes[0]}}::ip'
-      ssh_user: '{{nodes[0]}}::ssh_user'
-      ssh_key: '{{nodes[0]}}::ssh_key'
+      node: {{nodes[0]}}
+      index: 1 
+      join_to: ''
 
-{% for i in range(1, idx|int) %}
-  - id: riak_service{{i}}
-    from: resources/riak_node
+  - id: riak_service2
+    from: examples/riak/riak_service.yaml
     values:
-      riak_self_name: 'riak{{i}}'
-      riak_hostname: 'riak_server{{i}}.solar'
-      riak_name: 'riak{{i}}@riak_server{{i}}.solar'
-      join_to: 'riak_service0::riak_name'
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
-{% endfor %}
+      node: {{nodes[1]}}
+      index: 2 
+      join_to: riak_service1
 
-{% for i in range(idx|int) %}
-  - id: hosts_file{{i}}
-    from: resources/hosts_file
+  - id: riak_service3
+    from: examples/riak/riak_service.yaml
     values:
-      hosts:name: 
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::riak_hostname::NO_EVENTS
-        {% endfor %}
-      hosts:ip:
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::ip::NO_EVENTS
-        {% endfor %}
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
-{% endfor %}
+      node: {{nodes[2]}}
+      index: 3 
+      join_to: riak_service1
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_http{{i}}
-    from: resources/haproxy_service_config
+  - id: haproxy_riak_config
+    from: examples/riak/haproxy_riak_config.yaml
     values:
-      listen_port: 8098
-      protocol: 'http'
-      name: 'riak_haproxy_http{{i}}'
-      backends:server:
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::riak_hostname
-        {% endfor %}
-      backends:port:
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::riak_port_http
-        {% endfor %}
-{% endfor %}
+      http_listen_port: 8098
+      pb_listen_port: 8087
+      riaks: ['riak_service1', 'riak_service2', 'riak_service3']
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service_config_pb{{i}}
-    from: resources/haproxy_service_config
+  - id: haproxy1
+    from: templates/haproxy.yaml
     values:
-      listen_port: 8087
-      protocol: 'tcp'
-      name: 'riak_haproxy_pb{{i}}'
-      backends:server:
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::riak_hostname
-        {% endfor %}
-      backends:port:
-        {% for j in range(idx|int) %}
-        - riak_service{{j}}::riak_port_pb
-        {% endfor %}
-{% endfor %}
+      node: {{nodes[0]}}
+      service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
+      index: 1
 
-{% for i in range(idx|int) %}
-  - id: haproxy_config{{i}}
-    from: resources/haproxy_config
+  - id: haproxy2
+    from: templates/haproxy.yaml
     values:
-      config:protocol:
-        - haproxy_service_config_http{{i}}::protocol
-        - haproxy_service_config_pb{{i}}::protocol
-      config:listen_port:
-        - haproxy_service_config_http{{i}}::listen_port
-        - haproxy_service_config_pb{{i}}::listen_port
-      config:name:
-        - haproxy_service_config_http{{i}}::name
-        - haproxy_service_config_pb{{i}}::name
-      config:backends:
-        - haproxy_service_config_http{{i}}::backends
-        - haproxy_service_config_pb{{i}}::backends
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
-{% endfor %}
+      node: {{nodes[1]}}
+      service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
+      index: 2
 
-{% for i in range(idx|int) %}
-  - id: haproxy_service{{i}}
-    from: resources/haproxy_service
+  - id: haproxy3
+    from: templates/haproxy.yaml
     values:
-      ip: '{{nodes[i]}}::ip'
-      ssh_user: '{{nodes[i]}}::ssh_user'
-      ssh_key: '{{nodes[i]}}::ssh_key'
-{% endfor %}
-
-
-events:
-{% for i in range(idx|int) %}
-  - type: depends_on
-    parent_action: 'hosts_file{{i}}.run'
-    state: 'success'
-    depend_action: 'riak_service{{i}}.run'
-{% endfor %}
-
-{% for i in range(1, idx|int) %}
-  - type: react_on
-    parent_action: 'riak_service{{i}}.run'
-    state: 'success'
-    depend_action: 'riak_service{{i}}.join'
-
-  - type: react_on
-    parent_action: 'riak_service{{i}}.leave'
-    state: 'success'
-    depend_action: 'riak_service{{i}}.join'
-
-  - type: react_on
-    parent_action: 'riak_service{{i}}.join'
-    state: 'success'
-    depend_action: 'riak_service0.commit'
-{% endfor %}
-
-{% for i in range(1, idx|int) %}
-  - type: depends_on
-    parent_action: 'haproxy_service{{i}}.run'
-    state: 'success'
-    depend_action: 'haproxy_config{{i}}.run'
-
-  - type: react_on
-    parent_action: 'haproxy_config{{i}}.run'
-    state: 'success'
-    depend_action: 'haproxy_service{{i}}.apply_config'
-
-  - type: react_on
-    parent_action: 'haproxy_config{{i}}.update'
-    state: 'success'
-    depend_action: 'haproxy_service{{i}}.apply_config'
-{% endfor %}
+      node: {{nodes[2]}}
+      service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
+      index: 3

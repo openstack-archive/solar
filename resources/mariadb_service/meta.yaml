@@ -1,6 +1,9 @@
 id: mariadb_service
 handler: ansible
 version: 1.0.0
+actions:
+    run: run.yaml
+    update: run.yaml
 input:
     image: 
       schema: str!
@@ -17,11 +20,11 @@ input:
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:
 
 tags: [resource/mariadb_service, resources/mariadb]

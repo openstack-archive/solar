@@ -1,0 +1,17 @@
+id: librarian
+handler: ansible
+version: 0.0.1
+actions:
+    run: run.yaml
+    update: run.yaml
+    remove: remove.yaml
+input:
+    modules:
+      schema: [{}]
+      value: []
+    modules_path:
+      schema: str!
+      value: /etc/puppet/modules
+    forge:
+      schema: str!
+      value: https://forgeapi.puppetlabs.com

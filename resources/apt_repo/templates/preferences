@@ -1,0 +1,3 @@
+Package: {{package}}
+Pin: {{pin}}
+Pin-Priority: {{pin_priority}}

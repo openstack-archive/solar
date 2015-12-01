@@ -29,8 +29,8 @@ fi
 
 . $VENV/bin/activate
 
-pip install -r solar/test-requirements.txt --download-cache=/tmp/$JOB_NAME
+pip install pip-accel
+pip-accel install -r test-requirements.txt
 
-pushd solar
 
-PYTHONPATH=$WORKSPACE/solar CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar
+SOLAR_CONFIG=../.config CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar

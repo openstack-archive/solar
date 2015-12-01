@@ -1,6 +1,6 @@
 ---
 
-- shell: apt-get update
+- shell: sudo apt-get update
 
 - name: Base packages
   apt: name={{ item }} state=present
@@ -13,15 +13,14 @@
   - python-setuptools
   - ruby-dev
   - unzip
-  # Redis
-  - redis-server
   # Graph drawing
   - python-pygraphviz
   # Other tools
   - htop
   - jq
   - tmux
-  - vim
+  - vim-nox
+  - mc
   # Dev
   - ipython
   - python-pudb
@@ -29,19 +28,29 @@
   - python-virtualenv
   # Required by packer
   - build-essential
+  # for torrent transport
+  - python-libtorrent
+  # for riak python package
+  - libffi-dev
+  - libssl-dev
+
 
 # PIP
 #- apt: name=python-pip state=absent
 #- shell: easy_install pip
 #- shell: pip install -U pip
 #- shell: pip install -U setuptools
-- shell: pip install httpie
-- shell: pip install docker-py==1.1.0
+- shell: sudo pip install httpie
+- shell: sudo pip install docker-py==1.1.0
+
+# faster json
+- shell: pip install ujson
 
 # Redis
-- shell: pip install redis
-- lineinfile: dest=/etc/redis/redis.conf regexp='^bind ' line='bind 0.0.0.0'
-- service: name=redis-server state=restarted
+- shell: sudo pip install redis
+
+# fresh tox
+- shell: sudo pip install tox
 
 # Ubuntu OpenStack packages
 #- apt: name=ubuntu-cloud-keyring state=present

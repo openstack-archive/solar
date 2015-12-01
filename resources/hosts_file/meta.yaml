@@ -3,14 +3,8 @@ handler: ansible
 version: 1.0.0
 
 input:
-    ip:
-      schema: str!
-      value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
     hosts:
       schema: [{name: str!, ip: str!}]
+      value: []
+
+tags: [resource=hosts_file]

@@ -18,6 +18,9 @@ input:
     db_host:
       schema: str!
       value: 
+    db_port:
+      schema: int!
+      value: 
 
     admin_port:
       schema: int!
@@ -26,22 +29,18 @@ input:
       schema: int!
       value: 5000
 
-    git:
-      schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-keystone', branch: '5.1.0'}
-
-#    forge:
-#      schema: str!
-#      value: 'stackforge-keystone'
+    module:
+      schema: {name: str!, type: str, url: str, ref: str}
+      value: {name: 'keystone', type: 'git', url: 'https://github.com/openstack/puppet-keystone', ref: '5.1.0'}
 
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:
 
 tags: [resource/keystone_service, resources/keystone]

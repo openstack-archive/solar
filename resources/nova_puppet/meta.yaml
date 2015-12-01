@@ -2,6 +2,9 @@ id: nova
 handler: puppet
 puppet_module: nova
 version: 1.0.0
+actions:
+    run: run.pp
+    update: run.pp
 input:
     ensure_package:
       schema: str
@@ -205,6 +208,9 @@ input:
     db_host:
       schema: str!
       value:
+    db_port:
+      schema: int!
+      value:
 
     keystone_password:
       schema: str!
@@ -233,18 +239,18 @@ input:
       schema: int!
       value: 8774
 
-    git:
+    module:
       schema: {repository: str!, branch: str!}
-      value: {repository: 'https://github.com/openstack/puppet-nova', branch: '5.1.0'}
+      value: {name: 'nova', type: 'git', url: 'https://github.com/openstack/puppet-nova', ref: '5.1.0'}
 
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:
 
 tags: [resource/nova_service, resources/nova]

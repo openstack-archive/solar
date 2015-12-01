@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Mirantis/solar.svg?branch=master)](https://travis-ci.org/Mirantis/solar)
+[![Build Status](https://travis-ci.org/Mirantis/solar.svg?branch=master)](https://travis-ci.org/Mirantis/solar) [![Coverage Status](https://coveralls.io/repos/Mirantis/solar/badge.svg?branch=master&service=github)](https://coveralls.io/github/Mirantis/solar?branch=master)
 
 # Requirements
 
@@ -12,15 +12,14 @@ Linux or MacOS
 
 [Vagrant](http://www.vagrantup.com/downloads.html): 1.7.x
 
+Note: Make sure that [Vagrant VirtualBox Guest plugin](https://github.com/dotless-de/vagrant-vbguest) is installed `vagrant plugin install vagrant-vbguest`
+
 Note: If you are using VirtualBox 5.0 it's worth uncommenting paravirtprovider setting in `vagrant-settings.yaml` for speed improvements:
 ```bash
 paravirtprovider: kvm
 ```
 
 For details see Customizing `vagrant-settings.yaml` section.
-
-For automatically installation of VirtualBox Guest Additions you could install
-[vagrant plugin](https://github.com/dotless-de/vagrant-vbguest).
 
 # Setup development env
 
@@ -36,10 +35,6 @@ vagrant ssh
 solar --help
 ```
 
-Launch standard deployment:
-```bash
-python examples/openstack/openstack.py
-```
 
 Get ssh details for running slave nodes (vagrant/vagrant):
 ```bash
@@ -54,8 +49,17 @@ with the `snapshotter.py` script:
 ./snapshotter.py show
 ./snapshotter.py restore -n my-snapshot
 ```
+`snapshoter.py` to run requires python module `click`.
+
+1. On debian based systems you can install it via `sudo aptitude install python-click-cli`,
+2. On fedora 22 you can install it via `sudo dnf install python-click`,
+3. If you use virtualenv or similar tool then you can install it just with `pip install click`,
+4. If you don't have virtualenv and your operating system does not provide package for it then `sudo pip install click`.
+5. If you don't have `pip` then [install it](https://pip.pypa.io/en/stable/installing/) and then execute command step 4.
 
 # Solar usage
+
+For now  all commands should be executed from `solar-dev` machine from `/vagrant` directory.
 
 Basic flow is:
 
@@ -73,19 +77,19 @@ Some very simple cluster setup:
 ```bash
 cd /vagrant
 
-solar resource create node1 resources/ro_node/ '{"ip":"10.0.0.3", "ssh_key" : "/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key", "ssh_user":"vagrant"}'
+solar resource create nodes templates/nodes.yaml '{"count": 2}'
 solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
-solar resource create keystone_db resources/mariadb_keystone_db/ '{"db_name": "keystone_db", "login_user": "root"}'
+solar resource create keystone_db resources/mariadb_db/ '{"db_name": "keystone_db", "login_user": "root"}'
 solar resource create keystone_db_user resources/mariadb_user/ user_name=keystone user_password=keystone  # another valid format
 
 solar connect node1 mariadb_service
 solar connect node1 keystone_db
-solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port"}'
+solar connect mariadb_service keystone_db '{"root_password": "login_password", "port": "login_port", "ip": "db_host"}'
 # solar connect mariadb_service keystone_db_user 'root_password->login_password port->login_port'  # another valid format
 solar connect keystone_db keystone_db_user
 
 solar changes stage
-solar changes proccess
+solar changes process
 # <uid>
 solar orch run-once <uid> # or solar orch run-once last
 watch 'solar orch report <uid>' # or solar orch report last
@@ -97,7 +101,7 @@ solar resource update keystone_db_user '{"user_password": "new_keystone_password
 solar resource update keystone_db_user user_password=new_keystone_password   # another valid format
 
 solar changes stage
-solar changes proccess
+solar changes process
 <uid>
 solar orch run-once <uid>
 ```
@@ -113,7 +117,6 @@ solar resource show --name 'resource_name' --json | jq .
 To clear all resources/connections:
 ```bash
 solar resource clear_all
-solar connections clear_all
 ```
 
 Show the connections/graph:
@@ -293,3 +296,9 @@ Full documentation of individual functions is found in the `solar/template.py` f
 # Customizing vagrant-settings.yaml
 
 Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you need to adjust them for your needs, e.g. changing resource allocation for VirtualBox machines, you should just compy the file to `vagrant-setting.yaml` and make your modifications.
+
+# Image based provisioning with Solar
+
+* In `vagrant-setting.yaml_defaults` or `vagrant-settings.yaml` file uncomment `preprovisioned: false` line.
+* Run `vagrant up`, it will take some time because it builds image for bootstrap and IBP images.
+* Now you can run provisioning `/vagrant/examples/provisioning/provision.sh`

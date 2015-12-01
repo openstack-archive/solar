@@ -1,6 +1,6 @@
-$service_title           = $resource['input']['title']['value']
-$package_name    = $resource['input']['package_name']['value']
-$service_name    = $resource['input']['service_name']['value']
+$service_title           = $resource['input']['title']
+$package_name    = $resource['input']['package_name']
+$service_name    = $resource['input']['service_name']
 
 exec { 'post-nova_config':
   command     => '/bin/echo "Nova config has changed"',

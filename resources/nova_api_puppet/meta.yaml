@@ -101,11 +101,11 @@ input:
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:
 
 tags: [resource/nova_api_service, resources/nova_api, resources/nova]

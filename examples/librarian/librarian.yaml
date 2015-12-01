@@ -1,0 +1,22 @@
+id: librarian_examples
+
+resources:
+  - id: rabbitmq_service1
+    from: resources/rabbitmq_service
+    location: {{node}}
+    values:
+      management_port: 15672
+      port: 5672
+
+  - id: librarian
+    location: {{node}}
+    from: resources/librarian
+    values:
+      modules:
+        - rabbitmq_service1::module::NO_EVENTS
+
+events:
+  - type: depends_on
+    parent_action: librarian.run
+    state: success
+    depend_action: rabbitmq_service1.run

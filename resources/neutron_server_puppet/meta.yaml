@@ -1,15 +1,18 @@
 handler: puppet
 id: 'neutron_server_puppet'
+actions:
+    run: run.pp
+    update: run.pp
 input:
   ip:
     schema: str!
     value:
-  ssh_key:
-    schema: str!
-    value:
-  ssh_user:
-    schema: str!
-    value:
+  # ssh_key:
+  #   schema: str!
+  #   value:
+  # ssh_user:
+  #   schema: str!
+  #   value:
 
   db_user:
     schema: str!
@@ -22,6 +25,9 @@ input:
     value:
   db_host:
     schema: str!
+    value:
+  db_port:
+    schema: int!
     value:
 
   package_ensure:

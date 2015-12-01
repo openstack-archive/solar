@@ -4,4 +4,16 @@
   sudo: yes
   tasks:
     # Setup development env for solar
-    - shell: python setup.py develop chdir=/vagrant/solar
+    - shell: pip install -e . chdir=/vagrant
+    - shell: pip install git+git://github.com/Mirantis/solar-agent.git
+
+- hosts: all
+  tasks:
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: eval "$(_SOLAR_COMPLETE=source solar)"
+        state: present
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export PYTHONWARNINGS="ignore"
+        state: present

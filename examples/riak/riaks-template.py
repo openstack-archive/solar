@@ -8,16 +8,13 @@ import click
 import sys
 
 from solar.core import resource
-from solar.interfaces.db import get_db
 from solar import template
-
-
-db = get_db()
+from solar.dblayer.model import ModelMeta
 
 
 def setup_riak():
-    db.clear()
 
+    ModelMeta.remove_all()
     nodes = template.nodes_from('templates/riak_nodes.yaml')
 
     riak_services = nodes.on_each(

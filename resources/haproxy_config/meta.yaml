@@ -10,12 +10,12 @@ input:
       value: {src: /etc/solar/haproxy, dst: /etc/haproxy}
     config:
       schema: [{backends: [{server: str!, port: int!}], listen_port: int!, protocol: str!, name: str!}]
-      value: []
-    ssh_user:
-      schema: str!
-      value:
-    ssh_key:
-      schema: str!
-      value:
+      value: [{}]
+    # ssh_user:
+    #   schema: str!
+    #   value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
 
-tags: [resources/haproxy, resource/haproxy_config]
+tags: [resources=haproxy]

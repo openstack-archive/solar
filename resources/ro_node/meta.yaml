@@ -1,4 +1,4 @@
-id: mariadb
+id: ro_node
 handler: none
 version: 1.0.0
 actions:
@@ -6,12 +6,18 @@ input:
     ip:
       schema: str!
       value:
-    ssh_key:
-      schema: str!
-      value:
-    ssh_user:
-      schema: str!
-      value:
+    # ssh_key:
+    #   schema: str!
+    #   value:
+    # ssh_user:
+    #   schema: str!
+    #   value:
     name:
       schema: str
-      value:
+      value: a node
+    location_id:
+      schema: str!
+      value: $uuid
+      reverse: True
+
+tags: [resources=node]

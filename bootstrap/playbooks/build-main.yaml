@@ -9,3 +9,4 @@
     - include: tasks/docker.yaml
     #- include: celery.yaml tags=['master'] celery_dir=/var/run/celery
     - include: tasks/cloud_archive.yaml
+    #- include: tasks/mos.yaml

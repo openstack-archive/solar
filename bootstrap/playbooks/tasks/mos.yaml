@@ -1,0 +1,11 @@
+---
+
+- shell: apt-get update
+- shell: apt-get -y upgrade
+- apt_repository: repo='deb http://fuel-repository.mirantis.com/fwm/6.1/ubuntu mos6.1 main' validate_certs=no
+- shell: echo 'APT::Get::AllowUnauthenticated "true";' > /etc/apt/apt.conf.d/99mos61
+- shell: echo 'Package: *' > /etc/apt/preferences.d/mos.pref
+- shell: echo 'Pin: release o=Mirantis,a=mos6.1,n=mos6.1,l=mos6.1' >> /etc/apt/preferences.d/mos.pref
+- shell: echo 'Pin-Priority: 1050' >> /etc/apt/preferences.d/mos.pref
+- shell: apt-get update
+- shell: apt-get update --fix-missing
