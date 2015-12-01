@@ -9,30 +9,33 @@ Solar Glossary
 Resource
 ========
 
-.. seealso::
+Resource is an abstraction of item in system managed by Solar. It's a basic
+building block used to assemble your system. Almost every entity in Solar
+is a resource.
 
-    You can learn more about it in :ref:`Resource Details <resource_details>`
+You can learn more about it in :ref:`resource details <resource_details>`
 
 .. _res-input-term:
 
 Input
 -----
-Resource configuration that will be used in actions, handlers and orchestration.
-All known inputs should be provided in meta.yaml
+Resource configuration that will be used in actions, handlers and
+orchestration. All known inputs for a resource should be defined in meta.yaml
 
 .. _res-connection-term:
 
 Connection
 ----------
-Allows to build hierarchy between inputs of several resources,
-parent value will be always used in child while connection is created.
-If connection will be removed - original value of child will be preserved.
+Allows to build hierarchy between inputs of several resources, parent value
+will be always used in child while connection is created. If connection is
+removed - original value of child will be preserved.
 
 .. _res-action-term:
 
 Action
 ------
-Solar wraps deployment code into actions with specific names.
+Solar wraps deployment code into actions with specific names. Actions are
+executed from the resource.
 
 .. _res-tag-term:
 
@@ -46,14 +49,14 @@ used for different user operations.
 Handler
 =======
 
-Layer that responsible for action execution and tracking result.
+Layer responsible for action execution and tracking results.
 
 .. _res-transports-term:
 
 Transport
 =========
 
-Used in handlers to communicate with hosts managed by solar.
+Used in handlers to communicate with hosts managed by Solar.
 
 .. seealso::
 
@@ -90,12 +93,11 @@ Used in solar to describe all possible transitions between resources changes.
 Each event allows to specify two points of transitions, condition of this
 transition and type of event.
 
-Right now we are supporting 2 types of events.
+Right now we are supporting 2 types of events:
 
-1. Dependency
-Inserts edge between 2 changes into the deployment plan.
-2. Reaction
-Inserts change specified in reaction and makes edge between parent and child.
+1. Dependency - inserts edge between 2 changes into the deployment plan.
+2. Reaction - inserts change specified in reaction and makes edge between
+parent and child.
 
 Example ::
 
@@ -111,7 +113,7 @@ Example ::
 Virtual resource/template
 =========================
 
-Composition layer that allows to:
+Composition layer that allows user to:
 
 - group resources
 - specify connections between inputs
@@ -135,9 +137,9 @@ History
 After action that is related to change will be executed - it will be moved to
 history with same uuid.
 
-Commited resource data
+Committed resource data
 ----------------------
-After each succesfull change commited copy of resource data will be updated
+After each successful change committed copy of resource data will be updated
 with diff of that change.
 
 .. _orch-term:
