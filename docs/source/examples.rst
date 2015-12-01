@@ -6,29 +6,30 @@ Examples
 Create resource for the puppet handler
 --------------------------------------
 
-Let's create an example :ref:`resource-term` for the puppet :ref:`res-handler-term`
-version 1 [#]_. The resource should install and configure OpenStack Nova API
-service.
+Let's create an example :ref:`resource-term` for the puppet
+:ref:`res-handler-term` version 1 [#]_. The resource should install and
+configure OpenStack Nova API service.
 
 .. [#] There is also puppet handler version 2 but it is out of the scope
    of this example.
 
-Step 1: Find an apropriate puppet module
+Step 1: Find an appropriate puppet module
 ++++++++++++++++++++++++++++++++++++++++
 
 The `Puppet OpenStack <https://wiki.openstack.org/wiki/Puppet>`_
 module for `Nova <https://github.com/openstack/puppet-nova>`_
 provides all of the required functionality.
 
-Step 2: Define granularity scope for a resource
+Step 2: Define granularity level for a resource
 +++++++++++++++++++++++++++++++++++++++++++++++
 
-One may want to implement resources as atomic entities doing each its only
-task, like running one and only puppet manifest [#]_. Or as a single entity doing
-all required tasks instead. In order to configure and run the Nova API service
-at least two manifests should be executed: the
+One may want to implement resources as atomic entities doing their only single
+task, like running one and only puppet manifest [#]_. Other option might be
+single entity doing all required tasks instead. In order to configure and run
+the Nova API service at least two manifests should be executed:
 `init.pp <https://github.com/openstack/puppet-nova/blob/master/manifests/init.pp>`_
-and the `api.pp <https://github.com/openstack/puppet-nova/blob/master/manifests/api.pp>`_ [#]_.
+and
+`api.pp <https://github.com/openstack/puppet-nova/blob/master/manifests/api.pp>`_ [#]_.
 
 .. [#] Puppet manifests may contain references to externally defined classess
    or services in the catalog. Keep that in mind then designing the resource.
@@ -40,26 +41,26 @@ Assuming the atomic tasks approach, the example resource for Nova API service
 should only use the `api.pp` manifest. Note that the puppet handler is normally
 executed in its own isolated puppet catalog with its specific hiera data only.
 This assumes every puppet manifest called by every action to be executed as a
-separate puppet run and shares nothing.
+separate puppet run and shares nothing with other tasks.
 
 Step 3: Define resource inputs
 ++++++++++++++++++++++++++++++
 
-Once the granularity scope of the resource was clearly defined, one should
+Once the granularity level of the resource is clearly defined, one should
 define the resource's :ref:`res-input-term` data. The puppet class `nova::api`
-contains a lots of parameters. It looks reasonable to use them as the resource
+contains lots of parameters. It looks reasonable to use them as the resource
 inputs as is.
 
 .. note ::
   There is a `helper script <https://github.com/bogdando/convert_puppet_parameters>`_
-  to convert a puppet class parameters into the format expeted by the
+  to convert a puppet class parameters into the format expected by the
   `meta.yaml` inputs file.
 
-Step 4: Implement the basic action run
+Step 4: Implement basic action run
 ++++++++++++++++++++++++++++++++++++++
 
 Each resource should have all of the mandatory actions defined. In this example
-we define only the :ref:`ref-action-term` `run`. For the example Nova API
+we define only the :ref:`ref-action-term` `run`. With the example of Nova API
 resource, the action run should:
 
 - fetch the resource inputs from the hiera [#]_ ::
@@ -86,7 +87,7 @@ resource, the action run should:
      }
 
 .. note ::
-   Otherwise, the called class would assume the package and exec are
+   Otherwise, called class would assume the package and exec are
    already included in the catalog by the `init.pp`. And would fail as
    there is no `class { 'nova': }` call expected for the Nova API resource
    action run.
@@ -101,7 +102,7 @@ Step 5: Think of the rest of the resource actions
 One should also design other actions for the resource. Mandatory are only
 `run`, `update` and `remove`. There might be additional ones like `on-fail`,
 `on-retry` or whichever are actually required to implement expected behavior.
-For the given API resource there is none specific actions expected and there
+For the given API resource there are no specific actions expected and there
 is nothing to do for the action remove. For the action update, it is likely
 the same steps should be done as for the action run.
 
@@ -116,7 +117,7 @@ Step 7: Think of the deployment composition
 
 The deployment composition is which resources should be used and in which order
 it should be executed to achive the expected result, which is a successfull
-:ref:`deploy-plan-term`. For the given example, the composition may be as the
+:ref:`deploy-plan-term`. For the given example, the composition may be as
 following:
 
 - Install and configure MySQL DB [#]_

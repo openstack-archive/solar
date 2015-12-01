@@ -3,8 +3,9 @@
 Preparing deployment plan
 =========================
 
-Solar allows to make transitions between different versions of infrastructure
-based on changes found by solar control plane and configured events between this changes.
+Solar allows you to make transitions between different versions of
+infrastructure based on changes found by solar control plane and events
+configured between this changes.
 
 Required information
 ----------------------
@@ -27,11 +28,11 @@ user (human/program). Examples of changes are:
 Staged changes
 ---------------
 
-On demand solar runs procedure that will find all changed from last deployment
-resources, and using transitions from solar state machine will determine
-list of actions.
+On demand solar runs procedure that will find all resources changed from last
+deployment and will determine list of actions using transitions from solar
+state machine .
 
-This procedure performed by ::
+This procedure is performed by ::
 
     solar changes stage -d
 
@@ -58,7 +59,7 @@ It prints information like ::
         ++ collation: utf8_general_ci
         ++ location_id: 694b35afa622da857f95e14a21599d81
 
-At this point information is stored as a list, and doensnt know anything
+At this point information is stored as a list, and user doesn't know anything
 about dependencies between found changes.
 
 Events usage
@@ -66,21 +67,22 @@ Events usage
 
 For events definition see :ref:`res-event-term`.
 
-Events used during this procedure to insert dependencies between found changes,
-and add new actions that are reactions for changes.
+Events are used during this procedure to insert dependencies between found
+changes, and to add new actions that are reactions for changes.
 
 Example of dependency between changes would be *nova service* that depends
 on successful creation of *database*.
 
-And for removal we might add dependencies that will allow reverse
-order, e.g when removing *nova service* and *database*, *database* will be
-removed only after successfull *nova service*.
-Can be specified as ::
+For removal we might add dependencies that will allow reverse order, e.g. when
+removing *nova service* and *database*, *database* will be removed only after
+successful *nova service* removal.
+
+This can be specified as ::
 
     Dependency database1.run -> nova1.run
     Dependency nova1.remove -> database1.remove
 
-Reaction allows to construct more advacned worklows that will take into
+Reaction allows to construct more advanced workflows that will take into
 account not only changes, but also arbitrary actions for resources in solar.
 
 Good example of usage is provisioning procedure, where reboot must be
@@ -100,9 +102,9 @@ of deployment plan for current version of infrastructure ::
 
     solar changes process
 
-After this command plan can be viewed by ::
+After this deployment command plan can be viewed by ::
 
-    # graphviz representataion
+    # graphviz representation
     solar orch dg last
 
     # text report
