@@ -202,6 +202,19 @@ def test_parse_connection_disable_events():
     assert correct_connection == connection
 
 
+def test_parse_list_of_connected_dicts():
+    inputs = {'list': [
+        {'key': 'emitter1::key'},
+        {'key': 'emitter2::key'}]}
+    connections, assignments = vr.parse_inputs(inputs)
+    assert assignments == {}
+    assert connections == [
+        {'child_input': 'list:key', 'parent_input': 'key',
+         'parent': 'emitter1', 'events': None},
+        {'child_input': 'list:key', 'parent_input': 'key',
+         'parent': 'emitter2', 'events': None}]
+
+
 def test_setting_location(tmpdir):
     # XXX: make helper for it
     base_path = os.path.join(

@@ -276,7 +276,7 @@ def parse_list_input(r_input, args):
             c = parse_connection(r_input, arg)
             connections.append(c)
         else:
-            add_assignment(assignments, arg)
+            add_assignment(assignments, r_input, arg)
     return connections, assignments
 
 
