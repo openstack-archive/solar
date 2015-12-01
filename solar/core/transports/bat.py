@@ -17,8 +17,8 @@ from solar.core.transports.base import RunTransport
 from solar.core.transports.base import SolarTransport
 from solar.core.transports.base import SyncTransport
 from solar.core.transports.rsync import RsyncSyncTransport
-from solar.core.transports.ssh import SSHRunTransport
 from solar.core.transports.ssh import SSHSyncTransport
+from solar.core.transports.ssh_raw import RawSSHRunTransport
 try:
     from solar.core.transports.solar_agent_transport import SolarAgentRunTransport  # NOQA
     from solar.core.transports.solar_agent_transport import SolarAgentSyncTransport  # NOQA
@@ -42,7 +42,7 @@ KNOWN_SYNC_TRANSPORTS = {
 
 
 KNOWN_RUN_TRANSPORTS = {
-    'ssh': SSHRunTransport
+    'ssh': RawSSHRunTransport
 }
 
 
