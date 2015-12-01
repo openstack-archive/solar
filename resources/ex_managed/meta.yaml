@@ -1,0 +1,12 @@
+id: managed
+handler: none
+version: 1.0.0
+managers:
+    - managers/manager.py
+input:
+    val:
+      schema: int!
+      value: 2
+    val_x_val:
+      schema: int
+      value:

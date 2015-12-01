@@ -18,6 +18,7 @@ solar-celery:
   links:
     - riak
     - redis
+
 riak:
   image: tutum/riak
   ports:

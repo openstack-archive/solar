@@ -82,4 +82,5 @@ class Puppet(TempFileHandler):
 class PuppetV2(Puppet):
 
     def _make_args(self, resource):
-        return resource.args
+        args = resource.args
+        return {k: args[k] for k in args if not args[k] is None}

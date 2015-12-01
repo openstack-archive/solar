@@ -17,6 +17,7 @@ import io
 import json
 import logging
 import os
+import subprocess
 import uuid
 
 from jinja2 import Environment
@@ -33,6 +34,14 @@ def to_json(data):
 def to_pretty_json(data):
     return json.dumps(data, indent=4)
 
+
+def communicate(command, data):
+    popen = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    return popen.communicate(input=data)[0]
 
 # Configure jinja2 filters
 jinja_env_with_filters = Environment()

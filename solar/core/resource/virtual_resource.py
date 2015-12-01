@@ -130,6 +130,7 @@ def create_resources(resources, tags=None):
         resource_name = r['id']
         args = r.get('values', {})
         node = r.get('location', None)
+        values_from = r.get('values_from')
         from_path = r.get('from', None)
         tags = r.get('tags', [])
         base_path = os.path.join(cwd, from_path)
@@ -141,7 +142,13 @@ def create_resources(resources, tags=None):
                 r = new_resources[0]
                 node.connect(r, mapping={})
                 r.add_tags('location={}'.format(node.name))
+
             update_inputs(resource_name, args)
+
+            if values_from:
+                from_resource = load_resource(values_from)
+                from_resource.connect_with_events(r, use_defaults=False)
+
     return created_resources
 
 

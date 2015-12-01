@@ -15,6 +15,7 @@
 
 from copy import deepcopy
 from hashlib import md5
+import json
 import os
 from uuid import uuid4
 
@@ -89,7 +90,8 @@ class Resource(object):
                 'version': metadata.get('version', ''),
                 'meta_inputs': inputs,
                 'tags': tags,
-                'state': RESOURCE_STATE.created.name
+                'state': RESOURCE_STATE.created.name,
+                'managers': metadata.get('managers', [])
             })
         self.create_inputs(args)
 
@@ -284,6 +286,16 @@ class Resource(object):
         self.db_obj.disconnect(other=receiver.db_obj, inputs=inputs)
         receiver.db_obj.save_lazy()
         self.db_obj.save_lazy()
+
+    def prefetch(self):
+        if not self.db_obj.managers:
+            return
+
+        for manager in self.db_obj.managers:
+            manager_path = os.path.join(self.db_obj.base_path, manager)
+            rst = utils.communicate([manager_path], json.dumps(self.args))
+            if rst:
+                self.update(json.loads(rst))
 
 
 def load(name):

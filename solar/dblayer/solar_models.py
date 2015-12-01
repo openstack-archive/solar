@@ -53,7 +53,7 @@ class InputsFieldWrp(IndexFieldWrp):
         # XXX: it could be worth to precalculate it
         if ':' in name:
             name = name.split(":", 1)[0]
-        schema = resource.meta_inputs[name]['schema']
+        schema = resource.meta_inputs[name].get('schema', None)
         if isinstance(schema, self._simple_types):
             return InputTypes.simple
         if isinstance(schema, list):
@@ -715,6 +715,7 @@ class Resource(Model):
     meta_inputs = Field(dict, default=dict)
     state = Field(str)  # on_set/on_get would be useful
     events = Field(list, default=list)
+    managers = Field(list, default=list)
 
     inputs = InputsField(default=dict)
     tags = TagsField(default=list)

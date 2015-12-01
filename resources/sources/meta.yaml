@@ -1,0 +1,7 @@
+id: sources
+handler: naive_sync
+version: 1.0.0
+input:
+    sources:
+        schema: [{'src': 'str!', 'dst': 'str!'}]
+        value: []

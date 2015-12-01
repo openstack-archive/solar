@@ -18,6 +18,7 @@ from solar.core.handlers.ansible_playbook import AnsiblePlaybook
 from solar.core.handlers.base import Empty
 from solar.core.handlers.puppet import Puppet, PuppetV2
 from solar.core.handlers.shell import Shell
+from solar.core.handlers.naive_sync import NaiveSync
 
 
 HANDLERS = {'ansible': AnsibleTemplate,
@@ -25,7 +26,8 @@ HANDLERS = {'ansible': AnsibleTemplate,
             'shell': Shell,
             'puppet': Puppet,
             'none': Empty,
-            'puppetv2': PuppetV2}
+            'puppetv2': PuppetV2,
+            'naive_sync': NaiveSync}
 
 
 def get(handler_name):

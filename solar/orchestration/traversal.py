@@ -32,8 +32,8 @@ from enum import Enum
 
 states = Enum('States', 'SUCCESS ERROR NOOP INPROGRESS SKIPPED PENDING')
 
-VISITED = (states.SUCCESS.name, states.ERROR.name, states.NOOP.name)
-BLOCKED = (states.INPROGRESS.name, states.SKIPPED.name)
+VISITED = (states.SUCCESS.name, states.NOOP.name)
+BLOCKED = (states.INPROGRESS.name, states.SKIPPED.name, states.ERROR.name)
 
 
 def traverse(dg):
@@ -43,7 +43,7 @@ def traverse(dg):
         data = dg.node[node]
         if data['status'] in VISITED:
             visited.add(node)
-
+    rst = []
     for node in dg:
         data = dg.node[node]
 
@@ -51,4 +51,5 @@ def traverse(dg):
             continue
 
         if set(dg.predecessors(node)) <= visited:
-            yield node
+            rst.append(node)
+    return rst

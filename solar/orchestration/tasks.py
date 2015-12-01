@@ -12,8 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from functools import partial
 import subprocess
+import time
+
+from functools import partial
 
 from celery.app import task
 from celery.signals import task_postrun
@@ -29,7 +31,7 @@ from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
 from solar.system_log.tasks import commit_logitem
 from solar.system_log.tasks import error_logitem
-import time
+
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
            'error', 'fault_tolerance', 'schedule_start', 'schedule_next']
