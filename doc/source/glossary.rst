@@ -96,8 +96,7 @@ transition and type of event.
 Right now we are supporting 2 types of events:
 
 1. Dependency - inserts edge between 2 changes into the deployment plan.
-2. Reaction - inserts change specified in reaction and makes edge between
-parent and child.
+2. Reaction - inserts change specified in reaction and makes edge between parent and child.
 
 Example ::
 
@@ -138,7 +137,7 @@ After action that is related to change will be executed - it will be moved to
 history with same uuid.
 
 Committed resource data
-----------------------
+-----------------------
 After each successful change committed copy of resource data will be updated
 with diff of that change.
 
