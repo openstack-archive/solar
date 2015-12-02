@@ -729,6 +729,7 @@ class Model(object):
         # TODO: that _indexes_changed should be smarter
         self._indexes_changed = False
         self.key = key
+        self._lock = RLock()
 
     @property
     def key(self):
@@ -891,12 +892,13 @@ class Model(object):
 
     @clears_state_for('index')
     def save(self, force=False):
-        if self.changed() or force or self._new:
-            res = self._riak_object.store()
-            self._reset_state()
-            return res
-        else:
-            raise DBLayerException("No changes")
+        with self._lock:
+            if self.changed() or force or self._new:
+                res = self._riak_object.store()
+                self._reset_state()
+                return res
+            else:
+                raise DBLayerException("No changes")
 
     def save_lazy(self):
         self._c.lazy_save.add(self)
