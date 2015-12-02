@@ -23,7 +23,7 @@ from solar.dblayer.model import ModelMeta
 
 
 def patched_get_bucket_name(cls):
-    return cls.__name__ + str(time.time())
+    return cls.__name__ + str(os.getpid()) + str(time.time())
 
 
 @pytest.fixture
