@@ -40,16 +40,21 @@ def test_simple_noop(rk):
 def test_simple_lua_simple_max(rk):
     k1 = next(rk)
     k2 = next(rk)
+    k3 = next(rk)
 
     r1 = create_resource(k1, {'name': 'source1',
                               'inputs': {'input1': 10}})
+    r3 = create_resource(k3, {'name': 'source1',
+                              'inputs': {'input1': 11}})
     r2 = create_resource(k2, {'name': 'target1',
                               'inputs': {'input1': None}})
 
     r2.meta_inputs['input1']['computable'] = {'func': 'function(arr) return math.max(unpack(arr)) end',
                                               'lang': 'lua'}
     r1.connect(r2, {'input1': 'input1'})
+    r3.connect(r2, {'input1': 'input1'})
+
     r1.save()
     r2.save()
 
-    assert r2.inputs['input1'] == 10
+    assert r2.inputs['input1'] == 11
