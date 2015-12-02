@@ -41,10 +41,8 @@ Solar currently supports following handlers:
 
 * puppet - first version of puppet handler (legacy, will be deprecated soon)
 * puppetv2 - second, improved version of puppet, supporting hiera integration 
-* ansible_playbook - first version of ansible handler (legacy, will be
-deprecated soon)
-* ansible_template - second generation of ansible implementation, includes
-transport support
+* ansible_playbook - first version of ansible handler (legacy, will be deprecated soon)
+* ansible_template - second generation of ansible implementation, includes transport support
 
 Handlers are pluggable, so you can write your own easily to extend
 functionality of Solar. Interesting examples might be Chef, SaltStack,

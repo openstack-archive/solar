@@ -14,7 +14,7 @@ configure OpenStack Nova API service.
    of this example.
 
 Step 1: Find an appropriate puppet module
-++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++
 
 The `Puppet OpenStack <https://wiki.openstack.org/wiki/Puppet>`_
 module for `Nova <https://github.com/openstack/puppet-nova>`_
