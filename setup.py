@@ -11,40 +11,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-
-from setuptools import find_packages
 from setuptools import setup
 
 
-def find_requires():
-    prj_root = os.path.dirname(os.path.realpath(__file__))
-    requirements = []
-    with open(u'{0}/requirements.txt'.format(prj_root), 'r') as reqs:
-        requirements = reqs.readlines()
-    return requirements
-
-
 setup(
-    name='solar',
-    version='0.0.1',
-    description='Deployment tool',
-    long_description="""Deployment tool""",
-    classifiers=[
-        "Development Status :: 1 - Beta",
-        "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
-        "Topic :: System :: Software Distribution"],
-    author='Mirantis Inc.',
-    author_email='product@mirantis.com',
-    url='http://mirantis.com',
-    keywords='deployment',
-    packages=find_packages(),
-    zip_safe=False,
-    install_requires=find_requires(),
-    include_package_data=True,
-    entry_points={
-        'console_scripts': [
-            'solar = solar.cli.main:run']})
+    setup_requires=['pbr'],
+    pbr=True,
+)

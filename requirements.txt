@@ -17,6 +17,7 @@ ansible
 celery
 mock
 multipledispatch==0.4.8
+pbr
 pydot
 bunch
 # if you want to use riak backend then
