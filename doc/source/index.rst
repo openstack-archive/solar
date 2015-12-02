@@ -11,13 +11,13 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   source/glossary
-   source/resource
-   source/orchestration
-   source/transports
-   source/handler_ansible
-   source/examples
-   source/deployment_plan
+   glossary
+   resource
+   orchestration
+   transports
+   handler_ansible
+   examples
+   deployment_plan
 
 
 Indices and tables
