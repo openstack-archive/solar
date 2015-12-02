@@ -20,6 +20,7 @@ from types import NoneType
 from uuid import uuid4
 
 from enum import Enum
+from solar.computable_inputs.processor import get_processor
 from solar.dblayer.model import check_state_for
 from solar.dblayer.model import CompositeIndexField
 from solar.dblayer.model import DBLayerException
@@ -32,7 +33,8 @@ from solar.dblayer.model import SingleIndexCache
 from solar.dblayer.model import StrInt
 from solar.utils import solar_map
 
-InputTypes = Enum('InputTypes', 'simple list hash list_hash')
+
+InputTypes = Enum('InputTypes', 'simple list hash list_hash computable')
 
 
 class DBLayerSolarException(DBLayerException):
@@ -54,6 +56,9 @@ class InputsFieldWrp(IndexFieldWrp):
         if ':' in name:
             name = name.split(":", 1)[0]
         schema = resource.meta_inputs[name].get('schema', None)
+        is_computable = resource.meta_inputs[name].get('computable', None) is not None
+        if is_computable:
+            return InputTypes.computable
         if isinstance(schema, self._simple_types):
             return InputTypes.simple
         if isinstance(schema, list):
@@ -238,6 +243,12 @@ class InputsFieldWrp(IndexFieldWrp):
                               other_inp_name, my_type, other_type):
         return self._connect_my_hash(my_resource, my_inp_name, other_resource,
                                      other_inp_name, my_type, other_type)
+
+    def _connect_my_computable(self, my_resource, my_inp_name, other_resource,
+                               other_inp_name, my_type, other_type):
+        return self._connect_my_simple(my_resource, my_inp_name,
+                                       other_resource, other_inp_name,
+                                       my_type, other_type)
 
     def connect(self, my_inp_name, other_resource, other_inp_name):
         my_resource = self._instance
@@ -513,6 +524,17 @@ class InputsFieldWrp(IndexFieldWrp):
         res = tmp_res.values()
         self._cache[name] = res
         return res
+
+    def _map_field_val_computable(self, recvs, input_name, name, other=None):
+        to_calc = []
+        for recv in recvs:
+            index_val, obj_key = recv
+            splitted = index_val.split('|', 4)
+            _, inp, emitter_key, emitter_inp, _mapping_type  = splitted
+            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
+                                                                  other)
+            to_calc.append(res)
+        return get_processor(self._instance, input_name, to_calc, other)
 
     def _get_raw_field_val(self, name):
         return self._instance._data_container[self.fname][name]
