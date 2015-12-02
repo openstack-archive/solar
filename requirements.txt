@@ -21,6 +21,7 @@ pbr
 pydot
 bunch
 wrapt
+gevent
 # if you want to use riak backend then
 riak
 # if you want to use sql backend then

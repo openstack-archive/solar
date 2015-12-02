@@ -44,19 +44,24 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
     def run(self, resource, *args, **kwargs):
         log.debug("RAW SSH: %s", args)
 
-        cmds = []
-        cwd = kwargs.get('cwd')
-        if cwd:
-            cmds.append(('cd', cwd))
-
-        cmds.append(args)
-
+        commands = []
+        prefix = []
         if kwargs.get('use_sudo', False):
-            cmds = [('sudo', ) + cmd for cmd in cmds]
+            prefix.append('sudo')
 
-        cmds = [' '.join(cmd) for cmd in cmds]
+        if kwargs.get('cwd'):
+            cmd = prefix + ['cd', kwargs['cwd']]
+            commands.append(' '.join(cmd))
 
-        remote_cmd = '\"%s\"' % ' && '.join(cmds)
+        env = []
+        if 'env' in kwargs:
+            for key, value in kwargs['env'].items():
+                env.append('{}={}'.format(key, value))
+
+        cmd = prefix + env + list(args)
+        commands.append(' '.join(cmd))
+
+        remote_cmd = '\"%s\"' % ' && '.join(commands)
 
         settings = self.settings(resource)
         ssh_cmd = self._ssh_cmd(settings)
