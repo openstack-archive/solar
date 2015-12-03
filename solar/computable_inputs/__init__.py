@@ -13,8 +13,12 @@
 #    under the License.
 
 from enum import Enum
+import os
 
 ComputablePassedTypes = Enum('ComputablePassedTypes', 'values full')
+
+HELPERS_PATH = os.path.normpath(
+    os.path.join(os.path.realpath(__file__), '..', 'helpers'))
 
 
 class ComputableInputProcessor(object):

@@ -56,8 +56,9 @@ class InputsFieldWrp(IndexFieldWrp):
         # XXX: it could be worth to precalculate it
         if ':' in name:
             name = name.split(":", 1)[0]
-        schema = resource.meta_inputs[name].get('schema', None)
-        is_computable = resource.meta_inputs[name].get('computable', None) is not None
+        mi = resource.meta_inputs[name]
+        schema = mi.get('schema', None)
+        is_computable = mi.get('computable', None) is not None
         if is_computable:
             return InputTypes.computable
         if isinstance(schema, self._simple_types):
@@ -217,8 +218,8 @@ class InputsFieldWrp(IndexFieldWrp):
             other_type)
 
     def _connect_other_computable(self, my_resource, my_inp_name,
-                                 other_resource, other_inp_name, my_type,
-                                 other_type):
+                                  other_resource, other_inp_name, my_type,
+                                  other_type):
         return self._connect_other_simple(
             my_resource, my_inp_name, other_resource, other_inp_name, my_type,
             other_type)
@@ -540,14 +541,15 @@ class InputsFieldWrp(IndexFieldWrp):
         for recv in recvs:
             index_val, obj_key = recv
             splitted = index_val.split('|', 4)
-            _, inp, emitter_key, emitter_inp, _  = splitted
-            res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
-                                                                  other)
+            _, inp, emitter_key, emitter_inp, _ = splitted
+            res = Resource.get(emitter_key)
+            inp_value = res.inputs._get_field_val(emitter_inp,
+                                                  other)
             if computable_type == ComputablePassedTypes.values:
-                to_calc.append(res)
+                to_calc.append(inp_value)
             else:
-                to_calc.append({'value': res,
-                                'resource': emitter_key,
+                to_calc.append({'value': inp_value,
+                                'resource': res.name,
                                 'other_input': emitter_inp})
         return get_processor(self._instance, input_name,
                              computable_type, to_calc, other)

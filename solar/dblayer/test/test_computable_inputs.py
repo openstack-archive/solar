@@ -16,8 +16,8 @@ from __future__ import print_function
 
 import pytest
 
-from solar.dblayer.test.test_real import create_resource
 from solar.computable_inputs import ComputablePassedTypes as CPT
+from solar.dblayer.test.test_real import create_resource
 
 
 dth = pytest.dicts_to_hashable
@@ -148,3 +148,33 @@ def test_connect_to_computed(rk):
 
     assert r4.inputs['input1'] == 11
 
+
+def test_join_different_values(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'r1',
+                              'inputs': {'input1': "blah"}})
+    r2 = create_resource(k2, {'name': 'r2',
+                              'inputs': {'input2': "blub"}})
+    r3 = create_resource(k3, {'name': 'r3',
+                              'inputs': {'input': None}})
+
+    lua_funct = """function (data)
+local l = make_arr(data)
+return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]
+end"""
+
+    r3.meta_inputs['input']['computable'] = {"func": lua_funct,
+                                             'lang': 'lua',
+                                             'type': CPT.full.name}
+
+    r1.connect(r3, {'input1': 'input'})
+    r2.connect(r3, {'input2': 'input'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert r3.inputs['input'] == 'blah@blub'

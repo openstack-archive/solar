@@ -12,22 +12,33 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import lupa
+
+import os
+
 from lupa import LuaRuntime
 from solar.computable_inputs import ComputableInputProcessor
+from solar.computable_inputs import HELPERS_PATH
 from solar.dblayer.solar_models import ComputablePassedTypes
+
+
+_LUA_HELPERS = open(os.path.join(HELPERS_PATH, 'lua_helpers.lua')).read()
+
+
+# TODO: (jnowak) add sandoxing
 
 
 class LuaProcessor(ComputableInputProcessor):
 
     def __init__(self):
         self.lua = LuaRuntime()
+        self.lua.execute(_LUA_HELPERS)
 
     def run(self, computable_type, funct, data):
         # when computable_type == full then raw python object is passed
         # to lua (counts from 0 etc)
 
-        if isinstance(data, list) and computable_type == ComputablePassedTypes.values:
+        if isinstance(data, list) \
+           and computable_type == ComputablePassedTypes.values:
             lua_data = self.lua.table_from(data)
         else:
             lua_data = data
