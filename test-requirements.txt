@@ -6,3 +6,6 @@ pytest-mock
 tox
 pytest-subunit
 os-testr
+
+# for computable inputs
+lupa
