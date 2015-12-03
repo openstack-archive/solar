@@ -15,8 +15,8 @@
 from functools import total_ordering
 from functools import wraps
 
-import uuid
 import time
+import uuid
 import weakref
 
 from collections import defaultdict
@@ -45,7 +45,6 @@ class DBLayerNoRiakObj(DBLayerException):
 
 class NONE(object):
     """A None like type"""
-    pass
 
 
 class SingleIndexCache(object):
@@ -93,7 +92,10 @@ class SingleClassCache(object):
     __slots__ = ['obj_cache', 'db_ch_state',
                  'lazy_save', 'origin_class',
                  'refs']
+<<<<<<< HEAD
 >>>>>>> 3f53526... Initial idea of new cache:solar/solar/dblayer/model.py
+=======
+>>>>>>> f8f2630... Pretify code
 
     def __init__(self, origin_class):
         self.obj_cache = LFUCache(origin_class, 200)
@@ -823,7 +825,6 @@ class Model(object):
     def __hash__(self):
         return hash(self.key)
 
-
     @classmethod
     def new(cls, key, data):
         return cls.from_dict(key, data)
@@ -859,7 +860,8 @@ class Model(object):
         # shouldn't be needed, but may cover some weird usecase
         # when inproperly using from_dict, because it then leads to conflicts
         if key in cls._c.obj_cache:
-            raise DBLayerException("Object already exists in cache, cannot create second")
+            raise DBLayerException("Object already exists in cache"
+                                   " cannot create second")
         data['key'] = key
         riak_obj = cls.bucket.new(key, data={})
         obj = cls.from_riakobj(riak_obj)

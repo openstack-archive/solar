@@ -100,11 +100,7 @@ class Resource(object):
         self.db_obj.save()
 
     # Load
-<<<<<<< HEAD:solar/core/resource/resource.py
-    @dispatch(DBResource)  # NOQA
-=======
-    @dispatch(object)
->>>>>>> 3f53526... Initial idea of new cache:solar/solar/core/resource/resource.py
+    @dispatch(object)  # noqa
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
