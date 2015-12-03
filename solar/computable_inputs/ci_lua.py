@@ -33,7 +33,14 @@ class LuaProcessor(ComputableInputProcessor):
         self.lua = LuaRuntime()
         self.lua.execute(_LUA_HELPERS)
 
-    def run(self, computable_type, funct, data):
+    def check_funct(self, funct):
+        # dummy insert function start / end
+        if not funct.startswith('function') \
+           and not funct.endswith('end'):
+            return 'function (data, resource_name) %s end' % funct
+        return funct
+
+    def run(self, resource_name, computable_type, funct, data):
         # when computable_type == full then raw python object is passed
         # to lua (counts from 0 etc)
 
@@ -43,5 +50,6 @@ class LuaProcessor(ComputableInputProcessor):
         else:
             lua_data = data
 
+        funct = self.check_funct(funct)
         funct_lua = self.lua.eval(funct)
-        return funct_lua(lua_data)
+        return funct_lua(lua_data, resource_name)

@@ -74,7 +74,7 @@ def test_simple_lua_simple_max(rk):
     r2 = create_resource(k2, {'name': 'target1',
                               'inputs': {'input1': None}})
 
-    lua_funct = 'function(arr) return math.max(unpack(arr)) end'
+    lua_funct = 'return math.max(unpack(data))'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'lang': 'lua'}
     r1.connect(r2, {'input1': 'input1'})
@@ -100,7 +100,7 @@ def test_full_lua_array(rk):
                               'inputs': {'input1': None}})
 
     # raw python object, counts from 0
-    lua_funct = 'function(arr) return arr end'
+    lua_funct = 'return data'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'type': CPT.full.name,
                                               'lang': 'lua'}
@@ -134,7 +134,7 @@ def test_connect_to_computed(rk):
     r4 = create_resource(k4, {'name': 'target1',
                               'inputs': {'input1': None}})
 
-    lua_funct = 'function(arr) return math.max(unpack(arr)) end'
+    lua_funct = 'return math.max(unpack(data))'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'lang': 'lua'}
     r1.connect(r2, {'input1': 'input1'})
@@ -165,10 +165,9 @@ def test_join_different_values(rk):
     r4 = create_resource(k4, {'name': 'r4',
                               'inputs': {'input': None}})
 
-    lua_funct = """function (data)
+    lua_funct = """
 local l = make_arr(data)
-return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]
-end"""
+return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]"""
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
                                              'lang': 'lua',
@@ -204,21 +203,19 @@ def test_join_replace_in_lua(rk):
     r4 = create_resource(k4, {'name': 'r4',
                               'inputs': {'input': None}})
 
-    lua_funct = """function (data)
+    lua_funct = """
 local l = make_arr(data)
 return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]
-end"""
+"""
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
                                              'lang': 'lua',
                                              'type': CPT.full.name}
 
-    lua_funct2 = """function (data)
-local v = data[1]
+    lua_funct2 = """local v = data[1]
 v = v:gsub("@", "-", 1)
 return v
-end
-    """
+"""
 
     r4.meta_inputs['input']['computable'] = {"func": lua_funct2,
                                              'lang': 'lua',
@@ -247,10 +244,9 @@ def test_join_self_computable(rk):
                                          'input2': 'foo',
                                          'input3': None}})
 
-    lua_funct = """function (data)
-local l = make_arr(data)
-return l["r1"]["input2"] .. l["r1"]["input1"]
-end"""
+    lua_funct = """local l = make_arr(data)
+return resource_name .. l["r1"]["input2"] .. l["r1"]["input1"]
+"""
 
     r1.meta_inputs['input3']['computable'] = {'func': lua_funct,
                                               'lang': 'lua',
@@ -261,4 +257,4 @@ end"""
 
     r1.save()
 
-    assert r1.inputs['input3'] == 'foobar'
+    assert r1.inputs['input3'] == 'r1foobar'

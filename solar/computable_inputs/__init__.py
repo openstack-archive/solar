@@ -26,7 +26,7 @@ class ComputableInputProcessor(object):
     def __init__(self):
         pass
 
-    def process(self, computable_type, funct, data):
+    def process(self, resource_name, computable_type, funct, data):
         if funct is None or funct == 'noop':
             return data
-        return self.run(computable_type, funct, data)
+        return self.run(resource_name, computable_type, funct, data)

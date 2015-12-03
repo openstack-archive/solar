@@ -33,4 +33,4 @@ def get_processor(resource, input_name, computable_type, data, other=None):
         _processors[lang] = processor = _av_processors[lang]()
     else:
         processor = _processors[lang]
-    return processor.process(computable_type, funct, data)
+    return processor.process(resource.name, computable_type, funct, data)
