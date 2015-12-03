@@ -38,7 +38,7 @@ class LuaProcessor(ComputableInputProcessor):
         # to lua (counts from 0 etc)
 
         if isinstance(data, list) \
-           and computable_type == ComputablePassedTypes.values:
+           and computable_type == ComputablePassedTypes.values.name:
             lua_data = self.lua.table_from(data)
         else:
             lua_data = data

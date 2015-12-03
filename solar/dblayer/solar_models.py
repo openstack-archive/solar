@@ -537,7 +537,8 @@ class InputsFieldWrp(IndexFieldWrp):
     def _map_field_val_computable(self, recvs, input_name, name, other=None):
         to_calc = []
         computable = self._instance.meta_inputs[input_name]['computable']
-        computable_type = computable.get('type', ComputablePassedTypes.values)
+        computable_type = computable.get('type',
+                                         ComputablePassedTypes.values.name)
         for recv in recvs:
             index_val, obj_key = recv
             splitted = index_val.split('|', 4)
@@ -545,7 +546,7 @@ class InputsFieldWrp(IndexFieldWrp):
             res = Resource.get(emitter_key)
             inp_value = res.inputs._get_field_val(emitter_inp,
                                                   other)
-            if computable_type == ComputablePassedTypes.values:
+            if computable_type == ComputablePassedTypes.values.name:
                 to_calc.append(inp_value)
             else:
                 to_calc.append({'value': inp_value,
