@@ -776,7 +776,9 @@ class Resource(Model):
         if mapping is None:
             return
         if self == other:
-            raise Exception('Trying to connect value-.* to itself')
+            for k, v in mapping.items():
+                if k == v:
+                    raise Exception('Trying to connect value-.* to itself')
         solar_map(
             lambda (my_name, other_name): self._connect_single(other_inputs,
                                                                other_name,
