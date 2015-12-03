@@ -20,6 +20,7 @@ from types import NoneType
 from uuid import uuid4
 
 from enum import Enum
+from solar.computable_inputs import ComputablePassedTypes
 from solar.computable_inputs.processor import get_processor
 from solar.dblayer.model import check_state_for
 from solar.dblayer.model import CompositeIndexField
@@ -209,6 +210,13 @@ class InputsFieldWrp(IndexFieldWrp):
             other_type)
 
     def _connect_other_list_hash(self, my_resource, my_inp_name,
+                                 other_resource, other_inp_name, my_type,
+                                 other_type):
+        return self._connect_other_simple(
+            my_resource, my_inp_name, other_resource, other_inp_name, my_type,
+            other_type)
+
+    def _connect_other_computable(self, my_resource, my_inp_name,
                                  other_resource, other_inp_name, my_type,
                                  other_type):
         return self._connect_other_simple(
@@ -527,14 +535,22 @@ class InputsFieldWrp(IndexFieldWrp):
 
     def _map_field_val_computable(self, recvs, input_name, name, other=None):
         to_calc = []
+        computable = self._instance.meta_inputs[input_name]['computable']
+        computable_type = computable.get('type', ComputablePassedTypes.values)
         for recv in recvs:
             index_val, obj_key = recv
             splitted = index_val.split('|', 4)
-            _, inp, emitter_key, emitter_inp, _mapping_type  = splitted
+            _, inp, emitter_key, emitter_inp, _  = splitted
             res = Resource.get(emitter_key).inputs._get_field_val(emitter_inp,
                                                                   other)
-            to_calc.append(res)
-        return get_processor(self._instance, input_name, to_calc, other)
+            if computable_type == ComputablePassedTypes.values:
+                to_calc.append(res)
+            else:
+                to_calc.append({'value': res,
+                                'resource': emitter_key,
+                                'other_input': emitter_inp})
+        return get_processor(self._instance, input_name,
+                             computable_type, to_calc, other)
 
     def _get_raw_field_val(self, name):
         return self._instance._data_container[self.fname][name]

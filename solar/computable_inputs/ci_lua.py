@@ -15,6 +15,7 @@
 import lupa
 from lupa import LuaRuntime
 from solar.computable_inputs import ComputableInputProcessor
+from solar.dblayer.solar_models import ComputablePassedTypes
 
 
 class LuaProcessor(ComputableInputProcessor):
@@ -22,10 +23,14 @@ class LuaProcessor(ComputableInputProcessor):
     def __init__(self):
         self.lua = LuaRuntime()
 
-    def run(self, funct, data):
-        if isinstance(data, list):
+    def run(self, computable_type, funct, data):
+        # when computable_type == full then raw python object is passed
+        # to lua (counts from 0 etc)
+
+        if isinstance(data, list) and computable_type == ComputablePassedTypes.values:
             lua_data = self.lua.table_from(data)
         else:
             lua_data = data
+
         funct_lua = self.lua.eval(funct)
         return funct_lua(lua_data)

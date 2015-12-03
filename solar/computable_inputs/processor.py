@@ -17,7 +17,7 @@ _av_processors = {}
 try:
     from solar.computable_inputs.ci_lua import LuaProcessor
 except ImportError:
-    pass
+    raise
 else:
     _av_processors['lua'] = LuaProcessor
 
@@ -25,7 +25,7 @@ else:
 _processors = {}
 
 
-def get_processor(resource, input_name, data, other=None):
+def get_processor(resource, input_name, computable_type, data, other=None):
     computable = resource.meta_inputs[input_name]['computable']
     lang = computable['lang']
     funct = computable['func']
@@ -33,4 +33,4 @@ def get_processor(resource, input_name, data, other=None):
         _processors[lang] = processor = _av_processors[lang]()
     else:
         processor = _processors[lang]
-    return processor.process(funct, data)
+    return processor.process(computable_type, funct, data)

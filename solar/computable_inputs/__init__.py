@@ -12,13 +12,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from enum import Enum
+
+ComputablePassedTypes = Enum('ComputablePassedTypes', 'values full')
+
 
 class ComputableInputProcessor(object):
 
     def __init__(self):
         pass
 
-    def process(self, funct, data):
+    def process(self, computable_type, funct, data):
         if funct is None or funct == 'noop':
             return data
-        return self.run(funct, data)
+        return self.run(computable_type, funct, data)
