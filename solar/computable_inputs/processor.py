@@ -17,7 +17,7 @@ _av_processors = {}
 try:
     from solar.computable_inputs.ci_lua import LuaProcessor
 except ImportError:
-    raise
+    pass
 else:
     _av_processors['lua'] = LuaProcessor
 
