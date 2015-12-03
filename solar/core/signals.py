@@ -141,6 +141,8 @@ def location_and_transports(emitter, receiver, orig_mapping):
 
 
 def get_mapping(emitter, receiver, mapping=None):
+    if emitter == receiver:
+        return mapping
     if mapping is None:
         mapping = guess_mapping(emitter, receiver)
     location_and_transports(emitter, receiver, mapping)
