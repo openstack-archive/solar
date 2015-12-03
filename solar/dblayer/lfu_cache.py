@@ -1,9 +1,20 @@
-from heapq import nsmallest
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+from collections import Counter
 from operator import itemgetter
-from collections import defaultdict, Counter
 from solar.dblayer.proxy import DBLayerProxy
-import gc
-import sys
 
 from threading import RLock
 
@@ -25,8 +36,10 @@ class LFUCache(object):
             store_len = len(self._store)
             if store_len >= self._maxsize:
                 deleted = 0
-                exp_deleted = (store_len - self._maxsize) + 1  # overflow + one more
-                for k, _ in sorted(self._use_count.iteritems(), key=itemgetter(1)):
+                # overflow + one more
+                exp_deleted = (store_len - self._maxsize) + 1
+                for k, _ in sorted(self._use_count.iteritems(),
+                                   key=itemgetter(1)):
                     if self.is_deletable(self._store[k]):
                         del self[k]
                         deleted += 1
@@ -46,7 +59,7 @@ class LFUCache(object):
     def __eq__(self, other):
         if isinstance(other, dict):
             for k, v in other.iteritems():
-                if not k in self._store:
+                if k not in self._store:
                     return False
                 mv = self._store[k]
                 if not v == mv:

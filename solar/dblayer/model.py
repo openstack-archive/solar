@@ -86,16 +86,9 @@ class SingleIndexCache(object):
 
 class SingleClassCache(object):
 
-<<<<<<< HEAD:solar/dblayer/model.py
-    __slots__ = ['obj_cache', 'db_ch_state', 'lazy_save', 'origin_class']
-=======
     __slots__ = ['obj_cache', 'db_ch_state',
                  'lazy_save', 'origin_class',
                  'refs']
-<<<<<<< HEAD
->>>>>>> 3f53526... Initial idea of new cache:solar/solar/dblayer/model.py
-=======
->>>>>>> f8f2630... Pretify code
 
     def __init__(self, origin_class):
         self.obj_cache = LFUCache(origin_class, 200)
