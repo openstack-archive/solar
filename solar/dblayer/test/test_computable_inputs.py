@@ -57,7 +57,7 @@ def test_full_noop(rk):
     r1.save()
     r2.save()
 
-    assert r2.inputs['input1'] == [{'value': 10, 'resource': r1.key,
+    assert r2.inputs['input1'] == [{'value': 10, 'resource': r1.name,
                                     'other_input': 'input1'}]
 
 
@@ -111,9 +111,9 @@ def test_full_lua_array(rk):
     r3.save()
 
     res_inputs = set(dth(r2.inputs['input1']))
-    comparsion = set(dth([{'value': 11, 'resource': r3.key,
+    comparsion = set(dth([{'value': 11, 'resource': r3.name,
                            'other_input': 'input1'},
-                          {'value': 10, 'resource': r1.key,
+                          {'value': 10, 'resource': r1.name,
                            'other_input': 'input1'}]))
     assert res_inputs == comparsion
 
@@ -153,12 +153,15 @@ def test_join_different_values(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
+    k4 = next(rk)
 
     r1 = create_resource(k1, {'name': 'r1',
                               'inputs': {'input1': "blah"}})
     r2 = create_resource(k2, {'name': 'r2',
                               'inputs': {'input2': "blub"}})
     r3 = create_resource(k3, {'name': 'r3',
+                              'inputs': {'input': None}})
+    r4 = create_resource(k4, {'name': 'r4',
                               'inputs': {'input': None}})
 
     lua_funct = """function (data)
@@ -178,3 +181,58 @@ end"""
     r3.save()
 
     assert r3.inputs['input'] == 'blah@blub'
+
+    r3.connect(r4, {'input': 'input'})
+    r4.save()
+
+    assert r4.inputs['input'] == 'blah@blub'
+
+
+def test_join_replace_in_lua(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+    k4 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'r1',
+                              'inputs': {'input1': "blah"}})
+    r2 = create_resource(k2, {'name': 'r2',
+                              'inputs': {'input2': "blub"}})
+    r3 = create_resource(k3, {'name': 'r3',
+                              'inputs': {'input': None}})
+    r4 = create_resource(k4, {'name': 'r4',
+                              'inputs': {'input': None}})
+
+    lua_funct = """function (data)
+local l = make_arr(data)
+return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]
+end"""
+
+    r3.meta_inputs['input']['computable'] = {"func": lua_funct,
+                                             'lang': 'lua',
+                                             'type': CPT.full.name}
+
+    lua_funct2 = """function (data)
+local v = data[1]
+v = v:gsub("@", "-", 1)
+return v
+end
+    """
+
+    r4.meta_inputs['input']['computable'] = {"func": lua_funct2,
+                                             'lang': 'lua',
+                                             'type': CPT.values.name}
+
+    r1.connect(r3, {'input1': 'input'})
+    r2.connect(r3, {'input2': 'input'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert r3.inputs['input'] == 'blah@blub'
+
+    r3.connect(r4, {'input': 'input'})
+    r4.save()
+
+    assert r4.inputs['input'] == 'blah-blub'
