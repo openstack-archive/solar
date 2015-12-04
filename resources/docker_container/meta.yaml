@@ -9,7 +9,7 @@ input:
       schema: str!
       value:
     ports:
-      schema: [{value: [{value: int}]}]
+      schema: [int]
       value: []
     host_binds:
       schema: [{value: {src: str, dst: str, mode: str}}]
@@ -17,6 +17,9 @@ input:
     volume_binds:
       schema: [{src: str, dst: str, mode: str}]
       value: []
+    env:
+      schema: {}
+      value: {}
     # ssh_user:
     #   schema: str!
     #   value: []

@@ -7,14 +7,17 @@
        image: {{ image }}
        state: running
        net: host
-       {% if ports.value %}
+       {% if ports %}
        ports:
-         {% for port in ports.value %}
-         {% for p in port['value'] %}
-         - {{ p['value'] }}:{{ p['value'] }}
+         {% for port in ports %}
+         - {{ port }}:{{ port }}
          {% endfor %}
+       expose: 
+         {% for port in ports %}
+         - {{ port }}
          {% endfor %}
        {% endif %}
+
        {% if host_binds.value %}
        volumes:
          # TODO: host_binds might need more work
@@ -23,5 +26,12 @@
          # so we mount it to the same directory as on host
          {% for bind in host_binds.value %}
          - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
+         {% endfor %}
+       {% endif %}
+       
+       {% if env %}
+       env:
+         {% for key, value in env.iteritems() %}
+         {{ key }}: {{ value }}
          {% endfor %}
        {% endif %}
