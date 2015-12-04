@@ -63,11 +63,16 @@ def create_resource(name, base_path, args=None, tags=None,
     if isinstance(base_path, provider.BaseProvider):
         base_path = base_path.directory
 
-    # List args init with empty list. Elements will be added later
+    # filter connections from lists and dicts
+    # will be added later
     def _filter(value):
-        if not isinstance(value, list):
+        if isinstance(value, list):
+            return filter(lambda res: not is_connection(res), value)
+        if isinstance(value, dict):
+            return {key: None if is_connection(value) else value
+                    for key, value in value.iteritems()}
+        else:
             return value
-        return filter(lambda res: not is_connection(res), value)
 
     args = {key: _filter(value) for key, value in args.items()}
     r = Resource(name, base_path, args=args,
@@ -244,6 +249,10 @@ def parse_inputs(args):
             c, a = parse_list_input(r_input, arg)
             connections.extend(c)
             assignments.update(a)
+        elif isinstance(arg, dict):
+            c, a = parse_dict_input(r_input, arg)
+            connections.extend(c)
+            assignments.update(a)
         else:
             if is_connection(arg):
                 c = parse_connection(r_input, arg)
@@ -265,6 +274,22 @@ def parse_list_input(r_input, args):
                 assignments[r_input].append(arg)
             except KeyError:
                 assignments[r_input] = [arg]
+    return connections, assignments
+
+
+def parse_dict_input(r_input, args):
+    connections = []
+    assignments = {}
+    for key, value in args.iteritems():
+        if is_connection(value):
+            dict_input = '{}:{}'.format(r_input, key)
+            c = parse_connection(dict_input, value)
+            connections.append(c)
+        else:
+            try:
+                assignments[r_input][key] = value
+            except KeyError:
+                assignments[r_input] = {key: value}
     return connections, assignments
 
 
