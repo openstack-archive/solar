@@ -281,3 +281,26 @@ return resource_name + l["r1"]["input2"] + l["r1"]["input1"]
     r1.save()
 
     assert r1.inputs['input3'] == 'r1foobar'
+
+
+def test_jinja_join_self_computable(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': "r1",
+                              'inputs': {'input1': 'bar',
+                                         'input2': 'foo',
+                                         'input3': None}})
+    jinja_funct = """{% set l = make_arr(data) %}
+{{resource_name}}{{l['r1']['input2']}}{{l['r1']['input1']}}
+"""
+
+    r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
+                                              'lang': 'jinja2',
+                                              'type': CPT.full.name}
+
+    r1.connect(r1, {'input1': 'input3'})
+    r1.connect(r1, {'input2': 'input3'})
+
+    r1.save()
+
+    assert r1.inputs['input3'] == 'r1foobar'

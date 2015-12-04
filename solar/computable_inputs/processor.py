@@ -24,10 +24,19 @@ else:
 try:
     from solar.computable_inputs.ci_python import PyProcessor
 except ImportError:
-    raise
+    pass
 else:
     _av_processors['py'] = PyProcessor
     _av_processors['python'] = PyProcessor
+
+try:
+    from solar.computable_inputs.ci_jinja import JinjaProcessor
+except ImportError:
+    pass
+else:
+    _av_processors['j2'] = JinjaProcessor
+    _av_processors['jinja'] = JinjaProcessor
+    _av_processors['jinja2'] = JinjaProcessor
 
 
 _processors = {}
