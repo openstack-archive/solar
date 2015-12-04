@@ -24,7 +24,7 @@ pytest.importorskip('lupa')
 dth = pytest.dicts_to_hashable
 
 
-def test_simple_noop(rk):
+def test_lua_simple_noop(rk):
     k1 = next(rk)
     k2 = next(rk)
 
@@ -42,7 +42,7 @@ def test_simple_noop(rk):
     assert r2.inputs['input1'] == [10]
 
 
-def test_full_noop(rk):
+def test_lua_full_noop(rk):
     k1 = next(rk)
     k2 = next(rk)
 
@@ -62,7 +62,7 @@ def test_full_noop(rk):
                                     'other_input': 'input1'}]
 
 
-def test_simple_lua_simple_max(rk):
+def test_lua_simple_lua_simple_max(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
@@ -87,7 +87,7 @@ def test_simple_lua_simple_max(rk):
     assert r2.inputs['input1'] == 11
 
 
-def test_full_lua_array(rk):
+def test_lua_full_lua_array(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
@@ -119,7 +119,7 @@ def test_full_lua_array(rk):
     assert res_inputs == comparsion
 
 
-def test_connect_to_computed(rk):
+def test_lua_connect_to_computed(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
@@ -150,7 +150,7 @@ def test_connect_to_computed(rk):
     assert r4.inputs['input1'] == 11
 
 
-def test_join_different_values(rk):
+def test_lua_join_different_values(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
@@ -188,7 +188,7 @@ return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]"""
     assert r4.inputs['input'] == 'blah@blub'
 
 
-def test_join_replace_in_lua(rk):
+def test_lua_join_replace_in_lua(rk):
     k1 = next(rk)
     k2 = next(rk)
     k3 = next(rk)
@@ -236,7 +236,7 @@ return v
     assert r4.inputs['input'] == 'blah-blub'
 
 
-def test_join_self_computable(rk):
+def test_lua_join_self_computable(rk):
     k1 = next(rk)
 
     r1 = create_resource(k1, {'name': "r1",
@@ -250,6 +250,29 @@ return resource_name .. l["r1"]["input2"] .. l["r1"]["input1"]
 
     r1.meta_inputs['input3']['computable'] = {'func': lua_funct,
                                               'lang': 'lua',
+                                              'type': CPT.full.name}
+
+    r1.connect(r1, {'input1': 'input3'})
+    r1.connect(r1, {'input2': 'input3'})
+
+    r1.save()
+
+    assert r1.inputs['input3'] == 'r1foobar'
+
+
+def test_python_join_self_computable(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': "r1",
+                              'inputs': {'input1': 'bar',
+                                         'input2': 'foo',
+                                         'input3': None}})
+    py_funct = """l = make_arr(data)
+return resource_name + l["r1"]["input2"] + l["r1"]["input1"]
+"""
+
+    r1.meta_inputs['input3']['computable'] = {'func': py_funct,
+                                              'lang': 'py',
                                               'type': CPT.full.name}
 
     r1.connect(r1, {'input1': 'input3'})

@@ -21,6 +21,14 @@ except ImportError:
 else:
     _av_processors['lua'] = LuaProcessor
 
+try:
+    from solar.computable_inputs.ci_python import PyProcessor
+except ImportError:
+    raise
+else:
+    _av_processors['py'] = PyProcessor
+    _av_processors['python'] = PyProcessor
+
 
 _processors = {}
 
