@@ -223,7 +223,9 @@ class InputsFieldWrp(IndexFieldWrp):
         if '|' in my_val:
             my_val, my_tag = my_val.split('|', 1)
         else:
-            my_tag = other_resource.name
+            # when single dict then set shared hash for all resources
+            # TODO: (jnowak) maybe we should remove tags completely there
+            my_tag = '_single'
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
         my_ind_val = '{}|{}|{}|{}|{}|{}'.format(my_resource.key, my_key,
@@ -453,17 +455,18 @@ class InputsFieldWrp(IndexFieldWrp):
                     emitter_inp, other)
             elif splen == 7:
                 # partial
-                (_, _, emitter_key, emitter_inp,
-                 my_tag, my_val, mapping_type) = splitted
-                cres = Resource.get(emitter_key).inputs._get_field_val(
-                    emitter_inp, other)
-                res = {my_val: cres}
+                res = {}
                 my_resource = self._instance
                 my_resource_value = my_resource.inputs._get_raw_field_val(
                     input_name)
                 if my_resource_value:
                     for my_val, cres in my_resource_value.iteritems():
                         res[my_val] = cres
+                (_, _, emitter_key, emitter_inp,
+                 my_tag, my_val, mapping_type) = splitted
+                cres = Resource.get(emitter_key).inputs._get_field_val(
+                    emitter_inp, other)
+                res[my_val] = cres
             else:
                 raise Exception("Not supported splen %s", splen)
         else:
