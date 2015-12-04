@@ -231,7 +231,10 @@ class InputsFieldWrp(IndexFieldWrp):
         else:
             # when single dict then set shared hash for all resources
             # TODO: (jnowak) maybe we should remove tags completely there
-            my_tag = '_single'
+            if my_type == InputTypes.hash:
+                my_tag = '_single'
+            else:
+                my_tag = other_resource.name
         types_mapping = '|{}_{}'.format(my_type.value, other_type.value)
         my_ind_name = '{}_recv_bin'.format(self.fname)
         my_ind_val = '{}|{}|{}|{}|{}|{}'.format(my_resource.key, my_key,
