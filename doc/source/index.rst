@@ -18,6 +18,7 @@ Contents:
    handler_ansible
    examples
    deployment_plan
+   tutorials/index
 
 
 Indices and tables
