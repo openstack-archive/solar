@@ -1,0 +1,6 @@
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    # - shell: sleep 30
+    - shell: riak-admin cluster plan
+    - shell: riak-admin cluster commit
