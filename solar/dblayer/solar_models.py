@@ -174,7 +174,13 @@ class InputsFieldWrp(IndexFieldWrp):
             if '|' in my_val:
                 my_val, my_tag = my_val.split('|', 1)
             else:
-                my_tag = other_resource.name
+                if real_my_type == InputTypes.hash:
+                    # when single dict then set shared hash for all resources
+                    # TODO: (jnowak) maybe we should remove tags completely
+                    # in this and only this case
+                    my_tag = '_single'
+                else:
+                    my_tag = other_resource.name
             my_inp_name = my_key
             other_ind_val = '{}|{}|{}|{}|{}|{}'.format(
                 other_resource.key, other_inp_name, my_resource.key,
