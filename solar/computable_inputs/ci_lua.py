@@ -33,10 +33,13 @@ class LuaProcessor(ComputableInputProcessor):
         self.lua = LuaRuntime()
         self.lua.execute(_LUA_HELPERS)
 
-    def check_funct(self, funct):
+    def check_funct(self, funct, computable_type):
         # dummy insert function start / end
         if not funct.startswith('function') \
            and not funct.endswith('end'):
+            if computable_type == ComputablePassedTypes.full.name:
+                make_arr = 'local res = make_arr(data)'
+                funct = "%s\n%s" % (make_arr, funct)
             return 'function (data, resource_name) %s end' % funct
         return funct
 
@@ -50,6 +53,6 @@ class LuaProcessor(ComputableInputProcessor):
         else:
             lua_data = data
 
-        funct = self.check_funct(funct)
+        funct = self.check_funct(funct, computable_type)
         funct_lua = self.lua.eval(funct)
         return funct_lua(lua_data, resource_name)
