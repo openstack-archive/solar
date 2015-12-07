@@ -192,7 +192,7 @@ Now you can deploy all changes with:
 
   solar changes stage
   solar changes process
-  solar orch run-once 
+  solar orch run-once
 
 To see deployment progress run:
 
@@ -200,5 +200,23 @@ To see deployment progress run:
 
   solar orch report
 
-Wait until all taskk will return statu `SUCCESS`. When it's done you should be able to open Wordpress site at http://10.0.0.3
+Wait until all task will return status `SUCCESS`. When it's done you should be able to open Wordpress site at http://10.0.0.3
 
+6. Update
+---------
+
+Now change password for Wordpress database user
+
+.. code-block:: bash
+
+  solar resource update config wp_db_pass=new_hacky_pass
+
+and deploy new changes
+
+.. code-block:: bash
+
+  solar changes stage
+  solar changes process
+  solar orch run-once
+
+Using `report` command wait until all tasks finish. Wordpress should still working and new password should be used.
