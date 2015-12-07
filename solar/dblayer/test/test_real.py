@@ -316,6 +316,51 @@ def test_simple_to_dict_inputs(rk):
     assert r2.inputs['input']['input2'] == 15
 
 
+def test_simple_to_dict_inputs_without_tag_single_key(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None}}})
+
+    r1.connect(r2, {'input1': 'input:input1'})
+
+    r1.save()
+    r2.save()
+
+    assert r2.inputs['input']['input1'] == 10
+
+
+def test_simple_to_dict_inputs_without_tag(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+    k3 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'input1': 10,
+                                         'input2': 15}})
+    r3 = create_resource(k3, {'name': 'third',
+                              'inputs': {'input1': 110,
+                                         'input2': 115}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {'input': {'input1': None,
+                                                   'input2': None}}})
+
+    r1.connect(r2, {'input1': 'input:input1'})
+    r3.connect(r2, {'input2': 'input:input2'})
+
+    r1.save()
+    r2.save()
+    r3.save()
+
+    assert r2.inputs['input']['input1'] == 10
+    assert r2.inputs['input']['input2'] == 115
+
+
 def test_simple_to_dict_inputs_with_tag(rk):
     k1 = next(rk)
     k2 = next(rk)
