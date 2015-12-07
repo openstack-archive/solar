@@ -3,7 +3,7 @@ handler: ansible
 version: 1.0.0
 actions:
     run: run.yaml
-    update: run.yaml
+    update: update.yaml
     remove: remove.yaml
 input:
     user_password:
