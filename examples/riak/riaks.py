@@ -45,8 +45,9 @@ def setup_riak():
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
                        'storage_backend': 'leveldb',
-                       'riak_hostname': 'riak_server%d.solar' % num,
-                       'riak_name': 'riak%d@riak_server%d.solar' % (num, num)})[0]
+                       'riak_hostname': 'riak_server%d.solar' % num})[0]
+        r.connect(r, {'riak_self_name': 'riak_name',
+                      'riak_hostname': 'riak_name'})
         riak_services.append(r)
 
     for i, riak in enumerate(riak_services):
