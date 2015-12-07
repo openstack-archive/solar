@@ -95,6 +95,22 @@ def test_create_virtual_resource_with_list(tmpdir):
     assert res.args['servers'] == [1, 2]
 
 
+def test_create_virtual_resource_with_dict(tmpdir):
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_tmpl_path = os.path.join(base_path, 'resource_with_dict.yaml.tmpl')
+    base_resource_path = os.path.join(base_path, 'base_service')
+    with open(vr_tmpl_path) as f:
+        vr_data = f.read().format(resource_path=base_resource_path)
+    vr_file = tmpdir.join('base.yaml')
+    vr_file.write(vr_data)
+    resources = vr.create('base', str(vr_file))
+    assert len(resources) == 1
+    res = resources[0]
+    assert res.args['servers'] == {'a': 1, 'b': 2}
+
+
 def test_update(tmpdir):
     # XXX: make helper for it
     base_path = os.path.join(
@@ -165,6 +181,15 @@ def test_parse_connection():
                           }
     connection = vr.parse_connection('ip', 'node1::ip')
     assert correct_connection == connection
+
+
+def test_parse_dict_input():
+    correct_connections = [{'child_input': 'env:host',
+                            'events': None,
+                            'parent': 'node1',
+                            'parent_input': 'ip'}]
+    connections, assigments = vr.parse_dict_input('env', {'host': 'node1::ip'})
+    assert correct_connections == connections
 
 
 def test_parse_connection_disable_events():
