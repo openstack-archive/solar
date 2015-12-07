@@ -166,8 +166,7 @@ def test_lua_join_different_values(rk):
                               'inputs': {'input': None}})
 
     lua_funct = """
-local l = make_arr(data)
-return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]"""
+return res["r1"]["input1"] .. "@" .. res["r2"]["input2"]"""
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
                                              'lang': 'lua',
@@ -204,8 +203,7 @@ def test_lua_join_replace_in_lua(rk):
                               'inputs': {'input': None}})
 
     lua_funct = """
-local l = make_arr(data)
-return l["r1"]["input1"] .. "@" .. l["r2"]["input2"]
+return res["r1"]["input1"] .. "@" .. res["r2"]["input2"]
 """
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
@@ -244,8 +242,8 @@ def test_lua_join_self_computable(rk):
                                          'input2': 'foo',
                                          'input3': None}})
 
-    lua_funct = """local l = make_arr(data)
-return resource_name .. l["r1"]["input2"] .. l["r1"]["input1"]
+    lua_funct = """
+return resource_name .. res["r1"]["input2"] .. res["r1"]["input1"]
 """
 
     r1.meta_inputs['input3']['computable'] = {'func': lua_funct,
