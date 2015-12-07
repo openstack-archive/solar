@@ -1,0 +1,37 @@
+
+- hosts: [{{host}}]
+  sudo: yes
+  tasks:
+    - docker:
+       name: {{ resource_name }}
+       image: {{ image }}
+       state: reloaded
+       net: host
+       {% if ports %}
+       ports:
+         {% for port in ports %}
+         - {{ port }}:{{ port }}
+         {% endfor %}
+       expose: 
+         {% for port in ports %}
+         - {{ port }}
+         {% endfor %}
+       {% endif %}
+
+       {% if host_binds.value %}
+       volumes:
+         # TODO: host_binds might need more work
+         # Currently it's not that trivial to pass custom src: dst here
+         # (when a config variable is passed here from other resource)
+         # so we mount it to the same directory as on host
+         {% for bind in host_binds.value %}
+         - {{ bind['value']['src'] }}:{{ bind['value']['dst'] }}:{{ bind['value'].get('mode', 'ro') }}
+         {% endfor %}
+       {% endif %}
+       
+       {% if env %}
+       env:
+         {% for key, value in env.iteritems() %}
+         {{ key }}: {{ value }}
+         {% endfor %}
+       {% endif %}
