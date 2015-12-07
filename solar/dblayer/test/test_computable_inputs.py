@@ -74,7 +74,7 @@ def test_lua_simple_lua_simple_max(rk):
     r2 = create_resource(k2, {'name': 'target1',
                               'inputs': {'input1': None}})
 
-    lua_funct = 'return math.max(unpack(data))'
+    lua_funct = 'return math.max(unpack(D))'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'lang': 'lua'}
     r1.connect(r2, {'input1': 'input1'})
@@ -100,7 +100,7 @@ def test_lua_full_lua_array(rk):
                               'inputs': {'input1': None}})
 
     # raw python object, counts from 0
-    lua_funct = 'return data'
+    lua_funct = 'return D'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'type': CPT.full.name,
                                               'lang': 'lua'}
@@ -134,7 +134,7 @@ def test_lua_connect_to_computed(rk):
     r4 = create_resource(k4, {'name': 'target1',
                               'inputs': {'input1': None}})
 
-    lua_funct = 'return math.max(unpack(data))'
+    lua_funct = 'return math.max(unpack(D))'
     r2.meta_inputs['input1']['computable'] = {'func': lua_funct,
                                               'lang': 'lua'}
     r1.connect(r2, {'input1': 'input1'})
@@ -166,7 +166,7 @@ def test_lua_join_different_values(rk):
                               'inputs': {'input': None}})
 
     lua_funct = """
-return res["r1"]["input1"] .. "@" .. res["r2"]["input2"]"""
+return R["r1"]["input1"] .. "@" .. R["r2"]["input2"]"""
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
                                              'lang': 'lua',
@@ -203,14 +203,14 @@ def test_lua_join_replace_in_lua(rk):
                               'inputs': {'input': None}})
 
     lua_funct = """
-return res["r1"]["input1"] .. "@" .. res["r2"]["input2"]
+return R["r1"]["input1"] .. "@" .. R["r2"]["input2"]
 """
 
     r3.meta_inputs['input']['computable'] = {"func": lua_funct,
                                              'lang': 'lua',
                                              'type': CPT.full.name}
 
-    lua_funct2 = """local v = data[1]
+    lua_funct2 = """local v = D[1]
 v = v:gsub("@", "-", 1)
 return v
 """
@@ -243,7 +243,7 @@ def test_lua_join_self_computable(rk):
                                          'input3': None}})
 
     lua_funct = """
-return resource_name .. res["r1"]["input2"] .. res["r1"]["input1"]
+return resource_name .. R["r1"]["input2"] .. R["r1"]["input1"]
 """
 
     r1.meta_inputs['input3']['computable'] = {'func': lua_funct,
@@ -265,8 +265,8 @@ def test_python_join_self_computable(rk):
                               'inputs': {'input1': 'bar',
                                          'input2': 'foo',
                                          'input3': None}})
-    py_funct = """l = make_arr(data)
-return resource_name + l["r1"]["input2"] + l["r1"]["input1"]
+    py_funct = """
+return resource_name + R["r1"]["input2"] + R["r1"]["input1"]
 """
 
     r1.meta_inputs['input3']['computable'] = {'func': py_funct,
@@ -288,8 +288,8 @@ def test_jinja_join_self_computable(rk):
                               'inputs': {'input1': 'bar',
                                          'input2': 'foo',
                                          'input3': None}})
-    jinja_funct = """{% set l = make_arr(data) %}
-{{resource_name}}{{l['r1']['input2']}}{{l['r1']['input1']}}
+    jinja_funct = """
+{{resource_name}}{{input2}}{{input1}}
 """
 
     r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
@@ -302,3 +302,49 @@ def test_jinja_join_self_computable(rk):
     r1.save()
 
     assert r1.inputs['input3'] == 'r1foobar'
+
+
+def test_jinja_join_self_sum(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': "r1",
+                              'inputs': {'input1': 3,
+                                         'input2': 2,
+                                         'input3': None}})
+    jinja_funct = """
+{{[input1, input2]|sum}}
+"""
+
+    r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
+                                              'lang': 'jinja2',
+                                              'type': CPT.full.name}
+
+    r1.connect(r1, {'input1': 'input3'})
+    r1.connect(r1, {'input2': 'input3'})
+
+    r1.save()
+
+    assert r1.inputs['input3'] == '5'
+
+
+def test_jinja_join_self_sum_simple(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': "r1",
+                              'inputs': {'input1': 3,
+                                         'input2': 2,
+                                         'input3': None}})
+    jinja_funct = """
+{{D|sum}}
+"""
+
+    r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
+                                              'lang': 'jinja2',
+                                              'type': CPT.values.name}
+
+    r1.connect(r1, {'input1': 'input3'})
+    r1.connect(r1, {'input2': 'input3'})
+
+    r1.save()
+
+    assert r1.inputs['input3'] == '5'

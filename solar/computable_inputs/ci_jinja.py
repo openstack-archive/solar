@@ -14,6 +14,7 @@
 
 from jinja2.sandbox import SandboxedEnvironment
 from solar.computable_inputs import ComputableInputProcessor
+from solar.computable_inputs import ComputablePassedTypes
 
 
 def make_arr(data):
@@ -34,4 +35,13 @@ class JinjaProcessor(ComputableInputProcessor):
 
     def run(self, resource_name, computable_type, funct, data):
         t = self.env.from_string(funct, globals=self._globals)
-        return t.render(resource_name=resource_name, data=data).strip()
+        if computable_type == ComputablePassedTypes.full.name:
+            arr = make_arr(data)
+            my_inputs = arr[resource_name]
+        else:
+            my_inputs = {}
+            arr = {}
+        return t.render(resource_name=resource_name,
+                        D=data,
+                        R=arr,
+                        **my_inputs).strip()

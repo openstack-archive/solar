@@ -38,9 +38,9 @@ class LuaProcessor(ComputableInputProcessor):
         if not funct.startswith('function') \
            and not funct.endswith('end'):
             if computable_type == ComputablePassedTypes.full.name:
-                make_arr = 'local res = make_arr(data)'
+                make_arr = 'local R = make_arr(D)'
                 funct = "%s\n%s" % (make_arr, funct)
-            return 'function (data, resource_name) %s end' % funct
+            return 'function (D, resource_name) %s end' % funct
         return funct
 
     def run(self, resource_name, computable_type, funct, data):

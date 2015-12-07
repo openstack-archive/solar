@@ -19,6 +19,7 @@ import struct
 import subprocess
 
 from solar.computable_inputs import ComputableInputProcessor
+from solar.computable_inputs import ComputablePassedTypes
 from solar.computable_inputs import HELPERS_PATH
 
 
@@ -93,17 +94,19 @@ class PyProcessor(ComputableInputProcessor):
         self.mgr = Mgr()
         self.mgr.run()
 
-    def check_funct(self, funct):
+    def check_funct(self, funct, computable_type):
         if not funct.startswith('def calculate_input('):
             code = funct.splitlines()
+            if computable_type == ComputablePassedTypes.full.name:
+                code.insert(0, 'R = make_arr(D)')
             code = '\n    '.join(code)
-            return 'def calculate_input(data, resource_name):\n    %s' % code
+            return 'def calculate_input(D, resource_name):\n    %s' % code
         return funct
 
     def run(self, resource_name, computable_type, funct, data):
-        funct = self.check_funct(funct)
+        funct = self.check_funct(funct, computable_type)
         value = self.mgr.run_code(code=funct,
                                   fname='calculate_input',
-                                  kwargs={'data': data,
+                                  kwargs={'D': data,
                                           'resource_name': resource_name})
         return value
