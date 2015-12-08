@@ -9,22 +9,19 @@ input:
     ip:
       schema: str!
       value:
-    # ssh_key:
-    #   schema: str!
-    #   value:
-    # ssh_user:
-    #   schema: str!
-    #   value:
     riak_self_name:
       schema: str!
       value:
     riak_hostname:
       schema: str!
-      value: 
+      value:
     riak_name:
       schema: str!
-      # value: "{{riak_self_name}}@{{riak_hostname}}"
-      value: "{{riak_self_name}}@{{ip}}"
+      value: null
+      computable:
+        lang: jinja2
+        type: full
+        func: "{{riak_self_name}}@{{riak_hostname}}"
     riak_port_http:
       schema: int!
       value: 18098

@@ -273,7 +273,8 @@ class Resource(object):
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         if use_defaults:
-            api.add_default_events(self, receiver)
+            if self != receiver:
+                api.add_default_events(self, receiver)
         if events:
             api.add_events(self.name, events)
 

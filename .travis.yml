@@ -1,5 +1,6 @@
 language: python
 python: 2.7
+sudo: false
 env:
   - PIP_ACCEL_CACHE=$HOME/.pip-accel-cache SOLAR_CONFIG=$TRAVIS_BUILD_DIR/.config SOLAR_SOLAR_DB_HOST=localhost
 cache:
@@ -15,3 +16,7 @@ services:
     - riak
 after_success:
     coveralls
+addons:
+  apt:
+    packages:
+    - libluajit-5.1-dev

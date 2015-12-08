@@ -24,3 +24,7 @@ bunch
 riak
 # if you want to use sql backend then
 # peewee
+
+
+# if you want to use lua computable inputs
+# lupa

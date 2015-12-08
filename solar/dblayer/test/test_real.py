@@ -32,6 +32,9 @@ def create_resource(key, data):
         elif isinstance(inp_value, dict):
             schema = {}
         else:
+            if inp_value is None:
+                mi.setdefault(inp_name, {})
+                continue
             schema = '%s!' % type(inp_value).__name__
         mi.setdefault(inp_name, {"schema": schema})
     data['meta_inputs'] = mi
