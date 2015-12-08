@@ -20,14 +20,11 @@ import uuid
 import weakref
 
 from collections import defaultdict
-from contextlib import contextmanager
-from operator import itemgetter
 from random import getrandbits
 from threading import RLock
 
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
 from solar.dblayer.lfu_cache import LFUCache
-from solar.dblayer.proxy import DBLayerProxy
 from solar.utils import get_local
 
 

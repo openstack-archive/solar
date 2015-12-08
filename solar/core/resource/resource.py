@@ -29,7 +29,6 @@ from solar.core import validation
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
-from solar.dblayer.proxy import DBLayerProxy
 from solar.events import api
 from solar import utils
 
