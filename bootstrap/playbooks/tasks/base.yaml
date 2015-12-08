@@ -34,6 +34,9 @@
   - libffi-dev
   - libssl-dev
 
+  # computable inputs lua
+  - libluajit-5.1-dev
+
 
 # PIP
 #- apt: name=python-pip state=absent
