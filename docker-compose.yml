@@ -20,7 +20,9 @@ solar-celery:
     - redis
 
 riak:
-  image: tutum/riak
+  image: solarproject/riak
+  volumes:
+    - ./utils/riak/app.config:/etc/riak/app.config
   ports:
     - 8087:8087
     - 8098:8098
