@@ -24,7 +24,7 @@ from solar.dblayer.solar_models import ComputablePassedTypes
 _LUA_HELPERS = open(os.path.join(HELPERS_PATH, 'lua_helpers.lua')).read()
 
 
-# TODO: (jnowak) add sandoxing
+# TODO: (jnowak) add sandboxing (http://lua-users.org/wiki/SandBoxes)
 
 
 class LuaProcessor(ComputableInputProcessor):
