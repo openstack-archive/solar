@@ -19,6 +19,7 @@ from uuid import uuid4
 
 import libtorrent as lt
 
+from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.log import log
 from solar.core.transports.base import Executor
 from solar.core.transports.base import SyncTransport
@@ -96,7 +97,7 @@ class TorrentSyncTransport(SyncTransport):
         seed_args = ';'.join(to_seed)
         # TODO: 'g' is just for debug, it should be 's', remove when sure
         cmd = ['/usr/bin/python',
-               '/vagrant/solar/solar/core/transports/helpers/solar_torrent.py',
+               '/vagrant/solar/core/transports/helpers/solar_torrent.py',
                'g',
                '"%s"' % seed_args]
         log.debug("Will start seeding: %r" % ' '.join(cmd))
@@ -110,6 +111,11 @@ class TorrentSyncTransport(SyncTransport):
             torrents = self._torrents
         else:
             torrents = self._sudo_torrents
+        torrents = map(lambda x: (
+            x[0],
+            x[1],
+            x[2].replace(SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        ), torrents)
         to_get = ["%s|%s" % (os.path.abspath(
             os.path.join(x[2], '..')), x[1]) for x in torrents]
         get_args = ';'.join(to_get)

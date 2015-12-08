@@ -216,6 +216,12 @@ class InputsFieldWrp(IndexFieldWrp):
             my_resource, my_inp_name, other_resource, other_inp_name, my_type,
             other_type)
 
+    def _connect_other_list(self, my_resource, my_inp_name, other_resource,
+                            other_inp_name, my_type, other_type):
+        return self._connect_other_simple(
+            my_resource, my_inp_name, other_resource, other_inp_name, my_type,
+            other_type)
+
     def _connect_other_list_hash(self, my_resource, my_inp_name,
                                  other_resource, other_inp_name, my_type,
                                  other_type):

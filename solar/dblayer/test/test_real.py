@@ -667,3 +667,17 @@ def test_nested_two_listdict(rk):
         assert 'backends' in sc
         assert isinstance(sc['backends'], list)
         assert isinstance(sc['something'], int)
+
+
+def test_connect_other_list(rk):
+    k1 = next(rk)
+    k2 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'config': {"trackers": []}}})
+    r2 = create_resource(k2, {'name': 'second',
+                              'inputs': {"trackers": ["t1", "t2"]}})
+    r2.connect(r1, {'trackers': 'config:trackers'})
+    Resource.save_all_lazy()
+
+    assert r1.inputs['config']['trackers'] == ["t1", "t2"]
