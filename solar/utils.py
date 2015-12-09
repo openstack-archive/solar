@@ -19,6 +19,7 @@ import logging
 import os
 import re
 import subprocess
+import threading
 import urlparse
 import uuid
 
@@ -139,7 +140,6 @@ def solar_map(funct, args, **kwargs):
 
 
 def get_local():
-    import threading
     return threading.local
 
 
@@ -194,3 +194,7 @@ def detect_input_schema_by_value(value):
         return _types['list']
     if isinstance(value, dict):
         return _types['hash']
+
+
+def get_current_ident():
+    return threading.currentThread().ident

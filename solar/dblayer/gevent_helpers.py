@@ -42,3 +42,7 @@ def solar_map(funct, args, concurrency=5):
 def get_local():
     from solar.dblayer.gevent_local import local
     return local
+
+
+def get_current_ident():
+    return id(gevent.getcurrent())
