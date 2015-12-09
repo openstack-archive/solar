@@ -135,7 +135,14 @@ def clear_cache():
 
 def get_bucket(_, owner, mcs):
     name = owner.get_bucket_name()
-    bucket = mcs.riak_client.bucket(name)
+    if owner.bucket_type:
+        bucket_type = mcs.riak_client.bucket_type(owner.bucket_type)
+    else:
+        # using default bucket type
+        bucket_type = mcs.riak_client
+    bucket = bucket_type.bucket(name)
+    if owner.bucket_properties:
+        bucket.set_properties(owner.bucket_properties)
     bucket.resolver = dblayer_conflict_resolver
     return bucket
 
@@ -730,8 +737,10 @@ class Model(object):
     _changed = False
 
     _local = get_local()()
-
     _lock = RLock()  # for class objs
+
+    bucket_properties = {}
+    bucket_type = None
 
     def __init__(self, key=None):
         self._modified_fields = set()
@@ -910,10 +919,10 @@ class Model(object):
         cls._c.lazy_save.clear()
 
     @clears_state_for('index')
-    def save(self, force=False):
+    def save(self, force=False, **kwargs):
         with self._lock:
             if self.changed() or force or self._new:
-                res = self._riak_object.store()
+                res = self._riak_object.store(**kwargs)
                 self._reset_state()
                 return res
             else:
