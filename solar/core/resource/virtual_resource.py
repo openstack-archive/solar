@@ -267,7 +267,7 @@ def parse_list_input(r_input, args):
     assignments = {}
     for arg in args:
         if isinstance(arg, dict):
-            n_connections, n_assign = parse_dicts_as_collection(
+            n_connections, n_assign = parse_dict_input(
                 r_input, arg)
             connections.extend(n_connections)
             if n_assign:
@@ -307,19 +307,6 @@ def is_connection(arg):
     if isinstance(arg, basestring) and '::' in arg:
         return True
     return False
-
-
-def parse_dicts_as_collection(child_input, arg):
-    connections = []
-    assignments = {}
-    for key, value in arg.items():
-        if is_connection(value):
-            connections.append(
-                parse_connection(
-                    '{}:{}'.format(child_input, key), value))
-        else:
-            assignments[key] = value
-    return connections, assignments
 
 
 def parse_connection(child_input, element):
