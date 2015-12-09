@@ -20,8 +20,10 @@ from types import NoneType
 from uuid import uuid4
 
 from enum import Enum
+
 from solar.computable_inputs import ComputablePassedTypes
 from solar.computable_inputs.processor import get_processor
+from solar.config import C
 from solar.dblayer.model import check_state_for
 from solar.dblayer.model import CompositeIndexField
 from solar.dblayer.model import DBLayerException
@@ -1114,3 +1116,13 @@ class LogItem(Model):
             vals['uid'] = cls.uid.default
         vals.update(data)
         return LogItem.from_dict(vals['uid'], vals)
+
+
+class Lock(Model):
+
+    bucket_properties = {
+        'backend': 'lock_bitcask_mult',
+    }
+    bucket_type = C.lock_bucket_type
+
+    identity = Field(basestring)
