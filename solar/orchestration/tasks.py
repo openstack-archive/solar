@@ -22,6 +22,7 @@ from celery.signals import task_postrun
 from celery.signals import task_prerun
 
 from solar.core import actions
+from solar.core.log import log
 from solar.core import resource
 from solar.dblayer import ModelMeta
 from solar.orchestration import executor
@@ -31,6 +32,9 @@ from solar.orchestration.runner import app
 from solar.orchestration.traversal import traverse
 from solar.system_log.tasks import commit_logitem
 from solar.system_log.tasks import error_logitem
+
+from solar.dblayer.locking import Lock
+from solar.utils import get_current_ident
 
 
 __all__ = ['solar_resource', 'cmd', 'sleep',
@@ -70,6 +74,8 @@ def end_solar_session(task_id, task, *args, **kwargs):
 
 @report_task(name='solar_resource')
 def solar_resource(ctxt, resource_name, action):
+    log.debug('TASK solar resource NAME %s ACTION %s',
+              resource_name, action)
     res = resource.load(resource_name)
     return actions.resource_action(res, action)
 
@@ -132,12 +138,13 @@ def anchor(ctxt, *args):
 
 def schedule(plan_uid, dg):
     tasks = traverse(dg)
-    limit_chain = limits.get_default_chain(
+    filtered_tasks = list(limits.get_default_chain(
         dg,
         [t for t in dg if dg.node[t]['status'] == 'INPROGRESS'],
-        tasks)
+        tasks))
+    log.debug('Schedule next tasks %r', filtered_tasks)
     execution = executor.celery_executor(
-        dg, limit_chain, control_tasks=('fault_tolerance',))
+        dg, filtered_tasks, control_tasks=('fault_tolerance',))
     graph.update_graph(dg)
     execution()
 
@@ -149,25 +156,28 @@ def schedule_start(plan_uid):
     - find successors that should be executed
     - apply different policies to tasks
     """
-    dg = graph.get_graph(plan_uid)
-    schedule(plan_uid, dg)
+    with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        dg = graph.get_graph(plan_uid)
+        schedule(plan_uid, dg)
 
 
 @app.task(name='soft_stop')
 def soft_stop(plan_uid):
-    dg = graph.get_graph(plan_uid)
-    for n in dg:
-        if dg.node[n]['status'] == 'PENDING':
-            dg.node[n]['status'] = 'SKIPPED'
-    graph.update_graph(dg)
+    with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        dg = graph.get_graph(plan_uid)
+        for n in dg:
+            if dg.node[n]['status'] == 'PENDING':
+                dg.node[n]['status'] = 'SKIPPED'
+        graph.update_graph(dg)
 
 
 @app.task(name='schedule_next')
 def schedule_next(task_id, status, errmsg=None):
     plan_uid, task_name = task_id.rsplit(':', 1)
-    dg = graph.get_graph(plan_uid)
-    dg.node[task_name]['status'] = status
-    dg.node[task_name]['errmsg'] = errmsg
-    dg.node[task_name]['end_time'] = time.time()
+    with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        dg = graph.get_graph(plan_uid)
+        dg.node[task_name]['status'] = status
+        dg.node[task_name]['errmsg'] = errmsg
+        dg.node[task_name]['end_time'] = time.time()
 
-    schedule(plan_uid, dg)
+        schedule(plan_uid, dg)
