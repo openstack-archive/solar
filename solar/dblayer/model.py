@@ -136,6 +136,8 @@ def clear_cache():
 def get_bucket(_, owner, mcs):
     name = owner.get_bucket_name()
     bucket = mcs.riak_client.bucket(name)
+    if owner.bucket_properties:
+        bucket.set_properties(owner.bucket_properties)
     bucket.resolver = dblayer_conflict_resolver
     return bucket
 
@@ -730,8 +732,9 @@ class Model(object):
     _changed = False
 
     _local = get_local()()
-
     _lock = RLock()  # for class objs
+
+    bucket_properties = {}
 
     def __init__(self, key=None):
         self._modified_fields = set()

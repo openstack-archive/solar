@@ -1075,3 +1075,12 @@ class LogItem(Model):
             vals['uid'] = cls.uid.default
         vals.update(data)
         return LogItem.from_dict(vals['uid'], vals)
+
+
+class Lock(Model):
+
+    bucket_properties = {
+        'backend': 'lock_bitcask_mult',
+    }
+
+    identity = Field(basestring)

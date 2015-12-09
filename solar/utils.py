@@ -20,6 +20,7 @@ import os
 import re
 import subprocess
 import urlparse
+import threading
 import uuid
 
 from bunch import Bunch
@@ -157,7 +158,6 @@ def solar_map(funct, args, **kwargs):
 
 
 def get_local():
-    import threading
     return threading.local
 
 
@@ -189,3 +189,7 @@ def parse_database_conn(name):
     else:
         raise Exception("Invalid database connection string: %r "
                         "It should be in RFC 1738 format. " % name)
+
+
+def get_current_ident():
+    return threading.currentThread().ident

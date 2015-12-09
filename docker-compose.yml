@@ -10,6 +10,8 @@ solar-celery:
     - /vagrant/library:/vagrant/library
     - ~/.ssh:/root/.ssh
     - ./bootstrap/playbooks/celery.yaml:/celery.yaml
+    - ./run.sh:/run.sh
+    - ./.config:~/.config
   environment:
     - REDIS_HOST=redis
     - REDIS_PORT=6379

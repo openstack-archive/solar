@@ -32,7 +32,7 @@ def setup_logger():
         '%(levelname)s (%(filename)s::%(lineno)s)::%(message)s')
     print_handler = logging.StreamHandler(stream=sys.stdout)
     print_handler.setFormatter(print_formatter)
-    log.addHandler(print_handler)
+    # log.addHandler(print_handler)
 
     log.setLevel(logging.DEBUG)
 

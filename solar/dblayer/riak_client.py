@@ -15,6 +15,7 @@
 import time
 
 from riak import RiakClient as OrigRiakClient
+from riak import RiakError
 
 from solar.dblayer.model import clear_cache
 
@@ -30,9 +31,12 @@ class RiakClient(OrigRiakClient):
     def delete_all(self, cls):
         for _ in xrange(10):
             # riak dislikes deletes without dvv
-            rst = cls.bucket.get_index('$bucket',
-                                       startkey='_',
-                                       max_results=100000).results
+            try:
+                rst = cls.bucket.get_index('$bucket',
+                                           startkey='_',
+                                           max_results=100000).results
+            except RiakError:
+                rst = cls.bucket.get_keys()
             for key in rst:
                 cls.bucket.delete(key)
             else:

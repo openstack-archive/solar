@@ -15,6 +15,10 @@
 from collections import Counter
 
 
+class SiblingsError(RuntimeError):
+    pass
+
+
 def naive_resolver(riak_object):
     # for now we support deleted vs existing object
     siblings = riak_object.siblings
@@ -23,11 +27,11 @@ def naive_resolver(riak_object):
     siblings_len.sort()
     c = Counter((x[0] for x in siblings_len))
     if len(c) > 2:
-        raise RuntimeError(
+        raise SiblingsError(
             "Too many different siblings, not sure what to do with siblings")
     if 0 not in c:
-        raise RuntimeError("No empty object for resolution"
-                           " not sure what to do with siblings")
+        raise SiblingsError("No empty object for resolution"
+                            " not sure what to do with siblings")
     selected = max(siblings_len)
     # TODO: pass info to obj save_lazy too
     riak_object.siblings = [selected[1]]
