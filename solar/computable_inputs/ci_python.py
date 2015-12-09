@@ -22,16 +22,29 @@ from solar.computable_inputs import ComputableInputProcessor
 from solar.computable_inputs import ComputablePassedTypes
 from solar.computable_inputs import HELPERS_PATH
 
+from functools import wraps
+from threading import RLock
+
 
 _PYTHON_WORKER = os.path.join(HELPERS_PATH, 'python_loop.py')
 _PYTHON_HELPERS = open(os.path.join(HELPERS_PATH, 'python_helpers.py')).read()
+
+
+def with_lock(f):
+    @wraps(f)
+    def _inner(obj, *args, **kwargs):
+        with obj.lock:
+            return f(obj, *args, **kwargs)
+    return _inner
 
 
 class Mgr(object):
 
     def __init__(self):
         self.child = None
+        self.lock = RLock()
 
+    @with_lock
     def run(self):
         self.child = subprocess.Popen(['/usr/bin/env', 'python',
                                        _PYTHON_WORKER],
@@ -39,12 +52,14 @@ class Mgr(object):
                                       stdout=subprocess.PIPE)
         self.prepare()
 
+    @with_lock
     def prepare(self):
         self.run_code(fname=None,
                       code=_PYTHON_HELPERS,
                       kwargs={},
                       copy_env=False)
 
+    @with_lock
     def kill_child(self):
         self.child.kill()
 
@@ -77,6 +92,7 @@ class Mgr(object):
         data = self.child.stdout.read(dlen)
         return json.loads(data)
 
+    @with_lock
     def run_code(self, fname, code, kwargs, copy_env=True):
         self.send({'fname': fname,
                    'code': code,

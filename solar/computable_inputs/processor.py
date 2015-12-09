@@ -14,6 +14,8 @@
 
 _av_processors = {}
 
+from threading import RLock
+
 try:
     from solar.computable_inputs.ci_lua import LuaProcessor
 except ImportError:
@@ -40,14 +42,16 @@ else:
 
 
 _processors = {}
+_lock = RLock()
 
 
 def get_processor(resource, input_name, computable_type, data, other=None):
     computable = resource.meta_inputs[input_name]['computable']
     lang = computable['lang']
     funct = computable['func']
-    if lang not in _processors:
-        _processors[lang] = processor = _av_processors[lang]()
-    else:
-        processor = _processors[lang]
+    with _lock:
+        if lang not in _processors:
+            _processors[lang] = processor = _av_processors[lang]()
+        else:
+            processor = _processors[lang]
     return processor.process(resource.name, computable_type, funct, data)
