@@ -20,6 +20,7 @@ import click
 
 from solar.cli.uids_history import remember_uid
 from solar.cli.uids_history import SOLARUID
+from solar.dblayer.locking import Lock
 from solar import errors
 from solar.orchestration import filters
 from solar.orchestration import graph
@@ -190,3 +191,10 @@ def dg(uid, start, end):
 @click.argument('uid', type=SOLARUID)
 def show(uid):
     click.echo(graph.show(uid))
+
+
+@orchestration.command(name='release-lock')
+@click.argument('uid', type=SOLARUID)
+def release_lock(uid):
+    """Use if worker was killed, and lock wasnt released properly. """
+    Lock._release(uid)

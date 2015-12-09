@@ -22,9 +22,12 @@ import yaml
 
 CWD = os.getcwd()
 
+
 C = Bunch(solar_db="")
 C.celery_broker = 'sqla+sqlite:////tmp/celery.db'
 C.celery_backend = 'db+sqlite:////tmp/celery.db'
+C.riak_ensemble = False
+C.lock_bucket_type = None
 
 
 def _lookup_vals(setter, config, prefix=None):
@@ -69,6 +72,8 @@ def from_configs():
     def _setter(config, path):
         vals = data
         for key in path:
+            if key not in vals:
+                return
             vals = vals[key]
         config[path[-1]] = vals
     if data:
