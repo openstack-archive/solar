@@ -23,6 +23,7 @@ from enum import Enum
 from multipledispatch import dispatch
 import networkx
 
+
 from solar.core.signals import get_mapping
 from solar.core import validation
 from solar.dblayer.model import StrInt
@@ -98,7 +99,7 @@ class Resource(object):
         self.db_obj.save()
 
     # Load
-    @dispatch(DBResource)  # NOQA
+    @dispatch(object)  # noqa
     def __init__(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
