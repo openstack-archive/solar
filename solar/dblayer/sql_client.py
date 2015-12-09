@@ -187,10 +187,10 @@ class RiakObj(object):
             self.indexes.difference_update(to_rem)
         return self
 
-    def store(self, return_body=True):
+    def store(self, return_body=True, **kwargs):
         self.vclock = uuid.uuid4().hex
         assert self._sql_bucket_obj is not None
-        self._sql_bucket_obj.save()
+        self._sql_bucket_obj.save(kwargs)
         self._save_indexes()
         return self
 
@@ -289,6 +289,9 @@ class Bucket(object):
 
     def get_properties(self):
         return {'search_index': False}
+
+    def set_properties(self, properties):
+        """Required for complience with riak bucket."""
 
     def get(self, key):
         try:

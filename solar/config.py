@@ -22,6 +22,7 @@ import yaml
 
 CWD = os.getcwd()
 
+
 C = Bunch(solar_db="")
 C.redis = 'redis://localhost:6379/1'
 
