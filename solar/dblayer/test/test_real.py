@@ -13,12 +13,17 @@
 #    under the License.
 
 from __future__ import print_function
+
 import pytest
 
+from solar.config import C
+from solar.dblayer.conflict_resolution import SiblingsError
 from solar.dblayer.model import check_state_for
+from solar.dblayer.model import clear_cache
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import DBLayerSolarException
 from solar.dblayer.solar_models import InputAlreadyExists
+from solar.dblayer.solar_models import Lock
 from solar.dblayer.solar_models import Resource
 from solar.dblayer.solar_models import UnknownInput
 
@@ -728,3 +733,53 @@ def test_remove_input(rk):
 
     with pytest.raises(DBLayerSolarException):
         r1.inputs.remove_existing('b')
+
+
+@pytest.mark.skipif(
+    not ('riak' in C.solar_db and not C.riak_ensemble),
+    reason=('Siblings error on write is expected'
+            ' only with n_val=1 and 1 node installation'))
+def test_return_siblings_on_write(rk):
+    riak = pytest.importorskip('riak')
+
+    uid = next(rk)
+    lock = Lock.from_dict(uid, {'identity': uid})
+    lock.save()
+    clear_cache()
+
+    with pytest.raises(SiblingsError):
+        lock1 = Lock.from_dict(uid, {'identity': uid})
+        lock1.save()
+    s1, s2 = lock1._riak_object.siblings
+    assert s1.data == s2.data
+
+
+@pytest.mark.skipif(
+    not ('riak' in C.solar_db and C.riak_ensemble),
+    reason='On update without turned on ensemble riak wont raise RiakError')
+def test_raise_riak_error_on_incorrect_update(rk):
+    riak = pytest.importorskip('riak')
+
+    uid = next(rk)
+    lock = Lock.from_dict(uid, {'identity': uid})
+    lock.save()
+    clear_cache()
+
+    with pytest.raises(riak.RiakError):
+        lock1 = Lock.from_dict(uid, {'identity': uid})
+        lock1.save()
+
+
+@pytest.mark.skipif(
+    'sqlite' not in C.solar_db,
+    reason='Force insert wont be used by other backends')
+def test_non_unique_key(rk):
+    peewee = pytest.importorskip('peewee')
+
+    uid = next(rk)
+    lock = Lock.from_dict(uid, {'identity': '1'})
+    lock.save(force_insert=True)
+    clear_cache()
+    lock1 = Lock.from_dict(uid, {'identity': '2'})
+    with pytest.raises(peewee.IntegrityError):
+        lock1.save(force_insert=True)
