@@ -39,7 +39,7 @@ Workflow
 
   yum -y install git
 
-  git clone -b f2s https://github.com/Mirantis/solar.git
+  git clone -b f2s https://github.com/dshulyak/solar.git
 
   docker run --name riak -d -p 8087:8087 -p 8098:8098 tutum/riak
 
