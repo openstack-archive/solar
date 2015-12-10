@@ -181,16 +181,17 @@ def requires_clean_state(_type):
 
 
 def check_state_for(_type, obj):
-    state = obj._c.db_ch_state.get(_type)
-    if state:
-        if True:
-            # TODO: solve it
-            obj.save_all_lazy()
-            state = obj._c.db_ch_state.get(_type)
-            if not state:
-                return
-        raise Exception("Dirty state, save all %r objects first" %
-                        obj.__class__)
+    with obj._lock:
+        state = obj._c.db_ch_state.get(_type)
+        if state:
+            if True:
+                # TODO: solve it
+                obj.save_all_lazy()
+                state = obj._c.db_ch_state.get(_type)
+                if not state:
+                    return
+            raise Exception("Dirty state, save all %r objects first" %
+                            obj.__class__)
 
 
 @total_ordering
@@ -731,6 +732,8 @@ class Model(object):
 
     _local = get_local()()
 
+    _lock = RLock()  # for class objs
+
     def __init__(self, key=None):
         self._modified_fields = set()
         # TODO: that _indexes_changed should be smarter
@@ -853,9 +856,13 @@ class Model(object):
             raise DBLayerException("Object already exists in cache"
                                    " cannot create second")
         data['key'] = key
-        riak_obj = cls.bucket.new(key, data={})
-        obj = cls.from_riakobj(riak_obj)
-        obj._new = True
+
+        with cls._c.obj_cache._lock:
+            if key in cls._c.obj_cache:
+                return cls._c.obj_cache.get(key)
+            riak_obj = cls.bucket.new(key, data={})
+            obj = cls.from_riakobj(riak_obj)
+            obj._new = True
 
         for field in cls._model_fields:
             # if field is cls._pkey_field:
@@ -901,7 +908,7 @@ class Model(object):
                 to_save.save()
             except DBLayerException:
                 continue
-            cls._c.lazy_save.clear()
+        cls._c.lazy_save.clear()
 
     @clears_state_for('index')
     def save(self, force=False):

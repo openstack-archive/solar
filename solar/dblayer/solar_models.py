@@ -398,12 +398,12 @@ class InputsFieldWrp(IndexFieldWrp):
             return self._cache[full_name]
         except KeyError:
             pass
-        check_state_for('index', self._instance)
-        fname = self.fname
-        my_name = self._instance.key
-        self._has_own_input(name)
-        ind_name = '{}_recv_bin'.format(fname)
         with self.inputs_index_cache as c:
+            check_state_for('index', self._instance)
+            fname = self.fname
+            my_name = self._instance.key
+            self._has_own_input(name)
+            ind_name = '{}_recv_bin'.format(fname)
             kwargs = dict(startkey='{}|'.format(my_name),
                           endkey='{}|~'.format(my_name),
                           return_terms=True)
