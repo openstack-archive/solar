@@ -33,9 +33,7 @@ class Shell(TempFileHandler):
         self._copy_templates_and_scripts(resource, action_name)
 
         self.transport_sync.copy(resource, self.dst, '/tmp')
-        sync_results = self.transport_sync.sync_all()
-        # TODO Include file information in result
-        self.verify_sync_results(sync_results)
+        self.transport_sync.sync_all()
 
         rst = self.transport_run.run(
             resource,

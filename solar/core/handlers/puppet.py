@@ -37,8 +37,7 @@ class Puppet(TempFileHandler):
 
         self.prepare_templates_and_scripts(resource, action_file, '')
         self.transport_sync.copy(resource, action_file, action_file_name)
-        sync_results = self.transport_sync.sync_all()
-        self.verify_sync_results(sync_results)
+        self.transport_sync.sync_all()
 
         cmd_args = ['puppet', 'apply', '-vd',
                     action_file_name,

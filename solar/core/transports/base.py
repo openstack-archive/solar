@@ -12,6 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from solar.core.log import log
+from solar import errors
+
 
 class Executor(object):
 
@@ -38,7 +41,13 @@ class Executor(object):
 
     def run(self, transport):
         if self.valid:
-            return self._executor(transport)
+            result = self._executor(transport)
+            if isinstance(result, tuple) and len(result) == 3:
+                # TODO Include file information in result
+                rc, out, err = result
+                log.debug('RC %s OUT %s ERR %s', rc, out, err)
+                if rc:
+                    raise errors.SolarError(err)
 
 
 class SolarRunResultWrp(object):
@@ -131,10 +140,8 @@ class SyncTransport(SolarTransport):
             self.preprocess(executor)
 
     def run_all(self):
-        rst = []
         for executor in self.executors:
-            rst.append(executor.run(self))
-        return rst
+            executor.run(self)
 
     def sync_all(self):
         """Syncs all
@@ -144,9 +151,8 @@ class SyncTransport(SolarTransport):
         Could be someday changed to parallel thing.
         """
         self.preprocess_all()
-        rst = self.run_all()
+        self.run_all()
         self.executors = []  # clear after all
-        return rst
 
 
 class RunTransport(SolarTransport):

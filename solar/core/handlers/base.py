@@ -43,15 +43,6 @@ class BaseHandler(object):
         self.transport_sync.bind_with(self.transport_run)
         self.transport_run.bind_with(self.transport_sync)
 
-    def verify_sync_results(self, results):
-        for result in results:
-            if isinstance(result, tuple) and len(result) == 3:
-                # TODO Include file information in result
-                rc, out, err = result
-                log.debug('RC %s OUT %s ERR %s', rc, out, err)
-                if rc:
-                    raise errors.SolarError(err)
-
     def verify_run_result(self, cmd, result):
         rc, out, err = result
         log.debug('CMD %r RC %s OUT %s ERR %s', cmd, rc, out, err)

@@ -39,8 +39,7 @@ class AnsibleTemplate(TempFileHandler):
         self._copy_templates_and_scripts(resource, action_name)
         self.transport_sync.copy(resource, self.dst, '/tmp')
         self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
-        sync_results = self.transport_sync.sync_all()
-        self.verify_sync_results(sync_results)
+        self.transport_sync.sync_all()
 
         # remote paths are not nested inside solar_local
         remote_playbook_file = playbook_file.replace(

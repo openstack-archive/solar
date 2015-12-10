@@ -60,12 +60,8 @@ class OnAll(object):
 
     def __get__(self, obj, objtype):
         def _inner(*args, **kwargs):
-            results = []
             for transport in obj._used_transports:
-                rst = getattr(transport, self._target)(*args, **kwargs)
-                if rst:
-                    results.extend(rst)
-            return results
+                getattr(transport, self._target)(*args, **kwargs)
         return _inner
 
 
