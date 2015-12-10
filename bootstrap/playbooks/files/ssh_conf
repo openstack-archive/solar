@@ -1,0 +1,2 @@
+Host {{ssh_ip_mask}}
+  StrictHostKeyChecking no
