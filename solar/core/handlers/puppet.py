@@ -37,7 +37,8 @@ class Puppet(TempFileHandler):
 
         self.prepare_templates_and_scripts(resource, action_file, '')
         self.transport_sync.copy(resource, action_file, action_file_name)
-        self.transport_sync.sync_all()
+        sync_results = self.transport_sync.sync_all()
+        self.verify_sync_results(sync_results)
 
         cmd_args = ['puppet', 'apply', '-vd',
                     action_file_name,
@@ -46,7 +47,7 @@ class Puppet(TempFileHandler):
             cmd_args.append('--modulepath={}'.format(
                 resource.args['puppet_modules']))
 
-        cmd = self.transport_run.run(
+        rc, out, err = self.transport_run.run(
             resource,
             *cmd_args,
             env={
@@ -55,12 +56,12 @@ class Puppet(TempFileHandler):
             use_sudo=True,
             warn_only=True
         )
+        log.debug('CMD %r RC %s OUT %s ERR %s', cmd_args, rc, out, err)
         # 0 - no changes, 2 - successfull changes
-        if cmd.return_code not in [0, 2]:
+        if rc not in [0, 2]:
             raise errors.SolarError(
-                'Puppet for {} failed with {}'.format(
-                    resource.name, cmd.return_code))
-        return cmd
+                'Puppet for {} failed with RC {}'.format(
+                    resource.name, rc))
 
     def _make_args(self, resource):
         return {resource.name: {'input': resource.args}}

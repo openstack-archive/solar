@@ -43,6 +43,17 @@ def communicate(command, data):
         stderr=subprocess.PIPE)
     return popen.communicate(input=data)[0]
 
+
+def execute(command, shell=False):
+    popen = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=shell)
+    out, err = popen.communicate()
+    return popen.returncode, out, err
+
+
 # Configure jinja2 filters
 jinja_env_with_filters = Environment()
 jinja_env_with_filters.filters['to_json'] = to_json

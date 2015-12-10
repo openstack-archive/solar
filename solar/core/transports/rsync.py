@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from fabric import api as fabric_api
-
 from solar.core.log import log
 from solar.core.transports.base import Executor
 from solar.core.transports.base import SyncTransport
+from solar.utils import execute
 
 # XXX:
 # currently we don't support key verification or acceptation
@@ -55,9 +54,8 @@ class RsyncSyncTransport(SyncTransport):
                          _from=_from,
                          _to=_to)
 
-        rsync_executor = lambda transport: fabric_api.local(
-            rsync_cmd
-        )
+        rsync_executor = lambda transport: execute(
+            rsync_cmd, shell=True)
 
         log.debug("RSYNC CMD: %r" % rsync_cmd)
 

@@ -27,4 +27,5 @@ class NaiveSync(BaseHandler):
         # to understand where src comes from
         for item in args['sources']:
             self.transport_sync.copy(resource, item['src'], item['dst'])
-            self.transport_sync.sync_all()
+            results = self.transport_sync.sync_all()
+            self.verify_sync_results(results)

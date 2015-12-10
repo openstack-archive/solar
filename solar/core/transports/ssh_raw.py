@@ -12,10 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from fabric import api as fabric_api
 
 from solar.core.log import log
 from solar.core.transports.base import RunTransport
+from solar.utils import execute
 
 
 class _RawSSHTransport(object):
@@ -68,5 +68,6 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         ssh_cmd += (self._ssh_command_host(settings), remote_cmd)
 
         log.debug("RAW SSH CMD: %r", ssh_cmd)
+        # TODO convert it to SolarRunResult
 
-        return fabric_api.local(' '.join(ssh_cmd))
+        return execute(' '.join(ssh_cmd), shell=True)

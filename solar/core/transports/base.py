@@ -38,7 +38,7 @@ class Executor(object):
 
     def run(self, transport):
         if self.valid:
-            self._executor(transport)
+            return self._executor(transport)
 
 
 class SolarRunResultWrp(object):
@@ -131,8 +131,10 @@ class SyncTransport(SolarTransport):
             self.preprocess(executor)
 
     def run_all(self):
+        rst = []
         for executor in self.executors:
-            executor.run(self)
+            rst.append(executor.run(self))
+        return rst
 
     def sync_all(self):
         """Syncs all
@@ -142,8 +144,9 @@ class SyncTransport(SolarTransport):
         Could be someday changed to parallel thing.
         """
         self.preprocess_all()
-        self.run_all()
+        rst = self.run_all()
         self.executors = []  # clear after all
+        return rst
 
 
 class RunTransport(SolarTransport):

@@ -18,7 +18,6 @@ import os
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
-from solar import errors
 
 
 class Shell(TempFileHandler):
@@ -34,17 +33,14 @@ class Shell(TempFileHandler):
         self._copy_templates_and_scripts(resource, action_name)
 
         self.transport_sync.copy(resource, self.dst, '/tmp')
-        self.transport_sync.sync_all()
+        sync_results = self.transport_sync.sync_all()
+        # TODO Include file information in result
+        self.verify_sync_results(sync_results)
 
-        cmd = self.transport_run.run(
+        rst = self.transport_run.run(
             resource,
             'bash', action_file_name,
             use_sudo=True,
             warn_only=True
         )
-
-        if cmd.return_code:
-            raise errors.SolarError(
-                'Bash execution for {} failed with {}'.format(
-                    resource.name, cmd.return_code))
-        return cmd
+        self.verify_run_results(['bash', action_file_name], rst)
