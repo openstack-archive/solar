@@ -31,6 +31,16 @@ Currently there are following sync transports available:
 * solar_agent
 * torrent
 
+Ssh host key checking
+---------------------
+Solar wont disable strict host key checking by default, so before working
+with solar ensure that strict host key checking is disabled, or all target hosts added to .ssh/known_hosts file.
+
+Example of .ssh/config ::
+
+  Host 10.0.0.*
+    StrictHostKeyChecking no
+
 Run transport
 -------------
 
