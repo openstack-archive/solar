@@ -266,14 +266,17 @@ def parse_list_input(r_input, args):
     connections = []
     assignments = {}
     for arg in args:
-        if is_connection(arg):
+        if isinstance(arg, dict):
+            n_connections, n_assign = parse_dict_input(
+                r_input, arg)
+            connections.extend(n_connections)
+            if n_assign:
+                add_assignment(assignments, r_input, n_assign)
+        elif is_connection(arg):
             c = parse_connection(r_input, arg)
             connections.append(c)
         else:
-            try:
-                assignments[r_input].append(arg)
-            except KeyError:
-                assignments[r_input] = [arg]
+            add_assignment(assignments, r_input, arg)
     return connections, assignments
 
 
@@ -291,6 +294,13 @@ def parse_dict_input(r_input, args):
             except KeyError:
                 assignments[r_input] = {key: value}
     return connections, assignments
+
+
+def add_assignment(assignments, r_input, arg):
+    try:
+        assignments[r_input].append(arg)
+    except KeyError:
+        assignments[r_input] = [arg]
 
 
 def is_connection(arg):

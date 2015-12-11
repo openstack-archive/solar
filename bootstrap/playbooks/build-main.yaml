@@ -3,10 +3,12 @@
 - name: Main build script
   hosts: all
   sudo: yes
+  vars:
+    ssh_ip_mask: "10.0.0.*"
   tasks:
     - include: tasks/base.yaml
     - include: tasks/puppet.yaml
     - include: tasks/docker.yaml
-    #- include: celery.yaml tags=['master'] celery_dir=/var/run/celery
     - include: tasks/cloud_archive.yaml
-    #- include: tasks/mos.yaml
+    - include: tasks/ssh_conf.yaml
+

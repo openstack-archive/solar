@@ -10,12 +10,12 @@ from solar.dblayer.model import ModelMeta
 def run():
     ModelMeta.remove_all()
 
-    resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {'count': 2})
-    nodes = [x for x in resources if x.name.startswith('node')]
-    node1, node2 = nodes
+    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 2})
 
-    hosts1 = vr.create('hosts_file1', 'resources/hosts_file', {})[0]
-    hosts2 = vr.create('hosts_file2', 'resources/hosts_file', {})[0]
+    node1, node2 = [x for x in resources if x.name.startswith('node')]
+    hosts1, hosts2 = [x for x in resources
+                      if x.name.startswith('hosts_file')]
+
     node1.connect(hosts1, {
         'name': 'hosts:name',
         'ip': 'hosts:ip',
@@ -35,6 +35,5 @@ def run():
         'name': 'hosts:name',
         'ip': 'hosts:ip',
     })
-
 
 run()

@@ -12,27 +12,31 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from fabric import api as fabric_api
 
 from solar.core.log import log
 from solar.core.transports.base import RunTransport
+from solar.utils import execute
 
 
 class _RawSSHTransport(object):
 
-    def _ssh_props(self, resource):
-        return {
-            'ssh_key': resource.args['ssh_key'].value,
-            'ssh_user': resource.args['ssh_user'].value
-        }
+    def settings(self, resource):
+        transport = self.get_transport_data(resource)
+        host = resource.ip()
+        user = transport['user']
+        port = transport['port']
+        key = transport['key']
+        return {'ssh_user': user,
+                'ssh_key': key,
+                'port': port,
+                'ip': host}
 
-    def _ssh_command_host(self, resource):
-        return '{}@{}'.format(resource.args['ssh_user'].value,
-                              resource.args['ip'].value)
+    def _ssh_command_host(self, settings):
+        return '{}@{}'.format(settings['ssh_user'],
+                              settings['ip'])
 
-    def _ssh_cmd(self, resource):
-        props = self._ssh_props(resource)
-        return ('ssh', '-i', props['ssh_key'])
+    def _ssh_cmd(self, settings):
+        return ('ssh', '-i', settings['ssh_key'])
 
 
 class RawSSHRunTransport(RunTransport, _RawSSHTransport):
@@ -40,23 +44,30 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
     def run(self, resource, *args, **kwargs):
         log.debug("RAW SSH: %s", args)
 
-        cmds = []
-        cwd = kwargs.get('cwd')
-        if cwd:
-            cmds.append(('cd', cwd))
-
-        cmds.append(args)
-
+        commands = []
+        prefix = []
         if kwargs.get('use_sudo', False):
-            cmds = [('sudo', ) + cmd for cmd in cmds]
+            prefix.append('sudo')
 
-        cmds = [' '.join(cmd) for cmd in cmds]
+        if kwargs.get('cwd'):
+            cmd = prefix + ['cd', kwargs['cwd']]
+            commands.append(' '.join(cmd))
 
-        remote_cmd = '\"%s\"' % ' && '.join(cmds)
+        env = []
+        if 'env' in kwargs:
+            for key, value in kwargs['env'].items():
+                env.append('{}={}'.format(key, value))
 
-        ssh_cmd = self._ssh_cmd(resource)
-        ssh_cmd += (self._ssh_command_host(resource), remote_cmd)
+        cmd = prefix + env + list(args)
+        commands.append(' '.join(cmd))
 
-        log.debug("SSH CMD: %r", ssh_cmd)
+        remote_cmd = '\"%s\"' % ' && '.join(commands)
 
-        return fabric_api.local(' '.join(ssh_cmd))
+        settings = self.settings(resource)
+        ssh_cmd = self._ssh_cmd(settings)
+        ssh_cmd += (self._ssh_command_host(settings), remote_cmd)
+
+        log.debug("RAW SSH CMD: %r", ssh_cmd)
+        # TODO convert it to SolarRunResult
+
+        return execute(' '.join(ssh_cmd), shell=True)

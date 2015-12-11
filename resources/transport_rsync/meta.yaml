@@ -1,0 +1,23 @@
+id: transport_rsync
+input:
+  key:
+    schema: str!
+    value:
+  user:
+    schema: str!
+    value:
+  name:
+    schema: str!
+    value: rsync
+  location_id:
+    schema: str
+    value:
+    reverse: True
+    is_own: False
+  transports_id:
+    schema: str
+    value:
+    is_emit: False
+  port:
+    schema: int
+    value: 3579

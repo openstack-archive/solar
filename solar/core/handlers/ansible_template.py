@@ -19,7 +19,6 @@ import os
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
-from solar import errors
 
 # otherwise fabric will sys.exit(1) in case of errors
 env.warn_only = True
@@ -52,15 +51,8 @@ class AnsibleTemplate(TempFileHandler):
                      '-i', remote_inventory_file, remote_playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
-        out = self.transport_run.run(resource, *call_args)
-        log.debug(out)
-        if out.failed:
-            raise errors.SolarError(out)
-
-        # with fabric_api.shell_env(ANSIBLE_HOST_KEY_CHECKING='False'):
-        #     out = fabric_api.local(' '.join(call_args), capture=True)
-        # if out.failed:
-        #     raise errors.SolarError(out)
+        rst = self.transport_run.run(resource, *call_args)
+        self.verify_run_result(call_args, rst)
 
     def _create_inventory(self, r):
         directory = self.dirs[r.name]

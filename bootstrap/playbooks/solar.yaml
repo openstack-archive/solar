@@ -2,12 +2,15 @@
 
 - hosts: all
   sudo: yes
+  vars:
+    ssh_ip_mask: "10.0.0.*"
   tasks:
     # upgrade pbr first, old version throws strange errors
     - shell: pip install pbr -U
     # Setup development env for solar
     - shell: pip install -e . chdir=/vagrant
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
+    - include: tasks/ssh_conf.yaml
 
 - hosts: all
   tasks:

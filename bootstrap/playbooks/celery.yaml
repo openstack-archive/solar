@@ -18,6 +18,4 @@
     - shell: celery multi start 2 -A solar.orchestration.runner -P:2 prefork -c:1 1 -c:2 3 -Q:1 scheduler,system_log -Q:2 celery,{{ hostname.stdout }}
              chdir={{ celery_dir }}
       tags: [master]
-    - shell: celery multi start 1 -A solar.orchestration.runner -Q:1  {{ hostname.stdout }}
-             chdir={{ celery_dir }}
-      tags: [slave]
+
