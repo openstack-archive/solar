@@ -1,4 +1,3 @@
-id: remote_file
 handler: shell
 version: 1.0.0
 input:

@@ -1,4 +1,3 @@
-id: nova_neutron
 handler: puppet
 puppet_module: nova
 version: 1.0.0

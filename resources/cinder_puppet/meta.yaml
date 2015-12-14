@@ -1,4 +1,3 @@
-id: cinder_puppet
 handler: puppet
 actions:
     run: run.pp

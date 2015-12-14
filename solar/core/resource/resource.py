@@ -25,6 +25,8 @@ from multipledispatch import dispatch
 import networkx
 
 
+from solar.core.resource.repository import read_meta
+from solar.core.resource.repository import Repository
 from solar.core.signals import get_mapping
 from solar.core.tags_set_parser import Expression
 from solar.core.tags_set_parser import get_string_tokens
@@ -36,19 +38,6 @@ from solar.events import api
 from solar import utils
 
 
-def read_meta(base_path):
-    base_meta_file = os.path.join(base_path, 'meta.yaml')
-
-    metadata = utils.yaml_load(base_meta_file)
-    metadata['version'] = '1.0.0'
-    metadata['base_path'] = os.path.abspath(base_path)
-    actions_path = os.path.join(metadata['base_path'], 'actions')
-    metadata['actions_path'] = actions_path
-    metadata['base_name'] = os.path.split(metadata['base_path'])[-1]
-
-    return metadata
-
-
 RESOURCE_STATE = Enum(
     'ResourceState', 'created operational removed error updated')
 
@@ -58,22 +47,28 @@ class Resource(object):
 
     # Create
     @dispatch(basestring, basestring)
-    def __init__(self, name, base_path, args=None, tags=None,
+    def __init__(self, name, spec, args=None, tags=None,
                  virtual_resource=None):
         args = args or {}
         self.name = name
-        if base_path:
-            metadata = read_meta(base_path)
+        if spec:
+            if spec.startswith('/'):
+                # it's full path, don't use repo
+                self.base_path = spec
+                metadata = read_meta(spec)
+            else:
+                repo, spec = Repository.parse(spec)
+                metadata = repo.get_metadata(spec)
+                self.base_path = repo.get_path(spec)
         else:
             metadata = deepcopy(self._metadata)
-
-        self.base_path = base_path
+            self.base_path = spec  # TODO: remove this old method?
 
         if tags is None:
             tags = []
         m_tags = metadata.get('tags', [])
         tags.extend(m_tags)
-        tags.append('resource={}'.format(metadata['id']))
+        tags.append('resource={}'.format(name))
 
         self.virtual_resource = virtual_resource
 

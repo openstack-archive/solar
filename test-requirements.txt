@@ -13,3 +13,7 @@ os-testr
 
 # to test if everything works on gevent
 gevent
+
+
+# semver for version tests
+semver

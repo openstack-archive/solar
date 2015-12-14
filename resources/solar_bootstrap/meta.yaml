@@ -1,5 +1,4 @@
 handler: ansible
-id: 'solar_bootstrap'
 input:
   ip:
     schema: str!

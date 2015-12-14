@@ -1,4 +1,3 @@
-id: transport_solar_agent
 handler: ansible
 input:
   solar_agent_user:
