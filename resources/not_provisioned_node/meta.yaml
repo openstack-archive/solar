@@ -1,4 +1,3 @@
-id: not_provisioned_node
 handler: shell
 version: 1.0.0
 

@@ -1,4 +1,3 @@
-id: glance_puppet
 handler: puppet
 puppet_module: glance
 version: 1.0.0

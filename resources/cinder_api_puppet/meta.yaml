@@ -1,4 +1,3 @@
-id: cinder_api_puppet
 handler: puppet
 puppet_module: cinder
 version: 1.0.0
