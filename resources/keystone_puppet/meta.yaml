@@ -1,4 +1,3 @@
-id: keystone_puppet
 handler: puppet
 puppet_module: keystone
 version: 1.0.0

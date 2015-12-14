@@ -15,6 +15,7 @@
 import mock
 from pytest import mark
 
+from solar.core.resource import repository
 from solar.core.resource import resource
 from solar.core.resource import RESOURCE_STATE
 from solar.core import signals
@@ -149,12 +150,15 @@ def test_revert_removal():
     assert DBResource._c.obj_cache == {}
     # assert DBResource.bucket.get('test1').siblings == []
 
-    with mock.patch.object(resource, 'read_meta') as mread:
+    with mock.patch.object(repository.Repository, 'read_meta') as mread:
         mread.return_value = {
             'input': {'a': {'schema': 'str!'}},
             'id': 'mocked'
         }
-        change.revert(changes[0].uid)
+        with mock.patch.object(repository.Repository, 'get_path') as mpath:
+            mpath.return_value = 'x'
+
+            change.revert(changes[0].uid)
     ModelMeta.save_all_lazy()
     # assert len(DBResource.bucket.get('test1').siblings) == 1
 
@@ -194,7 +198,7 @@ def test_revert_removed_child():
     logitem = next(staged_log.collection())
     operations.move_to_commited(logitem.log_action)
 
-    with mock.patch.object(resource, 'read_meta') as mread:
+    with mock.patch.object(repository, 'read_meta') as mread:
         mread.return_value = {'input': {'a': {'schema': 'str!'}}}
         change.revert(logitem.uid)
 

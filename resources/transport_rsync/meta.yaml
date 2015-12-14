@@ -1,4 +1,3 @@
-id: transport_rsync
 input:
   key:
     schema: str!

@@ -1,4 +1,3 @@
-id: haproxy_service_config
 handler: none
 version: 1.0.0
 input:

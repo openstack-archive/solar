@@ -44,6 +44,13 @@ Tag
 Used to create arbitrary groups of resources, later this groups will be
 used for different user operations.
 
+.. _res-repository-term:
+
+Resource Repository
+-------------------
+
+It is a named location where different :ref:`resource-term` are located.
+
 .. _res-handler-term:
 
 Handler
@@ -61,6 +68,7 @@ Used in handlers to communicate with hosts managed by Solar.
 .. seealso::
 
    :ref:`More details about transports <transports_details>`
+
 
 .. _location-id-term:
 

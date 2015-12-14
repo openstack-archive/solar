@@ -1,4 +1,3 @@
-id: transports
 input:
   transports:
     schema: [{user: str, password: str, port: int!, key: str, name: str!, trackers: [str]}]
