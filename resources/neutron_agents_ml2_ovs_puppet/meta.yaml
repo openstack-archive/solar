@@ -1,5 +1,4 @@
 handler: puppet
-id: 'neutron_agents_ml2_ovs_puppet'
 input:
   ip:
     schema: str!

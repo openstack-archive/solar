@@ -1,4 +1,3 @@
-id: librarian
 handler: ansible
 version: 0.0.1
 actions:

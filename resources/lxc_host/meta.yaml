@@ -1,4 +1,3 @@
-id: lxc_host
 handler: ansible_playbook
 version: 1.0.0
 actions:

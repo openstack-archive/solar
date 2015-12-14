@@ -1,5 +1,4 @@
 handler: puppet
-id: 'neutron_agents_metadata_puppet'
 input:
   ip:
     schema: str!

@@ -32,23 +32,18 @@ from solar.events.controls import Dep
 from solar.events.controls import React
 
 
-def create(name, base_path, args=None, tags=None, virtual_resource=None):
+def create(name, spec, args=None, tags=None, virtual_resource=None):
     args = args or {}
-    if isinstance(base_path, provider.BaseProvider):
-        base_path = base_path.directory
+    if isinstance(spec, provider.BaseProvider):
+        spec = spec.directory
 
-    if not os.path.exists(base_path):
-        raise Exception(
-            'Base resource does not exist: {0}'.format(base_path)
-        )
-
-    if is_virtual(base_path):
-        template = _compile_file(name, base_path, args)
+    if is_virtual(spec):
+        template = _compile_file(name, spec, args)
         yaml_template = yaml.load(StringIO(template))
         rs = create_virtual_resource(name, yaml_template, tags)
     else:
         r = create_resource(name,
-                            base_path,
+                            spec,
                             args=args,
                             tags=tags,
                             virtual_resource=virtual_resource)
@@ -57,11 +52,11 @@ def create(name, base_path, args=None, tags=None, virtual_resource=None):
     return rs
 
 
-def create_resource(name, base_path, args=None, tags=None,
+def create_resource(name, spec, args=None, tags=None,
                     virtual_resource=None):
     args = args or {}
-    if isinstance(base_path, provider.BaseProvider):
-        base_path = base_path.directory
+    if isinstance(spec, provider.BaseProvider):
+        spec = spec.directory
 
     # filter connections from lists and dicts
     # will be added later
@@ -75,7 +70,7 @@ def create_resource(name, base_path, args=None, tags=None,
             return value
 
     args = {key: _filter(value) for key, value in args.items()}
-    r = Resource(name, base_path, args=args,
+    r = Resource(name, spec, args=args,
                  tags=tags, virtual_resource=virtual_resource)
     return r
 
@@ -130,18 +125,16 @@ def is_virtual(path):
 
 def create_resources(resources, tags=None):
     created_resources = []
-    cwd = os.getcwd()
     for r in resources:
         resource_name = r['id']
         args = r.get('values', {})
         node = r.get('location', None)
         values_from = r.get('values_from')
-        from_path = r.get('from', None)
+        spec = r.get('from', None)
         tags = r.get('tags', [])
-        base_path = os.path.join(cwd, from_path)
-        new_resources = create(resource_name, base_path, args=args, tags=tags)
+        new_resources = create(resource_name, spec, args=args, tags=tags)
         created_resources += new_resources
-        if not is_virtual(base_path):
+        if not is_virtual(spec):
             if node:
                 node = load_resource(node)
                 r = new_resources[0]

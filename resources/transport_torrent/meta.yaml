@@ -1,4 +1,3 @@
-id: transport_torrent
 handler: ansible
 input:
   trackers:

@@ -1,4 +1,3 @@
-id: transport_ssh
 input:
   ssh_key:
     schema: str!

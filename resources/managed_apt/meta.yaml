@@ -1,5 +1,4 @@
 # This resource will clean
-id: apt_repo_manager
 handler: ansible
 version: 1.0.0
 input:

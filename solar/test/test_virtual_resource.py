@@ -52,8 +52,7 @@ def bad_event_type():
 def test_create_path_does_not_exists():
     with pytest.raises(Exception) as excinfo:
         vr.create('node1', '/path/does/not/exists')
-    err = 'Base resource does not exist: /path/does/not/exists'
-    assert str(excinfo.value) == err
+        assert excinfo.filename == '/path/does/not/exists'
 
 
 def test_create_resource():

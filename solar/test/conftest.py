@@ -16,6 +16,7 @@ import time
 
 import pytest
 
+from solar.core.resource.repository import Repository
 from solar.core.resource import Resource
 from solar.dblayer.model import get_bucket
 from solar.dblayer.model import Model
@@ -49,6 +50,14 @@ def setup(request):
 
     for model in ModelMeta._defined_models:
         model.bucket = get_bucket(None, model, ModelMeta)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def repos_path(tmpdir_factory):
+    Repository._REPOS_LOCATION = str(tmpdir_factory.mktemp('repositories'))
+    path = Repository._REPOS_LOCATION
+    repo = Repository('resources')
+    repo.create(path)
 
 
 def pytest_runtest_teardown(item, nextitem):

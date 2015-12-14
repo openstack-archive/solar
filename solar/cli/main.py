@@ -30,6 +30,7 @@ from solar.core import signals
 from solar.cli import base
 from solar.cli.events import events
 from solar.cli.orch import orchestration
+from solar.cli.repository import repository as cli_repository
 from solar.cli.resource import resource as cli_resource
 from solar.cli.system_log import changes
 
@@ -161,6 +162,7 @@ def run():
     main.add_command(orchestration)
     main.add_command(changes)
     main.add_command(events)
+    main.add_command(cli_repository)
     main()
 
 

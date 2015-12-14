@@ -1,5 +1,4 @@
 handler: puppet
-id: 'neutron_puppet'
 input:
   ip:
     schema: str!
