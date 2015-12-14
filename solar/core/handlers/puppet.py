@@ -39,9 +39,11 @@ class Puppet(TempFileHandler):
         self.transport_sync.copy(resource, action_file, action_file_name)
         self.transport_sync.sync_all()
 
-        cmd_args = ['puppet', 'apply', '-vd',
-                    action_file_name,
-                    '--detailed-exitcodes']
+        cmd_args = [
+            'puppet', 'apply', '-vd',
+            action_file_name,
+            '--detailed-exitcodes',
+            '--logdest', '/var/log/puppet/%s.log' % resource.name]
         if 'puppet_modules' in resource.args:
             cmd_args.append('--modulepath={}'.format(
                 resource.args['puppet_modules']))
