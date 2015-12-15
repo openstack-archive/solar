@@ -15,6 +15,7 @@
 
 from copy import deepcopy
 from hashlib import md5
+import itertools
 import json
 import os
 from uuid import uuid4
@@ -25,6 +26,7 @@ import networkx
 
 
 from solar.core.signals import get_mapping
+from solar.core.tags_set_parser import Expression, get_string_tokens
 from solar.core import validation
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
@@ -327,13 +329,18 @@ def load_all():
     return [Resource(r) for r in DBResource.multi_get(candids)]
 
 
-def load_by_tags(tags):
-    tags = set(tags)
-    candids_all = set()
-    for tag in tags:
-        candids = DBResource.tags.filter(tag)
-        candids_all.update(set(candids))
-    return [Resource(r) for r in DBResource.multi_get(candids_all)]
+def load_by_tags(query):
+    if isinstance(query, (list, set, tuple)):
+        query = '|'.join(query)
+
+    parsed_tags = get_string_tokens(query)
+    r_with_tags = [DBResource.tags.filter(tag) for tag in parsed_tags]
+    r_with_tags = set(itertools.chain(*r_with_tags))
+    candids = [Resource(r) for r in DBResource.multi_get(r_with_tags)]
+
+    nodes = filter(
+        lambda n: Expression(query, n.tags).evaluate(), candids)
+    return nodes
 
 
 def validate_resources():
