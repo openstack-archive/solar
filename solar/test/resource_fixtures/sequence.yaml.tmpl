@@ -1,0 +1,17 @@
+id: data_resources_{idx}
+resources:
+  - id: data_resource_1_{idx}
+    from: {resource_path}
+    input:
+      key1: key1
+      key2: key2
+  - id: data_resource_2_{idx}
+    from: {resource_path}
+    input:
+      key1: data_resource_1_{idx}::key1
+      key2: data_resource_1_{idx}::key2
+  - id: data_resource_3_{idx}
+    from: {resource_path}
+    input:
+      key1: data_resource_2_{idx}::key1
+      key2: data_resource_2_{idx}::key2
