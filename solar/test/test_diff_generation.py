@@ -64,8 +64,8 @@ def test_create_diff_modified(diff_for_update):
 
     assert len(diff_for_update) == 2
     assert set(['change']) == operations
-    assert vals['ip'] == ('10.0.0.2', {'value': '10.0.0.2'})
-    assert vals['list_val'] == ([1], {'value': [1, 2]})
+    assert vals['ip'] == ['10.0.0.2', {'value': '10.0.0.2'}]
+    assert vals['list_val'] == [[1], {'value': [1, 2]}]
 
 
 def test_verify_patch_creates_expected(staged, diff_for_update, commited):
