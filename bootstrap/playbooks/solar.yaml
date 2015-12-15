@@ -22,3 +22,8 @@
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
         state: present
+    # set default config location
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export SOLAR_CONFIG="/vagrant/.config"
+        state: present
