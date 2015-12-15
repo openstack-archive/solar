@@ -21,6 +21,7 @@ from solar.core.resource import Resource
 from solar.dblayer.model import get_bucket
 from solar.dblayer.model import Model
 from solar.dblayer.model import ModelMeta
+from solar.orchestration import graph
 
 
 def patched_get_bucket_name(cls):
@@ -79,3 +80,46 @@ def pytest_runtest_call(item):
 
 
 Model.get_bucket_name = classmethod(patched_get_bucket_name)
+
+
+def plan_from_fixture(name):
+    riak_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
+        '%s.yaml' % name)
+    return graph.create_plan(riak_path)
+
+
+@pytest.fixture
+def riak_plan():
+    return plan_from_fixture('riak')
+
+
+@pytest.fixture
+def simple_plan():
+    return plan_from_fixture('simple')
+
+
+@pytest.fixture
+def sequential_plan():
+    return plan_from_fixture('sequential')
+
+
+@pytest.fixture
+def two_path_plan():
+    return plan_from_fixture('two_path')
+
+
+@pytest.fixture
+def sequence_vr(tmpdir):
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_tmpl_path = os.path.join(base_path, 'sequence.yaml.tmpl')
+    base_resource_path = os.path.join(base_path, 'data_resource')
+    with open(vr_tmpl_path) as f:
+        vr_data = f.read().format(
+            resource_path=base_resource_path,
+            idx='#{ idx }#')
+    vr_file = tmpdir.join('sequence.yaml')
+    vr_file.write(vr_data)
+    return str(vr_file)
