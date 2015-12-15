@@ -22,8 +22,8 @@ pydot
 bunch
 wrapt
 # if you want to use riak backend then
-riak
+# riak
 # if you want to use sql backend then
-# peewee
+peewee
 # if you want to use lua computable inputs
 # lupa

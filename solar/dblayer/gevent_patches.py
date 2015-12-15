@@ -20,10 +20,12 @@ def _patch(obj, name, target):
 
 
 def patch_all():
+    from solar.config import C
     from solar.dblayer.model import ModelMeta
     if ModelMeta._defined_models:
         raise RuntimeError(
             "You should run patch_multi_get before defining models")
+
     from solar.dblayer.model import Model
 
     from solar.dblayer.gevent_helpers import get_local
@@ -31,8 +33,11 @@ def patch_all():
     from solar.dblayer.gevent_helpers import solar_map
     from solar import utils
 
-    _patch(Model, 'multi_get', multi_get)
+    if C.solar_db.startswith('riak'):
+        # patching these methods on sql
+        # dbs does not make sense
+        _patch(Model, 'multi_get', multi_get)
+        _patch(utils, 'solar_map', solar_map)
 
-    _patch(utils, 'solar_map', solar_map)
     _patch(utils, 'get_local', get_local)
     _patch(Model, '_local', get_local()())

@@ -1,36 +1,43 @@
 from solar.dblayer.model import ModelMeta
-from solar.dblayer.riak_client import RiakClient
 from solar.config import C
+from solar.utils import parse_database_conn
 
-if C.solar_db.mode == 'sqlite':
+_connection, _connection_details = parse_database_conn(C.solar_db)
+
+if _connection.mode == 'sqlite':
     from solar.dblayer.sql_client import SqlClient
-    if C.solar_db.backend == 'memory':
-        client = SqlClient(C.solar_db.location,
-                           threadlocals=False,
-                           autocommit=False)
-    elif C.solar_db.backend == 'file':
-        client = SqlClient(
-            C.solar_db.location,
-            threadlocals=True,
-            autocommit=False,
-            pragmas=(('journal_mode', 'WAL'), ('synchronous', 'NORMAL')))
+    if _connection.database == ':memory:' or _connection.database is None:
+        opts = {'threadlocals': True,
+                'autocommit': False}
+        _connection.database = ":memory:"
     else:
-        raise Exception('Unknown sqlite backend %s', C.solar_db.backend)
+        opts = {'threadlocals': True,
+                'autocommit': False,
+                'pragmas': (('journal_mode', 'WAL'),
+                            ('synchronous', 'NORMAL'))}
+    opts.update(_connection_details.toDict())
+    client = SqlClient(
+        _connection.database,
+        **opts)
 
-elif C.solar_db.mode == 'riak':
+elif _connection.mode == 'riak':
     from solar.dblayer.riak_client import RiakClient
-    if C.solar_db.protocol == 'pbc':
-        client = RiakClient(protocol=C.solar_db.protocol,
+    proto = _connection_details.get('protocol', 'pbc')
+    opts = _connection_details.toDict()
+    if proto == 'pbc':
+        client = RiakClient(protocol=proto,
+                            host=_connection.host,
+                            pb_port=_connection.port,
+                            **opts)
+    elif proto == 'http':
+        client = RiakClient(protocol=proto,
                             host=C.solar_db.host,
-                            pb_port=C.solar_db.port)
-    elif C.solar_db.protocol == 'http':
-        client = RiakClient(protocol=C.solar_db.protocol,
-                            host=C.solar_db.host,
-                            http_port=C.solar_db.port)
+                            http_port=_connection.port,
+                            **opts)
     else:
-        raise Exception('Unknown riak protocol %s', C.solar_db.protocol)
+        raise Exception('Unknown riak protocol %s', proto)
 else:
-    raise Exception('Unknown dblayer backend %s', C.dblayer)
+    raise Exception('Unknown dblayer backend %s', C.solar_db)
 
 ModelMeta.setup(client)
 
