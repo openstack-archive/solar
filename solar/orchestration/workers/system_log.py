@@ -12,23 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import networkx as nx
-
-from mock import patch
-from pytest import fixture
-from solar.orchestration import executor
+from solar.orchestration.workers import base
+from solar.system_log.operations import move_to_commited
+from solar.system_log.operations import set_error
 
 
-@fixture
-def dg():
-    ex = nx.DiGraph()
-    ex.add_node('t1', args=['t'], status='PENDING', type='echo')
-    ex.graph['uid'] = 'some_string'
-    return ex
+class SystemLog(base.Worker):
 
+    def commit(self, ctxt, *args, **kwargs):
+        return move_to_commited(ctxt['task_id'].rsplit(':', 1)[-1])
 
-@patch.object(executor, 'app')
-def test_celery_executor(mapp, dg):
-    """Just check that it doesnt fail for now."""
-    assert executor.celery_executor(dg, ['t1'])
-    assert dg.node['t1']['status'] == 'INPROGRESS'
+    def error(self, ctxt, *args, **kwargs):
+        return set_error(ctxt['task_id'].rsplit(':', 1)[-1])
