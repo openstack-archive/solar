@@ -17,9 +17,12 @@ import io
 import json
 import logging
 import os
+import re
 import subprocess
+import urlparse
 import uuid
 
+from bunch import Bunch
 from jinja2 import Environment
 import yaml
 
@@ -156,3 +159,29 @@ def solar_map(funct, args, **kwargs):
 def get_local():
     import threading
     return threading.local
+
+
+def parse_database_conn(name):
+    regex = re.compile(r'''
+            (?P<mode>[\w\+]+)://
+            (?:
+                (?P<username>[^:/]*)
+                (?::(?P<password>[^/]*))?
+            @)?
+            (?:
+                (?P<host>[^/:]*)
+                (?::(?P<port>[^/]*))?
+            )?
+            (?:/(?P<database>.*))?
+            ''', re.X)
+    if '?' in name:
+        name, opts = name.split('?', 1)
+        opts = dict(urlparse.parse_qsl(opts))
+    else:
+        opts = {}
+    m = regex.match(name)
+    if m is not None:
+        groups = m.groupdict()
+        return Bunch(groups), Bunch(opts)
+    else:
+        raise Exception("Could not parse database connection %r" % name)
