@@ -101,7 +101,7 @@ class RiakLock(_Lock):
                 if s.data.get('identity') != identity:
                     siblings.append(s)
             lk._riak_object.siblings = siblings
-            lk.save()
+            lk.save(force=True)
         return lk
 
 

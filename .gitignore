@@ -60,3 +60,6 @@ solar/.cache
 
 # for simplicity let's keep solar-resources there
 solar-resources
+
+.xprocess/
+
