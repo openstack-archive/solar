@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
+
 from ply import lex
 from ply import yacc
 
@@ -23,9 +25,13 @@ tokens = (
     "AND",
     "OR",
     "LPAREN",
-    "RPAREN")
+    "RPAREN",
+    "ANY",
+    "EQ")
 
 t_STRING = r'[A-Za-z0-9-_/\\]+'
+t_EQ = r'='
+t_ANY = r'\*'
 t_AND = '&|,'
 t_OR = r'\|'
 t_LPAREN = r'\('
@@ -60,10 +66,23 @@ class ScalarWrapper(object):
         return self.value
 
 
-def p_expression_logical_op(p):
-    """Parser
+class AnyWrapper(object):
 
-       expression : expression AND expression
+    def __init__(self, value):
+        global expression
+        # convert all tags from key=value to key=*
+        tags = map(lambda s: re.sub('=\w+', '=*', s), expression.tags)
+        self.value = (set([value]) <= set(tags))
+
+    def evaluate(self):
+        return self.value
+
+    def __call__(self):
+        return self.value
+
+
+def p_expression_logical_op(p):
+    """expression : expression AND expression
                   | expression OR expression
     """
     result, arg1, op, arg2 = p
@@ -76,18 +95,28 @@ def p_expression_logical_op(p):
 
 
 def p_expression_string(p):
-    """Parser
+    """expression : STRING"""
+    p[0] = ScalarWrapper(p[1] + '=')
 
-    expression : STRING
+
+def p_expression_assign(p):
+    """expression : STRING EQ STRING
+                  | STRING EQ
     """
-    p[0] = ScalarWrapper(p[1])
+    if len(p) == 3:
+        last = ''
+    else:
+        last = p[3]
+    p[0] = ScalarWrapper(p[1] + p[2] + last)
+
+
+def p_expression_assign_any(p):
+    """expression : STRING EQ ANY"""
+    p[0] = AnyWrapper(p[1] + p[2] + p[3])
 
 
 def p_expression_group(p):
-    """Parser
-
-    expression : LPAREN expression RPAREN
-    """
+    """expression : LPAREN expression RPAREN"""
     p[0] = p[2]
 
 
@@ -113,8 +142,24 @@ class Expression(object):
 
 
 lexer = lex.lex()
-parser = yacc.yacc(debug=False, write_tables=False)
+parser = yacc.yacc(debug=False, write_tables=False, errorlog=yacc.NullLogger())
 expression = None
+
+
+def get_string_tokens(txt):
+    lexer.input(txt)
+    parsed = []
+    token_part = ''
+    for token in lexer:
+        if token.type in ['STRING', 'ANY', 'EQ']:
+            token_part += token.value
+        else:
+            if token_part:
+                parsed.append(token_part)
+                token_part = ''
+    if token_part:
+        parsed.append(token_part)
+    return parsed
 
 
 def parse(expr):
