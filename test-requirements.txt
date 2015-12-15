@@ -10,7 +10,3 @@ os-testr
 ## for computable inputs
 # temporary disabled
 # lupa
-
-# to test if everything works on gevent
-gevent
-

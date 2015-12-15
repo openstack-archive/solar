@@ -11,11 +11,11 @@ enum34==1.0.4
 inflection
 Fabric==1.10.2
 tabulate==0.7.5
+gevent>=1.0.2
 
 # we need callbacks for now
 ansible<2.0
 
-celery
 mock
 multipledispatch==0.4.8
 pbr
@@ -37,3 +37,8 @@ semver
 
 # plugins
 stevedore
+
+#zerorpc doesnt consume messages with >13.0.2, need to debug
+pyzmq==13.0.2
+zerorpc>=0.5.2
+
