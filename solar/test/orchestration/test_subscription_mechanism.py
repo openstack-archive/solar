@@ -12,14 +12,28 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from celery import Celery
-
-from solar.config import C
+from solar.orchestration.workers import base
 
 
-app = Celery(
-    include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
-    broker=C.celery_broker,
-    backend=C.celery_backend)
-app.conf.update(CELERY_ACCEPT_CONTENT=['json'])
-app.conf.update(CELERY_TASK_SERIALIZER='json')
+class SubTest(base.Worker):
+    """for tests."""
+
+    def pass_two(self, ctxt):
+        return 2
+
+
+def test_subscribe_on_success():
+    sub = SubTest()
+    test = []
+    assert sub.pass_two.on_success(lambda ctxt, rst: test.append(rst)) is None
+    assert sub.pass_two({}) == 2
+    assert test == [2]
+
+
+def test_subscribe_for_all():
+    sub = SubTest()
+    test = []
+    sub.for_all.after(lambda ctxt: test.append('after'))
+    sub.for_all.before(lambda ctxt: test.append('before'))
+    sub.pass_two({})
+    assert test == ['before', 'after']

@@ -29,6 +29,9 @@ C.celery_backend = 'db+sqlite:////tmp/celery.db'
 C.riak_ensemble = False
 C.lock_bucket_type = None
 C.log_file = 'solar.log'
+C.system_log_address = 'ipc:///tmp/solar_system_log'
+C.tasks_address = 'ipc:///tmp/solar_tasks'
+C.scheduler_address = 'ipc:///tmp/solar_scheduler'
 
 
 def _lookup_vals(setter, config, prefix=None):

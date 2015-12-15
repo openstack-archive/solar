@@ -24,7 +24,7 @@ from solar.dblayer.locking import Lock
 from solar import errors
 from solar.orchestration import filters
 from solar.orchestration import graph
-from solar.orchestration import tasks
+from solar.orchestration import SCHEDULER_CLIENT
 from solar.orchestration.traversal import states
 from solar.orchestration import utils
 
@@ -128,9 +128,7 @@ def noop(uid, task):
 @click.argument('uid', type=SOLARUID, default='last')
 @click.option('-w', 'wait', default=0)
 def run_once(uid, wait):
-    tasks.schedule_start.apply_async(
-        args=[uid],
-        queue='scheduler')
+    SCHEDULER_CLIENT.next({}, uid)
     wait_report(uid, wait)
 
 
@@ -139,7 +137,7 @@ def run_once(uid, wait):
 @click.option('-w', 'wait', default=0)
 def restart(uid, wait):
     graph.reset_by_uid(uid)
-    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+    SCHEDULER_CLIENT.next({}, uid)
     wait_report(uid, wait)
 
 
@@ -150,7 +148,7 @@ def stop(uid):
     # using revoke(terminate=True) will lead to inability to restart execution
     # research possibility of customizations
     # app.control and Panel.register in celery
-    tasks.soft_stop.apply_async(args=[uid], queue='scheduler')
+    SCHEDULER_CLIENT.soft_stop({}, uid)
 
 
 @orchestration.command()
@@ -163,14 +161,14 @@ def reset(uid):
 @click.argument('uid', type=SOLARUID)
 def resume(uid):
     graph.reset_by_uid(uid, state_list=['SKIPPED'])
-    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+    SCHEDULER_CLIENT.next({}, uid)
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 def retry(uid):
     graph.reset_by_uid(uid, state_list=['ERROR'])
-    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+    SCHEDULER_CLIENT.next({}, uid)
 
 
 @orchestration.command()
