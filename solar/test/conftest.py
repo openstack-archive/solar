@@ -21,6 +21,7 @@ from solar.core.resource import Resource
 from solar.dblayer.model import get_bucket
 from solar.dblayer.model import Model
 from solar.dblayer.model import ModelMeta
+from solar.orchestration import graph
 
 
 def patched_get_bucket_name(cls):
@@ -79,3 +80,19 @@ def pytest_runtest_call(item):
 
 
 Model.get_bucket_name = classmethod(patched_get_bucket_name)
+
+def plan_from_fixture(name):
+    riak_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
+        '%s.yaml' % name)
+    return graph.create_plan(riak_path)
+
+
+@pytest.fixture
+def riak_plan():
+    return plan_from_fixture('riak')
+
+
+@pytest.fixture
+def simple_plan():
+    return plan_from_fixture('simple')

@@ -128,9 +128,9 @@ def noop(uid, task):
 @click.argument('uid', type=SOLARUID, default='last')
 @click.option('-w', 'wait', default=0)
 def run_once(uid, wait):
-    tasks.schedule_start.apply_async(
-        args=[uid],
-        queue='scheduler')
+    from solar.orchestration import AsyncClient
+    scheduler = AsyncClient('ipc:///tmp/scheduler')
+    scheduler.next({}, uid)
     wait_report(uid, wait)
 
 
@@ -139,7 +139,9 @@ def run_once(uid, wait):
 @click.option('-w', 'wait', default=0)
 def restart(uid, wait):
     graph.reset_by_uid(uid)
-    tasks.schedule_start.apply_async(args=[uid], queue='scheduler')
+    from solar.orchestration import AsyncClient
+    scheduler = AsyncClient('ipc:///tmp/scheduler')
+    scheduler.next({}, uid)
     wait_report(uid, wait)
 
 

@@ -12,18 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.orchestration.runner import app
+from solar.orchestration.workers import base
 from solar.system_log.operations import move_to_commited
 from solar.system_log.operations import set_error
 
-__all__ = ['error_logitem', 'commit_logitem']
 
+class SystemLog(base.Worker):
 
-@app.task(name='error_logitem')
-def error_logitem(task_uuid):
-    return set_error(task_uuid.rsplit(':', 1)[-1])
+    def commit(self, ctxt, *args, **kwargs):
+        return move_to_commited(ctxt['task_id'].rsplit(':', 1)[-1])
 
-
-@app.task(name='commit_logitem')
-def commit_logitem(task_uuid):
-    return move_to_commited(task_uuid.rsplit(':', 1)[-1])
+    def error(self, ctxt, *args, **kwargs):
+        return set_error(ctxt['task_id'].rsplit(':', 1)[-1])

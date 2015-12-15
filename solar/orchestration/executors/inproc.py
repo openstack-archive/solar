@@ -12,14 +12,4 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from celery import Celery
-
-from solar.config import C
-
-
-app = Celery(
-    include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
-    broker=C.celery_broker,
-    backend=C.celery_backend)
-app.conf.update(CELERY_ACCEPT_CONTENT=['json'])
-app.conf.update(CELERY_TASK_SERIALIZER='json')
+raise NotImplemented()
