@@ -1,0 +1,10 @@
+id: data_resources
+handler: none
+version: 1.0.0
+input:
+  key1:
+    schema: str!
+    value:
+  key2:
+    schema: str!
+    value:
