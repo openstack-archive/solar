@@ -61,8 +61,8 @@ class _Lock(object):
         lk = self._acquire(self.uid, self.identity, self.stamp)
         if not lk.am_i_locking(self.identity):
             log.debug(
-                'Lock %s acquired by another identity %s != %s',
-                self.uid, self.identity, lk.who_is_locking())
+                'Lock %s acquired by another identity %s != %s, lockers %s',
+                self.uid, self.identity, lk.who_is_locking(), lk.lockers)
             while self.retries:
                 del DBLock._c.obj_cache[lk.key]
                 time.sleep(self.wait)
@@ -112,8 +112,8 @@ class _CRDTishLock(_Lock):
             locking = lk.who_is_locking()
             if locking is not None:
                 log.debug(
-                    'Found lock with UID %s, owned by %s, owner %r',
-                    uid, locking, lk.am_i_locking(identity))
+                    'Found lock with UID %s, owned by %s, owner %r, lockers %s',
+                    uid, locking, lk.am_i_locking(identity), lk.lockers)
                 return lk
             else:
                 log.debug(
