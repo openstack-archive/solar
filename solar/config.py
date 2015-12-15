@@ -22,9 +22,8 @@ import yaml
 
 CWD = os.getcwd()
 
-C = Bunch()
+C = Bunch(solar_db="")
 C.redis = Bunch(port='6379', host='10.0.0.2')
-C.solar_db = Bunch(mode='riak', port='8087', host='10.0.0.2', protocol='pbc')
 
 
 def _lookup_vals(setter, config, prefix=None):
@@ -43,6 +42,7 @@ def from_configs():
 
     paths = [
         os.getenv('SOLAR_CONFIG', os.path.join(CWD, '.config')),
+        os.getenv('SOLAR_CONFIG_OVERRIDE', None),
         os.path.join(CWD, '.config.override')
     ]
     data = {}
@@ -54,6 +54,8 @@ def from_configs():
                 data.update(loaded)
 
     for path in paths:
+        if not path:
+            continue
         if not os.path.exists(path):
             continue
         if not os.path.isfile(path):

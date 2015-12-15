@@ -609,7 +609,6 @@ class ModelMeta(type):
 
     @classmethod
     def session_start(mcs):
-        clear_cache()
         mcs.riak_client.session_start()
 
 

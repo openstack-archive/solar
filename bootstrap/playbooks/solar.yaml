@@ -14,6 +14,17 @@
 
 - hosts: all
   tasks:
+    # set default config location
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export SOLAR_CONFIG="/vagrant/.config"
+        state: present
+    # make riak default on vagrant env
+    # unset
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export SOLAR_CONFIG_OVERRIDE="/home/vagrant/.solar_config_override"
+        state: present
     - lineinfile:
         dest: /home/vagrant/.bashrc
         line: eval "$(_SOLAR_COMPLETE=source solar)"
@@ -22,3 +33,11 @@
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
         state: present
+
+- hosts: all
+  tasks:
+    - lineinfile:
+        dest: /home/vagrant/.solar_config_override
+        line: "solar_db: riak://10.0.0.2:8087"
+        state: present
+        create: yes
