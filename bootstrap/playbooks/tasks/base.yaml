@@ -55,6 +55,9 @@
 # fresh tox
 - shell: sudo pip install tox
 
+# install riak package
+- shell: sudo pip install riak
+
 # Ubuntu OpenStack packages
 #- apt: name=ubuntu-cloud-keyring state=present
 #- shell: echo "deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/kilo main" > /etc/apt/sources.list.d/cloudarchive-kilo.list

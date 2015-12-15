@@ -190,12 +190,12 @@ class RiakObj(object):
     def store(self, return_body=True):
         self.vclock = uuid.uuid4().hex
         assert self._sql_bucket_obj is not None
-        self._sql_bucket_obj.save()
+        self. _sql_bucket_obj.save()
         self._save_indexes()
         return self
 
     def delete(self):
-        self._sql_bucket_obj.delete()
+        self.bucket.delete(self.key)
         return self
 
     @property
@@ -238,9 +238,9 @@ class IndexPage(object):
         self.max_results = max_results
         self.index = index
         if not return_terms:
-            self.results = tuple(x[0] for x in results)
+            self.results = list(x[0] for x in results)
         else:
-            self.results = tuple(results)
+            self.results = list(results)
 
         if not max_results or not self.results:
             self.continuation = None
@@ -430,7 +430,11 @@ class SqlClient(object):
     def session_start(self):
         clear_cache()
         sess = self._sql_session
-        sess.begin()
+        # TODO: (jnowak) remove this, it's a hack
+        # because of pytest nested calls
+        if getattr(sess, '_started', False):
+            sess.begin()
+        setattr(sess, '_started', True)
 
     def session_end(self, result=True):
         sess = self._sql_session
@@ -439,6 +443,7 @@ class SqlClient(object):
         else:
             sess.rollback()
         clear_cache()
+        setattr(sess, '_started', False)
 
     def delete_all(self, cls):
         # naive way for SQL, we could delete whole table contents
