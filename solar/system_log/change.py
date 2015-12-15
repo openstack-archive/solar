@@ -43,7 +43,14 @@ def guess_action(from_, to):
 
 
 def create_diff(staged, commited):
-    return list(dictdiffer.diff(commited, staged))
+
+    def listify(t):
+        # we need all values as lists, because we need the same behaviour
+        # in pre and post save situations
+        return list(map(listify, t)) if isinstance(t, (list, tuple)) else t
+
+    res = tuple(dictdiffer.diff(commited, staged))
+    return listify(res)
 
 
 def create_logitem(resource, action, diffed, connections_diffed,

@@ -18,6 +18,7 @@ from pytest import mark
 from solar.core.resource import resource
 from solar.core.resource import RESOURCE_STATE
 from solar.core import signals
+from solar.dblayer.model import clear_cache
 from solar.dblayer.model import ModelMeta
 from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
@@ -51,7 +52,7 @@ def test_revert_update():
     resource_obj.update(commit)
     operations.move_to_commited(logitem.log_action)
 
-    assert logitem.diff == [('change', 'a', ('9', '10'))]
+    assert logitem.diff == [['change', 'a', ['9', '10']]]
     assert resource_obj.args == commit
 
     change.revert(logitem.uid)
@@ -144,9 +145,9 @@ def test_revert_removal():
     assert changes[0].diff == [['remove', '', [['a', '9']]]]
     operations.move_to_commited(changes[0].log_action)
 
-    ModelMeta.session_start()
+    clear_cache()
     assert DBResource._c.obj_cache == {}
-    assert DBResource.bucket.get('test1').siblings == []
+    # assert DBResource.bucket.get('test1').siblings == []
 
     with mock.patch.object(resource, 'read_meta') as mread:
         mread.return_value = {
@@ -155,7 +156,7 @@ def test_revert_removal():
         }
         change.revert(changes[0].uid)
     ModelMeta.save_all_lazy()
-    assert len(DBResource.bucket.get('test1').siblings) == 1
+    # assert len(DBResource.bucket.get('test1').siblings) == 1
 
     resource_obj = resource.load('test1')
     assert resource_obj.args == {
@@ -227,6 +228,7 @@ def test_revert_create():
     assert len(staged_log) == 1
     for item in staged_log:
         operations.move_to_commited(item.log_action)
+
     assert resource.load_all() == []
 
 
