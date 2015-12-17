@@ -14,21 +14,21 @@ resources:
       ip: {{node}}::ip
 
 updates:
-  - with_tags: ['resource=hosts_file']
+  - with_tags: 'resource=hosts_file'
     values:
-      hosts:name: 
+      hosts:name:
         - riak_service{{index}}::riak_hostname::NO_EVENTS
       hosts:ip:
         - riak_service{{index}}::ip::NO_EVENTS
 
-  - with_tags: ['resource=haproxy_service_config', 'service=riak', 'protocol=http'] 
+  - with_tags: 'resource=haproxy_service_config & service=riak & protocol=http'
     values:
       backends:server:
         - riak_service{{index}}::riak_hostname
       backends:port:
         - riak_service{{index}}::riak_port_http
 
-  - with_tags: ['resource=haproxy_service_config', 'service=riak', 'protocol=tcp'] 
+  - with_tags: 'resource=haproxy_service_config & service=riak & protocol=tcp'
     values:
       backends:server:
         - riak_service{{index}}::riak_hostname
@@ -37,8 +37,8 @@ updates:
 
 events:
   - type: depends_on
-    parent: 
-      with_tags: ['resource=hosts_file', 'location={{node}}']
+    parent:
+      with_tags: 'resource=hosts_file & location={{node}}'
       action: run
     state: success
     depend_action: riak_service{{index}}.run
