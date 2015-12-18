@@ -1,3 +1,4 @@
 ---
 
+- file: path=/root/.ssh state=directory
 - template: src=files/ssh_conf dest=/root/.ssh/config
