@@ -7,7 +7,7 @@ ADD resources /resources
 ADD templates /templates
 ADD run.sh /run.sh
 
-RUN apt-get upgrade && apt-get update
+RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y python python-dev python-distribute python-pip openssh-client rsync libyaml-dev vim libffi-dev libssl-dev git
 RUN pip install ansible
 

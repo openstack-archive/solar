@@ -5,6 +5,8 @@
   sudo: yes
   vars:
     celery_dir: /var/run/celery
+  environment:
+    SOLAR_CONFIG_OVERRIDE: /.solar_config_override
   tasks:
     - shell: mkdir -p {{ celery_dir }}
       tags: [install]
