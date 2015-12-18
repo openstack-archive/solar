@@ -23,7 +23,7 @@ import yaml
 CWD = os.getcwd()
 
 C = Bunch(solar_db="")
-C.redis = Bunch(port='6379', host='10.0.0.2')
+C.redis = 'redis://localhost:6379/1'
 
 
 def _lookup_vals(setter, config, prefix=None):
