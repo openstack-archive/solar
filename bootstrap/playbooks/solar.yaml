@@ -42,8 +42,7 @@
         state: present
         create: yes
 
-##  will be uncommented when we will change embedded resources structure
-# - hosts: all
-#   tasks:
-#     - file: path=/var/lib/solar/repositories state=directory
-#     - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
+- hosts: all
+  tasks:
+    - file: path=/var/lib/solar/repositories state=directory
+    - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
