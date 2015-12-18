@@ -15,8 +15,10 @@
 from celery import Celery
 
 from solar.config import C
+from solar.utils import parse_database_conn
 
-_url = 'redis://{}:{}/1'.format(C.redis.host, C.redis.port)
+conn, _ = parse_database_conn(C.redis)
+_url = 'redis://{}:{}/{}'.format(conn.host, conn.port, conn.database)
 
 app = Celery(
     include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
