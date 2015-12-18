@@ -41,8 +41,14 @@
         line: "solar_db: riak://10.0.0.2:8087"
         state: present
         create: yes
+    - lineinfile:
+        dest: /home/vagrant/.solar_config_override
+        line: "redis: redis://10.0.0.2:6379/1"
+        state: present
+        create: yes
 
 - hosts: all
   tasks:
     - file: path=/var/lib/solar/repositories state=directory
     - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
+
