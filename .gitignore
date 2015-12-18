@@ -53,3 +53,5 @@ solar/.cache
 .config.override
 
 .testrepository/
+
+.solar_config_override
