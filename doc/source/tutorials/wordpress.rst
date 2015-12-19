@@ -13,7 +13,7 @@ First checkout Solar repo and start vagrant. We need two virtual machines. One w
 
 .. code-block:: bash
 
-   git clone https://github.com/Mirantis/solar.git
+   git clone https://github.com/openstack/solar.git
    cd solar
    vagrant up solar-dev solar-dev1
    vagrant ssh solar-dev
