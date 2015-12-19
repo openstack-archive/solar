@@ -1,3 +1,5 @@
 ---
 
+- name: .ssh has to be present before we create config file
+  file: path=/root/.ssh state=directory mode=0700
 - template: src=files/ssh_conf dest=/root/.ssh/config
