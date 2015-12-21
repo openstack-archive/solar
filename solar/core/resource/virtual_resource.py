@@ -14,17 +14,19 @@
 #    under the License.
 
 from collections import defaultdict
-import os
 from StringIO import StringIO
 
 from jinja2 import Environment
 from jinja2 import meta
+
+import os
 import yaml
 
 from solar.core.log import log
 from solar.core import provider
 from solar.core.resource import load as load_resource
 from solar.core.resource import load_by_tags
+from solar.core.resource.repository import Repository
 from solar.core.resource import Resource
 from solar.events.api import add_event
 from solar.events.controls import Dep
@@ -45,8 +47,27 @@ def create(name, spec, args=None, tags=None, virtual_resource=None):
     if isinstance(spec, provider.BaseProvider):
         spec = spec.directory
 
-    if is_virtual(spec):
-        template = _compile_file(name, spec, args)
+    # fullpath
+    # TODO: (jnowak) find a better way to code this part
+    if spec.startswith('/'):
+        if os.path.isfile(spec):
+            template = _compile_file(name, spec, args)
+            yaml_template = yaml.load(StringIO(template))
+            rs = create_virtual_resource(name, yaml_template, tags)
+        else:
+            r = create_resource(name,
+                                spec,
+                                args=args,
+                                tags=tags,
+                                virtual_resource=virtual_resource)
+            rs = [r]
+        return rs
+
+    repo, parsed_spec = Repository.parse(spec)
+
+    if repo.is_virtual(spec):
+        path = repo.get_virtual_path(spec)
+        template = _compile_file(name, path, args)
         yaml_template = yaml.load(StringIO(template))
         rs = create_virtual_resource(name, yaml_template, tags)
     else:
@@ -126,10 +147,6 @@ def _get_template(name, content, kwargs, inputs):
     return template
 
 
-def is_virtual(path):
-    return os.path.isfile(path)
-
-
 def create_resources(resources, tags=None):
     created_resources = []
     for r in resources:
@@ -141,7 +158,11 @@ def create_resources(resources, tags=None):
         tags = r.get('tags', [])
         new_resources = create(resource_name, spec, args=args, tags=tags)
         created_resources += new_resources
-        if not is_virtual(spec):
+        is_virtual = False
+        if not spec.startswith('/'):
+            repo, parsed_spec = Repository.parse(spec)
+            is_virtual = repo.is_virtual(spec)
+        if not is_virtual:
             if node:
                 node = load_resource(node)
                 r = new_resources[0]
