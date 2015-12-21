@@ -33,8 +33,11 @@
         state: present
         create: yes
 
+    - lineinfile:
+        dest: /home/vagrant/.bashrc
+        line: export PYTHONWARNINGS="ignore"
+        state: present
     # make riak default on vagrant env
-    # unset
     - lineinfile:
         dest: /home/vagrant/.bashrc
         line: export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
@@ -42,10 +45,6 @@
     - lineinfile:
         dest: /home/vagrant/.bashrc
         line: eval "$(_SOLAR_COMPLETE=source solar)"
-        state: present
-    - lineinfile:
-        dest: /home/vagrant/.bashrc
-        line: export PYTHONWARNINGS="ignore"
         state: present
 
 - hosts: all
