@@ -22,7 +22,9 @@ apt-get -y clean
 
 echo "==> Removing man pages"
 rm -rf /usr/share/man/*
-echo "==> Removing anything in /usr/src"
+echo "==> Removing anything in /usr/src but this kernel src"
+mv /usr/src/linux-headers-$(uname -r) /tmp
 rm -rf /usr/src/*
+mv /tmp/linux-headers-$(uname -r) /usr/src/
 echo "==> Removing any docs"
 rm -rf /usr/share/doc/*
