@@ -15,5 +15,5 @@ os-testr
 gevent
 
 
-# semver for version tests
-semver
+# semver for version tests (already in requirements.txt)
+# semver
