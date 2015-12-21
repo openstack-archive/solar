@@ -51,3 +51,4 @@
   tasks:
     - file: path=/var/lib/solar/repositories state=directory
     - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
+    - file: src=/vagrant/templates dest=/var/lib/solar/repositories/templates state=link
