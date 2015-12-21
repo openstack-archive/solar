@@ -1,4 +1,4 @@
-id: {{id}}
+id: #{id}#
 type: profile
 
 extensions:
@@ -7,7 +7,7 @@ extensions:
   - id: ansible
     version: '1.0.0'
 
-tags: {{tags}}
+tags: #{tags}#
 
 connections:
   # keystone

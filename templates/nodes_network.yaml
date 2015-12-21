@@ -4,7 +4,7 @@ id: simple_multinode_gre
 # eth3 - ext 10.2.0.0/24
 resources:
 #% for i in range(count|int) %#
-  - id: node{{i}}_sdn
+  - id: node#{i}#_sdn
     from: resources/node_network_puppet
     values:
       use_ovs: true
@@ -46,18 +46,18 @@ resources:
         endpoints:
           br-mesh:
             IP:
-            - 10.1.0.{{3 + i}}/24
+            - 10.1.0.#{3 + i}#/24
           br-floating:
             IP: none
           br-mgmt:
             IP:
-            - 10.0.0.{{3 + i}}/24
+            - 10.0.0.#{3 + i}#/24
             vendor_specific:
               phy_interfaces:
               - eth1
           br-ex:
             IP:
-            - 10.2.0.{{3 + i}}/24
+            - 10.2.0.#{3 + i}#/24
             vendor_specific:
               phy_interfaces:
               - eth3

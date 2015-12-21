@@ -7,16 +7,16 @@ resources:
       port: 3306
       root_password: mariadb
       image: mariadb 
-      ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
+      ip: '#{ip}#'
+      ssh_user: '#{ssh_user}#'
+      ssh_key: '#{ssh_key}#'
 
   - id: rabbitmq_service
     from: resources/rabbitmq_service
     values:
-      ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
+      ip: '#{ip}#'
+      ssh_user: '#{ssh_user}#'
+      ssh_key: '#{ssh_key}#'
 
   - id: keystone_base
     from: templates/keystone_base.yaml
@@ -28,9 +28,9 @@ resources:
       db_host: 'mariadb_service::ip'
       user_password: 'keystone'
       user_name: 'keystone'
-      ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
+      ip: '#{ip}#'
+      ssh_user: '#{ssh_user}#'
+      ssh_key: '#{ssh_key}#'
 
   - id:  keystone_api_1
     from: templates/keystone_api.yaml
@@ -44,16 +44,16 @@ resources:
       admin_token: 132fdsfwqee
       admin_port: 35357
       port: 5000
-      ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
+      ip: '#{ip}#'
+      ssh_user: '#{ssh_user}#'
+      ssh_key: '#{ssh_key}#'
 
   - id: openstack_base
     from: templates/openstack_base.yaml
     values:
-      ip: '{{ip}}'
-      ssh_user: '{{ssh_user}}'
-      ssh_key: '{{ssh_key}}'
+      ip: '#{ip}#'
+      ssh_user: '#{ssh_user}#'
+      ssh_key: '#{ssh_key}#'
       keystone_ip: 'keystone_service_1::ip'
       keystone_admin_port: 'keystone_service_1::admin_port'
       keystone_port: 'keystone_service_1::port'
@@ -68,9 +68,9 @@ resources:
       user_name: 'admin_user::user_name'
       password: 'admin_user::user_password'
       
-      ip: '{{ip}}'
-      ssh_key: '{{ssh_key}}'
-      ssh_user: '{{ssh_user}}'
+      ip: '#{ip}#'
+      ssh_key: '#{ssh_key}#'
+      ssh_user: '#{ssh_user}#'
 
 tags: ['resources/controller', 'resource/primary_controller']
 

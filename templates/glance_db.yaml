@@ -1,30 +1,30 @@
-id: glance_db_{{ idx }}
+id: glance_db_#{ idx }#
 
 resources:
-  - id: glance_db_db_{{ idx }}
+  - id: glance_db_db_#{ idx }#
     from: resources/mariadb_db
     values:
-      db_name: '{{ db_name }}'
-      login_user: '{{ db_login_user }}'
-      login_password: '{{ db_login_password }}'
-      login_port: '{{ db_login_port }}'
+      db_name: '#{ db_name }#'
+      login_user: '#{ db_login_user }#'
+      login_password: '#{ db_login_password }#'
+      login_port: '#{ db_login_port }#'
 
-      ip: '{{ ip }}'
-      ssh_user: '{{ ssh_user }}'
-      ssh_key: '{{ ssh_key }}'
+      ip: '#{ ip }#'
+      ssh_user: '#{ ssh_user }#'
+      ssh_key: '#{ ssh_key }#'
 
   - id:  glance_db_user
     from: resources/mariadb_user
     values:
-      user_password: '{{ db_password }}'
-      user_name: '{{ db_user }}'
+      user_password: '#{ db_password }#'
+      user_name: '#{ db_user }#'
 
-      db_name: '{{ db_name }}'
+      db_name: '#{ db_name }#'
 
-      login_user: '{{ db_login_user }}'
-      login_password: '{{ db_login_password }}'
-      login_port: '{{ db_login_port }}'
+      login_user: '#{ db_login_user }#'
+      login_password: '#{ db_login_password }#'
+      login_port: '#{ db_login_port }#'
 
-      ip: '{{ ip }}'
-      ssh_user: '{{ ssh_user }}'
-      ssh_key: '{{ ssh_key }}'
+      ip: '#{ ip }#'
+      ssh_user: '#{ ssh_user }#'
+      ssh_key: '#{ ssh_key }#'

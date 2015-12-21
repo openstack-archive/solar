@@ -1,8 +1,8 @@
 id: sources
 resources:
-  - id: sources{{index}}
+  - id: sources#{index}#
     from: resources/sources
-    location: {{node}}
+    location: #{node}#
     values:
       sources:
         - {src: /tmp/sources_test, dst: /tmp/sources_test}

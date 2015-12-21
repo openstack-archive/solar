@@ -1,46 +1,46 @@
 id: haproxy
 
 resources:
-  - id: haproxy_config{{index}}
+  - id: haproxy_config#{index}#
     from: resources/haproxy_config
-    location: {{node}}
+    location: #{node}#
     values:
-      ip: '{{node}}::ip'
+      ip: '#{node}#::ip'
       config:protocol:
         #% for config in service_configs %#
-        - {{config}}::protocol
+        - #{config}#::protocol
         #% endfor %#
       config:listen_port:
         #% for config in service_configs %#
-        - {{config}}::listen_port
+        - #{config}#::listen_port
         #% endfor %#
       config:name:
         #% for config in service_configs %#
-        - {{config}}::name
+        - #{config}#::name
         #% endfor %#
       config:backends:
         #% for config in service_configs %#
-        - {{config}}::backends
+        - #{config}#::backends
         #% endfor %#
 
-  - id: haproxy_service{{index}}
-    location: {{node}}
+  - id: haproxy_service#{index}#
+    location: #{node}#
     from: resources/haproxy_service
     values:
-      ip: '{{node}}::ip'
+      ip: '#{node}#::ip'
 
 events:
   - type: depends_on
-    parent_action: 'haproxy_service{{index}}.run'
+    parent_action: 'haproxy_service#{index}#.run'
     state: 'success'
-    depend_action: 'haproxy_config{{index}}.run'
+    depend_action: 'haproxy_config#{index}#.run'
 
   - type: react_on
-    parent_action: 'haproxy_config{{index}}.run'
+    parent_action: 'haproxy_config#{index}#.run'
     state: 'success'
-    depend_action: 'haproxy_service{{index}}.apply_config'
+    depend_action: 'haproxy_service#{index}#.apply_config'
 
   - type: react_on
-    parent_action: 'haproxy_config{{index}}.update'
+    parent_action: 'haproxy_config#{index}#.update'
     state: 'success'
-    depend_action: 'haproxy_service{{index}}.apply_config'
+    depend_action: 'haproxy_service#{index}#.apply_config'

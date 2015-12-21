@@ -32,8 +32,10 @@ from solar.events.controls import React
 
 
 # Custom environment with custom blocks, to make yaml parsers happy
-VR_ENV = Environment(block_end_string="#%",
-                     block_start_string="%#",
+VR_ENV = Environment(block_start_string="#%",
+                     block_end_string="%#",
+                     variable_start_string="#{",
+                     variable_end_string="}#",
                      trim_blocks=True,
                      lstrip_blocks=True)
 
@@ -106,9 +108,8 @@ def _compile_file(name, path, kwargs):
 
 
 def get_inputs(content):
-    env = Environment(trim_blocks=True, lstrip_blocks=True)
-    jinja_globals = env.globals.keys()
-    ast = env.parse(content)
+    jinja_globals = VR_ENV.globals.keys()
+    ast = VR_ENV.parse(content)
     return meta.find_undeclared_variables(ast) - set(jinja_globals)
 
 

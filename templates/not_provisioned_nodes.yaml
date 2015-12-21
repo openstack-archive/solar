@@ -2,25 +2,25 @@ id: not_provisioned_nodes
 resources:
 #% for node in nodes %#
   #% set id = node.id | replace(':', '_') %#
-  - id: ssh_transport{{ id }}
+  - id: ssh_transport#{ id }#
     from: resources/transport_ssh
     values:
       ssh_user: 'root'
       ssh_key: '/vagrant/tmp/keys/ssh_private'
-  - id: transports{{id}}
+  - id: transports#{id}#
     from: resources/transports
     values:
-      transports:key: ssh_transport{{id}}::ssh_key
-      transports:user: ssh_transport{{id}}::ssh_user
-      transports:port: ssh_transport{{id}}::ssh_port
-      transports:name: ssh_transport{{id}}::name
-  - id: node_{{id}}
+      transports:key: ssh_transport#{id}#::ssh_key
+      transports:user: ssh_transport#{id}#::ssh_user
+      transports:port: ssh_transport#{id}#::ssh_port
+      transports:name: ssh_transport#{id}#::name
+  - id: node_#{id}#
     from: resources/not_provisioned_node
     values:
-      ip: {{node.ip}}
-      transports_id: transports{{id}}::transports_id
-      name: node_{{id}}
-      admin_mac: {{node.mac}}
+      ip: #{node.ip}#
+      transports_id: transports#{id}#::transports_id
+      name: node_#{id}#
+      admin_mac: #{node.mac}#
 #% endfor %#
 
   - id: ssh_transport_master
