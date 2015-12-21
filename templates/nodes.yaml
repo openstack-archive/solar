@@ -1,7 +1,7 @@
 id: simple_riak_with_transports
 resources:
-{% for i in range(count|int) %}
-   {% set j = i +1 %}
+#% for i in range(count|int) %#
+   #% set j = i +1 %#
   - id: ssh_transport{{j}}
     from: resources/transport_ssh
     values:
@@ -34,4 +34,4 @@ resources:
     from: resources/hosts_file
     location: node{{j}}
     tags: ['location=node{{j}}']
-{% endfor %}
+#% endfor %#

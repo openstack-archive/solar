@@ -3,7 +3,7 @@ id: simple_multinode_gre
 # eth1 - mgmt 10.0.0.0/24,
 # eth3 - ext 10.2.0.0/24
 resources:
-{% for i in range(count|int) %}
+#% for i in range(count|int) %#
   - id: node{{i}}_sdn
     from: resources/node_network_puppet
     values:
@@ -68,4 +68,4 @@ resources:
           ex: br-ex
           neutron/floating: br-floating
           fw-admin: br-fw-admin
-{% endfor %}
+#% endfor %#

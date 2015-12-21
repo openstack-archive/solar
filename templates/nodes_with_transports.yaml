@@ -1,6 +1,6 @@
 id: simple_multinode_with_transports
 resources:
-{% for i in range(count|int) %}
+#% for i in range(count|int) %#
   - id: ssh_transport{{i}}
     from: resources/transport_ssh
     values:
@@ -29,4 +29,4 @@ resources:
       ip: '10.0.0.{{i + 3}}'
       transports_id: transports{{i}}::transports_id
       name: node{{i}}
-{% endfor %}
+#% endfor %#

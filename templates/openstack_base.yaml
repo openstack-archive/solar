@@ -41,11 +41,11 @@ resources:
   - id: keystone_service_endpoint
     from: resources/keystone_service_endpoint
     values:
-     {% raw %}
+     #% raw %#
       adminurl: 'http://{{admin_ip}}:{{admin_port}}/v2.0'
       internalurl: 'http://{{internal_ip}}:{{internal_port}}/v2.0'
       publicurl: 'http://{{public_ip}}:{{public_port}}/v2.0'
-     {% endraw %}
+     #% endraw %#
       description: 'OpenStack Identity Service'
       type: 'identity'
       endpoint_name: 'keystone'

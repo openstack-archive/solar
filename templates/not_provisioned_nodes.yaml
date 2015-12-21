@@ -1,7 +1,7 @@
 id: not_provisioned_nodes
 resources:
-{% for node in nodes %}
-  {% set id = node.id | replace(':', '_') %}
+#% for node in nodes %#
+  #% set id = node.id | replace(':', '_') %#
   - id: ssh_transport{{ id }}
     from: resources/transport_ssh
     values:
@@ -21,7 +21,7 @@ resources:
       transports_id: transports{{id}}::transports_id
       name: node_{{id}}
       admin_mac: {{node.mac}}
-{% endfor %}
+#% endfor %#
 
   - id: ssh_transport_master
     from: resources/transport_ssh

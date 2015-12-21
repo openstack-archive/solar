@@ -7,21 +7,21 @@ resources:
     values:
       ip: '{{node}}::ip'
       config:protocol:
-        {% for config in service_configs %}
+        #% for config in service_configs %#
         - {{config}}::protocol
-        {% endfor %}
+        #% endfor %#
       config:listen_port:
-        {% for config in service_configs %}
+        #% for config in service_configs %#
         - {{config}}::listen_port
-        {% endfor %}
+        #% endfor %#
       config:name:
-        {% for config in service_configs %}
+        #% for config in service_configs %#
         - {{config}}::name
-        {% endfor %}
+        #% endfor %#
       config:backends:
-        {% for config in service_configs %}
+        #% for config in service_configs %#
         - {{config}}::backends
-        {% endfor %}
+        #% endfor %#
 
   - id: haproxy_service{{index}}
     location: {{node}}

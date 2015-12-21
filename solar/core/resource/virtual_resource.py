@@ -19,7 +19,6 @@ from StringIO import StringIO
 
 from jinja2 import Environment
 from jinja2 import meta
-from jinja2 import Template
 import yaml
 
 from solar.core.log import log
@@ -30,6 +29,13 @@ from solar.core.resource import Resource
 from solar.events.api import add_event
 from solar.events.controls import Dep
 from solar.events.controls import React
+
+
+# Custom environment with custom blocks, to make yaml parsers happy
+VR_ENV = Environment(block_end_string="#%",
+                     block_start_string="%#",
+                     trim_blocks=True,
+                     lstrip_blocks=True)
 
 
 def create(name, spec, args=None, tags=None, virtual_resource=None):
@@ -114,7 +120,7 @@ def _get_template(name, content, kwargs, inputs):
     if missing:
         raise Exception(
             '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))  # NOQA
-    template = Template(content, trim_blocks=True, lstrip_blocks=True)
+    template = VR_ENV.from_string(content)
     template = template.render(str=str, zip=zip, **kwargs)
     return template
 
