@@ -120,11 +120,17 @@ class Repository(object):
         cnts = self._list_source_contents(source)
         for res_type, single_name, single_path in cnts:
             if res_type is RES_TYPE.Normal:
-                self.add_single(single_name, single_path, overwrite)
+                self.add_single_normal(single_name, single_path, overwrite)
             else:
                 self.add_single_vr(single_name, single_path, overwrite)
 
     def add_single(self, name, source, overwrite=False):
+        if os.path.isfile(source):
+            name = name.replace('.yaml', '')
+            return self.add_single_vr(name, source, overwrite)
+        return self.add_single_normal(name, source, overwrite)
+
+    def add_single_normal(self, name, source, overwrite=False):
         try:
             metadata = read_meta(source)
         except IOError as e:
