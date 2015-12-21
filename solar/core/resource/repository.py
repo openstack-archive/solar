@@ -17,16 +17,10 @@ from collections import defaultdict
 
 import errno
 import os
+import semver
 import shutil
 
 from solar import utils
-
-try:
-    import semver
-except ImportError:
-    _semver = False
-else:
-    _semver = True
 
 
 class RepositoryException(Exception):
@@ -75,9 +69,6 @@ class Repository(object):
             if os.path.exists(os.path.join(single_path, 'meta.yaml')):
                 yield pth, single_path
             else:
-                if not _semver:
-                    raise RepositoryException("You need semver support "
-                                              "for complex version matching")
                 if not os.path.isdir(single_path):
                     continue
                 for single in os.listdir(single_path):
@@ -211,9 +202,6 @@ class Repository(object):
         resource_name = spec['resource_name']
         if version_sign == '==':
             return os.path.join(self.fpath, spec['resource_name'], version)
-        if not _semver:
-            raise RepositoryException("You need semver support "
-                                      "for complex version matching")
         found = self.iter_contents(resource_name)
         if version is None:
             sc = semver.compare
