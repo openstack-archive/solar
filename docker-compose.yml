@@ -10,11 +10,8 @@ solar-celery:
     - /vagrant/library:/vagrant/library
     - ~/.ssh:/root/.ssh
     - ./bootstrap/playbooks/celery.yaml:/celery.yaml
-  environment:
-    - REDIS_HOST=redis
-    - REDIS_PORT=6379
-    - RIAK_HOST=riak
-    - RIAK_PORT=8087
+    - /var/lib/solar/repositories:/var/lib/solar/repositories
+    - /.solar_config_override:/.solar_config_override
   # links are not used for configuration because we can rely on non-container
   # based datastores
   links:

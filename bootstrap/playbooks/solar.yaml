@@ -19,11 +19,25 @@
         dest: /home/vagrant/.bashrc
         line: export SOLAR_CONFIG="/vagrant/.config"
         state: present
+
+    # create custom config file /vagrant/.solar_config_override for vagrant env
+    - file: path=/.solar_config_override state=touch mode=0644
+    - lineinfile:
+        dest: /.solar_config_override
+        line: "solar_db: riak://10.0.0.2:8087"
+        state: present
+        create: yes
+    - lineinfile:
+        dest: /.solar_config_override
+        line: "redis: redis://10.0.0.2:6379/1"
+        state: present
+        create: yes
+
     # make riak default on vagrant env
     # unset
     - lineinfile:
         dest: /home/vagrant/.bashrc
-        line: export SOLAR_CONFIG_OVERRIDE="/home/vagrant/.solar_config_override"
+        line: export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
         state: present
     - lineinfile:
         dest: /home/vagrant/.bashrc
@@ -33,19 +47,6 @@
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
         state: present
-
-- hosts: all
-  tasks:
-    - lineinfile:
-        dest: /home/vagrant/.solar_config_override
-        line: "solar_db: riak://10.0.0.2:8087"
-        state: present
-        create: yes
-    - lineinfile:
-        dest: /home/vagrant/.solar_config_override
-        line: "redis: redis://10.0.0.2:6379/1"
-        state: present
-        create: yes
 
 - hosts: all
   tasks:
