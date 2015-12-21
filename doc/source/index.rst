@@ -13,6 +13,7 @@ Contents:
 
    glossary
    resource
+   resource_repository
    orchestration
    transports
    handler_ansible
