@@ -17,10 +17,17 @@ from collections import defaultdict
 
 import errno
 import os
+import re
 import semver
 import shutil
+import yaml
 
+
+from enum import Enum
 from solar import utils
+
+
+RES_TYPE = Enum("Resource Types", 'Normal Virtual')
 
 
 class RepositoryException(Exception):
@@ -66,22 +73,29 @@ class Repository(object):
     def _list_source_contents(self, source):
         for pth in os.listdir(source):
             single_path = os.path.join(source, pth)
-            if os.path.exists(os.path.join(single_path, 'meta.yaml')):
-                yield pth, single_path
+            if pth.endswith('.yaml'):
+                pth = pth[:-5]
+                yield RES_TYPE.Virtual, pth, single_path
+            elif os.path.exists(os.path.join(single_path, 'meta.yaml')):
+                yield RES_TYPE.Normal, pth, single_path
             else:
                 if not os.path.isdir(single_path):
                     continue
                 for single in os.listdir(single_path):
-                    try:
-                        semver.parse(single)
-                    except ValueError:
+                    if single.endswith('.yaml'):
                         fp = os.path.join(single_path, single)
-                        raise RepositoryException("Invalid repository"
-                                                  "content: %r" % fp)
+                        yield RES_TYPE.Virtual, pth, fp
                     else:
-                        fp = os.path.join(single_path, single)
-                        if os.path.exists(os.path.join(fp, 'meta.yaml')):
-                            yield pth, fp
+                        try:
+                            semver.parse(single)
+                        except ValueError:
+                            fp = os.path.join(single_path, single)
+                            raise RepositoryException("Invalid repository"
+                                                      "content: %r" % fp)
+                        else:
+                            fp = os.path.join(single_path, single)
+                            if os.path.exists(os.path.join(fp, 'meta.yaml')):
+                                yield RES_TYPE.Normal, pth, fp
 
     @classmethod
     def repo_path(cls, repo_name):
@@ -105,8 +119,11 @@ class Repository(object):
 
     def _add_contents(self, source, overwrite=False):
         cnts = self._list_source_contents(source)
-        for single_name, single_path in cnts:
-            self.add_single(single_name, single_path, overwrite)
+        for res_type, single_name, single_path in cnts:
+            if res_type is RES_TYPE.Normal:
+                self.add_single(single_name, single_path, overwrite)
+            else:
+                self.add_single_vr(single_name, single_path, overwrite)
 
     def add_single(self, name, source, overwrite=False):
         try:
@@ -128,6 +145,32 @@ class Repository(object):
                 raise
             shutil.rmtree(target_path)
             shutil.copytree(source, target_path, symlinks=True)
+
+    def add_single_vr(self, name, source, overwrite=False):
+        # with open(source, 'rb') as f:
+        #     parsed = yaml.safe_load(f.read())
+        # version = parsed.get('version', '1.0.0')
+        version = '1.0.0'
+        with open(source, 'rb') as f:
+            data = f.read()
+        regex = re.compile('^version.*\:(?P<version>.+)')
+        m = regex.search(data)
+        if m:
+            v_file = m.group("version")
+            if v_file:
+                version = v_file
+        target_dir = os.path.join(self.fpath, name, version)
+        target_path = os.path.join(target_dir, "{}.yaml".format(name))
+        os.makedirs(target_dir)
+        try:
+            shutil.copy(source, target_path)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise
+            if not overwrite:
+                raise
+            shutil.rm(target_dir)
+            shutil.copy(source, target_path)
 
     def remove(self):
         shutil.rmtree(self.fpath)
@@ -280,3 +323,11 @@ class Repository(object):
     def parse(cls, spec):
         spec = cls._parse_spec(spec)
         return Repository(spec['repo']), spec
+
+    def is_virtual(self, spec):
+        return os.path.exists(self.get_virtual_path(spec))
+
+    def get_virtual_path(self, spec):
+        spec = self._parse_spec(spec)
+        p = self.get_path(spec)
+        return os.path.join(p, "{}.yaml".format(spec['resource_name']))

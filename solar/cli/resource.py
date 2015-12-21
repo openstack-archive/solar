@@ -134,8 +134,7 @@ def clear_all():
 
 @resource.command()
 @click.argument('name')
-@click.argument(
-    'base_path', type=click.Path(exists=True, resolve_path=True))
+@click.argument('base_path')
 @click.argument('args', nargs=-1)
 def create(args, base_path, name):
     args_parsed = {}

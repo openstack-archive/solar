@@ -23,6 +23,7 @@ import yaml
 
 from solar.core.log import log
 from solar.core import provider
+from solar.core.resource.repository import Repository
 from solar.core.resource import load as load_resource
 from solar.core.resource import load_by_tags
 from solar.core.resource import Resource
@@ -45,8 +46,11 @@ def create(name, spec, args=None, tags=None, virtual_resource=None):
     if isinstance(spec, provider.BaseProvider):
         spec = spec.directory
 
-    if is_virtual(spec):
-        template = _compile_file(name, spec, args)
+    repo, parsed_spec = Repository.parse(spec)
+
+    if repo.is_virtual(spec):
+        path = repo.get_virtual_path(spec)
+        template = _compile_file(name, path, args)
         yaml_template = yaml.load(StringIO(template))
         rs = create_virtual_resource(name, yaml_template, tags)
     else:
@@ -126,10 +130,6 @@ def _get_template(name, content, kwargs, inputs):
     return template
 
 
-def is_virtual(path):
-    return os.path.isfile(path)
-
-
 def create_resources(resources, tags=None):
     created_resources = []
     for r in resources:
@@ -141,7 +141,8 @@ def create_resources(resources, tags=None):
         tags = r.get('tags', [])
         new_resources = create(resource_name, spec, args=args, tags=tags)
         created_resources += new_resources
-        if not is_virtual(spec):
+        repo, parsed_spec = Repository.parse(spec)
+        if not repo.is_virtual(parsed_spec):
             if node:
                 node = load_resource(node)
                 r = new_resources[0]
