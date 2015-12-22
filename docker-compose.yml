@@ -8,7 +8,7 @@ solar-celery:
     - /vagrant/templates:/vagrant/templates
     - /vagrant/resources:/vagrant/resources
     - /vagrant/library:/vagrant/library
-    - ~/.ssh:/root/.ssh
+    - /root/.ssh:/root/.ssh
     - ./bootstrap/playbooks/celery.yaml:/celery.yaml
     - /var/lib/solar/repositories:/var/lib/solar/repositories
     - /.solar_config_override:/.solar_config_override
