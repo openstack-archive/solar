@@ -13,10 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import itertools
 import os
 import pytest
 import shutil
 from solar.core.resource.repository import Repository
+from solar.core.resource.repository import RES_TYPE
 
 
 Repository._REPOS_LOCATION = '/tmp'
@@ -35,22 +37,37 @@ input:
     value: {0}
 """
 
+
+_VR_CONTENT = """
+version: {0}
+resources: []"""
+
+
 _VERSIONS = ('0.0.1', '0.0.2', '1.0.0', '1.4.7', '2.0.0')
 
 
-def generate_structure(target, versions='1.0.0'):
+def generate_structure(target, versions='1.0.0', r_type=0):
     if isinstance(versions, basestring):
         versions = (versions)
     elif isinstance(versions, int):
         versions = _VERSIONS[:versions]
 
-    for name in ('first', 'second', 'third'):
-        for version in versions:
-            cnt = _META_CONTENT.format(version, name)
-            fp = os.path.join(target, name, version)
-            os.makedirs(fp)
-            with open(os.path.join(fp, 'meta.yaml'), 'wb') as f:
-                f.write(cnt)
+    if r_type == 0:
+        for name in ('first', 'second', 'third'):
+            for version in versions:
+                cnt = _META_CONTENT.format(version, name)
+                fp = os.path.join(target, name, version)
+                os.makedirs(fp)
+                with open(os.path.join(fp, 'meta.yaml'), 'wb') as f:
+                    f.write(cnt)
+    else:
+        for name in ('first', 'second', 'third'):
+            for version in versions:
+                cnt = _VR_CONTENT.format(version)
+                fp = os.path.join(target, name, version)
+                os.makedirs(fp)
+                with open(os.path.join(fp, "{}.yaml".format(name)), 'wb') as f:
+                    f.write(cnt)
 
 
 def generator(request, tmpdir_factory):
@@ -193,3 +210,30 @@ def test_update(repo_w, tmpdir):
     with pytest.raises(OSError):
         repo_w.update(rp)
     repo_w.update(rp, overwrite=True)
+
+
+def _correct_structure_listing(data):
+    for curr in data:
+        t = curr[0]
+        assert curr[1] in ('first', 'second', 'third')
+        if t == RES_TYPE.Virtual:
+            assert curr[2].endswith('.yaml')
+
+
+@pytest.mark.parametrize('num, r_type', itertools.product((1, 2, 3), RES_TYPE))
+def test_correct_listing(repo_w, tmpdir, num, r_type):
+    rp = str(tmpdir) + '/listing'
+    generate_structure(rp, num, r_type)
+    q = repo_w._list_source_contents(rp)
+    assert len(q) == num * 3
+    _correct_structure_listing(q)
+    q = repo_w._list_source_contents(rp + '/first')
+    assert len(q) == num
+    _correct_structure_listing(q)
+    q = repo_w._list_source_contents(rp + '/first/0.0.1')
+    assert len(q) == 1
+    _correct_structure_listing(q)
+    if r_type == RES_TYPE.Virtual:
+        q = repo_w._list_source_contents(rp + '/first/0.0.1/first.yaml')
+        assert len(q) == 1
+        _correct_structure_listing(q)

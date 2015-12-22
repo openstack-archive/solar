@@ -69,8 +69,12 @@ def update(name, source, overwrite):
     repo.update(source, overwrite)
     now = len(list(repo.iter_contents()))
     diff = now - prev
-    click.echo(
-        "Updated repository, with {} resources".format(diff))
+    if diff:
+        click.echo(
+            "Updated repository, with {} new resources".format(diff))
+    else:
+        click.echo(
+            "Repository updated".format(diff))
 
 
 @repository.command(help="Adds new resource to repository")
