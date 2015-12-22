@@ -69,32 +69,76 @@ class Repository(object):
         # TODO: (jnowak) sanitize name
         self.fpath = self.repo_path(self.name)
 
-    def _list_source_contents(self, source):
+    @classmethod
+    def _list_source_contents(cls, source):
+        if source.endswith('.yaml'):
+            # single VR
+            pth = os.path.split(source)[-1][:-5]
+            return ((RES_TYPE.Virtual, pth, source), )
+        elif os.path.isdir(source):
+            meta_path = os.path.join(source, 'meta.yaml')
+            if os.path.exists(meta_path):
+                # single normal
+                pth = os.path.split(source)[-1]
+                try:
+                    semver.parse(pth)
+                except ValueError:
+                    name = pth
+                else:
+                    # if it was semver then single_path may look like
+                    # /a/b/name/version
+                    # and source may look like /a/b/name
+                    # we can extract name from this path then
+                    name = source.split(os.path.sep)[-2]
+                return ((RES_TYPE.Normal, name, source), )
+            return tuple(cls._list_source_contents_from_multidir(source))
+
+    @classmethod
+    def _list_source_contents_from_multidir(cls, source):
         for pth in os.listdir(source):
             single_path = os.path.join(source, pth)
             if pth.endswith('.yaml'):
                 pth = pth[:-5]
                 yield RES_TYPE.Virtual, pth, single_path
             elif os.path.exists(os.path.join(single_path, 'meta.yaml')):
-                yield RES_TYPE.Normal, pth, single_path
+                try:
+                    semver.parse(pth)
+                except ValueError:
+                    name = pth
+                else:
+                    # if it was semver then single_path may look like
+                    # /a/b/name/version
+                    # and source may look like /a/b/name
+                    # we can extract name from this path then
+                    name = os.path.split(source)[-1]
+                yield RES_TYPE.Normal, name, single_path
             else:
+                maybe_vr = os.path.join(single_path,
+                                        "{}.yaml".format(
+                                            os.path.split(source)[-1]))
+                if os.path.exists(maybe_vr):
+                    name = os.path.split(source)[-1]
+                    yield RES_TYPE.Virtual, name, maybe_vr
+                    continue
                 if not os.path.isdir(single_path):
                     continue
                 for single in os.listdir(single_path):
-                    if single.endswith('.yaml'):
+                    try:
+                        semver.parse(single)
+                    except ValueError:
                         fp = os.path.join(single_path, single)
-                        yield RES_TYPE.Virtual, pth, fp
+                        raise RepositoryException(
+                            "Unexpected repository content "
+                            "structure: {} ""Expected directory "
+                            "with version number".format(single_path))
                     else:
-                        try:
-                            semver.parse(single)
-                        except ValueError:
-                            fp = os.path.join(single_path, single)
-                            raise RepositoryException("Invalid repository"
-                                                      "content: %r" % fp)
-                        else:
-                            fp = os.path.join(single_path, single)
-                            if os.path.exists(os.path.join(fp, 'meta.yaml')):
-                                yield RES_TYPE.Normal, pth, fp
+                        fp = os.path.join(single_path, single)
+                        if os.path.exists(os.path.join(fp, 'meta.yaml')):
+                            yield RES_TYPE.Normal, pth, fp
+                        elif os.path.exists(
+                                os.path.join(fp, '{}.yaml'.format(pth))):
+                            vr = os.path.join(fp, '{}.yaml'.format(pth))
+                            yield RES_TYPE.Virtual, pth, vr
 
     @classmethod
     def repo_path(cls, repo_name):
@@ -166,7 +210,8 @@ class Repository(object):
                 version = v_file
         target_dir = os.path.join(self.fpath, name, version)
         target_path = os.path.join(target_dir, "{}.yaml".format(name))
-        os.makedirs(target_dir)
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir)
         try:
             shutil.copy(source, target_path)
         except OSError as e:
