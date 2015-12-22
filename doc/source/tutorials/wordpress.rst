@@ -29,14 +29,14 @@ First we need to create Solar Resource definition where global configuration wil
 
 .. code-block:: bash
 
-  mkdir /vagrant/tmp/wp_config
-  touch /vagrant/tmp/wp_config/meta.yaml
+  mkdir /vagrant/tmp/wp_repo
+  mkdir /vagrant/tmp/wp_repo/wp_config
+  touch /vagrant/tmp/wp_repo/wp_config/meta.yaml
 
-Open meta file `/vagrant/tmp/wp_config/meta.yaml` with your favorite text editor and paste the following data:
+Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite text editor and paste the following data:
 
 .. code-block:: yaml
   
-  id: container
   handler: none
   version: 1.0.0
   input:
@@ -79,7 +79,7 @@ All other required resources are already available in solar repo in `resources` 
 There are three ways to create resources in Solar: Python API, CLI and Virtual Resources. We will use the last option. 
 Virtual Resource is just a simple yaml file where we define all needed resources and connections.
 
-Create new file `docker.yaml` in /vagrant dir, open it and past the following data:
+Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the following data:
 
 .. code-block:: yaml
 
@@ -89,7 +89,7 @@ Create new file `docker.yaml` in /vagrant dir, open it and past the following da
       location: node1
 
     - id: config
-      from: tmp/wp_config
+      from: wp_repo/wp_config
       location: node1
       values:
         db_root_pass: 'r00tme'
@@ -168,6 +168,12 @@ Another format is:
 
 This means that input `login_port` will have the same value as input `db_port` from resource `config`. In Solar we call it Connection. Now when value of `db_port` changes, value of `login_port` will also change.
 
+When all files are ready we need add creates resources to solar repository:
+
+.. code-block:: bash
+
+  solar repo import tmp/wp_repo
+
 
 5. Deploying
 ------------
@@ -176,13 +182,13 @@ Now it's time to deploy our configuration. When running `vagrant up solar-dev so
 
 .. code-block:: bash
 
-  solar resource create nodes templates/nodes.yaml count=1
+  solar resource create nodes templates/nodes count=1
 
 It will create all required resources to run actions on solar-dev1. You can analyze `templates/nodes.yaml` later. Now we create resources defined in `docker.yaml`
 
 .. code-block:: bash
 
-  solar resource create docker docker.yaml
+  solar resource create wp_docker wp_repo/docker
 
 Command `create` requires name, but it's not used for VirtualResources.
 
@@ -201,6 +207,12 @@ To see deployment progress run:
   solar orch report
 
 Wait until all task will return status `SUCCESS`. When it's done you should be able to open Wordpress site at http://10.0.0.3
+
+If it fails, before reporting a bug, please try to retry deployment:
+
+.. code-block:: bash
+
+  solar orch retry last
 
 6. Update
 ---------
