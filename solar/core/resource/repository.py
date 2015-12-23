@@ -144,7 +144,10 @@ class Repository(object):
     def repo_path(cls, repo_name):
         return os.path.join(cls._REPOS_LOCATION, repo_name)
 
-    def create(self, source, link_only=False):
+    def create(self, source=None, link_only=False):
+        if source is None:
+            os.mkdir(self.fpath)
+            return
         if not link_only:
             try:
                 os.mkdir(self.fpath)
