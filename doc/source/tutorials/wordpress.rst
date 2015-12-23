@@ -3,7 +3,7 @@ Wordpress tutorial
 
 1. Introduction
 ---------------
-In this tutorial we will create Worpdress site using docker containers. We will create one container with Mysql database, then we will create database and user for it. After that we will create Wordpress container which is running Apache.
+In this tutorial we will create Worpdress site using docker containers. We will create one container with Mysql database, then we will create database and user for it. After that we will create Wordpress container which is running on Apache.
 
 For now you can use Solar only in our Vagrant environment.  
 First checkout Solar repo and start vagrant. We need two virtual machines. One where Solar database and Orchestrator will run and one where we will install Wordpress and all components:
@@ -29,14 +29,14 @@ First we need to create Solar Resource definition where global configuration wil
 
 .. code-block:: bash
 
-  mkdir /vagrant/tmp/wp_config
-  touch /vagrant/tmp/wp_config/meta.yaml
+  mkdir /vagrant/tmp/wp_repo
+  mkdir /vagrant/tmp/wp_repo/wp_config
+  touch /vagrant/tmp/wp_repo/wp_config/meta.yaml
 
-Open meta file `/vagrant/tmp/wp_config/meta.yaml` with your favorite text editor and paste the following data:
+Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite text editor and paste the following data:
 
 .. code-block:: yaml
   
-  id: container
   handler: none
   version: 1.0.0
   input:
@@ -56,7 +56,7 @@ Open meta file `/vagrant/tmp/wp_config/meta.yaml` with your favorite text editor
       schema: str!
       value:
 
-Let's go through this document line by line. `id:container` is not used currently and may be removed in future. `handler: none` says that this resource has no handler and no actions. In next line we define version. Currently it's also not used. The most important part starts from line 4. We define there the inputs for this resource. It will be possible to configure following inputs: 
+Let's go through this document line by line. `handler: none` says that this resource has no handler and no actions. In next line we define version. The most important part starts from line 3. We define there the inputs for this resource. It will be possible to configure following inputs: 
 
 * `db_root_pass` - Mysql root password
 * `db_port` - Mysql port
@@ -64,12 +64,12 @@ Let's go through this document line by line. `id:container` is not used currentl
 * `wp_db_user` - database user name for Wordpress
 * `wp_db_pass` - database user password for Wordpress
 
-In schema it's defined if input will be string or integer, `!` at the end means that the input is mandatory and can not be empty.
+In schema it's defined if input will be string or integer, `!` at the end means that the input is mandatory and value cannot be empty.
 
 4. Virtual resource
 -------------------
 
-All other required resources are already available in solar repo in `resources` dir. We will use four more resources:
+All other required resources are already available in solar repositores: `resources` and `templates`. We will use four more resources:
 
 * resources/docker - it installs docker 
 * resources/docker_container - it manages docker container
@@ -79,7 +79,7 @@ All other required resources are already available in solar repo in `resources` 
 There are three ways to create resources in Solar: Python API, CLI and Virtual Resources. We will use the last option. 
 Virtual Resource is just a simple yaml file where we define all needed resources and connections.
 
-Create new file `docker.yaml` in /vagrant dir, open it and past the following data:
+Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the following data:
 
 .. code-block:: yaml
 
@@ -89,7 +89,7 @@ Create new file `docker.yaml` in /vagrant dir, open it and past the following da
       location: node1
 
     - id: config
-      from: tmp/wp_config
+      from: wp_repo/wp_config
       location: node1
       values:
         db_root_pass: 'r00tme'
@@ -103,7 +103,7 @@ Create new file `docker.yaml` in /vagrant dir, open it and past the following da
       location: node1
       values:
         ip: node1::ip
-        image: mysql:latest
+        image: mysql:5.6
         ports:
           - config::db_port
         env:
@@ -150,7 +150,7 @@ In block `resources` we define... resources. Each section is one resource. Each 
 * location - node where resource will be run
 * values: initialization of a Resource Inputs
 
-As you can see entries for `from` have relative paths. For now we do not have any resource repository. This is why it's safer to run all commands from /vagrant dir. In `location` we define `node1`. It's name of our virtual machine resource. It's not created yet, we will do it shortly.
+In `location` we define `node1`. It's name of our virtual machine resource. It's not created yet, we will do it shortly.
 
 In our configuration there are two formats which we use to assign values to inputs. First:
 
@@ -168,6 +168,17 @@ Another format is:
 
 This means that input `login_port` will have the same value as input `db_port` from resource `config`. In Solar we call it Connection. Now when value of `db_port` changes, value of `login_port` will also change.
 
+When all files are ready we need add created resources to solar repository:
+
+.. code-block:: bash
+
+  solar repo import tmp/wp_repo
+
+This command created new solar resource repository. To list resources in this repository run:
+
+.. code-block:: bash
+
+  solar repo show -r wp_repo
 
 5. Deploying
 ------------
@@ -176,13 +187,13 @@ Now it's time to deploy our configuration. When running `vagrant up solar-dev so
 
 .. code-block:: bash
 
-  solar resource create nodes templates/nodes.yaml count=1
+  solar resource create nodes templates/nodes count=1
 
 It will create all required resources to run actions on solar-dev1. You can analyze `templates/nodes.yaml` later. Now we create resources defined in `docker.yaml`
 
 .. code-block:: bash
 
-  solar resource create docker docker.yaml
+  solar resource create wp_docker wp_repo/docker
 
 Command `create` requires name, but it's not used for VirtualResources.
 
@@ -201,6 +212,12 @@ To see deployment progress run:
   solar orch report
 
 Wait until all task will return status `SUCCESS`. When it's done you should be able to open Wordpress site at http://10.0.0.3
+
+If it fails, before reporting a bug, please try to retry deployment:
+
+.. code-block:: bash
+
+  solar orch retry last
 
 6. Update
 ---------
