@@ -28,7 +28,7 @@ def setup_riak(nodes_num=None, hosts_mapping=False):
         nodes_num = NODES
     db.clear()
 
-    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': nodes_num})
+    resources = vr.create('nodes', 'templates/nodes', {'count': nodes_num})
     nodes = [x for x in resources if x.name.startswith('node')]
     hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
 

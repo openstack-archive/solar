@@ -5,7 +5,7 @@ Wordpress tutorial
 ---------------
 In this tutorial we will create Worpdress site using docker containers. We will create one container with Mysql database, then we will create database and user for it. After that we will create Wordpress container which is running on Apache.
 
-For now you can use Solar only in our Vagrant environment.  
+For now you can use Solar only in our Vagrant environment.
 First checkout Solar repo and start vagrant. We need two virtual machines. One where Solar database and Orchestrator will run and one where we will install Wordpress and all components:
 
 2. Solar installation
@@ -36,7 +36,7 @@ First we need to create Solar Resource definition where global configuration wil
 Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite text editor and paste the following data:
 
 .. code-block:: yaml
-  
+
   handler: none
   version: 1.0.0
   input:
@@ -56,7 +56,7 @@ Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite tex
       schema: str!
       value:
 
-Let's go through this document line by line. `handler: none` says that this resource has no handler and no actions. In next line we define version. The most important part starts from line 3. We define there the inputs for this resource. It will be possible to configure following inputs: 
+Let's go through this document line by line. `handler: none` says that this resource has no handler and no actions. In next line we define version. The most important part starts from line 3. We define there the inputs for this resource. It will be possible to configure following inputs:
 
 * `db_root_pass` - Mysql root password
 * `db_port` - Mysql port
@@ -71,12 +71,12 @@ In schema it's defined if input will be string or integer, `!` at the end means 
 
 All other required resources are already available in solar repositores: `resources` and `templates`. We will use four more resources:
 
-* resources/docker - it installs docker 
+* resources/docker - it installs docker
 * resources/docker_container - it manages docker container
 * resources/mariadb_db - it creates database in MariaDB and Mysql
 * resources/mariadb_user - it creates user in MariaDB and Mysql
 
-There are three ways to create resources in Solar: Python API, CLI and Virtual Resources. We will use the last option. 
+There are three ways to create resources in Solar: Python API, CLI and Virtual Resources. We will use the last option.
 Virtual Resource is just a simple yaml file where we define all needed resources and connections.
 
 Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the following data:
@@ -97,7 +97,7 @@ Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the followi
         wp_db_name: 'wp'
         wp_db_user: 'wp'
         wp_db_pass: 'h4ack'
-      
+
     - id: mysql
       from: resources/docker_container
       location: node1
@@ -189,7 +189,7 @@ Now it's time to deploy our configuration. When running `vagrant up solar-dev so
 
   solar resource create nodes templates/nodes count=1
 
-It will create all required resources to run actions on solar-dev1. You can analyze `templates/nodes.yaml` later. Now we create resources defined in `docker.yaml`
+It will create all required resources to run actions on solar-dev1. You can analyze content of `templates/nodes/1.0.0/nodes.yaml` later (that's the source for `templates/nodes`). Now we create resources defined in `docker`
 
 .. code-block:: bash
 

@@ -33,7 +33,7 @@ NETWORK_METADATA = yaml.load("""
 
 def deploy():
     ModelMeta.remove_all()
-    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 2})
+    resources = vr.create('nodes', 'templates/nodes', {'count': 2})
     first_node, second_node = [x for x in resources if x.name.startswith('node')]
     first_transp = next(x for x in resources if x.name.startswith('transport'))
 
@@ -60,7 +60,7 @@ def deploy():
          })[0]
 
     managed_apt = vr.create(
-      'managed_apt1', 'templates/mos_repos.yaml',
+      'managed_apt1', 'templates/mos_repos',
       {'node': first_node.name, 'index': 0})[-1]
 
     keys.connect(ceph_mon, {})

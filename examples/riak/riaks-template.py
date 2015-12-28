@@ -15,7 +15,7 @@ from solar.dblayer.model import ModelMeta
 def setup_riak():
 
     ModelMeta.remove_all()
-    nodes = template.nodes_from('templates/riak_nodes.yaml')
+    nodes = template.nodes_from('templates/riak_nodes')
 
     riak_services = nodes.on_each(
         'resources/riak_node',

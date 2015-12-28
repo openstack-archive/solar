@@ -26,5 +26,5 @@ solar res action run ceph_mon1
 To add repositories use
 
 ```
-solar resource create apt1 templates/mos_repos.yaml node=node1 index=1
+solar resource create apt1 templates/mos_repos node=node1 index=1
 ```

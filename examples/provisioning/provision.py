@@ -40,7 +40,7 @@ requests.post(bareon_sync)
 nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
-node_resources = vr.create('nodes', 'templates/not_provisioned_nodes.yaml',
+node_resources = vr.create('nodes', 'templates/not_provisioned_nodes',
                            {'nodes': nodes_list})
 
 # Get master node
