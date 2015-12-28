@@ -31,6 +31,7 @@ from solar.core.signals import get_mapping
 from solar.core.tags_set_parser import Expression
 from solar.core.tags_set_parser import get_string_tokens
 from solar.core import validation
+from solar.dblayer.model import NONE
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
@@ -153,10 +154,16 @@ class Resource(object):
     @property
     def args(self):
         return self.db_obj.inputs.as_dict()
-        # ret = {}
-        # for i in self.resource_inputs().values():
-        #     ret[i.name] = i.backtrack_value()
-        # return ret
+
+    def input_add(self, name, value=NONE, schema=None):
+        v = self.db_obj.inputs.add_new(name, value, schema)
+        self.db_obj.save_lazy()
+        return v
+
+    def input_delete(self, name):
+        self.db_obj.inputs.remove_existing(name)
+        self.db_obj.save_lazy()
+        return
 
     def update(self, args):
         # TODO: disconnect input when it is updated and end_node

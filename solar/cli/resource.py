@@ -65,50 +65,6 @@ def action(dry_run_mapping, dry_run, action, resource):
 
 
 @resource.command()
-@click.option('-v', '--values', default=False, is_flag=True)
-@click.option('-r', '--real_values', default=False, is_flag=True)
-@click.option('-i', '--input', default=None)
-@click.argument('resource')
-def backtrack_inputs(resource, input, values, real_values):
-    r = sresource.load(resource)
-
-    db_obj = r.db_obj
-
-    def single(resource, name, get_val=False):
-        db_obj = sresource.load(resource).db_obj
-        se = db_obj.inputs._single_edge(name)
-        se = tuple(se)
-        if not se:
-            if get_val:
-                return dict(resource=resource,
-                            name=name,
-                            value=db_obj.inputs[name])
-            else:
-                return dict(resource=resource, name=name)
-        l = []
-        for (rname, rinput), _, meta in se:
-            l.append(dict(resource=resource, name=name))
-            val = single(rname, rinput, get_val)
-            if meta and isinstance(val, dict):
-                val['meta'] = meta
-            l.append(val)
-        return l
-
-    inps = {}
-    if input:
-        inps[input] = single(resource, input, values)
-    else:
-        for _inp in db_obj.inputs:
-            inps[_inp] = single(resource, _inp, values)
-
-    for name, values in inps.iteritems():
-        click.echo(yaml.safe_dump({name: values}, default_flow_style=False))
-        if real_values:
-            click.echo('! Real value: %r' % sresource.load(
-                resource).db_obj.inputs[name], nl=True)
-
-
-@resource.command()
 def compile_all():
     from solar.core.resource import compiler
 
