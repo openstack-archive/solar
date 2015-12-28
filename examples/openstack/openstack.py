@@ -6,7 +6,7 @@ import sys
 from solar.core import resource
 from solar.core import signals
 from solar.core import validation
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import events as evapi
 from solar.dblayer.model import ModelMeta
 
@@ -40,9 +40,9 @@ def main():
 
 
 def prepare_nodes(nodes_count):
-    resources = vr.create('nodes', 'templates/nodes_with_transports', {"count": nodes_count})
+    resources = cr.create('nodes', 'templates/nodes_with_transports', {"count": nodes_count})
     nodes = [x for x in resources if x.name.startswith('node')]
-    resources = vr.create('nodes_network', 'templates/nodes_network', {"count": nodes_count})
+    resources = cr.create('nodes_network', 'templates/nodes_network', {"count": nodes_count})
     nodes_sdn = [x for x in resources if x.name.startswith('node')]
     r = {}
 
@@ -51,7 +51,7 @@ def prepare_nodes(nodes_count):
         r[node_sdn.name] = node_sdn
 
         # LIBRARIAN
-        librarian = vr.create('librarian_{}'.format(node.name), 'resources/librarian', {})[0]
+        librarian = cr.create('librarian_{}'.format(node.name), 'resources/librarian', {})[0]
         r[librarian.name] = librarian
 
         node.connect(librarian, {})
@@ -70,7 +70,7 @@ def prepare_nodes(nodes_count):
 
 def setup_base(node, librarian):
     # MARIADB
-    mariadb_service = vr.create('mariadb_service1', 'resources/mariadb_service', {
+    mariadb_service = cr.create('mariadb_service1', 'resources/mariadb_service', {
         'image': 'mariadb',
         'port': 3306
     })[0]
@@ -78,15 +78,15 @@ def setup_base(node, librarian):
     node.connect(mariadb_service)
 
     # RABBIT
-    rabbitmq_service = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
+    rabbitmq_service = cr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
         'management_port': 15672,
         'port': 5672,
     })[0]
-    openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {
+    openstack_vhost = cr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {
         'vhost_name': 'openstack'
     })[0]
 
-    openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {
+    openstack_rabbitmq_user = cr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {
         'user_name': 'openstack',
         'password': 'openstack_password'
     })[0]
@@ -105,21 +105,21 @@ def setup_base(node, librarian):
             'openstack_rabbitmq_user': openstack_rabbitmq_user}
 
 def setup_keystone(node, librarian, mariadb_service, openstack_rabbitmq_user):
-    keystone_puppet = vr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
+    keystone_puppet = cr.create('keystone_puppet', 'resources/keystone_puppet', {})[0]
 
     keystone_puppet.connect_with_events(librarian, {'module': 'modules'}, {})
     evapi.add_dep(librarian.name, keystone_puppet.name, actions=('run', 'update'))
 
     evapi.add_dep(openstack_rabbitmq_user.name, keystone_puppet.name, actions=('run', 'update'))
-    keystone_db = vr.create('keystone_db', 'resources/mariadb_db/', {
+    keystone_db = cr.create('keystone_db', 'resources/mariadb_db/', {
         'db_name': 'keystone_db',
         'login_user': 'root'
     })[0]
-    keystone_db_user = vr.create('keystone_db_user', 'resources/mariadb_user/', {
+    keystone_db_user = cr.create('keystone_db_user', 'resources/mariadb_user/', {
         'user_name': 'keystone',
         'user_password': 'keystone',
     })[0]
-    keystone_service_endpoint = vr.create('keystone_service_endpoint', 'resources/keystone_service_endpoint', {
+    keystone_service_endpoint = cr.create('keystone_service_endpoint', 'resources/keystone_service_endpoint', {
         'endpoint_name': 'keystone',
         'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2.0',
         'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2.0',
@@ -128,20 +128,20 @@ def setup_keystone(node, librarian, mariadb_service, openstack_rabbitmq_user):
         'type': 'identity'
     })[0]
 
-    admin_tenant = vr.create('admin_tenant', 'resources/keystone_tenant', {
+    admin_tenant = cr.create('admin_tenant', 'resources/keystone_tenant', {
         'tenant_name': 'admin'
     })[0]
-    admin_user = vr.create('admin_user', 'resources/keystone_user', {
+    admin_user = cr.create('admin_user', 'resources/keystone_user', {
         'user_name': 'admin',
         'user_password': 'admin'
     })[0]
-    admin_role = vr.create('admin_role', 'resources/keystone_role', {
+    admin_role = cr.create('admin_role', 'resources/keystone_role', {
         'role_name': 'admin'
     })[0]
-    services_tenant = vr.create('services_tenant', 'resources/keystone_tenant', {
+    services_tenant = cr.create('services_tenant', 'resources/keystone_tenant', {
         'tenant_name': 'services'
     })[0]
-    admin_role_services = vr.create('admin_role_services', 'resources/keystone_role', {
+    admin_role_services = cr.create('admin_role_services', 'resources/keystone_role', {
         'role_name': 'admin'
     })[0]
 
@@ -212,7 +212,7 @@ def setup_keystone(node, librarian, mariadb_service, openstack_rabbitmq_user):
 
 def setup_openrc(node, keystone_puppet, admin_user):
     # OPENRC
-    openrc = vr.create('openrc_file', 'resources/openrc_file', {})[0]
+    openrc = cr.create('openrc_file', 'resources/openrc_file', {})[0]
 
     node.connect(openrc)
     keystone_puppet.connect(openrc, {'ip': 'keystone_host', 'admin_port':'keystone_port'})
@@ -222,7 +222,7 @@ def setup_openrc(node, keystone_puppet, admin_user):
 def setup_neutron(node, librarian, rabbitmq_service, openstack_rabbitmq_user, openstack_vhost):
     # NEUTRON
     # Deploy chain neutron -> (plugins) -> neutron_server -> ( agents )
-    neutron_puppet = vr.create('neutron_puppet', 'resources/neutron_puppet', {
+    neutron_puppet = cr.create('neutron_puppet', 'resources/neutron_puppet', {
         'core_plugin': 'neutron.plugins.ml2.plugin.Ml2Plugin'
         })[0]
 
@@ -244,29 +244,29 @@ def setup_neutron(node, librarian, rabbitmq_service, openstack_rabbitmq_user, op
 
 def setup_neutron_api(node, mariadb_service, admin_user, keystone_puppet, services_tenant, neutron_puppet):
     # NEUTRON PLUGIN AND  NEUTRON API (SERVER)
-    neutron_plugins_ml2 = vr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
+    neutron_plugins_ml2 = cr.create('neutron_plugins_ml2', 'resources/neutron_plugins_ml2_puppet', {})[0]
     node.connect(neutron_plugins_ml2)
 
-    neutron_server_puppet = vr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
+    neutron_server_puppet = cr.create('neutron_server_puppet', 'resources/neutron_server_puppet', {
         'sync_db': True,
     })[0]
     evapi.add_dep(neutron_puppet.name, neutron_server_puppet.name, actions=('run',))
     evapi.add_dep(neutron_plugins_ml2.name, neutron_server_puppet.name, actions=('run',))
     evapi.add_dep(neutron_puppet.name, neutron_plugins_ml2.name, actions=('run',))
 
-    neutron_db = vr.create('neutron_db', 'resources/mariadb_db/', {
+    neutron_db = cr.create('neutron_db', 'resources/mariadb_db/', {
         'db_name': 'neutron_db', 'login_user': 'root'})[0]
-    neutron_db_user = vr.create('neutron_db_user', 'resources/mariadb_user/', {
+    neutron_db_user = cr.create('neutron_db_user', 'resources/mariadb_user/', {
         'user_name': 'neutron', 'user_password': 'neutron', 'login_user': 'root'})[0]
-    neutron_keystone_user = vr.create('neutron_keystone_user', 'resources/keystone_user', {
+    neutron_keystone_user = cr.create('neutron_keystone_user', 'resources/keystone_user', {
         'user_name': 'neutron',
         'user_password': 'neutron'
     })[0]
-    neutron_keystone_role = vr.create('neutron_keystone_role', 'resources/keystone_role', {
+    neutron_keystone_role = cr.create('neutron_keystone_role', 'resources/keystone_role', {
         'role_name': 'admin'
     })[0]
     evapi.add_dep(neutron_keystone_role.name, neutron_server_puppet.name, actions=('run',))
-    neutron_keystone_service_endpoint = vr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
+    neutron_keystone_service_endpoint = cr.create('neutron_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
         'endpoint_name': 'neutron',
         'adminurl': 'http://{{admin_ip}}:{{admin_port}}',
         'internalurl': 'http://{{internal_ip}}:{{internal_port}}',
@@ -323,7 +323,7 @@ def setup_neutron_api(node, mariadb_service, admin_user, keystone_puppet, servic
 
 def setup_neutron_agent(node, neutron_server_puppet):
     # NEUTRON ML2 PLUGIN & ML2-OVS AGENT WITH GRE
-    neutron_agents_ml2 = vr.create('neutron_agents_ml2', 'resources/neutron_agents_ml2_ovs_puppet', {
+    neutron_agents_ml2 = cr.create('neutron_agents_ml2', 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
         'tunnel_types': ['gre'],
@@ -333,11 +333,11 @@ def setup_neutron_agent(node, neutron_server_puppet):
     evapi.add_dep(neutron_server_puppet.name, neutron_agents_ml2.name, actions=('run',))
 
     # NEUTRON DHCP, L3, metadata agents
-    neutron_agents_dhcp = vr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {})[0]
+    neutron_agents_dhcp = cr.create('neutron_agents_dhcp', 'resources/neutron_agents_dhcp_puppet', {})[0]
     node.connect(neutron_agents_dhcp)
     evapi.add_dep(neutron_server_puppet.name, neutron_agents_dhcp.name, actions=('run',))
 
-    neutron_agents_l3 = vr.create('neutron_agents_l3', 'resources/neutron_agents_l3_puppet', {
+    neutron_agents_l3 = cr.create('neutron_agents_l3', 'resources/neutron_agents_l3_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'metadata_port': 8775,
         'external_network_bridge': 'br-floating',
@@ -345,7 +345,7 @@ def setup_neutron_agent(node, neutron_server_puppet):
     node.connect(neutron_agents_l3)
     evapi.add_dep(neutron_server_puppet.name, neutron_agents_l3.name, actions=('run',))
 
-    neutron_agents_metadata = vr.create('neutron_agents_metadata', 'resources/neutron_agents_metadata_puppet', {
+    neutron_agents_metadata = cr.create('neutron_agents_metadata', 'resources/neutron_agents_metadata_puppet', {
         'sh2ared_secret': 'secret',
     })[0]
     node.connect(neutron_agents_metadata)
@@ -361,7 +361,7 @@ def setup_neutron_compute(node, librarian, neutron_puppet, neutron_server_puppet
     # NEUTRON FOR COMPUTE (node1)
     # Deploy chain neutron -> (plugins) -> ( agents )
     name = node.name
-    neutron_puppet2 = vr.create('neutron_puppet_{}'.format(name), 'resources/neutron_puppet', {})[0]
+    neutron_puppet2 = cr.create('neutron_puppet_{}'.format(name), 'resources/neutron_puppet', {})[0]
 
     neutron_puppet2.connect_with_events(librarian, {'module': 'modules'}, {})
     evapi.add_dep(librarian.name, neutron_puppet2.name, actions=('run', 'update'))
@@ -378,12 +378,12 @@ def setup_neutron_compute(node, librarian, neutron_puppet, neutron_server_puppet
     })
 
     # NEUTRON OVS PLUGIN & AGENT WITH GRE FOR COMPUTE (node1)
-    neutron_plugins_ml22 = vr.create('neutron_plugins_ml_{}'.format(name), 'resources/neutron_plugins_ml2_puppet', {})[0]
+    neutron_plugins_ml22 = cr.create('neutron_plugins_ml_{}'.format(name), 'resources/neutron_plugins_ml2_puppet', {})[0]
     node.connect(neutron_plugins_ml22)
     evapi.add_dep(neutron_puppet2.name, neutron_plugins_ml22.name, actions=('run',))
     evapi.add_dep(neutron_server_puppet.name, neutron_plugins_ml22.name, actions=('run',))
 
-    neutron_agents_ml22 = vr.create('neutron_agents_ml_{}'.format(name), 'resources/neutron_agents_ml2_ovs_puppet', {
+    neutron_agents_ml22 = cr.create('neutron_agents_ml_{}'.format(name), 'resources/neutron_agents_ml2_ovs_puppet', {
         # TODO(bogdando) these should come from the node network resource
         'enable_tunneling': True,
         'tunnel_types': ['gre'],
@@ -399,16 +399,16 @@ def setup_neutron_compute(node, librarian, neutron_puppet, neutron_server_puppet
 
 def setup_cinder(node, librarian, rabbitmq_service, mariadb_service, keystone_puppet, admin_user, openstack_vhost, openstack_rabbitmq_user, services_tenant):
     # CINDER
-    cinder_puppet = vr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
-    cinder_db = vr.create('cinder_db', 'resources/mariadb_db/', {
+    cinder_puppet = cr.create('cinder_puppet', 'resources/cinder_puppet', {})[0]
+    cinder_db = cr.create('cinder_db', 'resources/mariadb_db/', {
         'db_name': 'cinder_db', 'login_user': 'root'})[0]
-    cinder_db_user = vr.create('cinder_db_user', 'resources/mariadb_user/', {
+    cinder_db_user = cr.create('cinder_db_user', 'resources/mariadb_user/', {
         'user_name': 'cinder', 'user_password': 'cinder', 'login_user': 'root'})[0]
-    cinder_keystone_user = vr.create('cinder_keystone_user', 'resources/keystone_user', {
+    cinder_keystone_user = cr.create('cinder_keystone_user', 'resources/keystone_user', {
         'user_name': 'cinder', 'user_password': 'cinder'})[0]
-    cinder_keystone_role = vr.create('cinder_keystone_role', 'resources/keystone_role', {
+    cinder_keystone_role = cr.create('cinder_keystone_role', 'resources/keystone_role', {
         'role_name': 'admin'})[0]
-    cinder_keystone_service_endpoint = vr.create(
+    cinder_keystone_service_endpoint = cr.create(
         'cinder_keystone_service_endpoint',
         'resources/keystone_service_endpoint', {
             'endpoint_name': 'cinder',
@@ -454,7 +454,7 @@ def setup_cinder(node, librarian, rabbitmq_service, mariadb_service, keystone_pu
 
     # CINDER GLANCE
     # Deploy chain: cinder_puppet -> cinder_glance -> ( cinder_api, cinder_scheduler, cinder_volume )
-    cinder_glance_puppet = vr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
+    cinder_glance_puppet = cr.create('cinder_glance_puppet', 'resources/cinder_glance_puppet', {})[0]
     node.connect(cinder_glance_puppet)
     evapi.add_dep(cinder_puppet.name, cinder_glance_puppet.name, actions=('run',))
 
@@ -468,7 +468,7 @@ def setup_cinder(node, librarian, rabbitmq_service, mariadb_service, keystone_pu
 
 def setup_cinder_api(node, cinder_puppet):
     # CINDER API
-    cinder_api_puppet = vr.create('cinder_api_puppet', 'resources/cinder_api_puppet', {})[0]
+    cinder_api_puppet = cr.create('cinder_api_puppet', 'resources/cinder_api_puppet', {})[0]
     node.connect(cinder_api_puppet)
     cinder_puppet.connect(cinder_api_puppet, {
         'keystone_password', 'keystone_tenant', 'keystone_user'})
@@ -480,7 +480,7 @@ def setup_cinder_api(node, cinder_puppet):
 
 def setup_cinder_scheduler(node, cinder_puppet):
     # CINDER SCHEDULER
-    cinder_scheduler_puppet = vr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
+    cinder_scheduler_puppet = cr.create('cinder_scheduler_puppet', 'resources/cinder_scheduler_puppet', {})[0]
     node.connect(cinder_scheduler_puppet)
     cinder_puppet.connect(cinder_scheduler_puppet)
     evapi.add_react(cinder_puppet.name, cinder_scheduler_puppet.name, actions=('update',))
@@ -488,11 +488,11 @@ def setup_cinder_scheduler(node, cinder_puppet):
 
 def setup_cinder_volume(node, cinder_puppet):
     # CINDER VOLUME
-    cinder_volume = vr.create('cinder_volume_{}'.format(node.name), 'resources/volume_group',
+    cinder_volume = cr.create('cinder_volume_{}'.format(node.name), 'resources/volume_group',
             {'path': '/root/cinder.img', 'volume_name': 'cinder-volume'})[0]
     node.connect(cinder_volume)
 
-    cinder_volume_puppet = vr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
+    cinder_volume_puppet = cr.create('cinder_volume_puppet', 'resources/cinder_volume_puppet', {})[0]
     node.connect(cinder_volume_puppet)
     cinder_puppet.connect(cinder_volume_puppet)
     evapi.add_react(cinder_puppet.name, cinder_volume_puppet.name, actions=('update',))
@@ -501,20 +501,20 @@ def setup_cinder_volume(node, cinder_puppet):
 
 def setup_nova(node, librarian, mariadb_service, rabbitmq_service, admin_user, openstack_vhost, services_tenant, keystone_puppet, openstack_rabbitmq_user):
     # NOVA
-    nova_puppet = vr.create('nova_puppet', 'resources/nova_puppet', {})[0]
-    nova_db = vr.create('nova_db', 'resources/mariadb_db/', {
+    nova_puppet = cr.create('nova_puppet', 'resources/nova_puppet', {})[0]
+    nova_db = cr.create('nova_db', 'resources/mariadb_db/', {
         'db_name': 'nova_db',
         'login_user': 'root'})[0]
-    nova_db_user = vr.create('nova_db_user', 'resources/mariadb_user/', {
+    nova_db_user = cr.create('nova_db_user', 'resources/mariadb_user/', {
         'user_name': 'nova',
         'user_password': 'nova',
         'login_user': 'root'})[0]
-    nova_keystone_user = vr.create('nova_keystone_user', 'resources/keystone_user', {
+    nova_keystone_user = cr.create('nova_keystone_user', 'resources/keystone_user', {
         'user_name': 'nova',
         'user_password': 'nova'})[0]
-    nova_keystone_role = vr.create('nova_keystone_role', 'resources/keystone_role', {
+    nova_keystone_role = cr.create('nova_keystone_role', 'resources/keystone_role', {
         'role_name': 'admin'})[0]
-    nova_keystone_service_endpoint = vr.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
+    nova_keystone_service_endpoint = cr.create('nova_keystone_service_endpoint', 'resources/keystone_service_endpoint', {
         'endpoint_name': 'nova',
         'adminurl': 'http://{{admin_ip}}:{{admin_port}}/v2/%(tenant_id)s',
         'internalurl': 'http://{{internal_ip}}:{{internal_port}}/v2/%(tenant_id)s',
@@ -577,7 +577,7 @@ def setup_nova(node, librarian, mariadb_service, rabbitmq_service, admin_user, o
 
 def setup_nova_api(node, nova_puppet, neutron_agents_metadata):
     # NOVA API
-    nova_api_puppet = vr.create('nova_api_puppet', 'resources/nova_api_puppet', {})[0]
+    nova_api_puppet = cr.create('nova_api_puppet', 'resources/nova_api_puppet', {})[0]
     node.connect(nova_api_puppet)
     nova_puppet.connect(nova_api_puppet, {
         'keystone_tenant': 'admin_tenant_name',
@@ -591,7 +591,7 @@ def setup_nova_api(node, nova_puppet, neutron_agents_metadata):
 
 def setup_nova_conductor(node, nova_puppet, nova_api_puppet):
     # NOVA CONDUCTOR
-    nova_conductor_puppet = vr.create('nova_conductor_puppet', 'resources/nova_conductor_puppet', {})[0]
+    nova_conductor_puppet = cr.create('nova_conductor_puppet', 'resources/nova_conductor_puppet', {})[0]
     node.connect(nova_conductor_puppet)
     nova_puppet.connect(nova_conductor_puppet)
     evapi.add_dep(nova_api_puppet.name, nova_conductor_puppet.name, actions=('run',))
@@ -602,7 +602,7 @@ def setup_nova_scheduler(node, nova_puppet, nova_api_puppet):
     # NOVA SCHEDULER
     # NOTE(bogdando) Generic service is used. Package and service names for Ubuntu case
     #   come from https://github.com/openstack/puppet-nova/blob/5.1.0/manifests/params.pp
-    nova_scheduler_puppet = vr.create('nova_scheduler_puppet', 'resources/nova_generic_service_puppet', {
+    nova_scheduler_puppet = cr.create('nova_scheduler_puppet', 'resources/nova_generic_service_puppet', {
         'title' : 'scheduler', 'package_name': 'nova-scheduler', 'service_name': 'nova-scheduler',
     })[0]
     node.connect(nova_scheduler_puppet)
@@ -615,9 +615,9 @@ def setup_nova_compute(node, librarian, nova_puppet, nova_api_puppet, neutron_se
     # NOVA COMPUTE
     # Deploy chain (nova, node_networking(TODO)) -> (nova_compute_libvirt, nova_neutron) -> nova_compute
     name = node.name
-    nova_compute_puppet = vr.create('nova_compute_puppet_{}'.format(name), 'resources/nova_compute_puppet', {})[0]
+    nova_compute_puppet = cr.create('nova_compute_puppet_{}'.format(name), 'resources/nova_compute_puppet', {})[0]
     # TODO (bogdando) figure out how to use it for multiple glance api servers
-    nova_puppet2 = vr.create('nova_puppet_{}'.format(name), 'resources/nova_puppet', {
+    nova_puppet2 = cr.create('nova_puppet_{}'.format(name), 'resources/nova_puppet', {
         'glance_api_servers': '{{glance_api_servers_host}}:{{glance_api_servers_port}}'
         })[0]
     nova_puppet.connect(nova_puppet2, {
@@ -643,13 +643,13 @@ def setup_nova_compute(node, librarian, nova_puppet, nova_api_puppet, neutron_se
 
     # NOVA COMPUTE LIBVIRT, NOVA_NEUTRON
     # NOTE(bogdando): changes nova config, so should notify nova compute service
-    nova_compute_libvirt_puppet = vr.create('nova_compute_libvirt_puppet_{}'.format(name), 'resources/nova_compute_libvirt_puppet', {})[0]
+    nova_compute_libvirt_puppet = cr.create('nova_compute_libvirt_puppet_{}'.format(name), 'resources/nova_compute_libvirt_puppet', {})[0]
     node.connect(nova_compute_libvirt_puppet)
     evapi.add_dep(nova_puppet2.name, nova_compute_libvirt_puppet.name, actions=('run',))
     evapi.add_dep(nova_api_puppet.name, nova_compute_libvirt_puppet.name, actions=('run',))
 
     # compute configuration for neutron, use http auth/endpoint protocols, keystone v2 auth hardcoded for the resource
-    nova_neutron_puppet = vr.create('nova_neutron_puppet_{}'.format(name), 'resources/nova_neutron_puppet', {})[0]
+    nova_neutron_puppet = cr.create('nova_neutron_puppet_{}'.format(name), 'resources/nova_neutron_puppet', {})[0]
     node.connect(nova_neutron_puppet)
     evapi.add_dep(nova_puppet2.name, nova_neutron_puppet.name, actions=('run',))
     evapi.add_dep(nova_api_puppet.name, nova_neutron_puppet.name, actions=('run',))
@@ -681,16 +681,16 @@ def setup_nova_compute(node, librarian, nova_puppet, nova_api_puppet, neutron_se
 
 def setup_glance_api(node, librarian, mariadb_service, admin_user, keystone_puppet, services_tenant, cinder_glance_puppet):
     # GLANCE (base and API)
-    glance_api_puppet = vr.create('glance_api_puppet', 'resources/glance_puppet', {})[0]
-    glance_db_user = vr.create('glance_db_user', 'resources/mariadb_user/', {
+    glance_api_puppet = cr.create('glance_api_puppet', 'resources/glance_puppet', {})[0]
+    glance_db_user = cr.create('glance_db_user', 'resources/mariadb_user/', {
         'user_name': 'glance', 'user_password': 'glance', 'login_user': 'root'})[0]
-    glance_db = vr.create('glance_db', 'resources/mariadb_db/', {
+    glance_db = cr.create('glance_db', 'resources/mariadb_db/', {
         'db_name': 'glance', 'login_user': 'root'})[0]
-    glance_keystone_user = vr.create('glance_keystone_user', 'resources/keystone_user', {
+    glance_keystone_user = cr.create('glance_keystone_user', 'resources/keystone_user', {
         'user_name': 'glance', 'user_password': 'glance123'})[0]
-    glance_keystone_role = vr.create('glance_keystone_role', 'resources/keystone_role', {
+    glance_keystone_role = cr.create('glance_keystone_role', 'resources/keystone_role', {
         'role_name': 'admin'})[0]
-    glance_keystone_service_endpoint = vr.create(
+    glance_keystone_service_endpoint = cr.create(
         'glance_keystone_service_endpoint',
         'resources/keystone_service_endpoint', {
             'endpoint_name': 'glance',
@@ -750,7 +750,7 @@ def setup_glance_api(node, librarian, mariadb_service, admin_user, keystone_pupp
 
 def setup_glance_registry(node, glance_api_puppet):
     # GLANCE REGISTRY
-    glance_registry_puppet = vr.create('glance_registry_puppet', 'resources/glance_registry_puppet', {})[0]
+    glance_registry_puppet = cr.create('glance_registry_puppet', 'resources/glance_registry_puppet', {})[0]
     node.connect(glance_registry_puppet)
     glance_api_puppet.connect(glance_registry_puppet)
     evapi.add_react(glance_api_puppet.name, glance_registry_puppet.name, actions=('update',))

@@ -1,5 +1,5 @@
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.dblayer.model import ModelMeta
 import yaml
 
@@ -33,24 +33,24 @@ NETWORK_METADATA = yaml.load("""
 
 def deploy():
     ModelMeta.remove_all()
-    resources = vr.create('nodes', 'templates/nodes', {'count': 2})
+    resources = cr.create('nodes', 'templates/nodes', {'count': 2})
     first_node, second_node = [x for x in resources if x.name.startswith('node')]
     first_transp = next(x for x in resources if x.name.startswith('transport'))
 
-    library = vr.create('library1', 'resources/fuel_library', {})[0]
+    library = cr.create('library1', 'resources/fuel_library', {})[0]
     first_node.connect(library)
 
-    keys = vr.create('ceph_key', 'resources/ceph_keys', {})[0]
+    keys = cr.create('ceph_key', 'resources/ceph_keys', {})[0]
     first_node.connect(keys)
 
-    remote_file = vr.create('ceph_key2', 'resources/remote_file',
+    remote_file = cr.create('ceph_key2', 'resources/remote_file',
       {'dest': '/var/lib/astute/'})[0]
     second_node.connect(remote_file)
     keys.connect(remote_file, {'ip': 'remote_ip', 'path': 'remote_path'})
     first_transp.connect(remote_file, {'transports': 'remote'})
 
 
-    ceph_mon = vr.create('ceph_mon1', 'resources/ceph_mon',
+    ceph_mon = cr.create('ceph_mon1', 'resources/ceph_mon',
         {'storage': STORAGE,
          'keystone': KEYSTONE,
          'network_scheme': NETWORK_SCHEMA,
@@ -59,7 +59,7 @@ def deploy():
          'role': 'controller',
          })[0]
 
-    managed_apt = vr.create(
+    managed_apt = cr.create(
       'managed_apt1', 'templates/mos_repos',
       {'node': first_node.name, 'index': 0})[-1]
 

@@ -3,7 +3,7 @@ id: keystone_base
 resources:
   - id: keystone_db
     from: resources/mariadb_db
-    values:
+    input:
       db_name: '#{db_name}#'
       db_host: '#{db_host}#'
       login_user: '#{login_user}#'
@@ -15,7 +15,7 @@ resources:
 
   - id:  keystone_db_user
     from: resources/mariadb_user
-    values:
+    input:
       user_password: '#{user_password}#'
       user_name: '#{user_name}#'
       db_name: 'keystone_db::db_name'

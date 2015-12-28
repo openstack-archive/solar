@@ -3,14 +3,14 @@ import sys
 import time
 
 from solar.core import signals
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.dblayer.model import ModelMeta
 
 
 def run():
     ModelMeta.remove_all()
 
-    resources = vr.create('nodes', 'templates/nodes', {'count': 2})
+    resources = cr.create('nodes', 'templates/nodes', {'count': 2})
 
     node1, node2 = [x for x in resources if x.name.startswith('node')]
     hosts1, hosts2 = [x for x in resources

@@ -216,7 +216,7 @@ def _correct_structure_listing(data):
     for curr in data:
         t = curr[0]
         assert curr[1] in ('first', 'second', 'third')
-        if t == RES_TYPE.Virtual:
+        if t == RES_TYPE.Composer:
             assert curr[2].endswith('.yaml')
 
 
@@ -233,7 +233,7 @@ def test_correct_listing(repo_w, tmpdir, num, r_type):
     q = repo_w._list_source_contents(rp + '/first/0.0.1')
     assert len(q) == 1
     _correct_structure_listing(q)
-    if r_type == RES_TYPE.Virtual:
+    if r_type == RES_TYPE.Composer:
         q = repo_w._list_source_contents(rp + '/first/0.0.1/first.yaml')
         assert len(q) == 1
         _correct_structure_listing(q)
