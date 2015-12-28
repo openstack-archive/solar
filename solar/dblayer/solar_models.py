@@ -30,8 +30,10 @@ from solar.dblayer.model import IndexedField
 from solar.dblayer.model import IndexField
 from solar.dblayer.model import IndexFieldWrp
 from solar.dblayer.model import Model
+from solar.dblayer.model import NONE
 from solar.dblayer.model import SingleIndexCache
 from solar.dblayer.model import StrInt
+from solar.utils import detect_input_schema_by_value
 from solar.utils import solar_map
 
 
@@ -580,6 +582,7 @@ class InputsFieldWrp(IndexFieldWrp):
         return self._get_field_val(name)
 
     def __delitem__(self, name):
+        # TODO: check if something is connected to it
         self._has_own_input(name)
         self._instance._field_changed(self)
         try:
@@ -636,6 +639,20 @@ class InputsFieldWrp(IndexFieldWrp):
         for key in self._instance._data_container[self.fname].keys():
             rst[key] = self[key]
         return rst
+
+    def add_new(self, name, value=NONE, schema=None):
+        if value is not NONE and schema is None:
+            schema = detect_input_schema_by_value(value)
+        if name in self.keys():
+            raise Exception("Already defined")
+        self._instance.meta_inputs[name] = {'schema': schema}
+        self[name] = value if value is not NONE else None
+        return True
+
+    def remove_existing(self, name):
+        del self[name]
+        del self._instance.meta_inputs[name]
+        return True
 
 
 class InputsField(IndexField):

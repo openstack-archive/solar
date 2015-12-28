@@ -189,3 +189,26 @@ def parse_database_conn(name):
     else:
         raise Exception("Invalid database connection string: %r "
                         "It should be in RFC 1738 format. " % name)
+
+
+def detect_input_schema_by_value(value):
+    _types = {
+        'int': 'int!',
+        'str': 'str!',
+        'list': '[]',
+        'hash': '{}',
+        'list_hash': '[{}]'
+    }
+
+    if value is None:
+        return ""
+    if isinstance(value, int):
+        return _types['int']
+    if isinstance(value, basestring):
+        return _types['str']
+    if isinstance(value, list):
+        if len(value) >= 1 and isinstance(value[0], dict):
+            return _types['list_hash']
+        return _types['list']
+    if isinstance(value, dict):
+        return _types['hash']

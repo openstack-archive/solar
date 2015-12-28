@@ -681,3 +681,17 @@ def test_connect_other_list(rk):
     Resource.save_all_lazy()
 
     assert r1.inputs['config']['trackers'] == ["t1", "t2"]
+
+
+@pytest.mark.parametrize('schema', (None, 'int!'))
+def test_add_new_input(rk, schema):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'a': 10}})
+    r1.save()
+    r1.inputs.add_new('b', 15, schema)
+    r1.save()
+    assert r1.inputs['b'] == 15
+    if schema:
+        assert r1.meta_inputs['b']['schema'] == schema
