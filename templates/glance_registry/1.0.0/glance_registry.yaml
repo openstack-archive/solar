@@ -3,7 +3,7 @@ id: glance_register_#{idx}#
 resources:
   - id: glance_config_#{idx}#
     from: resources/glance_config
-    values:
+    input:
       keystone_admin_port: '#{keystone_admin_port}#'
       keystone_ip: '#{keystone_ip}#'
       mysql_password: '#{mysql_password}#'
@@ -17,7 +17,7 @@ resources:
 
   - id:  glance_registry_#{idx}#
     from: resources/glance_registry_service
-    values:
+    input:
       ip: 'keystone_config_#{idx}#::ip'
       ssh_user: 'keystone_config_#{idx}#::ssh_user'
       ssh_key: 'keystone_config_#{idx}#::ssh_key'

@@ -3,7 +3,7 @@ id: glance_db_#{ idx }#
 resources:
   - id: glance_db_db_#{ idx }#
     from: resources/mariadb_db
-    values:
+    input:
       db_name: '#{ db_name }#'
       login_user: '#{ db_login_user }#'
       login_password: '#{ db_login_password }#'
@@ -15,7 +15,7 @@ resources:
 
   - id:  glance_db_user
     from: resources/mariadb_user
-    values:
+    input:
       user_password: '#{ db_password }#'
       user_name: '#{ db_user }#'
 

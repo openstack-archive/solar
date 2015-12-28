@@ -8,7 +8,7 @@ from solar.core import actions
 from solar.core import resource
 from solar.core import signals
 from solar.core import validation
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import errors
 from solar.dblayer.model import ModelMeta
 
@@ -21,13 +21,13 @@ def main():
 def setup_resources():
     ModelMeta.remove_all()
 
-    node2 = vr.create('node2', 'resources/ro_node/', {
+    node2 = cr.create('node2', 'resources/ro_node/', {
         'ip': '10.0.0.4',
         'ssh_key': '/vagrant/.vagrant/machines/solar-dev2/virtualbox/private_key',
         'ssh_user': 'vagrant'
     })[0]
 
-    solar_bootstrap2 = vr.create('solar_bootstrap2', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
+    solar_bootstrap2 = cr.create('solar_bootstrap2', 'resources/solar_bootstrap', {'master_ip': '10.0.0.2'})[0]
 
     signals.connect(node2, solar_bootstrap2)
 

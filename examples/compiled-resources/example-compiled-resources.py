@@ -16,7 +16,7 @@ import sys
 import time
 
 from solar.core import actions
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.core import resource
 from solar.core import signals
 from solar.dblayer.model import ModelMeta
@@ -55,7 +55,7 @@ def deploy():
     signals.connect(openstack_vhost, openstack_rabbitmq_user, {'vhost_name': 'vhost_name'})
 
 
-    errors = vr.validate_resources()
+    errors = cr.validate_resources()
     if errors:
         for r, error in errors:
             print 'ERROR: %s: %s' % (r.name, error)

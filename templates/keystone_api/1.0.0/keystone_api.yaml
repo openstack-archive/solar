@@ -3,7 +3,7 @@ id: keystone_api_#{idx}#
 resources:
   - id: keystone_service_#{idx}#
     from: resources/keystone_puppet
-    values:
+    input:
       admin_token: '#{admin_token}#'
       db_host: '#{db_host}#'
       db_name: '#{db_name}#'
