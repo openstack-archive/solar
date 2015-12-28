@@ -237,3 +237,9 @@ def test_correct_listing(repo_w, tmpdir, num, r_type):
         q = repo_w._list_source_contents(rp + '/first/0.0.1/first.yaml')
         assert len(q) == 1
         _correct_structure_listing(q)
+
+
+def test_create_empty():
+    repo = Repository('empty')
+    repo.create()
+    assert 'empty' in Repository.list_repos()

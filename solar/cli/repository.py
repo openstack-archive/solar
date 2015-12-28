@@ -40,6 +40,14 @@ def show(repository):
         click.echo_via_pager(content)
 
 
+@repository.command(name='create', help="Create empty Solar repository")
+@click.argument('name')
+def create(name):
+    repo = Repository(name)
+    repo.create()
+    click.echo("Repository created")
+
+
 @repository.command(name='import', help="Imports repository to Solar")
 @click.argument('source', type=click.Path(exists=True, resolve_path=True))
 @click.option('--name', '-n', default=None)
