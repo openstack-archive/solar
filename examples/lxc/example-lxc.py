@@ -45,8 +45,8 @@ def lxc_template(idx):
 def deploy():
     ModelMeta.remove_all()
 
-    node1 = vr.create('nodes', 'templates/nodes.yaml', {})[0]
-    seed = vr.create('nodes', 'templates/seed_node.yaml', {})[0]
+    node1 = vr.create('nodes', 'templates/nodes', {})[0]
+    seed = vr.create('nodes', 'templates/seed_node', {})[0]
 
     ssh_key = vr.create('ssh_key1', 'resources/ssh_key', {
         'keys_dir': '/vagrant/.ssh',

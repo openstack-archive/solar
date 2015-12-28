@@ -30,21 +30,21 @@ resources:
       riaks: ['riak_service1', 'riak_service2', 'riak_service3']
 
   - id: haproxy1
-    from: templates/haproxy.yaml
+    from: templates/haproxy
     values:
       node: {{nodes[0]}}
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
       index: 1
 
   - id: haproxy2
-    from: templates/haproxy.yaml
+    from: templates/haproxy
     values:
       node: {{nodes[1]}}
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
       index: 2
 
   - id: haproxy3
-    from: templates/haproxy.yaml
+    from: templates/haproxy
     values:
       node: {{nodes[2]}}
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
