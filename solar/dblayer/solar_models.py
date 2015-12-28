@@ -42,6 +42,15 @@ class DBLayerSolarException(DBLayerException):
     pass
 
 
+class UnknownInput(DBLayerSolarException, KeyError):
+
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return "Unknown input %s" % self.name
+
+
 class InputsFieldWrp(IndexFieldWrp):
 
     _simple_types = (NoneType, int, float, basestring, str, unicode)
@@ -577,7 +586,10 @@ class InputsFieldWrp(IndexFieldWrp):
         return self._instance._data_container[self.fname][name]
 
     def __getitem__(self, name):
-        return self._get_field_val(name)
+        try:
+            return self._get_field_val(name)
+        except KeyError:
+            raise UnknownInput(name)
 
     def __delitem__(self, name):
         self._has_own_input(name)
@@ -592,6 +604,13 @@ class InputsFieldWrp(IndexFieldWrp):
         del inst._data_container[self.fname][name]
 
     def __setitem__(self, name, value):
+        try:
+            mi = self._instance.meta_inputs
+        except KeyError:
+            pass
+        else:
+            if name not in mi:
+                raise UnknownInput(name)
         self._instance._field_changed(self)
         return self._set_field_value(name, value)
 

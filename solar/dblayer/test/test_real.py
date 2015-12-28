@@ -19,6 +19,7 @@ from solar.dblayer.model import check_state_for
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import DBLayerSolarException
 from solar.dblayer.solar_models import Resource
+from solar.dblayer.solar_models import UnknownInput
 
 
 def create_resource(key, data):
@@ -55,7 +56,8 @@ def test_changes_state(rk):
 
 def test_basic_input(rk):
     key = next(rk)
-    r = create_resource(key, {'name': 'a name'})
+    r = create_resource(key, {'name': 'a name',
+                              'inputs': {'a': None}})
     r.inputs['a'] = 1
     r.save()
     assert r.inputs['a'] == 1
@@ -681,3 +683,14 @@ def test_connect_other_list(rk):
     Resource.save_all_lazy()
 
     assert r1.inputs['config']['trackers'] == ["t1", "t2"]
+
+
+def test_raise_error_unknown_input(rk):
+    k1 = next(rk)
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'a': 10}})
+
+    r1.save()
+
+    with pytest.raises(UnknownInput):
+        r1.inputs['b'] = 11
