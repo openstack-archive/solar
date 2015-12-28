@@ -3,7 +3,7 @@ id: openstack_base
 resources:
   - id: admin_tenant
     from: resources/keystone_tenant
-    values:
+    input:
       tenant_name: admin
       keystone_port: '#{keystone_admin_port}#'
       keystone_host: '#{keystone_ip}#'
@@ -14,7 +14,7 @@ resources:
 
   - id: admin_user
     from: resources/keystone_user
-    values:
+    input:
       user_name: 'admin'
       user_password: 'admin'
       tenant_name: 'admin_tenant::tenant_name'
@@ -27,7 +27,7 @@ resources:
 
   - id: admin_role
     from: resources/keystone_role
-    values:
+    input:
       role_name: 'admin'
       user_name: 'admin_user::user_name'
       tenant_name: 'admin_user::tenant_name'
@@ -40,7 +40,7 @@ resources:
 
   - id: keystone_service_endpoint
     from: resources/keystone_service_endpoint
-    values:
+    input:
      #% raw %#
       adminurl: 'http://#{admin_ip}#:#{admin_port}#/v2.0'
       internalurl: 'http://#{internal_ip}#:#{internal_port}#/v2.0'
@@ -64,7 +64,7 @@ resources:
 
   - id: service_tenant
     from: resources/keystone_tenant
-    values:
+    input:
       tenant_name: services
       keystone_port: '#{keystone_admin_port}#'
       keystone_host: '#{keystone_ip}#'

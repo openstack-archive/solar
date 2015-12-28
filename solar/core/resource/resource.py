@@ -47,8 +47,7 @@ class Resource(object):
 
     # Create
     @dispatch(basestring, basestring)
-    def __init__(self, name, spec, args=None, tags=None,
-                 virtual_resource=None):
+    def __init__(self, name, spec, args=None, tags=None):
         args = args or {}
         self.name = name
         if spec:
@@ -69,8 +68,6 @@ class Resource(object):
         m_tags = metadata.get('tags', [])
         tags.extend(m_tags)
         tags.append('resource={}'.format(name))
-
-        self.virtual_resource = virtual_resource
 
         inputs = metadata.get('input', {})
 
@@ -102,7 +99,6 @@ class Resource(object):
         self.db_obj = resource_db
         self.name = resource_db.name
         self.base_path = resource_db.base_path
-        self.virtual_resource = None
 
     def auto_extend_inputs(self, inputs):
         # XXX: we didn't agree on `location_id` and `transports_id`

@@ -1,61 +1,61 @@
 id: riak_service
 
 resources:
-  - id: riak_service{{index}}
+  - id: riak_service#{index}#
     from: resources/riak_node
-    location: {{node}}
-    values:
-      riak_self_name: riak{{index}}
-      riak_hostname: riak_server{{index}}.solar
-      riak_name: riak{{index}}@riak_server{{index}}.solar
-    {% if join_to %}
-      join_to: {{join_to}}::riak_name
-    {% endif %}
-      ip: {{node}}::ip
+    location: #{node}#
+    input:
+      riak_self_name: riak#{index}#
+      riak_hostname: riak_server#{index}#.solar
+      riak_name: riak#{index}#@riak_server#{index}#.solar
+    #% if join_to %#
+      join_to: #{join_to}#::riak_name
+    #% endif %#
+      ip: #{node}#::ip
 
 updates:
   - with_tags: 'resource=hosts_file'
-    values:
+    input:
       hosts:name:
-        - riak_service{{index}}::riak_hostname::NO_EVENTS
+        - riak_service#{index}#::riak_hostname::NO_EVENTS
       hosts:ip:
-        - riak_service{{index}}::ip::NO_EVENTS
+        - riak_service#{index}#::ip::NO_EVENTS
 
   - with_tags: 'resource=haproxy_service_config & service=riak & protocol=http'
-    values:
+    input:
       backends:server:
-        - riak_service{{index}}::riak_hostname
+        - riak_service#{index}#::riak_hostname
       backends:port:
-        - riak_service{{index}}::riak_port_http
+        - riak_service#{index}#::riak_port_http
 
   - with_tags: 'resource=haproxy_service_config & service=riak & protocol=tcp'
-    values:
+    input:
       backends:server:
-        - riak_service{{index}}::riak_hostname
+        - riak_service#{index}#::riak_hostname
       backends:port:
-        - riak_service{{index}}::riak_port_pb
+        - riak_service#{index}#::riak_port_pb
 
 events:
   - type: depends_on
     parent:
-      with_tags: 'resource=hosts_file & location={{node}}'
+      with_tags: 'resource=hosts_file & location=#{node}#'
       action: run
     state: success
-    depend_action: riak_service{{index}}.run
+    child_action: riak_service#{index}#.run
 
-{% if join_to %}
+#% if join_to %#
   - type: react_on
-    parent_action: riak_service{{index}}.run
+    parent_action: riak_service#{index}#.run
     state: success
-    depend_action: riak_service{{index}}.join
-
-  - type: react_on
-    parent_action: riak_service{{index}}.leave
-    state: success
-    depend_action: riak_service{{index}}.join
+    child_action: riak_service#{index}#.join
 
   - type: react_on
-    parent_action: riak_service{{index}}.join
+    parent_action: riak_service#{index}#.leave
     state: success
-    depend_action: {{join_to}}.commit
-{% endif %}
+    child_action: riak_service#{index}#.join
+
+  - type: react_on
+    parent_action: riak_service#{index}#.join
+    state: success
+    child_action: #{join_to}#.commit
+#% endif %#

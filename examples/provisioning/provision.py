@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import requests
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.events.api import add_event
 from solar.events.controls import React
 
@@ -40,7 +40,7 @@ requests.post(bareon_sync)
 nodes_list = requests.get(discovery_service).json()
 
 # Create slave node resources
-node_resources = vr.create('nodes', 'templates/not_provisioned_nodes',
+node_resources = cr.create('nodes', 'templates/not_provisioned_nodes',
                            {'nodes': nodes_list})
 
 # Get master node
@@ -63,7 +63,7 @@ for node in nodes_list:
         }
     )
 
-    dnsmasq = vr.create('dnsmasq_{0}'.format(node.node_id),
+    dnsmasq = cr.create('dnsmasq_{0}'.format(node.node_id),
                         'resources/dnsmasq', {})[0]
     master_node.connect(dnsmasq)
     node_resource.connect(dnsmasq, {'admin_mac': 'exclude_mac_pxe'})

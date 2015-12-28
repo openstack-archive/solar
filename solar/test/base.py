@@ -20,7 +20,7 @@ import unittest
 
 import yaml
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.dblayer.model import Model
 
 
@@ -56,4 +56,4 @@ class BaseResourceTest(unittest.TestCase):
 
     def create_resource(self, name, src, args=None):
         args = args or {}
-        return vr.create(name, src, args=args)[0]
+        return cr.create(name, src, inputs=args)[0]

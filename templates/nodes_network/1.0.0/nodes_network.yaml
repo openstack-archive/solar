@@ -6,7 +6,7 @@ resources:
 #% for i in range(count|int) %#
   - id: node#{i}#_sdn
     from: resources/node_network_puppet
-    values:
+    input:
       use_ovs: true
       network_scheme:
         version: '1.1'
