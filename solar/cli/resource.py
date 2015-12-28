@@ -205,7 +205,7 @@ def update(name, args):
             args_parsed.update(json.loads(arg))
         except ValueError:
             k, v = arg.split('=')
-            args_parsed.update({k: v})
+            args_parsed.update({k: yaml.safe_load(v)})
     click.echo('Updating resource {} with args {}'.format(name, args_parsed))
     res = sresource.load(name)
     res.update(args_parsed)
