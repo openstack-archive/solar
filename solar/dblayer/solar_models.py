@@ -592,6 +592,11 @@ class InputsFieldWrp(IndexFieldWrp):
         del inst._data_container[self.fname][name]
 
     def __setitem__(self, name, value):
+        try:
+            if name not in self._instance.meta_inputs:
+                raise DBLayerSolarException("Unknown input name: %s" % name)
+        except KeyError:
+            pass
         self._instance._field_changed(self)
         return self._set_field_value(name, value)
 
