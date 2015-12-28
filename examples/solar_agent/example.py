@@ -4,26 +4,26 @@ import time
 
 from solar.core import resource
 from solar.core import signals
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.dblayer.model import ModelMeta
 
 
 def run():
     ModelMeta.remove_all()
 
-    node = vr.create('node', 'resources/ro_node', {'name': 'first' + str(time.time()),
+    node = cr.create('node', 'resources/ro_node', {'name': 'first' + str(time.time()),
                                                        'ip': '10.0.0.3',
                                                        'node_id': 'node1',
                                                    })[0]
 
-    transports = vr.create('transports_node1', 'resources/transports')[0]
-    transports_for_solar_agent = vr.create('transports_for_solar_agent', 'resources/transports')[0]
+    transports = cr.create('transports_node1', 'resources/transports')[0]
+    transports_for_solar_agent = cr.create('transports_for_solar_agent', 'resources/transports')[0]
 
-    ssh_transport  = vr.create('ssh_transport', 'resources/transport_ssh',
+    ssh_transport  = cr.create('ssh_transport', 'resources/transport_ssh',
                                {'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
                                 'ssh_user': 'vagrant'})[0]
 
-    solar_agent_transport  = vr.create('solar_agent_transport', 'resources/transport_solar_agent',
+    solar_agent_transport  = cr.create('solar_agent_transport', 'resources/transport_solar_agent',
                                   {'solar_agent_user': 'vagrant',
                                    'solar_agent_password': 'password'})[0]
 
@@ -46,7 +46,7 @@ def run():
                                            'name': 'transports:name'})
 
 
-    hosts = vr.create('hosts_file', 'resources/hosts_file', {})[0]
+    hosts = cr.create('hosts_file', 'resources/hosts_file', {})[0]
     node.connect(hosts, {
         'ip': 'hosts:ip',
         'name': 'hosts:name'

@@ -115,9 +115,9 @@ Example ::
   child_action: run
   state: success // condition
 
-.. _res-virtual-term:
+.. _res-composer-term:
 
-Virtual resource/template
+Composer
 =========================
 
 Composition layer that allows user to:

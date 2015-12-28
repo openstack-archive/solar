@@ -3,17 +3,17 @@ resources:
 #% for i in range(count|int) %#
   - id: ssh_transport#{i}#
     from: resources/transport_ssh
-    values:
+    input:
       ssh_user: 'vagrant'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev#{i + 1}#/virtualbox/private_key'
   - id: rsync#{i}#
     from: resources/transport_rsync
-    values:
+    input:
       user: vagrant
       key: /vagrant/.vagrant/machines/solar-dev#{i + 1}#/virtualbox/private_key
   - id: transports#{i}#
     from: resources/transports
-    values:
+    input:
       transports:
         - key: ssh_transport#{i}#::ssh_key
           user: ssh_transport#{i}#::ssh_user
@@ -25,7 +25,7 @@ resources:
           port: rsync#{i}#::port
   - id: node#{i}#
     from: resources/ro_node
-    values:
+    input:
       ip: '10.0.0.#{i + 3}#'
       transports_id: transports#{i}#::transports_id
       name: node#{i}#

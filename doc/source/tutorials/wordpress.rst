@@ -66,7 +66,7 @@ Let's go through this document line by line. `handler: none` says that this reso
 
 In schema it's defined if input will be string or integer, `!` at the end means that the input is mandatory and value cannot be empty.
 
-4. Virtual resource
+4. Composer file
 -------------------
 
 All other required resources are already available in solar repositores: `resources` and `templates`. We will use four more resources:
@@ -76,8 +76,8 @@ All other required resources are already available in solar repositores: `resour
 * resources/mariadb_db - it creates database in MariaDB and Mysql
 * resources/mariadb_user - it creates user in MariaDB and Mysql
 
-There are three ways to create resources in Solar: Python API, CLI and Virtual Resources. We will use the last option.
-Virtual Resource is just a simple yaml file where we define all needed resources and connections.
+There are three ways to create resources in Solar: Python API, CLI and Composer files. We will use the last option.
+Composer file is just a simple yaml file where we define all needed resources and connections.
 
 Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the following data:
 
@@ -183,7 +183,7 @@ This command created new solar resource repository. To list resources in this re
 5. Deploying
 ------------
 
-Now it's time to deploy our configuration. When running `vagrant up solar-dev solar-dev1` you started two virtual machines. We will deploy Wordpress on solar-dev1. To do it we need to create a resource for it. We already have in repo virtual resource which is doing it. Just run:
+Now it's time to deploy our configuration. When running `vagrant up solar-dev solar-dev1` you started two virtual machines. We will deploy Wordpress on solar-dev1. To do it we need to create a resource for it. We already have in repo composer file which is doing it. Just run:
 
 .. code-block:: bash
 
@@ -195,7 +195,7 @@ It will create all required resources to run actions on solar-dev1. You can anal
 
   solar resource create wp_docker wp_repo/docker
 
-Command `create` requires name, but it's not used for VirtualResources.
+Command `create` requires name, but it's not used by Composer.
 
 Now you can deploy all changes with:
 

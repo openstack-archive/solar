@@ -14,7 +14,7 @@
 
 import os
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.core import signals
 from solar.events.api import add_event
 from solar.events import controls
@@ -147,7 +147,7 @@ class ResourceListTemplate(BaseTemplate):
 
             args_fmt = cls.args_fmt(args, kwargs)
 
-            r = vr.create(kwargs['name'],
+            r = cr.create(kwargs['name'],
                           resource_path,
                           args_fmt)[0]
 
@@ -294,5 +294,5 @@ class ResourceListTemplate(BaseTemplate):
 def nodes_from(template_path):
     """Return ResourceListTemplate for nodes read from template_path."""
 
-    nodes = vr.create('nodes', template_path, {})
+    nodes = cr.create('nodes', template_path, {})
     return ResourceListTemplate(nodes)
