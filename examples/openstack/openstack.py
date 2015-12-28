@@ -40,9 +40,9 @@ def main():
 
 
 def prepare_nodes(nodes_count):
-    resources = vr.create('nodes', 'templates/nodes_with_transports.yaml', {"count": nodes_count})
+    resources = vr.create('nodes', 'templates/nodes_with_transports', {"count": nodes_count})
     nodes = [x for x in resources if x.name.startswith('node')]
-    resources = vr.create('nodes_network', 'templates/nodes_network.yaml', {"count": nodes_count})
+    resources = vr.create('nodes_network', 'templates/nodes_network', {"count": nodes_count})
     nodes_sdn = [x for x in resources if x.name.startswith('node')]
     r = {}
 

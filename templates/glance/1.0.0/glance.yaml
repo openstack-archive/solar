@@ -2,7 +2,7 @@ id: glance_#{idx}#
 
 resources:
   - id: glance_base_#{ idx }#
-    from: templates/glance_db.yaml
+    from: templates/glance_db
     values:
       idx: '#{ idx }#'
 

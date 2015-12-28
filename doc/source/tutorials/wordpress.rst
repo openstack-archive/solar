@@ -189,7 +189,7 @@ Now it's time to deploy our configuration. When running `vagrant up solar-dev so
 
   solar resource create nodes templates/nodes count=1
 
-It will create all required resources to run actions on solar-dev1. You can analyze `templates/nodes.yaml` later. Now we create resources defined in `docker.yaml`
+It will create all required resources to run actions on solar-dev1. You can analyze `templates/nodes` later. Now we create resources defined in `docker`
 
 .. code-block:: bash
 

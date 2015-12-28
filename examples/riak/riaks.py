@@ -31,7 +31,7 @@ from solar.dblayer.solar_models import Resource
 def setup_riak():
 
     ModelMeta.remove_all()
-    resources = vr.create('nodes', 'templates/nodes.yaml', {'count': 3})
+    resources = vr.create('nodes', 'templates/nodes', {'count': 3})
     nodes = [x for x in resources if x.name.startswith('node')]
     hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
     node1, node2, node3 = nodes

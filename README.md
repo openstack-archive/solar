@@ -77,7 +77,7 @@ Some very simple cluster setup:
 ```bash
 cd /vagrant
 
-solar resource create nodes templates/nodes.yaml '{"count": 2}'
+solar resource create nodes templates/nodes '{"count": 2}'
 solar resource create mariadb_service resources/mariadb_service '{"image": "mariadb", "root_password": "mariadb", "port": 3306}'
 solar resource create keystone_db resources/mariadb_db/ '{"db_name": "keystone_db", "login_user": "root"}'
 solar resource create keystone_db_user resources/mariadb_user/ user_name=keystone user_password=keystone  # another valid format
@@ -266,7 +266,7 @@ functional way, and in particular avoid `for` loops. Here's an example:
 ```python
 from solar import template
 
-nodes = template.nodes_from('templates/riak_nodes.yaml')
+nodes = template.nodes_from('templates/riak_nodes')
 
 riak_services = nodes.on_each(
     'resources/riak_node',

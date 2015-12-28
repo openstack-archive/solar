@@ -5,7 +5,7 @@ function deploy {
     # this two commands will clean db
     solar resource clear_all
 
-    solar resource create nodes templates/nodes.yaml '{"count": 1}'
+    solar resource create nodes templates/nodes '{"count": 1}'
     solar resource create mariadb1 /vagrant/resources/mariadb_service image=mariadb port=3306
     solar connect node1 mariadb1
 
