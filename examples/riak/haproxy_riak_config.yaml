@@ -4,38 +4,38 @@ resources:
   - id: haproxy_riak_config_http
     from: resources/haproxy_service_config
     tags: ['service=riak', 'protocol=http']
-    values:
-      listen_port: {{http_listen_port}}
+    input:
+      listen_port: #{http_listen_port}#
       protocol: 'http'
       name: 'riak_haproxy_http'
       backends:server:
-        {% for riak in riaks %}
-        - {{riak}}::riak_hostname
-        {% endfor %}
+        #% for riak in riaks %#
+        - #{riak}#::riak_hostname
+        #% endfor %#
       backends:port:
-        {% for riak in riaks %}
-        - {{riak}}::riak_port_http
-        {% endfor %}
+        #% for riak in riaks %#
+        - #{riak}#::riak_port_http
+        #% endfor %#
 
   - id: haproxy_riak_config_pb
     from: resources/haproxy_service_config
     tags: ['service=riak', 'protocol=tcp']
-    values:
-      listen_port: {{pb_listen_port}}
+    input:
+      listen_port: #{pb_listen_port}#
       protocol: 'tcp'
       name: 'riak_haproxy_pb'
       backends:server:
-        {% for riak in riaks %}
-        - {{riak}}::riak_hostname
-        {% endfor %}
+        #% for riak in riaks %#
+        - #{riak}#::riak_hostname
+        #% endfor %#
       backends:port:
-        {% for riak in riaks %}
-        - {{riak}}::riak_port_pb
-        {% endfor %}
+        #% for riak in riaks %#
+        - #{riak}#::riak_port_pb
+        #% endfor %#
 
 updates:
   - with_tags: ['resource=haproxy_config']
-    values:
+    input:
       config:protocol:
         - haproxy_riak_config_http::protocol
         - haproxy_riak_config_pb::protocol

@@ -3,49 +3,49 @@ id: riak_cluster
 resources:
   - id: riak_service1
     from: examples/riak/riak_service.yaml
-    values:
-      node: {{nodes[0]}}
+    input:
+      node: #{nodes[0]}#
       index: 1 
       join_to: ''
 
   - id: riak_service2
     from: examples/riak/riak_service.yaml
-    values:
-      node: {{nodes[1]}}
+    input:
+      node: #{nodes[1]}#
       index: 2 
       join_to: riak_service1
 
   - id: riak_service3
     from: examples/riak/riak_service.yaml
-    values:
-      node: {{nodes[2]}}
+    input:
+      node: #{nodes[2]}#
       index: 3 
       join_to: riak_service1
 
   - id: haproxy_riak_config
     from: examples/riak/haproxy_riak_config.yaml
-    values:
+    input:
       http_listen_port: 8098
       pb_listen_port: 8087
       riaks: ['riak_service1', 'riak_service2', 'riak_service3']
 
   - id: haproxy1
     from: templates/haproxy
-    values:
-      node: {{nodes[0]}}
+    input:
+      node: #{nodes[0]}#
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
       index: 1
 
   - id: haproxy2
     from: templates/haproxy
-    values:
-      node: {{nodes[1]}}
+    input:
+      node: #{nodes[1]}#
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
       index: 2
 
   - id: haproxy3
     from: templates/haproxy
-    values:
-      node: {{nodes[2]}}
+    input:
+      node: #{nodes[2]}#
       service_configs: ['haproxy_riak_config_pb', 'haproxy_riak_config_http']
       index: 3

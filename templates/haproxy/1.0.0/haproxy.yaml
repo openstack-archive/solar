@@ -4,7 +4,7 @@ resources:
   - id: haproxy_config#{index}#
     from: resources/haproxy_config
     location: #{node}#
-    values:
+    input:
       ip: '#{node}#::ip'
       config:protocol:
         #% for config in service_configs %#
@@ -26,21 +26,21 @@ resources:
   - id: haproxy_service#{index}#
     location: #{node}#
     from: resources/haproxy_service
-    values:
+    input:
       ip: '#{node}#::ip'
 
 events:
   - type: depends_on
     parent_action: 'haproxy_service#{index}#.run'
     state: 'success'
-    depend_action: 'haproxy_config#{index}#.run'
+    child_action: 'haproxy_config#{index}#.run'
 
   - type: react_on
     parent_action: 'haproxy_config#{index}#.run'
     state: 'success'
-    depend_action: 'haproxy_service#{index}#.apply_config'
+    child_action: 'haproxy_service#{index}#.apply_config'
 
   - type: react_on
     parent_action: 'haproxy_config#{index}#.update'
     state: 'success'
-    depend_action: 'haproxy_service#{index}#.apply_config'
+    child_action: 'haproxy_service#{index}#.apply_config'

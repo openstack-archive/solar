@@ -8,7 +8,7 @@ import sys
 from solar.core import resource
 from solar.core import signals
 from solar.core import validation
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import errors
 
 from solar.interfaces.db import get_db
@@ -28,7 +28,7 @@ def setup_riak(nodes_num=None, hosts_mapping=False):
         nodes_num = NODES
     db.clear()
 
-    resources = vr.create('nodes', 'templates/nodes', {'count': nodes_num})
+    resources = cr.create('nodes', 'templates/nodes', {'count': nodes_num})
     nodes = [x for x in resources if x.name.startswith('node')]
     hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
 
@@ -36,7 +36,7 @@ def setup_riak(nodes_num=None, hosts_mapping=False):
     ips = '10.0.0.%d'
     for i in xrange(nodes_num):
         num = i + 1
-        r = vr.create('riak_service%d' % num,
+        r = cr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
                        'riak_hostname': 'riak_server%d.solar' % num,

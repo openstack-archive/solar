@@ -2,7 +2,7 @@ id: seed_node
 resources:
   - id: seed_node
     from: resources/ro_node
-    values:
+    input:
       ip: '10.0.0.2'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev/virtualbox/private_key'
       ssh_user: 'vagrant'

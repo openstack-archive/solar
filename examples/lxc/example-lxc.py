@@ -10,7 +10,7 @@
 import click
 
 from solar.core import signals
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 
 from solar.system_log import change
 from solar.cli import orch
@@ -45,10 +45,10 @@ def lxc_template(idx):
 def deploy():
     ModelMeta.remove_all()
 
-    node1 = vr.create('nodes', 'templates/nodes', {})[0]
-    seed = vr.create('nodes', 'templates/seed_node', {})[0]
+    node1 = cr.create('nodes', 'templates/nodes', {})[0]
+    seed = cr.create('nodes', 'templates/seed_node', {})[0]
 
-    ssh_key = vr.create('ssh_key1', 'resources/ssh_key', {
+    ssh_key = cr.create('ssh_key1', 'resources/ssh_key', {
         'keys_dir': '/vagrant/.ssh',
         'private_key': '/vagrant/.ssh/id_rsa',
         'public_key': '/vagrant/.ssh/id_rsa.pub',
@@ -56,14 +56,14 @@ def deploy():
     })[0]
     signals.connect(seed, ssh_key)
 
-    cnets1 = vr.create('cnets1', 'resources/container_networks', {
+    cnets1 = cr.create('cnets1', 'resources/container_networks', {
         'networks':
             {'mgmt': {
                 'bridge': 'br-int53',
                 'bridge_address': '172.18.11.254/24'
             }}
         })[0]
-    cnets2 = vr.create('cnets2', 'resources/container_networks', {
+    cnets2 = cr.create('cnets2', 'resources/container_networks', {
         'networks':
             {'mgmt': {
                 'bridge': 'br-int53',
@@ -73,12 +73,12 @@ def deploy():
     signals.connect(seed, cnets1)
     signals.connect(node1, cnets2)
 
-    vxlan_mesh1 = vr.create('vxlan_mesh1', 'resources/vxlan_mesh', {
+    vxlan_mesh1 = cr.create('vxlan_mesh1', 'resources/vxlan_mesh', {
         'id': 53,
         'parent': 'eth1',
         'master': 'br-int53'
     })[0]
-    vxlan_mesh2 = vr.create('vxlan_mesh2', 'resources/vxlan_mesh', {
+    vxlan_mesh2 = cr.create('vxlan_mesh2', 'resources/vxlan_mesh', {
         'id': 53,
         'parent': 'eth1',
         'master': 'br-int53'
@@ -88,14 +88,14 @@ def deploy():
     signals.connect(seed, vxlan_mesh1)
     signals.connect(node1, vxlan_mesh2)
 
-    lxc_infra1 = vr.create('lxc_infra1', 'resources/lxc_host', {})[0]
+    lxc_infra1 = cr.create('lxc_infra1', 'resources/lxc_host', {})[0]
     signals.connect(node1, lxc_infra1)
 
     lxc_hosts = range(28, 35)
     hosts_map = {}
     for idx in lxc_hosts:
 
-        lxc_host_idx = vr.create(
+        lxc_host_idx = cr.create(
             'lxc_host{}'.format(idx),
             'resources/lxc_container', lxc_template(idx))[0]
         hosts_map[idx] = lxc_host_idx
@@ -112,15 +112,15 @@ def deploy():
             'private_key': 'user_key'})
 
     # RABBIT
-    rabbitmq_service1 = vr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
+    rabbitmq_service1 = cr.create('rabbitmq_service1', 'resources/rabbitmq_service/', {
         'management_port': 15672,
         'port': 5672,
     })[0]
-    openstack_vhost = vr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {
+    openstack_vhost = cr.create('openstack_vhost', 'resources/rabbitmq_vhost/', {
         'vhost_name': 'openstack'
     })[0]
 
-    openstack_rabbitmq_user = vr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {
+    openstack_rabbitmq_user = cr.create('openstack_rabbitmq_user', 'resources/rabbitmq_user/', {
         'user_name': 'openstack',
         'password': 'openstack_password'
     })[0]
