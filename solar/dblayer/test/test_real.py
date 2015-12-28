@@ -18,6 +18,7 @@ import pytest
 from solar.dblayer.model import check_state_for
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import DBLayerSolarException
+from solar.dblayer.solar_models import InputAlreadyExists
 from solar.dblayer.solar_models import Resource
 from solar.dblayer.solar_models import UnknownInput
 
@@ -694,3 +695,36 @@ def test_raise_error_unknown_input(rk):
 
     with pytest.raises(UnknownInput):
         r1.inputs['b'] = 11
+
+
+@pytest.mark.parametrize('schema', (None, 'int!'))
+def test_add_new_input(rk, schema):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'a': 10}})
+    r1.save()
+    r1.inputs.add_new('b', 15, schema)
+    r1.save()
+    assert r1.inputs['b'] == 15
+    if schema:
+        assert r1.meta_inputs['b']['schema'] == schema
+
+    with pytest.raises(InputAlreadyExists):
+        r1.inputs.add_new('b', 25, schema)
+
+
+def test_remove_input(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': 'first',
+                              'inputs': {'a': 10,
+                                         'b': 15}})
+
+    r1.save()
+    r1.inputs.remove_existing('b')
+    assert 'b' not in r1.inputs.keys()
+    assert 'b' not in r1.meta_inputs.keys()
+
+    with pytest.raises(DBLayerSolarException):
+        r1.inputs.remove_existing('b')
