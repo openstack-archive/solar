@@ -109,23 +109,6 @@ def backtrack_inputs(resource, input, values, real_values):
 
 
 @resource.command()
-def compile_all():
-    from solar.core.resource import compiler
-
-    destination_path = utils.read_config()['resources-compiled-file']
-
-    if os.path.exists(destination_path):
-        os.remove(destination_path)
-
-    resources_files_mask = utils.read_config()['resources-files-mask']
-    for path in utils.find_by_mask(resources_files_mask):
-        meta = utils.yaml_load(path)
-        meta['base_path'] = os.path.dirname(path)
-
-        compiler.compile(meta)
-
-
-@resource.command()
 def clear_all():
     from solar.dblayer.model import ModelMeta
     click.echo('Clearing all resources and connections')
