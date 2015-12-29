@@ -13,6 +13,7 @@
 #    under the License.
 
 import json
+import os
 import sys
 
 import click
@@ -74,6 +75,10 @@ def clear_all():
 @click.argument('base_path')
 @click.argument('args', nargs=-1)
 def create(args, base_path, name):
+    if base_path.startswith('./'):
+        base_path = os.path.abspath(base_path)
+    elif base_path.endswith('.yaml'):
+        base_path = os.path.abspath(base_path)
     args_parsed = {}
 
     click.echo('create {} {} {}'.format(name, base_path, args))
