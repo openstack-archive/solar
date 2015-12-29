@@ -133,25 +133,6 @@ def load_file(fpath):
         return {}
 
 
-def read_config():
-    CONFIG_FILE = os.environ.get('CONFIG_FILE') or '/vagrant/config.yaml'
-    return load_file(CONFIG_FILE)
-
-
-def read_config_file(key):
-    fpath = read_config()[key]
-
-    return load_file(fpath)
-
-
-def save_to_config_file(key, data):
-    fpath = read_config()[key]
-
-    with open(fpath, 'w') as f:
-        encoder = ext_encoder(fpath)
-        encoder.dump(data, f)
-
-
 def solar_map(funct, args, **kwargs):
     return map(funct, args)
 

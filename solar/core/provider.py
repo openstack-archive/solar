@@ -12,6 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
+import warnings
+
+warnings.warn("For now this file is deprecated "
+              "in future it will be part of Solar repository logic",
+              DeprecationWarning)
+
 from fabric import api as fabric_api
 import os
 import requests
