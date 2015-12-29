@@ -13,7 +13,6 @@
 #    under the License.
 
 import json
-import os
 import sys
 
 import click
@@ -26,7 +25,6 @@ from solar.core.log import log
 from solar.core import resource as sresource
 from solar.core.resource import virtual_resource as vr
 from solar import errors
-from solar import utils
 
 
 @click.group()
@@ -106,23 +104,6 @@ def backtrack_inputs(resource, input, values, real_values):
         if real_values:
             click.echo('! Real value: %r' % sresource.load(
                 resource).db_obj.inputs[name], nl=True)
-
-
-@resource.command()
-def compile_all():
-    from solar.core.resource import compiler
-
-    destination_path = utils.read_config()['resources-compiled-file']
-
-    if os.path.exists(destination_path):
-        os.remove(destination_path)
-
-    resources_files_mask = utils.read_config()['resources-files-mask']
-    for path in utils.find_by_mask(resources_files_mask):
-        meta = utils.yaml_load(path)
-        meta['base_path'] = os.path.dirname(path)
-
-        compiler.compile(meta)
 
 
 @resource.command()
