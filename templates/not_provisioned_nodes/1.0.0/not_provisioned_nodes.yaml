@@ -4,19 +4,19 @@ resources:
   #% set id = node.id | replace(':', '_') %#
   - id: ssh_transport#{ id }#
     from: resources/transport_ssh
-    values:
+    input:
       ssh_user: 'root'
       ssh_key: '/vagrant/tmp/keys/ssh_private'
   - id: transports#{id}#
     from: resources/transports
-    values:
+    input:
       transports:key: ssh_transport#{id}#::ssh_key
       transports:user: ssh_transport#{id}#::ssh_user
       transports:port: ssh_transport#{id}#::ssh_port
       transports:name: ssh_transport#{id}#::name
   - id: node_#{id}#
     from: resources/not_provisioned_node
-    values:
+    input:
       ip: #{node.ip}#
       transports_id: transports#{id}#::transports_id
       name: node_#{id}#
@@ -25,19 +25,19 @@ resources:
 
   - id: ssh_transport_master
     from: resources/transport_ssh
-    values:
+    input:
       ssh_user: 'vagrant'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev/virtualbox/private_key'
   - id: transports_master
     from: resources/transports
-    values:
+    input:
       transports:key: ssh_transport_master::ssh_key
       transports:user: ssh_transport_master::ssh_user
       transports:port: ssh_transport_master::ssh_port
       transports:name: ssh_transport_master::name
   - id: node_master
     from: resources/ro_node
-    values:
+    input:
       name: node_master
       ip: '10.0.2.15'
       transports_id: transports_master::transports_id

@@ -4,17 +4,17 @@ resources:
    #% set j = i +1 %#
   - id: ssh_transport#{j}#
     from: resources/transport_ssh
-    values:
+    input:
       ssh_user: 'vagrant'
       ssh_key: '/vagrant/.vagrant/machines/solar-dev#{j}#/virtualbox/private_key'
   - id: rsync#{j}#
     from: resources/transport_rsync
-    values:
+    input:
       user: vagrant
       key: /vagrant/.vagrant/machines/solar-dev#{j}#/virtualbox/private_key
   - id: transports#{j}#
     from: resources/transports
-    values:
+    input:
       transports:
         - key: ssh_transport#{j}#::ssh_key
           user: ssh_transport#{j}#::ssh_user
@@ -26,7 +26,7 @@ resources:
           port: rsync#{j}#::port
   - id: node#{j}#
     from: resources/ro_node
-    values:
+    input:
       name: node#{j}#
       ip: '10.0.0.#{i + 3}#'
       transports_id: transports#{j}#::transports_id

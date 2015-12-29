@@ -26,7 +26,7 @@ from enum import Enum
 from solar import utils
 
 
-RES_TYPE = Enum("Resource Types", 'Normal Virtual')
+RES_TYPE = Enum("Resource Types", 'Normal Composer')
 
 
 class RepositoryException(Exception):
@@ -72,9 +72,9 @@ class Repository(object):
     @classmethod
     def _list_source_contents(cls, source):
         if source.endswith('.yaml'):
-            # single VR
+            # single CR
             pth = os.path.split(source)[-1][:-5]
-            return ((RES_TYPE.Virtual, pth, source), )
+            return ((RES_TYPE.Composer, pth, source), )
         elif os.path.isdir(source):
             meta_path = os.path.join(source, 'meta.yaml')
             if os.path.exists(meta_path):
@@ -99,7 +99,7 @@ class Repository(object):
             single_path = os.path.join(source, pth)
             if pth.endswith('.yaml'):
                 pth = pth[:-5]
-                yield RES_TYPE.Virtual, pth, single_path
+                yield RES_TYPE.Composer, pth, single_path
             elif os.path.exists(os.path.join(single_path, 'meta.yaml')):
                 try:
                     semver.parse(pth)
@@ -113,12 +113,12 @@ class Repository(object):
                     name = os.path.split(source)[-1]
                 yield RES_TYPE.Normal, name, single_path
             else:
-                maybe_vr = os.path.join(single_path,
+                maybe_cr = os.path.join(single_path,
                                         "{}.yaml".format(
                                             os.path.split(source)[-1]))
-                if os.path.exists(maybe_vr):
+                if os.path.exists(maybe_cr):
                     name = os.path.split(source)[-1]
-                    yield RES_TYPE.Virtual, name, maybe_vr
+                    yield RES_TYPE.Composer, name, maybe_cr
                     continue
                 if not os.path.isdir(single_path):
                     continue
@@ -137,8 +137,8 @@ class Repository(object):
                             yield RES_TYPE.Normal, pth, fp
                         elif os.path.exists(
                                 os.path.join(fp, '{}.yaml'.format(pth))):
-                            vr = os.path.join(fp, '{}.yaml'.format(pth))
-                            yield RES_TYPE.Virtual, pth, vr
+                            cr = os.path.join(fp, '{}.yaml'.format(pth))
+                            yield RES_TYPE.Composer, pth, cr
 
     @classmethod
     def repo_path(cls, repo_name):
@@ -169,12 +169,12 @@ class Repository(object):
             if res_type is RES_TYPE.Normal:
                 self.add_single_normal(single_name, single_path, overwrite)
             else:
-                self.add_single_vr(single_name, single_path, overwrite)
+                self.add_single_cr(single_name, single_path, overwrite)
 
     def add_single(self, name, source, overwrite=False):
         if os.path.isfile(source):
             name = name.replace('.yaml', '')
-            return self.add_single_vr(name, source, overwrite)
+            return self.add_single_cr(name, source, overwrite)
         return self.add_single_normal(name, source, overwrite)
 
     def add_single_normal(self, name, source, overwrite=False):
@@ -198,7 +198,7 @@ class Repository(object):
             shutil.rmtree(target_path)
             shutil.copytree(source, target_path, symlinks=True)
 
-    def add_single_vr(self, name, source, overwrite=False):
+    def add_single_cr(self, name, source, overwrite=False):
         with open(source, 'rb') as f:
             parsed = yaml.safe_load(f.read())
         version = parsed.get('version', '1.0.0')
@@ -368,10 +368,10 @@ class Repository(object):
         spec = cls._parse_spec(spec)
         return Repository(spec['repo']), spec
 
-    def is_virtual(self, spec):
-        return os.path.exists(self.get_virtual_path(spec))
+    def is_composer_file(self, spec):
+        return os.path.exists(self.get_composer_file_path(spec))
 
-    def get_virtual_path(self, spec):
+    def get_composer_file_path(self, spec):
         spec = self._parse_spec(spec)
         p = self.get_path(spec)
         return os.path.join(p, "{}.yaml".format(spec['resource_name']))

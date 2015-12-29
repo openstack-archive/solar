@@ -55,3 +55,5 @@ solar/.cache
 .testrepository/
 
 .solar_config_override
+
+.ropeproject

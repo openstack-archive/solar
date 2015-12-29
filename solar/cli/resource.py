@@ -24,7 +24,7 @@ from solar.cli import executors
 from solar.core import actions
 from solar.core.log import log
 from solar.core import resource as sresource
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import errors
 from solar import utils
 
@@ -102,7 +102,7 @@ def create(args, base_path, name):
         except ValueError:
             k, v = arg.split('=')
             args_parsed.update({k: v})
-    resources = vr.create(name, base_path, args=args_parsed)
+    resources = cr.create(name, base_path, inputs=args_parsed)
     for res in resources:
         click.echo(res.color_repr())
 
@@ -175,7 +175,7 @@ def validate(check_missing_connections):
         click.echo('ERROR: %s: %s' % (r.name, error))
 
     if check_missing_connections:
-        missing_connections = vr.find_missing_connections()
+        missing_connections = cr.find_missing_connections()
         if missing_connections:
             click.echo(
                 'The following resources have inputs of the same value '
@@ -194,7 +194,7 @@ def validate(check_missing_connections):
 def get_inputs(path):
     with open(path) as f:
         content = f.read()
-    click.echo(vr.get_inputs(content))
+    click.echo(cr.get_inputs(content))
 
 
 @resource.command()

@@ -42,8 +42,8 @@ VR_ENV = Environment(block_start_string="#%",
                      lstrip_blocks=True)
 
 
-def create(name, spec, args=None, tags=None, virtual_resource=None):
-    args = args or {}
+def create(name, spec, inputs=None, tags=None):
+    inputs = inputs or {}
     if isinstance(spec, provider.BaseProvider):
         spec = spec.directory
 
@@ -51,39 +51,30 @@ def create(name, spec, args=None, tags=None, virtual_resource=None):
     # TODO: (jnowak) find a better way to code this part
     if spec.startswith('/'):
         if os.path.isfile(spec):
-            template = _compile_file(name, spec, args)
+            template = _compile_file(name, spec, inputs)
             yaml_template = yaml.load(StringIO(template))
-            rs = create_virtual_resource(name, yaml_template, tags)
+            rs = apply_composer_file(name, yaml_template, tags)
         else:
-            r = create_resource(name,
-                                spec,
-                                args=args,
-                                tags=tags,
-                                virtual_resource=virtual_resource)
+            r = create_resource(name, spec, inputs=inputs, tags=tags,)
             rs = [r]
         return rs
 
     repo, parsed_spec = Repository.parse(spec)
 
-    if repo.is_virtual(spec):
-        path = repo.get_virtual_path(spec)
-        template = _compile_file(name, path, args)
+    if repo.is_composer_file(spec):
+        path = repo.get_composer_file_path(spec)
+        template = _compile_file(name, path, inputs)
         yaml_template = yaml.load(StringIO(template))
-        rs = create_virtual_resource(name, yaml_template, tags)
+        rs = apply_composer_file(name, yaml_template, tags)
     else:
-        r = create_resource(name,
-                            spec,
-                            args=args,
-                            tags=tags,
-                            virtual_resource=virtual_resource)
+        r = create_resource(name, spec, inputs=inputs, tags=tags)
         rs = [r]
 
     return rs
 
 
-def create_resource(name, spec, args=None, tags=None,
-                    virtual_resource=None):
-    args = args or {}
+def create_resource(name, spec, inputs=None, tags=None):
+    inputs = inputs or {}
     if isinstance(spec, provider.BaseProvider):
         spec = spec.directory
 
@@ -98,13 +89,12 @@ def create_resource(name, spec, args=None, tags=None,
         else:
             return value
 
-    args = {key: _filter(value) for key, value in args.items()}
-    r = Resource(name, spec, args=args,
-                 tags=tags, virtual_resource=virtual_resource)
+    inputs = {key: _filter(value) for key, value in inputs.items()}
+    r = Resource(name, spec, args=inputs, tags=tags)
     return r
 
 
-def create_virtual_resource(vr_name, template, tags=None):
+def apply_composer_file(vr_name, template, tags=None):
     template_resources = template.get('resources', [])
     template_events = template.get('events', [])
     resources_to_update = template.get('updates', [])
@@ -151,25 +141,25 @@ def create_resources(resources, tags=None):
     created_resources = []
     for r in resources:
         resource_name = r['id']
-        args = r.get('values', {})
+        inputs = r.get('input', {})
         node = r.get('location', None)
         values_from = r.get('values_from')
         spec = r.get('from', None)
         tags = r.get('tags', [])
-        new_resources = create(resource_name, spec, args=args, tags=tags)
+        new_resources = create(resource_name, spec, inputs=inputs, tags=tags)
         created_resources += new_resources
-        is_virtual = False
+        is_composer_file = False
         if not spec.startswith('/'):
             repo, parsed_spec = Repository.parse(spec)
-            is_virtual = repo.is_virtual(spec)
-        if not is_virtual:
+            is_composer_file = repo.is_composer_file(spec)
+        if not is_composer_file:
             if node:
                 node = load_resource(node)
                 r = new_resources[0]
                 node.connect(r, mapping={})
                 r.add_tags('location={}'.format(node.name))
 
-            update_inputs(resource_name, args)
+            update_inputs(resource_name, inputs)
 
             if values_from:
                 from_resource = load_resource(values_from)
@@ -188,7 +178,7 @@ def extend_resources(template_resources):
             filtered = load_by_tags(tags)
             for f in filtered:
                 r = {'id': f.name,
-                     'values': r['values']}
+                     'input': r['input']}
                 resources.append(r)
                 log.debug('Resource {} for tags {} found'.format(r, tags))
             if not filtered:
@@ -200,13 +190,13 @@ def update_resources(template_resources):
     resources = extend_resources(template_resources)
     for r in resources:
         resource_name = r['id']
-        args = r['values']
-        update_inputs(resource_name, args)
+        inputs = r['input']
+        update_inputs(resource_name, inputs)
 
 
-def update_inputs(child, args):
+def update_inputs(child, inputs):
     child = load_resource(child)
-    connections, assignments = parse_inputs(args)
+    connections, assignments = parse_inputs(inputs)
     parents = defaultdict(lambda: defaultdict(dict))
     for c in connections:
         mapping = {c['parent_input']: c['child_input']}
@@ -237,7 +227,7 @@ def extend_events(template_events):
                 parent_action = '{}.{}'.format(r.name, parent['action'])
                 event = {'type': e['type'],
                          'state': e['state'],
-                         'depend_action': e['depend_action'],
+                         'child_action': e['child_action'],
                          'parent_action': parent_action
                          }
                 events.append(event)
@@ -250,7 +240,7 @@ def parse_events(template_events):
     for event in events:
         event_type = event['type']
         parent, parent_action = event['parent_action'].split('.')
-        child, child_action = event['depend_action'].split('.')
+        child, child_action = event['child_action'].split('.')
         state = event['state']
         if event_type == Dep.etype:
             event = Dep(parent, parent_action, state, child, child_action)
@@ -262,10 +252,10 @@ def parse_events(template_events):
     return parsed_events
 
 
-def parse_inputs(args):
+def parse_inputs(inputs):
     connections = []
     assignments = {}
-    for r_input, arg in args.items():
+    for r_input, arg in inputs.items():
         if isinstance(arg, list):
             c, a = parse_list_input(r_input, arg)
             connections.extend(c)

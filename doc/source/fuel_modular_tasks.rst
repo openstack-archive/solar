@@ -55,7 +55,7 @@ Workflow
 
 ``docker exec -ti solar bash``
 
-9. Prepare transport for master and nodes, generate keys, create tasks and assign virtual resources to nodes
+9. Prepare transport for master and nodes, generate keys, create tasks and apply composer files on nodes
 
   ./f2s/fsclient.py master 1
 

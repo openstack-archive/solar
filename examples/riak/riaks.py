@@ -17,7 +17,7 @@ import sys
 from solar.core import resource
 from solar.core import signals
 from solar.core import validation
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import errors
 
 from solar.dblayer.model import ModelMeta
@@ -31,7 +31,7 @@ from solar.dblayer.solar_models import Resource
 def setup_riak():
 
     ModelMeta.remove_all()
-    resources = vr.create('nodes', 'templates/nodes', {'count': 3})
+    resources = cr.create('nodes', 'templates/nodes', {'count': 3})
     nodes = [x for x in resources if x.name.startswith('node')]
     hosts_services = [x for x in resources if x.name.startswith('hosts_file')]
     node1, node2, node3 = nodes
@@ -41,7 +41,7 @@ def setup_riak():
     ips = '10.0.0.%d'
     for i in xrange(3):
         num = i + 1
-        r = vr.create('riak_service%d' % num,
+        r = cr.create('riak_service%d' % num,
                       'resources/riak_node',
                       {'riak_self_name': 'riak%d' % num,
                        'storage_backend': 'leveldb',
@@ -113,18 +113,18 @@ def setup_haproxies():
     hpsc_pb = []
     for i in xrange(3):
         num = i + 1
-        hps.append(vr.create('haproxy_service%d' % num,
+        hps.append(cr.create('haproxy_service%d' % num,
                              'resources/haproxy_service',
                              {})[0])
-        hpc.append(vr.create('haproxy_config%d' % num,
+        hpc.append(cr.create('haproxy_config%d' % num,
                              'resources/haproxy_config',
                              {})[0])
-        hpsc_http.append(vr.create('haproxy_service_config_http%d' % num,
+        hpsc_http.append(cr.create('haproxy_service_config_http%d' % num,
                                    'resources/haproxy_service_config',
                                    {'listen_port': 8098,
                                     'protocol': 'http',
                                     'name': 'riak_haproxy_http%d' % num})[0])
-        hpsc_pb.append(vr.create('haproxy_service_config_pb%d' % num,
+        hpsc_pb.append(cr.create('haproxy_service_config_pb%d' % num,
                                  'resources/haproxy_service_config',
                                  {'listen_port': 8087,
                                   'protocol': 'tcp',
@@ -208,12 +208,12 @@ def setup_haproxies():
 @click.command()
 @click.argument('i', type=int, required=True)
 def add_solar_agent(i):
-    solar_agent_transport  = vr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
+    solar_agent_transport  = cr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
                                   {'solar_agent_user': 'vagrant',
                                    'solar_agent_password': 'password'})[0]
     transports = resource.load('transports%s' % i)
     ssh_transport = resource.load('ssh_transport%s' % i)
-    transports_for_solar_agent = vr.create('transports_for_solar_agent%s' % i, 'resources/transports')[0]
+    transports_for_solar_agent = cr.create('transports_for_solar_agent%s' % i, 'resources/transports')[0]
 
     # install solar_agent with ssh
     signals.connect(transports_for_solar_agent, solar_agent_transport, {})

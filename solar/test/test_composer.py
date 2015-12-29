@@ -18,7 +18,7 @@ from StringIO import StringIO
 import pytest
 import yaml
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar.events.controls import Dep
 from solar.events.controls import React
 
@@ -29,11 +29,11 @@ def good_events():
   - type: depends_on
     parent_action: 'service1.run'
     state: 'success'
-    depend_action: 'config1.run'
+    child_action: 'config1.run'
   - type: react_on
     parent_action: 'config1.run'
     state: 'success'
-    depend_action: 'service1.apply_config'
+    child_action: 'service1.apply_config'
 '''
     return yaml.load(StringIO(events))
 
@@ -44,14 +44,14 @@ def bad_event_type():
   - type: skip
     parent_action: 'service1.run'
     state: 'success'
-    depend_action: 'config1.run'
+    child_action: 'config1.run'
 '''
     return yaml.load(StringIO(events))
 
 
 def test_create_path_does_not_exists():
     with pytest.raises(Exception) as excinfo:
-        vr.create('node1', '/path/does/not/exists')
+        cr.create('node1', '/path/does/not/exists')
         assert excinfo.filename == '/path/does/not/exists'
 
 
@@ -59,12 +59,12 @@ def test_create_resource():
     node_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'resource_fixtures', 'node')
-    resources = vr.create('node1', node_path)
+    resources = cr.create('node1', node_path)
     assert len(resources) == 1
     assert resources[0].name == 'node1'
 
 
-def test_create_virtual_resource(tmpdir):
+def test_create_from_composer_file(tmpdir):
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'resource_fixtures')
@@ -74,11 +74,11 @@ def test_create_virtual_resource(tmpdir):
         vr_data = f.read().format(resource_path=node_resource_path)
     vr_file = tmpdir.join('nodes.yaml')
     vr_file.write(vr_data)
-    resources = vr.create('nodes', str(vr_file))
+    resources = cr.create('nodes', str(vr_file))
     assert len(resources) == 2
 
 
-def test_create_virtual_resource_with_list(tmpdir):
+def test_create_from_composer_file_with_list(tmpdir):
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'resource_fixtures')
@@ -88,13 +88,13 @@ def test_create_virtual_resource_with_list(tmpdir):
         vr_data = f.read().format(resource_path=base_resource_path)
     vr_file = tmpdir.join('base.yaml')
     vr_file.write(vr_data)
-    resources = vr.create('base', str(vr_file))
+    resources = cr.create('base', str(vr_file))
     assert len(resources) == 1
     res = resources[0]
     assert res.args['servers'] == [1, 2]
 
 
-def test_create_virtual_resource_with_dict(tmpdir):
+def test_create_from_composer_file_with_dict(tmpdir):
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         'resource_fixtures')
@@ -104,7 +104,7 @@ def test_create_virtual_resource_with_dict(tmpdir):
         vr_data = f.read().format(resource_path=base_resource_path)
     vr_file = tmpdir.join('base.yaml')
     vr_file.write(vr_data)
-    resources = vr.create('base', str(vr_file))
+    resources = cr.create('base', str(vr_file))
     assert len(resources) == 1
     res = resources[0]
     assert res.args['servers'] == {'a': 1, 'b': 2}
@@ -127,8 +127,8 @@ def test_update(tmpdir):
     vr_file.write(vr_data)
     update_file = tmpdir.join('update.yaml')
     update_file.write(update_data)
-    resources = vr.create('nodes', str(vr_file))
-    vr.create('updates', str(update_file))
+    resources = cr.create('nodes', str(vr_file))
+    cr.create('updates', str(update_file))
     assert resources[0].args['ip'] == '10.0.0.4'
 
 
@@ -139,13 +139,13 @@ def test_parse_events(good_events):
               React(parent='config1', parent_action='run',
                     child='service1', child_action='apply_config',
                     state='success')]
-    parsed = vr.parse_events(good_events)
+    parsed = cr.parse_events(good_events)
     assert events == parsed
 
 
 def test_parse_bad_event(bad_event_type):
     with pytest.raises(Exception) as execinfo:
-        vr.parse_events(bad_event_type)
+        cr.parse_events(bad_event_type)
     error = 'Invalid event type: skip'
     assert error == str(execinfo.value)
 
@@ -157,7 +157,7 @@ def test_add_connections(mocker, resources):
             'servers': ['node1::ip', 'node2::ip'],
             'alias': 'ser1'
             }
-    vr.update_inputs('service1', args)
+    cr.update_inputs('service1', args)
     assert mocked_signals.call_count == 2
 
 
@@ -168,7 +168,7 @@ def test_add_list_values(mocker, resources):
             'servers': ['server1', 'server2'],
             'alias': 'ser1'
             }
-    vr.update_inputs('service1', args)
+    cr.update_inputs('service1', args)
     assert mocked_signals.call_count == 1
 
 
@@ -178,7 +178,7 @@ def test_parse_connection():
                           'parent_input': 'ip',
                           'events': None
                           }
-    connection = vr.parse_connection('ip', 'node1::ip')
+    connection = cr.parse_connection('ip', 'node1::ip')
     assert correct_connection == connection
 
 
@@ -187,7 +187,7 @@ def test_parse_dict_input():
                             'events': None,
                             'parent': 'node1',
                             'parent_input': 'ip'}]
-    connections, assigments = vr.parse_dict_input('env', {'host': 'node1::ip'})
+    connections, assigments = cr.parse_dict_input('env', {'host': 'node1::ip'})
     assert correct_connections == connections
 
 
@@ -197,7 +197,7 @@ def test_parse_connection_disable_events():
                           'parent_input': 'ip',
                           'events': False
                           }
-    connection = vr.parse_connection('ip', 'node1::ip::NO_EVENTS')
+    connection = cr.parse_connection('ip', 'node1::ip::NO_EVENTS')
     assert correct_connection == connection
 
 
@@ -205,7 +205,7 @@ def test_parse_list_of_connected_dicts():
     inputs = {'list': [
         {'key': 'emitter1::key'},
         {'key': 'emitter2::key'}]}
-    connections, assignments = vr.parse_inputs(inputs)
+    connections, assignments = cr.parse_inputs(inputs)
     assert assignments == {}
     assert connections == [
         {'child_input': 'list:key', 'parent_input': 'key',
@@ -231,6 +231,6 @@ def test_setting_location(tmpdir):
     vr_file.write(vr_data)
     location_file = tmpdir.join('with_location.yaml')
     location_file.write(location_data)
-    vr.create('nodes', str(vr_file))
-    resources = vr.create('updates', str(location_file))
+    cr.create('nodes', str(vr_file))
+    resources = cr.create('updates', str(location_file))
     assert 'location=node1' in resources[0].tags

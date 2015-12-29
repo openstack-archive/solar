@@ -1,6 +1,6 @@
 import time
 
-from solar.core.resource import virtual_resource as vr
+from solar.core.resource import composer as cr
 from solar import errors
 from solar.dblayer.model import ModelMeta
 
@@ -8,14 +8,14 @@ from solar.dblayer.model import ModelMeta
 def run():
     ModelMeta.remove_all()
 
-    node = vr.create('node', 'resources/ro_node', {'name': 'first' + str(time.time()),
+    node = cr.create('node', 'resources/ro_node', {'name': 'first' + str(time.time()),
                                                    'ip': '10.0.0.3',
                                                    'node_id': 'node1',
                                                    })[0]
 
-    transports = vr.create('transports_node1', 'resources/transports')[0]
+    transports = cr.create('transports_node1', 'resources/transports')[0]
 
-    ssh_transport = vr.create('ssh_transport', 'resources/transport_ssh',
+    ssh_transport = cr.create('ssh_transport', 'resources/transport_ssh',
                               {'ssh_key': '/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key',
                                'ssh_user': 'vagrant'})[0]
 
@@ -27,17 +27,17 @@ def run():
                                        'ssh_port': 'transports:port',
                                        'name': 'transports:name'})
 
-    hosts = vr.create('hosts_file', 'resources/hosts_file', {})[0]
+    hosts = cr.create('hosts_file', 'resources/hosts_file', {})[0]
 
     # let's add torrent transport for hosts file deployment (useless in real life)
 
-    torrent_transport = vr.create('torrent_transport',
+    torrent_transport = cr.create('torrent_transport',
                                   'resources/transport_torrent',
                                   {'trackers': ['udp://open.demonii.com:1337',
                                                 'udp://tracker.openbittorrent.com:80']})[0]
     # you could use any trackers as you want
 
-    transports_for_torrent = vr.create(
+    transports_for_torrent = cr.create(
         'transports_for_torrent', 'resources/transports')[0]
 
     transports_for_torrent.connect(torrent_transport, {})
@@ -48,7 +48,7 @@ def run():
                                                                'name': 'transports:name'},
                                       events={})
 
-    transports_for_hosts = vr.create(
+    transports_for_hosts = cr.create(
         'transports_for_hosts', 'resources/transports')[0]
 
     torrent_transport.connect(transports_for_hosts, {'trackers': 'transports:trackers',
