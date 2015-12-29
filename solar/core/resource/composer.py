@@ -53,7 +53,7 @@ def create(name, spec, inputs=None, tags=None):
         if os.path.isfile(spec):
             template = _compile_file(name, spec, inputs)
             yaml_template = yaml.load(StringIO(template))
-            rs = apply_composer_file(name, yaml_template, tags)
+            rs = apply_composer_file(spec, name, yaml_template, tags)
         else:
             r = create_resource(name, spec, inputs=inputs, tags=tags,)
             rs = [r]
@@ -65,7 +65,7 @@ def create(name, spec, inputs=None, tags=None):
         path = repo.get_composer_file_path(spec)
         template = _compile_file(name, path, inputs)
         yaml_template = yaml.load(StringIO(template))
-        rs = apply_composer_file(name, yaml_template, tags)
+        rs = apply_composer_file(path, name, yaml_template, tags)
     else:
         r = create_resource(name, spec, inputs=inputs, tags=tags)
         rs = [r]
@@ -94,12 +94,16 @@ def create_resource(name, spec, inputs=None, tags=None):
     return r
 
 
-def apply_composer_file(vr_name, template, tags=None):
+def apply_composer_file(base_path, vr_name, template, tags=None):
     template_resources = template.get('resources', [])
     template_events = template.get('events', [])
     resources_to_update = template.get('updates', [])
 
-    created_resources = create_resources(template_resources, tags=tags)
+    created_resources = create_resources(
+        base_path,
+        template_resources,
+        tags=tags
+    )
     events = parse_events(template_events)
     for event in events:
         add_event(event)
@@ -137,7 +141,8 @@ def _get_template(name, content, kwargs, inputs):
     return template
 
 
-def create_resources(resources, tags=None):
+def create_resources(base_path, resources, tags=None):
+
     created_resources = []
     for r in resources:
         resource_name = r['id']
@@ -146,9 +151,15 @@ def create_resources(resources, tags=None):
         values_from = r.get('values_from')
         spec = r.get('from', None)
         tags = r.get('tags', [])
+        is_composer_file = False
+        if spec.startswith('./') or spec.endswith('.yaml'):
+            spec = os.path.join(base_path, '..', spec)
+            spec = os.path.abspath(os.path.normpath(spec))
+            is_composer_file = True
+
         new_resources = create(resource_name, spec, inputs=inputs, tags=tags)
         created_resources += new_resources
-        is_composer_file = False
+
         if not spec.startswith('/'):
             repo, parsed_spec = Repository.parse(spec)
             is_composer_file = repo.is_composer_file(spec)

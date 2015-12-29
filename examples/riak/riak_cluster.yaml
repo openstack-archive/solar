@@ -2,28 +2,31 @@ id: riak_cluster
 
 resources:
   - id: riak_service1
-    from: examples/riak/riak_service.yaml
+    # `./` added by intention
+    from: ./riak_service.yaml
     input:
       node: #{nodes[0]}#
-      index: 1 
+      index: 1
       join_to: ''
 
   - id: riak_service2
-    from: examples/riak/riak_service.yaml
+    # `./` ommited by intention
+    from: riak_service.yaml
     input:
       node: #{nodes[1]}#
-      index: 2 
+      index: 2
       join_to: riak_service1
 
   - id: riak_service3
-    from: examples/riak/riak_service.yaml
+    # `./` ommited by intention
+    from: riak_service.yaml
     input:
       node: #{nodes[2]}#
-      index: 3 
+      index: 3
       join_to: riak_service1
 
   - id: haproxy_riak_config
-    from: examples/riak/haproxy_riak_config.yaml
+    from: ./haproxy_riak_config.yaml
     input:
       http_listen_port: 8098
       pb_listen_port: 8087
