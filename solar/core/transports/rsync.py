@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from solar.core.log import log
 from solar.core.transports.base import Executor
 from solar.core.transports.base import SyncTransport
@@ -31,12 +33,22 @@ class RsyncSyncTransport(SyncTransport):
         user = transport['user']
         # port = transport['port']
         # TODO: user port somehow
-        key = transport['key']
+        key = transport.get('key')
+        password = transport.get('password')
         return {
             'ssh_key': key,
+            'ssh_password': password,
             'ssh_user': user,
             'host_string': '{}@{}'.format(user, host)
         }
+
+    def _ssh_cmd(self, settings):
+        if settings['ssh_key']:
+            return ('ssh', '-i', settings['ssh_key'])
+        elif settings['ssh_password']:
+            return ('sshpass', '-e', 'ssh')
+        else:
+            raise Exception("No key and no password given")
 
     def copy(self, resource, _from, _to, use_sudo=False):
         log.debug("RSYNC: %s -> %s", _from, _to)
@@ -44,18 +56,26 @@ class RsyncSyncTransport(SyncTransport):
             rsync_path = "sudo rsync"
         else:
             rsync_path = "rsync"
+
         rsync_props = self._rsync_props(resource)
-        rsync_cmd = ('rsync -az -e "ssh -i %(ssh_key)s" '
+        ssh_cmd = ' '.join(self._ssh_cmd(rsync_props))
+        rsync_cmd = ('rsync -az -e "%(ssh_cmd)s" '
                      '--rsync-path="%(rsync_path)s" %(_from)s '
                      '%(rsync_host)s:%(_to)s') % dict(
                          rsync_path=rsync_path,
-                         ssh_key=rsync_props['ssh_key'],
+                         ssh_cmd=ssh_cmd,
                          rsync_host=rsync_props['host_string'],
                          _from=_from,
                          _to=_to)
 
+        if rsync_props.get('ssh_password'):
+            env = os.environ.copy()
+            env['SSHPASS'] = rsync_props['ssh_password']
+        else:
+            env = os.environ
+
         rsync_executor = lambda transport: execute(
-            rsync_cmd, shell=True)
+            rsync_cmd, shell=True, env=env)
 
         log.debug("RSYNC CMD: %r" % rsync_cmd)
 

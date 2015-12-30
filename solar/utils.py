@@ -47,11 +47,12 @@ def communicate(command, data):
     return popen.communicate(input=data)[0]
 
 
-def execute(command, shell=False):
+def execute(command, shell=False, env=None):
     popen = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        env=env,
         shell=shell)
     out, err = popen.communicate()
     return popen.returncode, out, err

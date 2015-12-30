@@ -32,11 +32,18 @@ class _SSHTransport(object):
         host = resource.ip()
         user = transport['user']
         port = transport['port']
-        key = transport['key']
-        return {
+        settings = {
             'host_string': "{}@{}:{}".format(user, host, port),
-            'key_filename': key,
         }
+        key = transport.get('key', None)
+        password = transport.get('password', None)
+        if not key and not password:
+            raise Exception("No key and no password given")
+        elif not key:
+            settings['password'] = password
+        elif not password:
+            settings['key'] = key
+        return settings
 
 
 class SSHSyncTransport(SyncTransport, _SSHTransport):

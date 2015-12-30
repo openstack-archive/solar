@@ -13,6 +13,8 @@
 #    under the License.
 
 
+import os
+
 from solar.core.log import log
 from solar.core.transports.base import RunTransport
 from solar.utils import execute
@@ -25,9 +27,11 @@ class _RawSSHTransport(object):
         host = resource.ip()
         user = transport['user']
         port = transport['port']
-        key = transport['key']
+        key = transport.get('key')
+        password = transport.get('password')
         return {'ssh_user': user,
                 'ssh_key': key,
+                'ssh_password': password,
                 'port': port,
                 'ip': host}
 
@@ -36,7 +40,12 @@ class _RawSSHTransport(object):
                               settings['ip'])
 
     def _ssh_cmd(self, settings):
-        return ('ssh', '-i', settings['ssh_key'])
+        if settings['ssh_key']:
+            return ('ssh', '-i', settings['ssh_key'])
+        elif settings['ssh_password']:
+            return ('sshpass', '-e', 'ssh')
+        else:
+            raise Exception("No key and no password given")
 
 
 class RawSSHRunTransport(RunTransport, _RawSSHTransport):
@@ -64,10 +73,15 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         remote_cmd = '\"%s\"' % ' && '.join(commands)
 
         settings = self.settings(resource)
+        if settings.get('ssh_password'):
+            env = os.environ.copy()
+            env['SSHPASS'] = settings['ssh_password']
+        else:
+            env = os.environ
         ssh_cmd = self._ssh_cmd(settings)
         ssh_cmd += (self._ssh_command_host(settings), remote_cmd)
 
         log.debug("RAW SSH CMD: %r", ssh_cmd)
         # TODO convert it to SolarRunResult
 
-        return execute(' '.join(ssh_cmd), shell=True)
+        return execute(' '.join(ssh_cmd), shell=True, env=env)
