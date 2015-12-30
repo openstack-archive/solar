@@ -1,6 +1,0 @@
-
-- hosts: [{{host}}]
-  sudo: yes
-  tasks:
-    - shell: docker stop {{ resource_name }}
-    - shell: docker rm {{ resource_name }}

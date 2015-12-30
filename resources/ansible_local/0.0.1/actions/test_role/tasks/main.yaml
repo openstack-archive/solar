@@ -1,1 +1,0 @@
-- debug: msg="Variable1 {{ var1 }} with uuid {{ uuid }} and default var {{ def1 }}"

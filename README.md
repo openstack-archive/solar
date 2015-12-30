@@ -63,7 +63,7 @@ For now  all commands should be executed from `solar-dev` machine from `/vagrant
 
 Basic flow is:
 
-1. Create some resources (look at `examples/openstack/openstack.py`) and connect
+1. Create some resources (look at `solar-resources/examples/openstack/openstack.py`) and connect
    them between each other, and place them on nodes.
 1. Run `solar changes stage` (this stages the changes)
 1. Run `solar changes process` (this prepares orchestrator graph, returning
@@ -288,7 +288,7 @@ riak_master_service.connect_list(
 )
 ```
 
-For full Riak example, please look at `examples/riak/riaks-template.py`.
+For full Riak example, please look at `solar-resources/examples/riak/riaks-template.py`.
 
 Full documentation of individual functions is found in the `solar/template.py` file.
 
@@ -301,4 +301,4 @@ Solar is shipped with sane defaults in `vagrant-setting.yaml_defaults`. If you n
 
 * In `vagrant-setting.yaml_defaults` or `vagrant-settings.yaml` file uncomment `preprovisioned: false` line.
 * Run `vagrant up`, it will take some time because it builds image for bootstrap and IBP images.
-* Now you can run provisioning `/vagrant/examples/provisioning/provision.sh`
+* Now you can run provisioning `/vagrant/solar-resources/examples/provisioning/provision.sh`

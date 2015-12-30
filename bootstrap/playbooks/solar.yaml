@@ -12,6 +12,12 @@
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
     - include: tasks/ssh_conf.yaml
 
+# setup solar-resources
+- hosts: all
+  tasks:
+    # change to openstack/solar-resources later
+    - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
+
 - hosts: all
   tasks:
     # set default config location
@@ -50,5 +56,5 @@
 - hosts: all
   tasks:
     - file: path=/var/lib/solar/repositories state=directory
-    - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
-    - file: src=/vagrant/templates dest=/var/lib/solar/repositories/templates state=link
+    - file: src=/vagrant/solar-resources/resources dest=/var/lib/solar/repositories/resources state=link
+    - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link

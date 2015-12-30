@@ -1,8 +1,0 @@
-id: sources
-resources:
-  - id: sources#{index}#
-    from: resources/sources
-    location: #{node}#
-    input:
-      sources:
-        - {src: /tmp/sources_test, dst: /tmp/sources_test}
