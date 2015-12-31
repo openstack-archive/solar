@@ -47,8 +47,11 @@
         line: eval "$(_SOLAR_COMPLETE=source solar)"
         state: present
 
-- hosts: all
-  tasks:
     - file: path=/var/lib/solar/repositories state=directory
     - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link
     - file: src=/vagrant/templates dest=/var/lib/solar/repositories/templates state=link
+
+    - name: Starting docker containers
+      shell: docker-compose up -d chdir=/vagrant
+    - name: configuring Ansible
+      copy: src=/vagrant/bootstrap/ansible.cfg dest=/home/vagrant/.ansible.cfg

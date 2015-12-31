@@ -51,6 +51,7 @@ def ansible_playbook_command(filename, args=[])
 end
 
 solar_script = ansible_playbook_command("solar.yaml")
+solar_agent_script = ansible_playbook_command("solar-agent.yaml")
 
 master_pxe = ansible_playbook_command("pxe.yaml")
 
@@ -61,10 +62,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = MASTER_IMAGE
 
     config.vm.provision "shell", inline: solar_script, privileged: true
-    config.vm.provision "shell", inline: "cd /vagrant && docker-compose up -d" , privileged: true
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
-    config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
@@ -118,7 +117,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if PREPROVISIONED
         config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
-        config.vm.provision "shell", inline: solar_script, privileged: true
+        config.vm.provision "shell", inline: solar_agent_script, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
         SLAVES_IPS.each do |ip|
