@@ -15,6 +15,7 @@
 
 from solar.core.handlers.ansible_template import AnsibleTemplate
 from solar.core.handlers.ansible_playbook import AnsiblePlaybook
+from solar.core.handlers.ansible_playbook_local import AnsiblePlaybookLocal
 from solar.core.handlers.base import Empty
 from solar.core.handlers.puppet import Puppet, PuppetV2
 from solar.core.handlers.shell import Shell
@@ -23,6 +24,7 @@ from solar.core.handlers.naive_sync import NaiveSync
 
 HANDLERS = {'ansible': AnsibleTemplate,
             'ansible_playbook': AnsiblePlaybook,
+            'ansible_playbook_local': AnsiblePlaybookLocal,
             'shell': Shell,
             'puppet': Puppet,
             'none': Empty,
