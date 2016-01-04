@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import click
 import sys
 import time
