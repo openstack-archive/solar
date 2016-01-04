@@ -1,5 +1,4 @@
 handler: puppet
-puppet_module: l23network
 version: 1.0.0
 input:
     package_ensure:

@@ -183,6 +183,5 @@ input:
     schema: {name: str!, type: str, url: str, ref: str}
     value: {name: neutron, type: 'git', url: 'https://github.com/openstack/puppet-neutron', ref: '5.1.0'}
 
-puppet_module: 'neutron'
 tags: [resource/neutron]
 version: 1.0.0
