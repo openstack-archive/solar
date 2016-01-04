@@ -31,20 +31,20 @@ class _RawSSHTransport(object):
         port = transport['port']
         key = transport.get('key')
         password = transport.get('password')
-        return {'ssh_user': user,
-                'ssh_key': key,
-                'ssh_password': password,
+        return {'user': user,
+                'key': key,
+                'password': password,
                 'port': port,
                 'ip': host}
 
     def _ssh_command_host(self, settings):
-        return '{}@{}'.format(settings['ssh_user'],
+        return '{}@{}'.format(settings['user'],
                               settings['ip'])
 
     def _ssh_cmd(self, settings):
-        if settings['ssh_key']:
-            return ('ssh', '-i', settings['ssh_key'])
-        elif settings['ssh_password']:
+        if settings['key']:
+            return ('ssh', '-i', settings['key'])
+        elif settings['password']:
             return ('sshpass', '-e', 'ssh')
         else:
             raise Exception("No key and no password given")
@@ -78,9 +78,9 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         remote_cmd = '\"%s\"' % ' && '.join(commands)
 
         settings = self.settings(resource)
-        if settings.get('ssh_password'):
+        if settings.get('password'):
             env = os.environ.copy()
-            env['SSHPASS'] = settings['ssh_password']
+            env['SSHPASS'] = settings['password']
         else:
             env = os.environ
         ssh_cmd = self._ssh_cmd(settings)

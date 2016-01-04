@@ -85,6 +85,12 @@ class SolarRunResult(object):
         return str(self.stdout)
 
 
+def find_named_transport(resource, req_name):
+    transport = next(x for x in resource.transports()
+                     if x['name'] == req_name)
+    return transport
+
+
 class SolarTransport(object):
 
     _mode = None
