@@ -27,7 +27,7 @@ from solar.core.transports.base import SyncTransport
 
 class _SSHTransport(object):
 
-    def _fabric_settings(self, resource):
+    def settings(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()
         user = transport['user']
@@ -35,6 +35,8 @@ class _SSHTransport(object):
         settings = {
             'host_string': "{}@{}:{}".format(user, host, port),
         }
+        settings['port'] = port
+        settings['host'] = host
         key = transport.get('key', None)
         password = transport.get('password', None)
         if not key and not password:
@@ -88,7 +90,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
     def run_all(self):
         for executor in self.executors:
             resource = executor.resource
-            with fabric_api.settings(**self._fabric_settings(resource)):
+            with fabric_api.settings(**self.settings(resource)):
                 executor.run(self)
 
 
@@ -108,7 +110,7 @@ class SSHRunTransport(RunTransport, _SSHTransport):
             executor = fabric_api.sudo
 
         managers = [
-            fabric_api.settings(**self._fabric_settings(resource)),
+            fabric_api.settings(**self.settings(resource)),
         ]
 
         cwd = kwargs.get('cwd')
