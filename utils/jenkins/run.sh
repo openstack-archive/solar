@@ -1,0 +1,75 @@
+#!/bin/bash
+set -xe
+
+# for now we assume that master ip is 10.0.0.2 and slaves ips are 10.0.0.{3,4,5,...}
+ADMIN_IP=10.0.0.2
+ADMIN_PASSWORD=vagrant
+ADMIN_USER=vagrant
+INSTALL_DIR=/vagrant
+
+ENV_NAME=${ENV_NAME:-solar-test}
+SLAVES_COUNT=${SLAVES_COUNT:-0}
+CONF_PATH=${CONF_PATH:-utils/jenkins/default.yaml}
+
+IMAGE_PATH=${IMAGE_PATH:-bootstrap/output-qemu/ubuntu1404}
+TEST_SCRIPT=${TEST_SCRIPT:-/vagrant/examples/hosts_file/hosts.py}
+DEPLOY_TIMEOUT=${DEPLOY_TIMEOUT:-60}
+
+dos.py erase ${ENV_NAME} || true
+ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py
+
+# Wait for master to boot
+sleep 30
+
+sshpass -p ${ADMIN_PASSWORD} ssh ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
+set -x
+export PYTHONWARNINGS="ignore"
+
+sudo git clone https://github.com/openstack/solar.git ${INSTALL_DIR}
+
+sudo chown -R ${ADMIN_USER} ${INSTALL_DIR}
+sudo ansible-playbook -v -i \"localhost,\" -c local ${INSTALL_DIR}/bootstrap/playbooks/solar.yaml
+
+set -e
+
+# wait for riak
+sudo docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv
+
+export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
+
+solar repo update templates ${INSTALL_DIR}/utils/jenkins/repository
+
+bash -c "${TEST_SCRIPT}"
+
+solar changes stage
+solar changes process
+solar orch run-once
+
+elapsed_time=0
+while true
+do
+  errors=\$(solar o report | grep -e ERROR | wc -l)
+  if [ "\${errors}" != "0" ]; then
+    solar orch report
+    echo FAILURE
+    exit 1
+  fi
+
+  running=\$(solar o report | grep -e PENDING -e INPROGRESS | wc -l)
+  if [ "\${running}" == "0" ]; then
+    solar orch report
+    echo SUCCESS
+    dos.py erase ${ENV_NAME} || true
+    exit 0
+  fi
+
+  if [ "\${elapsed_time}" -gt "${DEPLOY_TIMEOUT}" ]; then
+    solar orch report
+    echo TIMEOUT
+    exit 2
+  fi
+
+  sleep 5
+  let elapsed_time+=5
+done
+EOF
