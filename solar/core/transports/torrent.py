@@ -96,8 +96,11 @@ class TorrentSyncTransport(SyncTransport):
             os.path.join(x[2], '..')), x[0]) for x in torrents]
         seed_args = ';'.join(to_seed)
         # TODO: 'g' is just for debug, it should be 's', remove when sure
+        # TODO: find a way to use solar_torrent.py from transport resource
+        helpers_path = os.path.normpath(
+            os.path.join(os.path.realpath(__file__), '..', 'helpers'))
         cmd = ['/usr/bin/python',
-               '/vagrant/solar/core/transports/helpers/solar_torrent.py',
+               '%s/solar_torrent.py' % helpers_path,
                'g',
                '"%s"' % seed_args]
         log.debug("Will start seeding: %r" % ' '.join(cmd))
