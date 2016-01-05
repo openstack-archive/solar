@@ -53,6 +53,9 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
     def run(self, resource, *args, **kwargs):
         log.debug("RAW SSH: %s", args)
 
+        # TODO: check for better sanitization
+        args = map(lambda x: x.replace('"', '\\"'), args)
+
         commands = []
         prefix = []
         if kwargs.get('use_sudo', False):
@@ -84,4 +87,6 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
         log.debug("RAW SSH CMD: %r", ssh_cmd)
         # TODO convert it to SolarRunResult
 
-        return execute(' '.join(ssh_cmd), shell=True, env=env)
+        res = execute(' '.join(ssh_cmd), shell=True, env=env)
+        log.debug("Remote SSH result: %r", res)
+        return res
