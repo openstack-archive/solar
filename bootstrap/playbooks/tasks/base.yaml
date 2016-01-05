@@ -36,6 +36,8 @@
 
   # computable inputs lua
   - libluajit-5.1-dev
+  # for tests on jenkins
+  - sshpass
 
 
 # PIP
