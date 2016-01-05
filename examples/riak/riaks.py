@@ -208,7 +208,7 @@ def setup_haproxies():
 @click.command()
 @click.argument('i', type=int, required=True)
 def add_solar_agent(i):
-    solar_agent_transport  = cr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
+    solar_agent_transport = cr.create('solar_agent_transport%s' % i, 'resources/transport_solar_agent',
                                   {'solar_agent_user': 'vagrant',
                                    'solar_agent_password': 'password'})[0]
     transports = resource.load('transports%s' % i)
@@ -250,10 +250,17 @@ def undeploy():
     raise NotImplemented("Not yet")
 
 
+@click.command()
+def create_all():
+    setup_riak()
+    setup_haproxies()
+
+
 main.add_command(deploy)
 main.add_command(undeploy)
 main.add_command(add_haproxies)
 main.add_command(add_solar_agent)
+main.add_command(create_all)
 
 
 if __name__ == '__main__':
