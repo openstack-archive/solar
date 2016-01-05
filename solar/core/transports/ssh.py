@@ -42,7 +42,7 @@ class _SSHTransport(object):
         elif not key:
             settings['password'] = password
         elif not password:
-            settings['key'] = key
+            settings['key_filename'] = key
         return settings
 
 
