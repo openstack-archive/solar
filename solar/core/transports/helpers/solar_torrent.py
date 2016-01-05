@@ -27,6 +27,9 @@ state_str = ['queued', 'checking', 'downloading metadata', 'downloading',
              'finished', 'seeding', 'allocating', 'checking fastresume']
 
 
+# we use port range from 6881 to 6981
+
+
 class MultiTorrent(object):
     def __init__(self, torrents, ses):
         self.torrents = torrents
@@ -107,6 +110,8 @@ def _seeder(torrents, save_path='.', max_seed_ratio=5):
     no_peers = 120
     max_alive = 5 * 60
     ses, all_torrents = init_session(torrents, seed=True)
+    ses.listen_on(6881, 6981)
+
     mt = MultiTorrent(all_torrents, ses)
     end = time.time() + max_alive
     peers_0 = time.time()
@@ -135,10 +140,9 @@ def _seeder(torrents, save_path='.', max_seed_ratio=5):
 
 
 def _getter(torrents, max_seed_ratio=3):
-    ses = lt.session()
-    ses.listen_on(6881, 6981)
     max_no_changes = 1 * 60
     ses, all_torrents = init_session(torrents)
+    ses.listen_on(6881, 6981)
 
     mt = MultiTorrent(all_torrents, ses)
 
@@ -167,7 +171,6 @@ def _getter(torrents, max_seed_ratio=3):
         # ok
         # torrent lib dislikes forks there
         from subprocess import check_output
-        import sys
         args = sys.argv[:]
         args[-2] = 's'
         args.insert(0, sys.executable)

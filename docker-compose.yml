@@ -17,6 +17,9 @@ solar-celery:
   links:
     - riak
     - redis
+  # for torrent protocol
+  ports:
+    - 6881-6981:6881-6981
 
 riak:
   image: solarproject/riak
