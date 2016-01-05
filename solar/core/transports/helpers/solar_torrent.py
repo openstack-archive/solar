@@ -167,7 +167,6 @@ def _getter(torrents, max_seed_ratio=3):
         # ok
         # torrent lib dislikes forks there
         from subprocess import check_output
-        import sys
         args = sys.argv[:]
         args[-2] = 's'
         args.insert(0, sys.executable)
