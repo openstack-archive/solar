@@ -1,6 +1,9 @@
 input:
   ssh_key:
-    schema: str!
+    schema: str
+    value:
+  ssh_password:
+    schema: str
     value:
   ssh_user:
     schema: str!

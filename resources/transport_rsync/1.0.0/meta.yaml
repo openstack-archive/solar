@@ -1,6 +1,9 @@
 input:
   key:
-    schema: str!
+    schema: str
+    value:
+  password:
+    schema: str
     value:
   user:
     schema: str!
