@@ -75,6 +75,17 @@ def pytest_runtest_teardown(item, nextitem):
     return nextitem
 
 
+def pytest_runtest_setup(item):
+    # ALL Computable Inputs tests are in single file
+    # so for easy skip we need this
+    is_lua = item.name.startswith('test_lua')
+    if is_lua:
+        try:
+            import lupa  # NOQA
+        except ImportError:
+            pytest.skip("Lupa is required to test lua")
+
+
 def pytest_runtest_call(item):
     ModelMeta.session_start()
 

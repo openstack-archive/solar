@@ -19,8 +19,6 @@ import pytest
 from solar.computable_inputs import ComputablePassedTypes as CPT
 from solar.dblayer.test.test_real import create_resource
 
-pytest.importorskip('lupa')
-
 dth = pytest.dicts_to_hashable
 
 
