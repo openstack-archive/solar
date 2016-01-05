@@ -31,3 +31,6 @@ peewee
 
 # if you want to use complex version check in repositories
 semver
+
+# plugins
+stevedore
