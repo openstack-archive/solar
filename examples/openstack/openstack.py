@@ -40,7 +40,7 @@ def main():
 
 
 def prepare_nodes(nodes_count):
-    resources = cr.create('nodes', 'templates/nodes_with_transports', {"count": nodes_count})
+    resources = cr.create('nodes', 'templates/nodes', {"count": nodes_count})
     nodes = [x for x in resources if x.name.startswith('node')]
     resources = cr.create('nodes_network', 'templates/nodes_network', {"count": nodes_count})
     nodes_sdn = [x for x in resources if x.name.startswith('node')]
@@ -791,28 +791,28 @@ def create_controller(node):
     r.update(setup_base(r[node], r[librarian_node]))
     r.update(setup_keystone(r[node], r[librarian_node],
                             r['mariadb_service'], r['openstack_rabbitmq_user']))
-    r.update(setup_openrc(r['node0'], r['keystone_puppet'], r['admin_user']))
-    r.update(setup_neutron(r['node0'], r['librarian_node0'], r['rabbitmq_service1'],
+    r.update(setup_openrc(r[node], r['keystone_puppet'], r['admin_user']))
+    r.update(setup_neutron(r[node], r['librarian_{}'.format(node)], r['rabbitmq_service1'],
                            r['openstack_rabbitmq_user'], r['openstack_vhost']))
-    r.update(setup_neutron_api(r['node0'], r['mariadb_service'], r['admin_user'],
+    r.update(setup_neutron_api(r[node], r['mariadb_service'], r['admin_user'],
                                r['keystone_puppet'], r['services_tenant'], r['neutron_puppet']))
-    r.update(setup_neutron_agent(r['node0'], r['neutron_server_puppet']))
-    r.update(setup_cinder(r['node0'], r['librarian_node0'], r['rabbitmq_service1'],
+    r.update(setup_neutron_agent(r[node], r['neutron_server_puppet']))
+    r.update(setup_cinder(r[node], r['librarian_{}'.format(node)], r['rabbitmq_service1'],
                           r['mariadb_service'], r['keystone_puppet'], r['admin_user'],
                           r['openstack_vhost'], r['openstack_rabbitmq_user'], r['services_tenant']))
-    r.update(setup_cinder_api(r['node0'], r['cinder_puppet']))
-    r.update(setup_cinder_scheduler(r['node0'], r['cinder_puppet']))
-    r.update(setup_cinder_volume(r['node0'], r['cinder_puppet']))
-    r.update(setup_nova(r['node0'], r['librarian_node0'], r['mariadb_service'], r['rabbitmq_service1'],
+    r.update(setup_cinder_api(r[node], r['cinder_puppet']))
+    r.update(setup_cinder_scheduler(r[node], r['cinder_puppet']))
+    r.update(setup_cinder_volume(r[node], r['cinder_puppet']))
+    r.update(setup_nova(r[node], r['librarian_{}'.format(node)], r['mariadb_service'], r['rabbitmq_service1'],
                         r['admin_user'], r['openstack_vhost'], r['services_tenant'],
                         r['keystone_puppet'], r['openstack_rabbitmq_user']))
-    r.update(setup_nova_api(r['node0'], r['nova_puppet'], r['neutron_agents_metadata']))
-    r.update(setup_nova_conductor(r['node0'], r['nova_puppet'], r['nova_api_puppet']))
-    r.update(setup_nova_scheduler(r['node0'], r['nova_puppet'], r['nova_api_puppet']))
-    r.update(setup_glance_api(r['node0'], r['librarian_node0'], r['mariadb_service'], r['admin_user'],
+    r.update(setup_nova_api(r[node], r['nova_puppet'], r['neutron_agents_metadata']))
+    r.update(setup_nova_conductor(r[node], r['nova_puppet'], r['nova_api_puppet']))
+    r.update(setup_nova_scheduler(r[node], r['nova_puppet'], r['nova_api_puppet']))
+    r.update(setup_glance_api(r[node], r['librarian_{}'.format(node)], r['mariadb_service'], r['admin_user'],
                               r['keystone_puppet'], r['services_tenant'],
                               r['cinder_glance_puppet']))
-    r.update(setup_glance_registry(r['node0'], r['glance_api_puppet']))
+    r.update(setup_glance_registry(r[node], r['glance_api_puppet']))
     return r
 
 def create_compute(node):
@@ -828,8 +828,8 @@ def create_compute(node):
 def create_all():
     ModelMeta.remove_all()
     r = prepare_nodes(2)
-    r.update(create_controller('node0'))
-    r.update(create_compute('node1'))
+    r.update(create_controller('node1'))
+    r.update(create_compute('node2'))
     print '\n'.join(r.keys())
 
 @click.command()
