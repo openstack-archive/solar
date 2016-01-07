@@ -41,9 +41,9 @@ def main():
 
 def prepare_nodes(nodes_count):
     resources = cr.create('nodes', 'templates/nodes', {"count": nodes_count})
-    nodes = [x for x in resources if x.name.startswith('node')]
+    nodes = resources.like('node')
     resources = cr.create('nodes_network', 'templates/nodes_network', {"count": nodes_count})
-    nodes_sdn = [x for x in resources if x.name.startswith('node')]
+    nodes_sdn = resources.like('node')
     r = {}
 
     for node, node_sdn in zip(nodes, nodes_sdn):
