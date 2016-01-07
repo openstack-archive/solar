@@ -1,4 +1,0 @@
-clients-data-file: /tmp/connections.yaml
-
-file-system-db:
-  storage-path: /tmp/storage
