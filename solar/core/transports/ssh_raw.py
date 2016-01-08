@@ -22,6 +22,8 @@ from solar.utils import execute
 
 class _RawSSHTransport(object):
 
+    _priority = 2
+
     def settings(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()

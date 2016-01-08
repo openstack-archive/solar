@@ -13,44 +13,27 @@
 #    under the License.
 
 
+from stevedore import extension
+
 from solar.core.transports.base import RunTransport
 from solar.core.transports.base import SolarTransport
 from solar.core.transports.base import SyncTransport
-from solar.core.transports.rsync import RsyncSyncTransport
-from solar.core.transports.ssh import SSHSyncTransport
-from solar.core.transports.ssh_raw import RawSSHRunTransport
-try:
-    from solar.core.transports.solar_agent_transport import SolarAgentRunTransport  # NOQA
-    from solar.core.transports.solar_agent_transport import SolarAgentSyncTransport  # NOQA
-except ImportError:
-    _solar_agent_available = False
-else:
-    _solar_agent_available = True
 
-try:
-    from solar.core.transports.torrent import TorrentSyncTransport
-except ImportError:
-    _torrent_available = False
-else:
-    _torrent_available = True
+from operator import itemgetter
 
 
-KNOWN_SYNC_TRANSPORTS = {
-    'rsync': RsyncSyncTransport,
-    'ssh': SSHSyncTransport
-}
+def _find_transports(mode):
+    mgr = extension.ExtensionManager(namespace='solar.transports.%s' % mode)
+    extensions = mgr.extensions
+    transports = dict(map(lambda x: (x.name, x.plugin), extensions))
+    orders = map(lambda x: (getattr(x.plugin, '_priority', -1),
+                            x.name), extensions)
+    order = map(itemgetter(1), sorted(orders, reverse=True))
+    return transports, order
 
 
-KNOWN_RUN_TRANSPORTS = {
-    'ssh': RawSSHRunTransport
-}
-
-
-if _torrent_available:
-    KNOWN_SYNC_TRANSPORTS['torrent'] = TorrentSyncTransport
-if _solar_agent_available:
-    KNOWN_SYNC_TRANSPORTS['solar_agent'] = SolarAgentSyncTransport
-    KNOWN_RUN_TRANSPORTS['solar_agent'] = SolarAgentRunTransport
+KNOWN_RUN_TRANSPORTS, ORDER_RUN_TRANSPORTS = _find_transports('run')
+KNOWN_SYNC_TRANSPORTS, ORDER_SYNC_TRANSPORTS = _find_transports('sync')
 
 
 class OnAll(object):
@@ -108,7 +91,7 @@ class BatTransport(SolarTransport):
 class BatSyncTransport(SyncTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ('torrent', 'solar_agent', 'rsync', 'ssh')
+    _order = ORDER_SYNC_TRANSPORTS
     _bat_transports = KNOWN_SYNC_TRANSPORTS
 
     def __init__(self, *args, **kwargs):
@@ -126,7 +109,7 @@ class BatSyncTransport(SyncTransport, BatTransport):
 class BatRunTransport(RunTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ('solar_agent', 'ssh')
+    _order = ORDER_RUN_TRANSPORTS
     _bat_transports = KNOWN_RUN_TRANSPORTS
 
     def __init__(self, *args, **kwargs):

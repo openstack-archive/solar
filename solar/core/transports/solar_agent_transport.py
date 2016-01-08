@@ -24,6 +24,8 @@ from solar.core.transports.base import SyncTransport
 
 class SolarAgentTransport(object):
 
+    _priority = 50
+
     def get_client(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()

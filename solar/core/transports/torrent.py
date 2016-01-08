@@ -28,6 +28,8 @@ from solar.core.transports.ssh import SSHSyncTransport
 
 class TorrentSyncTransport(SyncTransport):
 
+    _priority = 99
+
     def __init__(self):
         super(TorrentSyncTransport, self).__init__()
         # we need some non torrent based sync transfer to upload client
