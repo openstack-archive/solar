@@ -68,7 +68,17 @@ class TempFileHandler(BaseHandler):
             self.dst = tempfile.mkdtemp(dir=SOLAR_TEMP_LOCAL_LOCATION)
         except OSError as ex:
             if ex.errno == errno.ENOENT:
-                os.makedirs(SOLAR_TEMP_LOCAL_LOCATION)
+                # TODO: we have race condition there
+                # could be easily solved with lockfile
+                # but it's yet another extra dependency
+                # this solution is "hacky"
+                try:
+                    os.makedirs(SOLAR_TEMP_LOCAL_LOCATION)
+                except OSError as ex:
+                    if ex.errno == errno.EEXIST:
+                        pass
+                    else:
+                        raise
                 self.dst = tempfile.mkdtemp(dir=SOLAR_TEMP_LOCAL_LOCATION)
             else:
                 raise
