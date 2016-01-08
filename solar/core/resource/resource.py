@@ -83,7 +83,6 @@ class Resource(object):
                 'base_name': metadata.get('base_name', ''),
                 'base_path': metadata.get('base_path', ''),
                 'handler': metadata.get('handler', ''),
-                'puppet_module': metadata.get('puppet_module', ''),
                 'version': metadata.get('version', ''),
                 'meta_inputs': inputs,
                 'tags': tags,

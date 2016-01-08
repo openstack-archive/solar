@@ -810,7 +810,6 @@ class Resource(Model):
     actions_path = Field(str)
     actions = Field(dict)
     handler = Field(str)
-    puppet_module = Field(str)  # remove
     meta_inputs = Field(dict, default=dict)
     state = Field(str)  # on_set/on_get would be useful
     events = Field(list, default=list)

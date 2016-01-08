@@ -1,5 +1,4 @@
 handler: puppet
-puppet_module: cinder
 version: 1.0.0
 input:
     scheduler_driver:

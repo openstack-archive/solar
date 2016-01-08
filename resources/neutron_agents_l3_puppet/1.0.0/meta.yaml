@@ -78,6 +78,5 @@ input:
     schema: {repository: str!, branch: str!}
     value: {repository: 'https://github.com/openstack/puppet-neutron', branch: '5.1.0'}
 
-puppet_module: 'neutron'
 tags: [resource/neutron, resource/neutron_agents_l3]
 version: 1.0.0

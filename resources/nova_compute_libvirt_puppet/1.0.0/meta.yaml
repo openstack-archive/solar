@@ -1,5 +1,4 @@
 handler: puppet
-puppet_module: nova
 version: 1.0.0
 input:
     libvirt_virt_type:
