@@ -27,6 +27,8 @@ from solar.utils import execute
 
 class RsyncSyncTransport(SyncTransport):
 
+    _priority = 10
+
     def _rsync_props(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()
