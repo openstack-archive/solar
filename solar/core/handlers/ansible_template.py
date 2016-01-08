@@ -24,11 +24,36 @@ from solar.core.log import log
 env.warn_only = True
 
 
+class AnsibleTemplateBase(TempFileHandler):
+
+    def _create_inventory(self, r):
+        directory = self.dirs[r.name]
+        inventory_path = os.path.join(directory, 'inventory')
+        with open(inventory_path, 'w') as inv:
+            inv.write(self._render_inventory(r))
+        return inventory_path
+
+    def _render_inventory(self, r):
+        inventory = '{0} ansible_connection=local user={1} {2}'
+        user = self.transport_run.get_transport_data(r)['user']
+        host = 'localhost'
+        args = []
+        for arg in r.args:
+            args.append('{0}="{1}"'.format(arg, r.args[arg]))
+        args = ' '.join(args)
+        inventory = inventory.format(host, user, args)
+        log.debug(inventory)
+        return inventory
+
+    def _create_playbook(self, resource, action):
+        return self._compile_action_file(resource, action)
+
+
 # if we would have something like solar_agent that would render this then
 # we would not need to render it there
 # for now we redender it locally, sync to remote, run ansible on remote
 # host as local
-class AnsibleTemplate(TempFileHandler):
+class AnsibleTemplate(AnsibleTemplateBase):
 
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
@@ -53,28 +78,6 @@ class AnsibleTemplate(TempFileHandler):
 
         rst = self.transport_run.run(resource, *call_args)
         self.verify_run_result(call_args, rst)
-
-    def _create_inventory(self, r):
-        directory = self.dirs[r.name]
-        inventory_path = os.path.join(directory, 'inventory')
-        with open(inventory_path, 'w') as inv:
-            inv.write(self._render_inventory(r))
-        return inventory_path
-
-    def _render_inventory(self, r):
-        inventory = '{0} ansible_connection=local user={1} {2}'
-        user = self.transport_run.get_transport_data(r)['user']
-        host = 'localhost'
-        args = []
-        for arg in r.args:
-            args.append('{0}="{1}"'.format(arg, r.args[arg]))
-        args = ' '.join(args)
-        inventory = inventory.format(host, user, args)
-        log.debug(inventory)
-        return inventory
-
-    def _create_playbook(self, resource, action):
-        return self._compile_action_file(resource, action)
 
     def _make_args(self, resource):
         args = super(AnsibleTemplate, self)._make_args(resource)
