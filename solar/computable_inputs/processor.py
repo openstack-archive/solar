@@ -14,31 +14,8 @@
 
 _av_processors = {}
 
+from stevedore import driver
 from threading import RLock
-
-try:
-    from solar.computable_inputs.ci_lua import LuaProcessor
-except ImportError:
-    pass
-else:
-    _av_processors['lua'] = LuaProcessor
-
-try:
-    from solar.computable_inputs.ci_python import PyProcessor
-except ImportError:
-    pass
-else:
-    _av_processors['py'] = PyProcessor
-    _av_processors['python'] = PyProcessor
-
-try:
-    from solar.computable_inputs.ci_jinja import JinjaProcessor
-except ImportError:
-    pass
-else:
-    _av_processors['j2'] = JinjaProcessor
-    _av_processors['jinja'] = JinjaProcessor
-    _av_processors['jinja2'] = JinjaProcessor
 
 
 _processors = {}
@@ -51,7 +28,10 @@ def get_processor(resource, input_name, computable_type, data, other=None):
     funct = computable['func']
     with _lock:
         if lang not in _processors:
-            _processors[lang] = processor = _av_processors[lang]()
+            func = driver.DriverManager(namespace='solar.computable_inputs',
+                                        name=lang,
+                                        invoke_on_load=True).driver
+            _processors[lang] = processor = func
         else:
             processor = _processors[lang]
     return processor.process(resource.name, computable_type, funct, data)
