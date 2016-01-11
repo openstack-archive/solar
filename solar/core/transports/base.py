@@ -89,6 +89,8 @@ class SolarTransport(object):
 
     _mode = None
 
+    _priority = -1  # for priority ordering, high to low
+
     def __init__(self):
         pass
 

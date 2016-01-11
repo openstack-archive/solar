@@ -27,6 +27,8 @@ from solar.core.transports.base import SyncTransport
 
 class _SSHTransport(object):
 
+    _priority = 1
+
     def _fabric_settings(self, resource):
         transport = self.get_transport_data(resource)
         host = resource.ip()
