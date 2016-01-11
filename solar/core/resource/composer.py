@@ -67,7 +67,8 @@ class CreatedResources(object):
     def like(self, regex):
         keys = self.data.keys()
         matched_keys = filter(lambda key: re.match(regex, key), keys)
-        return CreatedResources({rname: self[rname] for rname in matched_keys})
+        return CreatedResources(
+            OrderedDict((rname, self[rname]) for rname in matched_keys))
 
 
 def create(name, spec, inputs=None, tags=None):
