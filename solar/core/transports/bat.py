@@ -71,7 +71,11 @@ class BatTransport(SolarTransport):
                     break
             if not selected:
                 raise Exception("No valid transport found")
-            instance = self._bat_transports[selected['name']]()
+            try:
+                instance = self._bat_transports[selected['name']]()
+            except KeyError:
+                raise Exception("Requested transport %r not found. "
+                                "Check if it's installed correctly.")
             setattr(resource, '_used_transport_%s' % instance._mode, selected)
             setattr(resource, key_name, instance)
             self._used_transports.append(instance)
