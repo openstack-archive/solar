@@ -15,26 +15,21 @@
 
 import os
 
-# this has to be before callbacks, otherwise ansible circural import problem
-from ansible import utils
-
-# intentional line, otherwise H306
-from ansible import callbacks
-
-import ansible.constants as C
-from ansible.playbook import PlayBook
-from fabric import api as fabric_api
+import json
+import shutil
+import tempfile
 
 from solar.core.handlers import base
+from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
+from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
 from solar.core.provider import SVNProvider
-from solar import errors
 
 
 ROLES_PATH = '/etc/ansible/roles'
 
 
-class AnsiblePlaybook(base.BaseHandler):
+class AnsiblePlaybookBase(base.BaseHandler):
 
     def download_roles(self, urls):
         if not os.path.exists(ROLES_PATH):
@@ -42,49 +37,68 @@ class AnsiblePlaybook(base.BaseHandler):
         for url in urls:
             provider = SVNProvider(url)
             provider.run()
-            fabric_api.local('cp -r {} {}'.format(
-                provider.directory, ROLES_PATH))
+            shutil.copytree(provider.directory, ROLES_PATH)
+
+
+class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
+
+    def _make_playbook(self, resource, action, action_path):
+        dir_path = self.dirs[resource.name]
+        dest_file = tempfile.mkstemp(text=True, prefix=action, dir=dir_path)[1]
+
+        shutil.copyfile(action_path, dest_file)
+
+        inventory_path = os.path.join(dir_path, 'inventory')
+        with open(inventory_path, 'w') as inv:
+            inv.write(self._make_inventory(resource))
+
+        extra_vars_path = os.path.join(dir_path, 'extra_vars')
+        with open(extra_vars_path, 'w') as extra:
+            extra.write(self._make_extra_vars(resource))
+
+        return dest_file, inventory_path, extra_vars_path
+
+    def _make_inventory(self, resource):
+        inventory = '{0} ansible_connection=local user={1}'
+        user = self.transport_run.get_transport_data(resource)['user']
+        host = 'localhost'
+        return inventory.format(host, user)
+
+    def _make_extra_vars(self, resource):
+        r_args = resource.args
+        return json.dumps(r_args)
 
     def action(self, resource, action):
-        # This would require to put this file to remote and execute it (mostly)
-        log.debug("Ansible playbook is not ported to pluggable transports")
         action_file = os.path.join(
-            resource.metadata['actions_path'],
-            resource.metadata['actions'][action])
-        stats = callbacks.AggregateStats()
-        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        runner_cb = callbacks.PlaybookRunnerCallbacks(
-            stats, verbose=utils.VERBOSITY)
+            resource.db_obj.actions_path,
+            resource.actions[action])
 
-        variables = resource.args_dict()
+        self.prepare_templates_and_scripts(resource, action)
+        files = self._make_playbook(resource,
+                                    action,
+                                    action_file)
+        playbook_file, inventory_file, extra_vars_file = files
+        self.transport_sync.copy(resource, self.dst, '/tmp')
+
+        variables = resource.args
         if 'roles' in variables:
             self.download_roles(variables['roles'])
+            self.transport_sync.copy(resource, ROLES_PATH, ROLES_PATH)
 
-        remote_user = variables.get('ssh_user') or C.DEFAULT_REMOTE_USER
-        private_key_file = variables.get(
-            'ssh_key') or C.DEFAULT_PRIVATE_KEY_FILE
-        if variables.get('ip'):
-            host = variables['ip']
-            transport = C.DEFAULT_TRANSPORT
-        else:
-            host = 'localhost'
-            transport = 'local'
-        C.HOST_KEY_CHECKING = False
-        play = PlayBook(
-            playbook=action_file,
-            remote_user=remote_user,
-            host_list=[host],
-            private_key_file=private_key_file,
-            extra_vars=variables,
-            callbacks=playbook_cb,
-            runner_callbacks=runner_cb,
-            stats=stats,
-            transport=transport)
+        self.transport_sync.sync_all()
 
-        play.run()
-        summary = stats.summarize(host)
+        remote_playbook_file = playbook_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_inventory_file = inventory_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_extra_vars_file = extra_vars_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        if summary.get('unreachable') or summary.get('failures'):
-            raise errors.SolarError(
-                'Ansible playbook %s failed with next summary %s',
-                action_file, summary)
+        call_args = ['ansible-playbook', '--module-path', '/tmp/library',
+                     '-i', remote_inventory_file,
+                     '--extra-vars', '@%s' % remote_extra_vars_file,
+                     remote_playbook_file]
+        log.debug('EXECUTING: %s', ' '.join(call_args))
+
+        rst = self.transport_run.run(resource, *call_args)
+        self.verify_run_result(call_args, rst)
