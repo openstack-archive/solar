@@ -22,8 +22,11 @@ import yaml
 
 CWD = os.getcwd()
 
+
 C = Bunch(solar_db="")
 C.redis = 'redis://localhost:6379/1'
+C.riak_ensemble = False
+C.lock_bucket_type = None
 
 
 def _lookup_vals(setter, config, prefix=None):

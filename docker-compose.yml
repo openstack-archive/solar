@@ -12,6 +12,8 @@ solar-celery:
     - ./bootstrap/playbooks/celery.yaml:/celery.yaml
     - /var/lib/solar/repositories:/var/lib/solar/repositories
     - /.solar_config_override:/.solar_config_override
+    - ./run.sh:/run.sh
+    - ./.config:~/.config
   # links are not used for configuration because we can rely on non-container
   # based datastores
   links:
