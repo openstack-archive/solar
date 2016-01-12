@@ -23,7 +23,8 @@ import yaml
 CWD = os.getcwd()
 
 C = Bunch(solar_db="")
-C.redis = 'redis://localhost:6379/1'
+C.celery_broker = 'sqla+sqlite:////tmp/celery.db'
+C.celery_backend = 'db+sqlite:////tmp/celery.db'
 
 
 def _lookup_vals(setter, config, prefix=None):
