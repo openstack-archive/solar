@@ -8,8 +8,6 @@ jsonschema==2.4.0
 requests
 dictdiffer==0.4.0
 enum34==1.0.4
-redis==2.10.3
-fakeredis
 inflection
 Fabric==1.10.2
 tabulate==0.7.5
@@ -27,6 +25,8 @@ wrapt
 peewee
 # if you want to use lua computable inputs
 # lupa
+# required for celery sql backends
+sqlalchemy
 
 
 # if you want to use complex version check in repositories

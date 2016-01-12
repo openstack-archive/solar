@@ -15,14 +15,11 @@
 from celery import Celery
 
 from solar.config import C
-from solar.utils import parse_database_conn
 
-conn, _ = parse_database_conn(C.redis)
-_url = 'redis://{}:{}/{}'.format(conn.host, conn.port, conn.database)
 
 app = Celery(
     include=['solar.system_log.tasks', 'solar.orchestration.tasks'],
-    backend=_url,
-    broker=_url)
+    broker=C.celery_broker,
+    backend=C.celery_backend)
 app.conf.update(CELERY_ACCEPT_CONTENT=['json'])
 app.conf.update(CELERY_TASK_SERIALIZER='json')
