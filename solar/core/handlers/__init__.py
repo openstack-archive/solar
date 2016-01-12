@@ -13,29 +13,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.core.handlers.ansible_template import AnsibleTemplate
-from solar.core.handlers.ansible_template_local import AnsibleTemplateLocal
-from solar.core.handlers.ansible_playbook import AnsiblePlaybook
-from solar.core.handlers.ansible_playbook_local import AnsiblePlaybookLocal
-from solar.core.handlers.base import Empty
-from solar.core.handlers.puppet import Puppet, PuppetV2
-from solar.core.handlers.shell import Shell
-from solar.core.handlers.naive_sync import NaiveSync
+from stevedore import driver
+from threading import RLock
 
-
-HANDLERS = {'ansible': AnsibleTemplate,
-            'ansible_playbook': AnsiblePlaybook,
-            'ansible_local': AnsibleTemplateLocal,
-            'ansible_playbook_local': AnsiblePlaybookLocal,
-            'shell': Shell,
-            'puppet': Puppet,
-            'none': Empty,
-            'puppetv2': PuppetV2,
-            'naive_sync': NaiveSync}
+_lock = RLock()
+_handlers = {}
 
 
 def get(handler_name):
-    handler = HANDLERS.get(handler_name, None)
-    if handler:
-        return handler
-    raise Exception('Handler {0} does not exist'.format(handler_name))
+    with _lock:
+        if handler_name not in _handlers:
+            handler = driver.DriverManager(namespace='solar.handlers',
+                                           name=handler_name,
+                                           invoke_on_load=False).driver
+            _handlers[handler_name] = handler
+        else:
+            handler = _handlers[handler_name]
+    return handler
