@@ -59,7 +59,7 @@ class _localimpl(object):
         """Iterate to top most parent, and use it as a base"""
         c = getcurrent()
         while 1:
-            tmp_c = getattr(c, '_nested_parent', c.parent)
+            tmp_c = getattr(c, '_nested_parent', None)
             if not tmp_c:
                 return c
             c = tmp_c
