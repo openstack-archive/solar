@@ -1,0 +1,60 @@
+version: 1.2.4
+resources:
+  - id: docker
+    from: resources/docker
+    location: node1
+
+  - id: config
+    from: wp_repo/wp_config
+    location: node1
+    input:
+      db_root_pass: 'r00tme'
+      db_port: 3306
+      wp_db_name: 'wp'
+      wp_db_user: 'wp'
+      wp_db_pass: 'h4ack'
+
+  - id: mysql
+    from: resources/docker_container
+    location: node1
+    input:
+      ip: node1::ip
+      image: mysql:5.6
+      ports:
+        - config::db_port
+      env:
+        MYSQL_ROOT_PASSWORD: config::db_root_pass
+
+  - id: wp_db
+    from: resources/mariadb_db
+    location: node1
+    input:
+      db_name: config::wp_db_name
+      db_host: mysql::ip
+      login_user: 'root'
+      login_password: config::db_root_pass
+      login_port: config::db_port
+
+  - id: wp_user
+    from: resources/mariadb_user
+    location: node1
+    input:
+      user_password: config::wp_db_pass
+      user_name: config::wp_db_user
+      db_name: wp_db::db_name
+      db_host: mysql::ip
+      login_user: 'root'
+      login_password: config::db_root_pass
+      login_port: config::db_port
+
+  - id: wordpress
+    from: resources/docker_container
+    location: node1
+    input:
+      ip: node1::ip
+      image: wordpress:latest
+      env:
+        WORDPRESS_DB_HOST: mysql::ip
+        WORDPRESS_DB_USER: wp_user::user_name
+        WORDPRESS_DB_PASSWORD: wp_user::user_password
+        WORDPRESS_DB_NAME: wp_db::db_name

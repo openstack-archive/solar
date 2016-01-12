@@ -1,0 +1,18 @@
+handler: none
+version: 1.0.0
+input:
+  db_root_pass:
+    schema: str!
+    value:
+  db_port:
+    schema: int!
+    value:
+  wp_db_name:
+    schema: str!
+    value:
+  wp_db_user:
+    schema: str!
+    value:
+  wp_db_pass:
+    schema: str!
+    value:
