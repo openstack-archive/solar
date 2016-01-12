@@ -57,6 +57,18 @@ def show_meta(resource):
     click.echo(yaml.safe_dump(meta, default_flow_style=False))
 
 
+@inputs.command(help="Allows change computable input properties")
+@click.argument('resource')
+@click.option("-n", '--name')
+@click.option("-t", '--type', default=None)
+@click.option("-f", '--func', default=None)
+@click.option("-l", '--lang', default=None)
+def change_computable(resource, name, func, type, lang):
+    r = sresource.load(resource)
+    r.input_computable_set(name, func, type, lang)
+    return True
+
+
 @inputs.command(help="Shows real input values, with full path")
 @click.option('-v', '--values', default=False, is_flag=True)
 @click.option('-r', '--real_values', default=False, is_flag=True)
