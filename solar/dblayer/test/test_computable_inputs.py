@@ -346,3 +346,35 @@ def test_jinja_join_self_sum_simple(rk):
     r1.save()
 
     assert r1.inputs['input3'] == '5'
+
+
+def test_jinja_change_func_computable_inputs(rk):
+    k1 = next(rk)
+
+    r1 = create_resource(k1, {'name': "r1",
+                              'inputs': {'input1': 3,
+                                         'input2': 2,
+                                         'input3': None}})
+    jinja_funct = """
+{{D|sum}}
+"""
+
+    r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
+                                              'lang': 'jinja2',
+                                              'type': CPT.values.name}
+
+    r1.connect(r1, {'input1': 'input3'})
+    r1.connect(r1, {'input2': 'input3'})
+
+    r1.save()
+
+    assert r1.inputs['input3'] == '5'
+
+    jinja_funct = """
+{{D[0]}}
+"""
+    r1.meta_inputs['input3']['computable'] = {'func': jinja_funct,
+                                              'lang': 'jinja2',
+                                              'type': CPT.values.name}
+
+    assert r1.inputs['input3'] == '3'

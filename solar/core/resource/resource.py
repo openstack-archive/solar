@@ -25,6 +25,7 @@ from multipledispatch import dispatch
 import networkx
 
 
+from solar.computable_inputs import ComputablePassedTypes
 from solar.core.resource.repository import read_meta
 from solar.core.resource.repository import Repository
 from solar.core.signals import get_mapping
@@ -154,6 +155,31 @@ class Resource(object):
         v = self.db_obj.inputs.add_new(name, value, schema)
         self.db_obj.save_lazy()
         return v
+
+    def input_computable_change(self, name, *args, **kwargs):
+        if args:
+            order = ('func', 'type', 'lang')
+            kwargs.update(dict(zip(order, args)))
+        kwargs = dict((x, kwargs[x]) for x in kwargs if kwargs[x] is not None)
+        db_obj = self.db_obj
+        mi = db_obj.meta_inputs
+        try:
+            computable = mi[name]['computable']
+        except KeyError:
+            raise Exception("Can't change computable input properties "
+                            "when input is not computable.")
+        computable.update(kwargs)
+        if not isinstance(computable['type'], ComputablePassedTypes):
+            type_ = ComputablePassedTypes[computable['type']].name
+        else:
+            type_ = computable['type'].name
+        computable['type'] = type_
+        # we don't track nested dicts, only setting full dict will trigger
+        # change
+        mi[name]['computable'] = computable
+        db_obj.meta_inputs = mi
+        db_obj.save_lazy()
+        return True
 
     def input_delete(self, name):
         self.db_obj.inputs.remove_existing(name)
