@@ -2,3 +2,5 @@
 
 - file: path=/root/.ssh state=directory mode=0700
 - template: src=files/ssh_conf dest=/root/.ssh/config
+- file: path=/home/vagrant/.ssh state=directory mode=0700
+- template: src=files/ssh_conf dest=/home/vagrant/.ssh/config

@@ -1,31 +1,3 @@
-solar-celery:
-  image: solarproject/solar-celery
-  # path inside of the container should be exactly the same as outside
-  # because solar uses absolute path to find resoruce actions files
-  volumes:
-    - /vagrant/.vagrant:/vagrant/.vagrant
-    - /vagrant:/solar
-    - /vagrant/solar-resources:/vagrant/solar-resources
-    - /root/.ssh:/root/.ssh
-    - ./bootstrap/playbooks/celery.yaml:/celery.yaml
-    - /var/lib/solar/repositories:/var/lib/solar/repositories
-    - /.solar_config_override:/.solar_config_override
-    - ./run.sh:/run.sh
-    - ./.config:~/.config
-  environment:
-    - REDIS_HOST=redis
-    - REDIS_PORT=6379
-    - RIAK_HOST=riak
-    - RIAK_PORT=8087
-  # links are not used for configuration because we can rely on non-container
-  # based datastores
-  links:
-    - riak
-    - redis
-  # for torrent protocol
-  ports:
-    - 6881-6981:6881-6981
-
 riak:
   image: solarproject/riak
   volumes:
@@ -33,9 +5,3 @@ riak:
   ports:
     - 8087:8087
     - 8098:8098
-redis:
-  image: tutum/redis
-  ports:
-    - 6379:6379
-  environment:
-    - REDIS_PASS=**None**
