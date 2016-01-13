@@ -13,19 +13,15 @@ solar-celery:
     - ./run.sh:/run.sh
     - ./.config:~/.config
   environment:
-    - REDIS_HOST=redis
-    - REDIS_PORT=6379
     - RIAK_HOST=riak
     - RIAK_PORT=8087
   # links are not used for configuration because we can rely on non-container
   # based datastores
   links:
     - riak
-    - redis
   # for torrent protocol
   ports:
     - 6881-6981:6881-6981
-
 riak:
   image: solarproject/riak
   volumes:
@@ -33,9 +29,3 @@ riak:
   ports:
     - 8087:8087
     - 8098:8098
-redis:
-  image: tutum/redis
-  ports:
-    - 6379:6379
-  environment:
-    - REDIS_PASS=**None**

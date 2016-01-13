@@ -14,10 +14,13 @@
 
 - hosts: all
   tasks:
+    # add application related directories
+    - file: path=/var/log/solar state=directory owner=vagrant group=vagrant
+    - file: path=/var/run/celery state=directory owner=vagrant group=vagrant
     #  setup solar-resources
     # change to openstack/solar-resources later
     - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
-
+    - shell: pip install gevent
     # set default config location
     - lineinfile:
         dest: /home/vagrant/.bashrc
@@ -33,10 +36,9 @@
         create: yes
     - lineinfile:
         dest: /.solar_config_override
-        line: "redis: redis://10.0.0.2:6379/1"
+        line: "log_file: /var/log/solar/solar.log"
         state: present
         create: yes
-
     - lineinfile:
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
@@ -55,7 +57,8 @@
     - file: src=/vagrant/solar-resources/resources dest=/var/lib/solar/repositories/resources state=link owner=vagrant
     - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
 
-    - name: Starting docker containers
-      shell: docker-compose up -d chdir=/vagrant
+    - name: start riak container
+      shell: docker-compose up -d riak chdir=/vagrant
     - name: configuring Ansible
       copy: src=/vagrant/bootstrap/ansible.cfg dest=/home/vagrant/.ansible.cfg
+    - include: tasks/celery_init.yaml
