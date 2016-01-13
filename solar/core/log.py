@@ -15,12 +15,13 @@
 import logging
 import sys
 
+from solar.config import C
 
 log = logging.getLogger('solar')
 
 
 def setup_logger():
-    handler = logging.FileHandler('solar.log')
+    handler = logging.FileHandler(C.log_file)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         '%(asctime)s %(levelname)s %(funcName)s'

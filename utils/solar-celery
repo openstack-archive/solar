@@ -9,7 +9,6 @@
 # Default-Stop:     0 1 6
 ### END INIT INFO
 
-mkdir -p /var/run/celery
 export SOLAR_CONFIG_OVERRIDE=/.solar_config_override
 START="$(/usr/local/bin/celery multi start 1 -A solar.orchestration.runner -P gevent -c 1000 -Q system_log,celery,scheduler --pidfile=/var/run/celery/%N.pid --logfile=/var/run/celery/%N.log)"
 STOP="$(/usr/local/bin/celery multi stopwait 1 --pidfile=/var/run/celery/%N.pid)"
@@ -23,7 +22,6 @@ case "$1" in
   stop)
     "{$STOP}"
     ;;
-
   restart|force-reload)
     ${0} stop
     ${0} start
