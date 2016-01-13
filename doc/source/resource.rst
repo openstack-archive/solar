@@ -11,7 +11,7 @@ resource. Examples are:
 
 Resources are defined in ``meta.yaml`` file. This file is responsible for basic
 configuration of given resource. Below is an explanation what constitutes
-typical resource. 
+typical resource.
 
 
 Basic resource structure
@@ -40,7 +40,7 @@ as below ::
 Solar currently supports following handlers:
 
 * puppet - first version of puppet handler (legacy, will be deprecated soon)
-* puppetv2 - second, improved version of puppet, supporting hiera integration 
+* puppetv2 - second, improved version of puppet, supporting hiera integration
 * ansible_playbook - first version of ansible handler (legacy, will be deprecated soon)
 * ansible_template - second generation of ansible implementation, includes transport support
 
@@ -87,6 +87,45 @@ all values are correct. ``!`` at the end of a type means that it is required
   * hash with values ``{a: str!}``
   * list with hashes ``[{a: str!}]``
   * list with lists ``[[]]``
+
+
+Input manipulation
+~~~~~~~~~~~~~~~~~~
+There is possibility to add and remove inputs from given resource.
+To do so you can use ``solar input add`` or ``solar input remove`` in Solar CLI.
+
+
+Computable Inputs
+-----------------
+Computable input is special input type, it shares all logic that standard input has (connections etc),
+but you can set a function that will return final input value.
+
+.. note::
+   Remeber, that you need to connect inputs to have it accessible in Computable Inputs logic.
+
+Currently you can write the functions using:
+
+- Pure Python
+- Jinja2 template
+- LUA
+
+Besides that there are 2 types of Computable Inputs:
+
+- ``values``
+
+  - all connected inputs are passed by value as ``D`` variable
+
+- ``full``
+
+  - all connected inputs are passed as array (python dict type) as ``R`` variable, so you have full information about input.
+
+
+In addition for ``jinja`` all connected inputs for current resource are accessible as first level variables.
+
+
+Change computable input
+~~~~~~~~~~~~~~~~~~~~~~~
+You can change Computable Input properties by calling ``solar input change_computable`` in Solar CLI.
 
 
 Action
