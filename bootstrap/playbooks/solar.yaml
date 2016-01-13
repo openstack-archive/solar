@@ -17,7 +17,7 @@
     #  setup solar-resources
     # change to openstack/solar-resources later
     - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no owner=vagrant
-
+    - shell: pip install gevent
     # set default config location
     - lineinfile:
         dest: /home/vagrant/.bashrc
@@ -29,11 +29,6 @@
     - lineinfile:
         dest: /.solar_config_override
         line: "solar_db: riak://10.0.0.2:8087"
-        state: present
-        create: yes
-    - lineinfile:
-        dest: /.solar_config_override
-        line: "redis: redis://10.0.0.2:6379/1"
         state: present
         create: yes
 
@@ -55,7 +50,8 @@
     - file: src=/vagrant/solar-resources/resources dest=/var/lib/solar/repositories/resources state=link owner=vagrant
     - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
 
-    - name: Starting docker containers
-      shell: docker-compose up -d chdir=/vagrant
+    - name: start riak container
+      shell: docker-compose up -d riak chdir=/vagrant
     - name: configuring Ansible
       copy: src=/vagrant/bootstrap/ansible.cfg dest=/home/vagrant/.ansible.cfg
+    - include: tasks/celery_init.yaml
