@@ -16,7 +16,7 @@
   tasks:
     #  setup solar-resources
     # change to openstack/solar-resources later
-    - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no owner=vagrant
+    - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
 
     # set default config location
     - lineinfile:
