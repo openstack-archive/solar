@@ -162,6 +162,7 @@ input:
         """)
 
         sample1 = self.create_resource('sample1', sample_meta_dir)
+
         with self.assertRaises(Exception):  # NOQA
             sample1.input_computable_change('value', '{{value}}')
         return sample1
