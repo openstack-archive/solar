@@ -14,6 +14,10 @@
 
 - hosts: all
   tasks:
+    #  setup solar-resources
+    # change to openstack/solar-resources later
+    - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
+
     # set default config location
     - lineinfile:
         dest: /home/vagrant/.bashrc
@@ -48,8 +52,8 @@
         state: present
 
     - file: path=/var/lib/solar/repositories state=directory owner=vagrant
-    - file: src=/vagrant/resources dest=/var/lib/solar/repositories/resources state=link owner=vagrant
-    - file: src=/vagrant/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
+    - file: src=/vagrant/solar-resources/resources dest=/var/lib/solar/repositories/resources state=link owner=vagrant
+    - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
 
     - name: Starting docker containers
       shell: docker-compose up -d chdir=/vagrant

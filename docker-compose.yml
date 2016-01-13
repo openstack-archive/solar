@@ -5,9 +5,7 @@ solar-celery:
   volumes:
     - /vagrant/.vagrant:/vagrant/.vagrant
     - /vagrant:/solar
-    - /vagrant/templates:/vagrant/templates
-    - /vagrant/resources:/vagrant/resources
-    - /vagrant/library:/vagrant/library
+    - /vagrant/solar-resources:/vagrant/solar-resources
     - /root/.ssh:/root/.ssh
     - ./bootstrap/playbooks/celery.yaml:/celery.yaml
     - /var/lib/solar/repositories:/var/lib/solar/repositories

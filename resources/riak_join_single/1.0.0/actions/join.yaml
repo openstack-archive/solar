@@ -1,4 +1,0 @@
-- hosts: [{{host}}]
-  sudo: yes
-  tasks:
-    - shell: riak-admin cluster join {{join_to}}

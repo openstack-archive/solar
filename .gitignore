@@ -57,3 +57,6 @@ solar/.cache
 .solar_config_override
 
 .ropeproject
+
+# for simplicity let's keep solar-resources there
+solar-resources

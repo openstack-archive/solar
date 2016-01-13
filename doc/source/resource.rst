@@ -11,7 +11,11 @@ resource. Examples are:
 
 Resources are defined in ``meta.yaml`` file. This file is responsible for basic
 configuration of given resource. Below is an explanation what constitutes
-typical resource. 
+typical resource.
+
+.. TODO: change to openstack/solar-resources later
+.. note::
+   You can find example resources https://github.com/Mirantis/solar-resources
 
 
 Basic resource structure
@@ -40,7 +44,7 @@ as below ::
 Solar currently supports following handlers:
 
 * puppet - first version of puppet handler (legacy, will be deprecated soon)
-* puppetv2 - second, improved version of puppet, supporting hiera integration 
+* puppetv2 - second, improved version of puppet, supporting hiera integration
 * ansible_playbook - first version of ansible handler (legacy, will be deprecated soon)
 * ansible_template - second generation of ansible implementation, includes transport support
 

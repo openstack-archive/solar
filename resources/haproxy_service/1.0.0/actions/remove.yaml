@@ -1,8 +1,0 @@
-- hosts: [{{host}}]
-  sudo: yes
-  tasks:
-    - name: haproxy container
-      docker:
-        name: {{ resource_name }}
-        image: {{ image }}
-        state: absent

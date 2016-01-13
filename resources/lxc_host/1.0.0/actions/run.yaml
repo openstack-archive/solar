@@ -1,6 +1,0 @@
-- hosts: '*'
-  sudo: yes
-  roles:
-    - { role: "lxc_hosts", tags: [ "lxc-host", "host-setup" ] }
-  post_tasks:
-    - shell: pip install git+https://github.com/lxc/python2-lxc.git#egg=lxc

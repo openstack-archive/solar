@@ -1,5 +1,0 @@
-# rename it to vagrant-settings.yml then Vagrantfile
-# will use values from this file
-
-slaves_count: 3
-slaves_image: ubuntu/trusty64
