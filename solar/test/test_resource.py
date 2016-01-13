@@ -111,3 +111,57 @@ input:
         sample2 = resource.load('sample2')
         sample1.delete()
         self.assertEqual(sample2.args['value'], 0)
+
+    def test_computable_input(self):
+        """Test that connection removed with resource."""
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 1
+  ci:
+    schema: str!
+    value: null
+    computable:
+        func: "{{value + 1}}"
+        type: full
+        lang: jinja2
+        """)
+
+        sample1 = self.create_resource('sample1', sample_meta_dir)
+        sample1.connect(sample1, {'value': 'ci'})
+        self.assertEqual(sample1.args['ci'], '2')
+        return sample1
+
+    def test_computable_input_change_funct(self):
+        """Test that connection removed with resource."""
+        sample1 = self.test_computable_input()
+        sample1.input_computable_change('ci', '{{value}}')
+        self.assertEqual(sample1.args['ci'], '1')
+
+    def test_computable_input_change_from_normal(self):
+        """Test that connection removed with resource."""
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 1
+  ci:
+    schema: str!
+    value: null
+    computable:
+        func: "{{value + 1}}"
+        type: full
+        lang: jinja2
+        """)
+
+        sample1 = self.create_resource('sample1', sample_meta_dir)
+        with self.assertRaises(Exception):  # NOQA
+            sample1.input_computable_change('value', '{{value}}')
+        return sample1
