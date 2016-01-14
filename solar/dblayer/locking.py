@@ -14,10 +14,16 @@
 
 import time
 
-import peewee
-from riak import RiakError
-
 from solar.config import C
+from solar.utils import parse_database_conn
+
+_connection, _connection_details = parse_database_conn(C.solar_db)
+
+if _connection.mode == 'sqlite':
+    import peewee
+elif _connection.mode == 'riak':
+    from riak import RiakError
+
 from solar.core.log import log
 from solar.dblayer.conflict_resolution import SiblingsError
 from solar.dblayer.model import DBLayerNotFound
@@ -154,9 +160,9 @@ class RiakEnsembleLock(_Lock):
             raise
 
 
-if 'sqlite' in C.solar_db:
+if _connection.mode == 'sqlite':
     Lock = SQLiteLock
-elif 'riak' in C.solar_db:
+elif _connection.mode == 'riak':
     if C.riak_ensemble:
         Lock = RiakEnsembleLock
     else:
