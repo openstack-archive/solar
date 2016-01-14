@@ -191,6 +191,22 @@ def test_parse_dict_input():
     assert correct_connections == connections
 
 
+def test_parse_computable_input():
+    comp, conn = cr.parse_computable_input('cmd', {'computable': {
+                                                   'func': 'echo 1',
+                                                   'type': 'full',
+                                                   'lang': 'jinja',
+                                                   'connections': ['N::ip']}})
+    assert comp == {'lang': 'jinja',
+                    'type': 'full',
+                    'name': 'cmd',
+                    'func': 'echo 1'}
+    assert conn == [{'child_input': 'cmd',
+                     'parent_input': 'ip',
+                     'parent': 'N',
+                     'events': None}]
+
+
 def test_parse_connection_disable_events():
     correct_connection = {'child_input': 'ip',
                           'parent': 'node1',
@@ -205,7 +221,7 @@ def test_parse_list_of_connected_dicts():
     inputs = {'list': [
         {'key': 'emitter1::key'},
         {'key': 'emitter2::key'}]}
-    connections, assignments = cr.parse_inputs(inputs)
+    connections, assignments, _ = cr.parse_inputs(inputs)
     assert assignments == {}
     assert connections == [
         {'child_input': 'list:key', 'parent_input': 'key',

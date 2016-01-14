@@ -236,7 +236,7 @@ def update_resources(template_resources):
 
 def update_inputs(child, inputs):
     child = load_resource(child)
-    connections, assignments = parse_inputs(inputs)
+    connections, assignments, computable = parse_inputs(inputs)
     parents = defaultdict(lambda: defaultdict(dict))
     for c in connections:
         mapping = {c['parent_input']: c['child_input']}
@@ -252,6 +252,9 @@ def update_inputs(child, inputs):
             child, mapping, {}, use_defaults=use_defaults)
 
     child.update(assignments)
+
+    for comp in computable:
+        child.input_computable_change(**comp)
 
 
 def extend_events(template_events):
@@ -295,22 +298,28 @@ def parse_events(template_events):
 def parse_inputs(inputs):
     connections = []
     assignments = {}
+    computable = []
     for r_input, arg in inputs.items():
         if isinstance(arg, list):
             c, a = parse_list_input(r_input, arg)
             connections.extend(c)
             assignments.update(a)
         elif isinstance(arg, dict):
-            c, a = parse_dict_input(r_input, arg)
-            connections.extend(c)
-            assignments.update(a)
+            if 'computable' in arg:
+                comp, conn = parse_computable_input(r_input, arg)
+                computable.append(comp)
+                connections.extend(conn)
+            else:
+                c, a = parse_dict_input(r_input, arg)
+                connections.extend(c)
+                assignments.update(a)
         else:
             if is_connection(arg):
                 c = parse_connection(r_input, arg)
                 connections.append(c)
             else:
                 assignments[r_input] = arg
-    return connections, assignments
+    return connections, assignments, computable
 
 
 def parse_list_input(r_input, args):
@@ -345,6 +354,25 @@ def parse_dict_input(r_input, args):
             except KeyError:
                 assignments[r_input] = {key: value}
     return connections, assignments
+
+
+def parse_computable_input(r_input, arg):
+    computable = {'name': r_input}
+    connections = []
+    data = arg['computable']
+    func = data.get('func', None)
+    d_type = data.get('type', None)
+    lang = data.get('lang', None)
+    if func:
+        computable['func'] = func
+    if d_type:
+        computable['type'] = d_type
+    if lang:
+        computable['lang'] = lang
+    for c in data.get('connections', []):
+        c = parse_connection(r_input, c)
+        connections.append(c)
+    return computable, connections
 
 
 def add_assignment(assignments, r_input, arg):
