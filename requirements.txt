@@ -11,7 +11,10 @@ enum34==1.0.4
 inflection
 Fabric==1.10.2
 tabulate==0.7.5
-ansible
+
+# we need callbacks for now
+ansible<2.0
+
 celery
 mock
 multipledispatch==0.4.8
