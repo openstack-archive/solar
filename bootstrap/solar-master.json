@@ -113,15 +113,10 @@
       "type": "shell",
       "inline": ["sudo mkdir -p {{ user `ansible_config_path` }}"]
     }, {
-      "type": "file",
-      "source": "ansible.cfg",
-      "destination": "/tmp/ansible.cfg"
-    }, {
-      "type": "shell",
-      "inline": ["sudo mv /tmp/ansible.cfg {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}"]
-    }, {
       "type": "shell",
       "inline": [
+        "touch /tmp/ansible.cfg",
+        "sudo mv /tmp/ansible.cfg {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
         "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
         "sudo touch {{ user `ansible_log_file` }}",
         "sudo chmod 666 {{ user `ansible_log_file` }}"

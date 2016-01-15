@@ -21,7 +21,7 @@ ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_
 # Wait for master to boot
 sleep 30
 
-sshpass -p ${ADMIN_PASSWORD} rsync -az . -e ssh ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --include bootstrap/ansible.cfg --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
+sshpass -p ${ADMIN_PASSWORD} rsync -az . -e ssh ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
 
 sshpass -p ${ADMIN_PASSWORD} ssh ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
 set -x
