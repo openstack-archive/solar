@@ -59,6 +59,4 @@
 
     - name: start riak container
       shell: docker-compose up -d riak chdir=/vagrant
-    - name: configuring Ansible
-      copy: src=/vagrant/bootstrap/ansible.cfg dest=/home/vagrant/.ansible.cfg
     - include: tasks/celery_init.yaml
