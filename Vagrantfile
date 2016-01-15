@@ -116,7 +116,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.host_name = "solar-dev#{index}"
 
       if PREPROVISIONED
-        config.vm.provision "file", source: "bootstrap/ansible.cfg", destination: "/home/vagrant/.ansible.cfg"
         config.vm.provision "shell", inline: solar_agent_script, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
