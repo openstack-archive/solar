@@ -1,0 +1,7 @@
+- hosts: all
+  sudo: yes
+  tasks:
+    - shell: timeout 60 docker exec -it vagrant_riak_1 riak-admin wait_for_service riak_kv
+    - shell: timeout 10 docker exec -it vagrant_riak_1 riak-admin bucket-type create counters '{"props":{"datatype":"counter"}}'
+      ignore_errors: yes
+    - shell: timeout 10 docker exec -it vagrant_riak_1 riak-admin bucket-type activate counters
