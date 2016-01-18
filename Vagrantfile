@@ -62,6 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box = MASTER_IMAGE
 
     config.vm.provision "shell", inline: solar_script, privileged: true
+    config.vm.provision "shell", inline: ansible_playbook_command("riak.yaml"), privileged: true
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.host_name = "solar-dev"
