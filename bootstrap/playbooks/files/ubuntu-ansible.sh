@@ -8,4 +8,4 @@ sudo apt-get update
 sudo apt-get install -y python-setuptools python-dev autoconf g++
 sudo easy_install pip
 sudo pip install -U pip
-sudo pip install ansible
+sudo pip install "ansible<2.0"
