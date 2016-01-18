@@ -40,6 +40,11 @@
         state: present
         create: yes
     - lineinfile:
+        dest: /.solar_config_override
+        line: "counter_bucket_type: counters"
+        state: present
+        create: yes
+    - lineinfile:
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
         state: present
