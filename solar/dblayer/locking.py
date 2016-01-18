@@ -19,15 +19,14 @@ from solar.utils import parse_database_conn
 
 _connection, _connection_details = parse_database_conn(C.solar_db)
 
-if _connection.mode == 'sqlite':
-    import peewee
-elif _connection.mode == 'riak':
+if _connection.mode == 'riak':
     from riak import RiakError
 
 from solar.core.log import log
-from solar.dblayer.conflict_resolution import SiblingsError
 from solar.dblayer.model import DBLayerNotFound
 from solar.dblayer.solar_models import Lock as DBLock
+
+from uuid import uuid4
 
 
 class _Lock(object):
@@ -45,6 +44,7 @@ class _Lock(object):
         self.identity = identity
         self.retries = retries
         self.wait = wait
+        self.stamp = str(uuid4())
 
     @classmethod
     def _acquire(cls, uid, identity):
@@ -52,96 +52,97 @@ class _Lock(object):
             'Different strategies for handling collisions')
 
     @classmethod
-    def _release(cls, uid):
+    def _release(cls, uid, identity):
         lk = DBLock.get(uid)
-        log.debug('Release lock %s with %s', uid, lk.identity)
+        log.debug('Release lock %s with %s', uid, identity)
         lk.delete()
 
     def __enter__(self):
-        lk = self._acquire(self.uid, self.identity)
-        if lk.identity != self.identity:
+        lk = self._acquire(self.uid, self.identity, self.stamp)
+        if not lk.am_i_locking(self.identity):
             log.debug(
                 'Lock %s acquired by another identity %s != %s',
-                self.uid, self.identity, lk.identity)
+                self.uid, self.identity, lk.who_is_locking())
             while self.retries:
                 del DBLock._c.obj_cache[lk.key]
                 time.sleep(self.wait)
-                lk = self._acquire(self.uid, self.identity)
+                lk = self._acquire(self.uid, self.identity, self.stamp)
                 self.retries -= 1
-                if lk.identity == self.identity:
+                if lk.am_i_locking(self.identity):
                     break
+                else:
+                    # reset stamp mark
+                    self.stamp = str(uuid4())
             else:
-                if lk.identity != self.identity:
+                if not lk.am_i_locking(self.identity):
                     raise RuntimeError(
                         'Failed to acquire {},'
                         ' owned by identity {}'.format(
-                            lk.key, lk.identity))
+                            lk.key, lk.who_is_locking()))
         log.debug('Lock for %s acquired by %s', self.uid, self.identity)
 
     def __exit__(self, *err):
-        self._release(self.uid)
+        self._release(self.uid, self.identity, self.stamp)
 
 
-class RiakLock(_Lock):
+class _CRDTishLock(_Lock):
 
     @classmethod
-    def _acquire(cls, uid, identity):
+    def _release(cls, uid, identity, stamp):
+        log.debug("Release lock %s with %s", uid, identity)
+        lk = DBLock.get(uid)
+        lk.change_locking_state(identity, -1, stamp)
+        lk.save(force=True)
+
+    @classmethod
+    def _acquire(cls, uid, identity, stamp):
         try:
-            try:
-                lk = DBLock.get(uid)
-                log.debug(
-                    'Found lock with UID %s, owned by %s, owner %r',
-                    uid, lk.identity, lk.identity == identity)
-            except DBLayerNotFound:
-                log.debug(
-                    'Create lock UID %s for %s', uid, identity)
-                lk = DBLock.from_dict(uid, {'identity': identity})
-                lk.save(force=True)
-        except SiblingsError:
-            log.debug(
-                'Race condition for lock with UID %s, among %r',
-                uid,
-                [s.data.get('identity') for s in lk._riak_object.siblings])
-            siblings = []
-            for s in lk._riak_object.siblings:
-                if s.data.get('identity') != identity:
-                    siblings.append(s)
-            lk._riak_object.siblings = siblings
-            lk.save()
-        return lk
-
-
-class SQLiteLock(_Lock):
-
-    @classmethod
-    def _acquire(cls, uid, identity):
-        """It is hard to properly handle concurrent updates
-        using sqlite backend.
-        INSERT only should maitain integrity of
-        primary keys and therefore will raise proper exception
-        """
+            del DBLock._c.obj_cache[uid]
+        except KeyError:
+            pass
         try:
             lk = DBLock.get(uid)
-            log.debug(
-                'Found lock with UID %s, owned by %s, owner %r',
-                uid, lk.identity, lk.identity == identity)
-            return lk
         except DBLayerNotFound:
             log.debug(
                 'Create lock UID %s for %s', uid, identity)
-            lk = DBLock.from_dict(uid, {'identity': identity})
-            try:
-                lk.save(force=True, force_insert=True)
-            except peewee.IntegrityError:
-                log.debug('Lock was acquired by another thread')
-                return DBLock.get(uid)
+            lk = DBLock.from_dict(uid, {})
+            lk.change_locking_state(identity, 1, stamp)
+            lk.save(force=True)
+        else:
+            locking = lk.who_is_locking()
+            if locking is not None:
+                log.debug(
+                    'Found lock with UID %s, owned by %s, owner %r',
+                    uid, locking, lk.am_i_locking(identity))
+                return lk
+            else:
+                log.debug(
+                    'Create lock UID %s for %s', uid, identity)
+                lk.change_locking_state(identity, 1, stamp)
+                lk.save(force=True)
+        del DBLock._c.obj_cache[lk.key]
+        lk = DBLock.get(uid)
+        locking = lk.who_is_locking()
+        if locking is not None and identity != locking:
+            if [identity, 1, stamp] in lk.lockers:
+                lk.change_locking_state(identity, -1, stamp)
+                lk.save(force=True)
+                log.debug("I was not locking, so removing me %s" % identity)
         return lk
+
+
+class RiakLock(_CRDTishLock):
+    pass
+
+
+class SQLiteLock(_CRDTishLock):
+    pass
 
 
 class RiakEnsembleLock(_Lock):
 
     @classmethod
-    def _acquire(cls, uid, identity):
+    def _acquire(cls, uid, identity, stamp):
         try:
             log.debug(
                 'Create lock UID %s for %s', uid, identity)

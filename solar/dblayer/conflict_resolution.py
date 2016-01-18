@@ -29,12 +29,20 @@ def naive_resolver(riak_object):
     if len(c) > 2:
         raise SiblingsError(
             "Too many different siblings, not sure what to do with siblings")
+
+    # both are the same
+    if siblings[0]._get_encoded_data() == siblings[1]._get_encoded_data():
+        riak_object.siblings = [siblings[0]]
+        return
+
     if 0 not in c:
+        sdata = map(lambda x: x._get_encoded_data(), siblings)
         raise SiblingsError("No empty object for resolution"
-                            " not sure what to do with siblings")
-    selected = max(siblings_len)
-    # TODO: pass info to obj save_lazy too
-    riak_object.siblings = [selected[1]]
+                            " not sure what to do with siblings: %r" % sdata)
+    else:
+        selected = max(siblings_len)
+        # TODO: pass info to obj save_lazy too
+        riak_object.siblings = [selected[1]]
 
 
 dblayer_conflict_resolver = naive_resolver
