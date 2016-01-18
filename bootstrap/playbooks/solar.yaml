@@ -40,6 +40,11 @@
         state: present
         create: yes
     - lineinfile:
+        dest: /.solar_config_override
+        line: "counter_bucket_type: counters"
+        state: present
+        create: yes
+    - lineinfile:
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
         state: present
@@ -59,6 +64,13 @@
 
     - name: start riak container
       shell: docker-compose up -d riak chdir=/vagrant
+    # preconfigure docker container
+    # add counters datatype etc.
+    - shell: timeout 60 docker exec -it vagrant_riak_1 riak-admin wait_for_service riak_kv
+    - shell: timeout 10 docker exec -it vagrant_riak_1 riak-admin bucket-type create counters '{"props":{"datatype":"counter"}}'
+      ignore_errors: yes
+    - shell: timeout 10 docker exec -it vagrant_riak_1 riak-admin bucket-type activate counters
+
     - name: configuring Ansible
       copy: src=/vagrant/bootstrap/ansible.cfg dest=/home/vagrant/.ansible.cfg
     - include: tasks/celery_init.yaml
