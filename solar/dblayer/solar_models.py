@@ -15,6 +15,7 @@
 
 
 from collections import defaultdict
+from itertools import chain
 from operator import itemgetter
 from types import NoneType
 from uuid import uuid4
@@ -1126,3 +1127,92 @@ class Lock(Model):
     bucket_type = C.lock_bucket_type
 
     identity = Field(basestring)
+    lockers = Field(list, default=list)
+
+    @classmethod
+    def _reduce(cls, lockers):
+        # TODO: (jnowak) we could remove not needed lockers there
+        # not needed means already replaced by other lock.
+        _s = set()
+        for x in lockers:
+            _s.add(tuple(x))
+        res = [list(x) for x in _s]
+        return res
+
+    def sum_all(self):
+        reduced = self.reduce()
+        _pos = defaultdict(int)
+        _neg = defaultdict(int)
+        for locker, val, stamp in reduced:
+            k = (locker, stamp)
+            if val < 0:
+                if k in _pos:
+                    del _pos[k]
+                else:
+                    _neg[k] = -1
+            elif val > 0:
+                if k in _neg:
+                    del _neg[k]
+                else:
+                    _pos[k] = 1
+        # discard all orphaned releases
+        key_diff = set(_neg.keys()) - set(_pos.keys())
+        for k in key_diff:
+            del _neg[k]
+        return {locker: val for ((locker, stamp), val) in chain(
+            _pos.items(),
+            _neg.items()
+        )}
+
+    def reduce(self):
+        lockers = self.lockers
+        self.lockers = self._reduce(lockers)
+        return self.lockers
+
+    def am_i_locking(self, uid):
+        return self.who_is_locking() == uid
+
+    def who_is_locking(self):
+        try:
+            if self.identity:
+                return self.identity
+            return None
+        except KeyError:
+            summed = self.sum_all()
+            if not summed:
+                return None
+            to_max = sorted([(v, k) for (k, v) in summed.items()])[-1]
+            if to_max[0] > 0:
+                return to_max[1]
+            return None
+
+    def change_locking_state(self, uid, value, stamp):
+        try:
+            if self.identity:
+                if value:
+                    self.identity = uid
+                else:
+                    raise Exception("Unsupported operation, to release "
+                                    "this lock you need to delete it.")
+                return True
+        except KeyError:
+            self.lockers.append([uid, value, stamp])
+            self.reduce()
+            return True
+
+    def save(self, *args, **kwargs):
+        self.reduce()
+        super(Lock, self).save(*args, **kwargs)
+
+    @staticmethod
+    def conflict_resolver(riak_object):
+        siblings = riak_object.siblings
+        sdatas = map(lambda x: x.data.get('lockers', []), siblings)
+        l = []
+        for data in sdatas:
+            l.extend(data)
+        reduced = Lock._reduce(l)
+        first_sibling = siblings[0]
+        first_sibling.data['lockers'] = reduced
+        riak_object.siblings = [first_sibling]
+        # del Lock._c.obj_cache[riak_object.key]
