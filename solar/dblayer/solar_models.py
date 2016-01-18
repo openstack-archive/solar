@@ -36,6 +36,7 @@ from solar.dblayer.model import NONE
 from solar.dblayer.model import SingleIndexCache
 from solar.dblayer.model import StrInt
 from solar.utils import detect_input_schema_by_value
+from solar.utils import parse_database_conn
 from solar.utils import solar_map
 
 
@@ -1060,15 +1061,43 @@ system log
 5. keep order of history
 """
 
+_connection, _connection_details = parse_database_conn(C.solar_db)
+if _connection.mode == 'sqlite':
+    class NegativeCounter(Model):
 
-class NegativeCounter(Model):
+        count = Field(int, default=int)
 
-    count = Field(int, default=int)
+        def next(self):
+            self.count -= 1
+            self.save()
+            return self.count
+else:
+    class NegativeCounter(Model):
 
-    def next(self):
-        self.count -= 1
-        self.save()
-        return self.count
+        bucket_type = C.counter_bucket_type
+
+        def next(self):
+            ro = self._riak_object
+            ro.decrement(1)
+            ro.store()
+            val = ro.value
+            return val
+
+        @property
+        def count(self):
+            return self._riak_object.value
+
+        @classmethod
+        def get_or_create(cls, key):
+            return cls.get(key)
+
+        @classmethod
+        def get(cls, key):
+            try:
+                return cls._c.obj_cache.get(key)
+            except KeyError:
+                riak_object = cls.bucket.get(key)
+                return cls.from_riakobj(riak_object)
 
 
 class LogItem(Model):
