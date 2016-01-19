@@ -50,39 +50,86 @@ class Executor(object):
                     raise errors.SolarError(err)
 
 
-class SolarRunResultWrp(object):
+# class SolarRunResultWrp(object):
 
-    def __init__(self, name):
-        self.name = name
+#     def __init__(self, name):
+#         self.name = name
 
-    def __get__(self, obj, objtype):
-        res = obj._result
-        if isinstance(res, dict):
-            try:
-                return res[self.name]
-            except KeyError:
-                # Let's keep the same exceptions
-                raise AttributeError(self.name)
-        return getattr(obj._result, self.name)
+#     def __get__(self, obj, objtype):
+#         res = obj._result
+#         if isinstance(res, dict):
+#             try:
+#                 return res[self.name]
+#             except KeyError:
+#                 # Let's keep the same exceptions
+#                 raise AttributeError(self.name)
+#         return getattr(obj._result, self.name)
 
 
-class SolarRunResult(object):
+# class SolarRunResult(object):
 
-    def __init__(self, result):
-        self._result = result
+#     def __init__(self, result):
+#         self._result = result
 
-    failed = SolarRunResultWrp('failed')
-    stdout = SolarRunResultWrp('stdout')
-    stderr = SolarRunResultWrp('stderr')
-    succeeded = SolarRunResultWrp('succeeded')
-    command = SolarRunResultWrp('command')
-    real_command = SolarRunResultWrp('real_command')
-    return_code = SolarRunResultWrp('return_code')
+#     failed = SolarRunResultWrp('failed')
+#     stdout = SolarRunResultWrp('stdout')
+#     stderr = SolarRunResultWrp('stderr')
+#     succeeded = SolarRunResultWrp('succeeded')
+#     command = SolarRunResultWrp('command')
+#     real_command = SolarRunResultWrp('real_command')
+#     return_code = SolarRunResultWrp('return_code')
 
-    def __str__(self):
-        if self.failed:
-            return str(self.stderr)
-        return str(self.stdout)
+#     def __str__(self):
+#         if self.failed:
+#             return str(self.stderr)
+#         return str(self.stdout)
+
+
+class SolarTransportResult(object):
+
+    def __init__(self):
+        self.return_code = None
+        self.stderr = None
+        self.stdout = None
+
+    @property
+    def success(self):
+        if self.return_code is not None:
+            return self.return_code == 0
+        if self.stderr is None and self.stdout is not None:
+            return True
+        elif self.stderr is not None and self.stdout is None:
+            return False
+        return None
+
+    @property
+    def output(self):
+        if self.success:
+            return self.stdout
+        return self.stderr
+
+    @classmethod
+    def from_tuple(cls, return_code, stdout, stderr):
+        obj = cls()
+        obj.return_code = return_code
+        obj.stdout = stdout
+        obj.stderr = stderr
+        return obj
+
+    def from_fabric(cls, fabric_obj):
+        obj = cls()
+        obj.return_code = fabric_obj['return_code']
+        obj.stdout = fabric_obj['stdout']
+        obj.stderr = fabric_obj['stderr']
+        return obj
+
+
+class SolarTransportRunResult(SolarTransportResult):
+    pass
+
+
+class SolarTransportSyncResult(SolarTransportResult):
+    pass
 
 
 def find_named_transport(resource, req_name):
@@ -149,7 +196,7 @@ class SyncTransport(SolarTransport):
 
     def run_all(self):
         for executor in self.executors:
-            executor.run(self)
+            res = executor.run(self)
 
     def sync_all(self):
         """Syncs all

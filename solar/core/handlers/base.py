@@ -44,11 +44,11 @@ class BaseHandler(object):
         self.transport_run.bind_with(self.transport_sync)
 
     def verify_run_result(self, cmd, result):
-        rc, out, err = result
+        rc, out, err = result.return_code, result.stdout, result.stderr
         log.debug('CMD %r RC %s OUT %s ERR %s', cmd, rc, out, err)
-        if rc:
+        if not result.success:
             message = 'CMD %r failed RC %s ERR %s' % (cmd, rc, err)
-            raise errors.SolarError(message)
+            raise errors.SolarError(result.output)
 
     def __enter__(self):
         return self
