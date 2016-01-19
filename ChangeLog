@@ -1,0 +1,1802 @@
+CHANGES
+=======
+
+* Remove ansible.cfg, we use .ssh/config now
+* Add test for wordpress example
+* Set concurrency=1 for system log and scheduler queues
+* Update path in tests
+* Include ansible config when syncing repo
+* Set ansible<2.0 in requirements
+* Conditional imports in locking (riak or peewee)
+* Allow to modify computable inputs in Composer files
+* Remove redis and celery container, use init script for celery
+* Improved inputs documentation
+* init script for solar-celery
+* Implement db based lock mechanism for orchestration
+* Removed wrong git option from solar-resources clone
+* Added possibility to change computable input func
+* Moved examples, resources and templates
+* Change celery config to use sqlite backend messaging and results
+* Fix gevent cache, by default it shouldn't be shared
+* Set vagrant as a owner of /var/lib/solar/repositories
+* Use stevedore for handlers
+* Fixed torrent transport
+* Preserve original order of keys in CreatedResources.like
+* Implements ansible_playbook_local handler
+* Ansible Playbook uses now solar_transports
+* Raise better error when requested transport is not found
+* Standarized props names in ssh transports
+* Use stevedore for transports management
+* Fixed OSError during concurrent TempFileHandler init
+* Running examples using fuel-devops
+* Remove redundant filtering (old way) in riaks.py
+* Use resources.like filter in openstack example
+* Reduce image size and keep qemu image
+* Switch to nodes.yaml composer file
+* Install sshpass. Required for testing on Jenkins
+* Simple sanitization for shell args in raw_ssh
+* Fixed incorrect key file usage in fabric ssh
+* Added create_all command to riak example
+* Use stevedore for Computable Inputs
+* Added passwords to schemas in transports
+* Skip only lua CI related tests when no lupa
+* Remove jenkins-config.yaml
+* Removed old puppet_module field from resource
+* composer.create returns CreatedResources object
+* Added ansible_template_local handler
+* Move bootstrap commands to ansible playbook
+* Possibility to use ssh transports with password
+* Possible to use relative paths in CR
+* Removed resource compile_all action from CLI
+* Refactor VirtualResources
+* Add input operations (add / remove)
+* Removed old config ideas
+* Raise error for unknown inputs update / set action
+* Replace all templates/(.*)\.yaml with templates/\1
+* Use yaml to load data in CLI resource update
+* Added solar repository create <name>
+* Better scans source path in repository
+* Add `tox -e docs` command
+* Update wp tutorial after recent changes
+* remove python 2.6 trove classifier
+* Mount correct dir for ssh configuration
+* Fix add to VR repository from cli
+* Put PYTHONWARNINGS in .bashrc before others
+* Repository support for VR
+* Changed {{ }} to #{ }# in VR templates
+* Fix playbooks after recent changes:
+* Changed block tokens in jinja for yaml compat
+* Do not remove the kernel src for packer build
+* Require semver in main requirements.txt
+* Resource Repository Docs added
+* Updated repo link, basic info in docs
+* Use RFC 1738 format for redis db connection
+* Change resources structure to match repository one
+* Introduced Resource Repositories
+* Write puppet log to /var/log/puppet/{resource.name}.log
+* Advanced tags support
+* SOLAR_DB from env in testr execution if defined
+* Add gitreview file
+* Adjusted dblayer sqlite behaviour to riak one Changed default database to sqlite Changed how solar_db config is defined Removed lupa from test-requirements Removed riak from requirements Testr uses :memory: sqlite
+* Raise sync error in Executor
+* Added gevent to test-requirements
+* Point to custom remote in documentation
+* Add doc about StrictHostKeyChecking
+* Improve error handling in for ssh_raw/rsync in ansible/puppet/bash
+* Add connections between nodes and hosts files
+* Disable host key checking for 10.0.0.* subnet
+* Fixed gevent related test failures
+* Use preforked pool for celery and remove gevent from reqs
+* Reuse parse_dict_input in parse_list
+* Configure riak based to use multi backends
+* Adjust celery configuration and fix ssh_raw to work with ENV
+* Change pool to gevent from preforked for worker which performs tasks
+* Convert hosts example to use VRs with all transports
+* Install rsync, ssh client and mount known_hosts to container
+* Add test for list of connected dicts and fix flake
+* Adjust raw_ssh to plugable transport layer and use it by default
+* Add rsync transport to nodes
+* Allow to create list of dicts based on connections in VRs
+* Added locks for python CI and for CI processors
+* Removed unused imports
+* Added missing files
+* Pretify code
+* Adjusted tests for cache
+* Added `next` to proxy
+* Added wrapt to requirements
+* Set default cache size to 200
+* Initial idea of new cache
+* Fixed torrent transport + added tests
+* Adjust n_val and ring_creation_size for riak
+* Build riak container with solar specific commit
+* Added libluajit-5.1-dev to base.yaml
+* Corrected comment about sandboxing
+* Set `sudo: false` in travis.yml
+* Use apt addon in travis
+* Add note about python_loop
+* Fixed events cycles with self referenced inputs
+* Moved riak_node_comp to riak_node
+* Standarize API for inputs D is data with raw passed values R is make_arr result for jinja we also pass flat input as kwargs
+* Automaticaly do make_arr with `full` mode
+* Add tests for dicts in VR
+* Extend tutorial to show how to update db pass
+* Add docker_container update action with state=reloaded
+* Update.yaml is update action
+* Connections in dicts in VR
+* Add wordpress tutorial
+* Improve docker_container resource
+* Added jinja2 computable input types
+* Python computable inputs Simple repl like server with simple sandbox based on seccomp
+* Install libluajit-5.1-dev on travis
+* Added computable inputs riak example
+* Fixed one more case in solar_models
+* Fixed delete behaviour for single hash
+* In single hash connection no tag is required (shared is used instead) Also added more tests to cover one corner case
+* Dont guess mapping when emitter == receiver
+* Auto wrap code with lua function declaration
+* Added lupa to test-requirements, and added note in requirements
+* Skip tests when lupa is not installed
+* Self referenced computable inputs
+* Test improvements for computable inputs
+* Naming adjustments
+* Added more complex case + added helpers to lua + code pretify
+* Basic ops are working
+* Upgrade pbr before installing solar
+* Moved f2s doc, updated markdown
+* Add lock on save
+* Extended test for max
+* First skeleton of Computable Inputs
+* Fix sphinx warninngs
+* Add pid to random bucket name
+* Reorder gevent.monkey.patch_all()
+* Docs are now generated in doc/build
+* Use pip+git to install solar and solar-agent in Dockerfile
+* Add f2s readme
+* Use pbr to manage setup.py and setup.cfg
+* Corrected documentation for style and content
+* Add build utils
+* Remove all f2s specific software from Dockerfile
+* Add tox -e cover command
+* Added some ansible handler descripton to docs
+* Fixed some typos and sentences in transports docs
+* Remove f2s directory
+* Describe procedure of building deployment plan in docs
+* Added basic transports docs
+* Allow pythonhashseed to be random
+* Rework tests to allow random ordering
+* Link resource details in glossary
+* Added more detailed resource documentation
+* Fix flake8 import rules
+* Fix inconsistencies after rebase
+* Assign tasks based on roles generated by deployment info
+* Add environment variable that will enable debug source in fsclient
+* Take into account skipped (anchor-like) tasks
+* Filter null values for hiera
+* Generate inputs for compute and ceph-osd
+* Treat NOOP or SUCCESS as visited and ERROR as blocker
+* Add orch noop command to mark tasks as walked
+* Add session wrapper to solar_resource task
+* Add puppet_modules to every role vr
+* Fix f2s/README
+* Fix f2s/README
+* Add README for f2s
+* Add session for celery tasks
+* add vms_conf val
+* Disable mos_repos resource
+* Change path to actions
+* Fix tasks, ssh config and prefetching information from nailgun
+* Add session to a client
+* Fix inputs in resources
+* Fixes in client and solar inputs
+* Add additional packages and config for container
+* Add proper client for nailgun in fsclient.py
+* Use nailgun manager and solar-celery with f2s tag
+* Save generated resources with inputs
+* Save generated vrs based on existing roles
+* Fix inconsistencies in clients
+* Adjust docker to use f2s and small fixes
+* Implement f2s/fsclient.py which will bootstrap solar stuff from fuel
+* Add role data into events and events from prep.yaml to role_data
+* Add mos repos and vr for genkeys
+* Fix patches for noop tests and use new path to spec
+* Add fuel entities and translate solar entities in order
+* Add from_nailgun.py manager
+* Add resource for keys generation and vr for copying stuff
+* Generated inputs for role data
+* Allow multiple managers
+* Add manager globals.pp
+* Add naive_sync driver which will copy resource from solar location
+* Add naive manager mechanism and prefetch command
+* Add values_from to vr generator
+* Add values_from mechanism that will allow to guess mappings
+* Save applied patches to generate inputs
+* Create resoruces and events based on tasks
+* Add g2vr command that will create resources and events
+* Fix path to manifest
+* Translate tasks into resources without inputs
+* Use config.py:C in solar and fix compose file
+* Run tests in parallel
+* Added last info to orch docs
+* Add examples docs, reformat add indexes
+* Add install tag to celery playbook and use it in Dockerfile
+* Install latest tox from pip
+* Added tox requirement to base.yaml playbook
+* Set hacking <0.11,>=0.10.0
+* Run flake8 first. It will fail faster
+* Mount ansible modules dir in celery container
+* Move sphinx requirement from setup.py to venv in tox
+* Orchestration documentation
+* More flake8 fixes
+* H306 doesn't support noqa, make empty lines instead
+* Fix ansible import problem
+* Add correct license to gevent_local
+* More fixes for hacking
+* License in test_execution_models
+* License in test_nested
+* Adjusted solar_torrent
+* Added Apache 2 license to dblayer files
+* Tox checks solar dir
+* Slightly more Guidelines adjustments
+* Flake8 fixes
+* Update tox
+* Add docs generated by sphinx
+* Run autopep8
+* Adjusted tests code to OpenStack Style Guidelines
+* system_log adjusted to OpenStack Style Guidelines
+* Adjusted events to OpenStack Style Guidelines
+* Orchestration adjusted to OpenStack Style Guidelines
+* Run autopep8
+* Adjusted dblayer code for OpenStack Style Guidelines
+* Solar glossary
+* Ignore testrepository dir and fix coverage path
+* Do not try to open directories
+* Ignore python warrnings
+* Fix docker scripts after moving solar and soalrd
+* flake8 passes for dblayer
+* pep8 for dblayer
+* deleted docker compose from solar.yaml
+* Remove backtrack_inputs from cli resource
+* Use stopwait instead of stop in celery playbook
+* Add py-test to requirements
+* Use just py.test on travis
+* Include README in sdist
+* Update dir
+* Move to tox and testrepository
+* Removed solard installation from run.sh
+* Install solar-agent in docker
+* Fix run.sh. setup.py is in root dir now
+* Fixed solar-agent transport after merge
+* Install solar-agent from correct repos
+* Do not run docker-compose on slaves
+* custom-configs.yaml is deleted now
+* solard => solar_agent in yamls
+* Fix. Do not change dir
+* Use docker compose to run riak, redis and celery
+* Run all tests for solar
+* Do not install redis. It will be run in container
+* Renamed solard to solar_agent, moved transports and examples
+* Removed solard from this repository
+* Update paths after moving library to root directory
+* Move solar lib to root directory
+* Removed unused variable
+* Fixed haproxy meta.yaml input type
+* Added -rv (raw value) option to backtrack_inputs
+* Nested keys are working properly right now
+* One more test (haproxy config problem)
+* Implementation + test for failing case
+* Test for failing case
+* Added session start / end to celery using hooks
+* Install libffi-dev and libssl-dev in bootstrap
+* Lookup vals only if config was found
+* Fixed complex disconnects scenarios with new_db
+* Remove peewee from test requirements
+* Run all tests from solar dir
+* Removed db configuration from dblayer conftest
+* Fixed dblayer tests
+* Don't add nested models into defined_models, and don't create buckets for them
+* removed dblayer option from config
+* Changed config keys
+* Adjust travis conf
+* Added exception when unsupported connection type
+* Commented test for unused functionality (nested lists)
+* Removed duplicated test
+* More fixes in test_signals
+* Set config path. Run only tests from test dir
+* Restore resources fixture
+* Add riak to requirements
+* Allow to set major config in SOLAR_CONFIG env variable
+* Make other config files optional
+* Fix test_signals
+* py.test handles sessions
+* Rewrite config using dotted dict object and add loading from files
+* Use solarproject repository
+* Make redis run without password
+* Fix run.sh to start celery
+* Use config.py:C in solar and fix compose file
+* Use docker compose
+* Docker compose for development
+* Basic config to provide dynamic path for resources
+* Dockerfile and run.sh for solar-celery image
+* Removed old db implementation
+* Fix tests for load_by_tags command
+* wait_finish routing will clear cache before updating state
+* Remove update from yaml features
+* Correct node add in controls
+* Workaround for reading location_id for not existing resource in controls
+* Fixed events tests
+* remove event implementation
+* Remove location_id/transports_id from disconnect
+* Fix interface for generating pretty diff
+* Fix system log api tests
+* Added naive conflict resolution
+* Clear cache before running fixtures for tests, not after
+* After delete object is purged from cache
+* Fix unit tests for VR
+* Added assert for ensuring that session cache is always clear
+* Added test for cache logic
+* inmemory sqlite for tests
+* test_resource works
+* add repos configuration possibility for bareon
+* The vagrant script is checking for presence of the original file so we should copy it instead of move
+* Removed duplicate create_all()
+* solar connections graph for new db
+* Change URLs of PoC services to Mirantis forks
+* connect and disconnect from CLI in new_db
+* solar connections show for new_db
+* Removed commented code
+* Better delete_all for riak (loops and waits while)
+* added backtrack value to cli
+* add standalone_session_wrapper to all standalone python executions
+* Created standalone_session_wrapper. Use it in standalone scripts
+* Fixed solar resource show
+* Building IBP images on solar 'master' instead of downloading them
+* resource.to_dict could return proper inputs values. fixes solar resource show
+* Don't add input index when it already exists
+* Make puppet run on the new_db
+* Speed improvement. One connect per resource
+* Use multi_get in discard and revert
+* Move args_to_update into separate function
+* Fix duplicates in update filter and delete with lazy_save
+* Fix revert
+* Fix discard
+* Removed comments
+* Added index cache, fetching inputs values is faster
+* Improved local cache usage (initialization), fixed for gevent case
+* Don't force save events
+* Load location_id instead of all args in controls.py
+* Destroy input cache in disconnect
+* Commented some debug stuff in singnals.py
+* Filter None values in changes
+* Fetch all nested childs using depth first traversal
+* Add filter for Resource that will fetch only updated entities
+* Added licenses to gevent stuff + added missing file
+* Lowered concurrency for multiget
+* Propert multi_get in system_log
+* Set 10 concurrency in stage
+* Fixed local usage
+* Parallel input connect
+* smart gevent patch import
+* Reworked stage a bit (it's twice as fast right now)
+* Added gevent pool that tracks parent (for cache)
+* Gevent local implementation which tracks parent greenlet Slightly changed original gevent.local implementation
+* Fix readme for provisioning
+* Fixed hosts_file resources duplicates in riak examples
+* Added disconnect possibility
+* corrected usage of `as_dict` in system_log change
+* Solution for hash to listhash mapping
+* support list for other_name in connect
+* Fixed librarian modules input schema
+* Temporary added signals.connect
+* Handle one more connection type (dict to hash_list)
+* marked one test as xfail
+* Added dict_to_list inputs connection
+* Riak example works
+* Added as_dict to inputs
+* Fixed other value tracking
+* sql_client support for delete
+* Added possibility to fetch other value (required for transports and ip)
+* Changed remove_all and implement it in sql_client
+* removed debug print
+* merging new db efforts
+* Corrected method order in solar_models
+* Corrected __iter__ for inputs
+* Added passthrough input test
+* More progress in new_db, still some minor things missing
+* Removed duplicate hosts file resouce creation
+* Use id instead of mac
+* WIP but dshulyak needs it
+* Clear database using ModelMeta from new backend and unmock events
+* Mock resource connections and fix some stuff in stage/process
+* Fix differences using sqlite backend
+* Fix item.res in operations.py
+* Use update instead of save for already created graph
+* Fix several inconsistencies in interfaces
+* Add CommitedResource model
+* Use new LogItem interface in system_log module
+* Add history field and preserve order by this field
+* Add test for preserving order
+* Add negative counter wrapper
+* Auto-reindex composite field in case of changes
+* Change bucket for every test
+* Add *.svg to gitignore
+* Add model for CompositeIndex and LogItems
+* Add field for events
+* Fix defaults for graphviz
+* Conver save_graph/get_graph to riak client
+* Implement childs/parents tasks
+* Add Tasks model for riak db backend
+* as_list for inputs
+* Added comment that connections requires fixes
+* Added save_lazy to resource.py
+* connection graph / edges (not working because of networknx)
+* Do not set duplicate tags
+* load_all
+* Resource show, resource show by tag, adding tags works
+* Fixed inputs list tracking
+* Resource creation works
+* Added logic for nullable fields (transforms None => NONE)
+* When field is str make it basestring
+* Simple input connect update works
+* dict list inputs are working
+* Fixed typo
+* Removed old code
+* dict input with tags
+* Invalid unpacking fixed
+* simple to dict input works
+* Run services under supervisor
+* list to list + dict to dict inputs
+* simple to list inputs are working
+* dict_to_dict input works
+* Add nat rules for solar-dev to provide internet connectivity for slaves
+* Add workaround for bareon-api installation since pbr does not work with git sources
+* Redesigned inputs again, this approach should be clean enough
+* Allow comparsion StrInt with hex value of it
+* Sync data in brareon-api before starting for provisioning
+* Allow comparsion StrInt with hex value of it
+* Unpin PyYAML version in requirements
+* More inputs behaviour refactoring
+* Some Resource integration with new backend
+* Redesigned inputs flow
+* Use new discovery scan service
+* Enable logging for fuel-agent
+* Added multi_get
+* Fix minimize script
+* Get partitioning information from bareon-api
+* Use provisionin.json as template
+* Use BatTransport instead of ssh to get discovery info
+* Remove commented line from provision.sh
+* Remove new provisioning.json template for not_provisioned_node resource
+* Use "new" partition format during provisioning
+* Get node data from ohai and put it into discovery
+* removed debug print
+* Naive tracking of index changes
+* Improved tests
+* Added save_lazy + changed how cache works
+* Improved tests
+* Added save_lazy + changed how cache works
+* Wrapped json.dumps in sqlclient
+* Wrapped json.dumps in sqlclient
+* load + corrected imports
+* resource.py updates
+* Added to_dict to model
+* Added actions to resource model
+* has_own_input speedup
+* Added test_nested file
+* Added riak storage_backend as input (also riak.conf is jinja processed now)
+* Fix virtualbox packer, add libvirt packer
+* Use instance._get_index everywhere in solar_models
+* Added some optimization comments
+* Added updated field to Resource (using IndexedField)
+* Added IndexedField
+* Fix typo in IndexField
+* Added session_start/session_end + added it to conftest
+* Nested improvements (required for inputs)
+* Introduced nested model
+* Update tests
+* Better defaults and from_dict behaviour
+* New db layer core idea
+* Fixed acitons path in riak_node
+* Create and configure environment for jinja2 once
+* Add json filter for jinja2 rendering engine
+* Check if trg_templates_dir is not None
+* Possibility to render ./templates with jinja
+* changed effective_iv to effective_input_value
+* Added solar autocomplete to bashrc
+* Install ujson
+* Added basic command to show effective input value
+* Added update action to nova_compute_libvirt_puppet
+* Added parameter for hosts_mapping
+* Added big_riak example, it allow to create riak cluster with given size Could be used for perf testing
+* Add example to change rabbitmq user for project like nova
+* Add update action for nova_compute
+* Add react event for nova_puppet -> nova_compute. Move acctions to meta
+* More improvements
+* Defining actions is meta.yaml works again
+* Run == update
+* Fixed naive cache behaviour for location_id and transports
+* Fixed invalid else statement
+* for more safety when not cache val then not store it
+* Added cache delete for more safety
+* Basic speedups, json=>json + naive local cache (enable with USE_CACHE=1)
+* Run and remove are the same
+* Run and remove are the same
+* Make openstack.py example more granular
+* Expose more from events module
+* Allow to generate networks for more than 2 nodes
+* Remove waiting for dnsmasq to be restarted since solar doesn't run several tasks on a single node
+* Insert target of child node in react event
+* Do not use hardcoded db port
+* Update README
+* Always use virtio
+* Do not use the same name for all resources. It can be overwritten
+* Add and fix update actions. changing db_port should work now
+* Add bareon-api installation
+* Added comment about exceptions in controls
+* Added comments about circular imports
+* Revert default limits
+* make target=location_id on graph creation
+* set target in orch to location_id if not given
+* Temporary fix. target_based_rule is not working
+* Specify vagrant-settings.yaml file in readme to enable provisioning
+* Update readme with instruction, how to run provisioning
+* Implement parallel node provisioning
+* Refactor not_provisioned_nodes template
+* Install discovery service
+* Remove Fuel specific configuration from cloud-init configs
+* Add node resource which can provisioned using solar
+* Adjust for librarian
+* Force mac address updates for slaves
+* Copy action run to update
+* Use librarian in main modules, add events to preserve correct order
+* Make sure to use virtio bus when using libvirt
+* Adjust modules for librarian
+* Fixed remote action path in shell handler
+* Remote and Local temp paths are different
+* Use default token backend. KVS seems to be broken
+* fix typo
+* system_log graph in svg format
+* Split openstack.py example into smaller functions. Start moving to librarian
+* Adjust neutron_puppet for librarian
+* Use rabbitma in librarian example
+* Add mos_repos virtual resource and use it for ceph example
+* Add apt_repo resource and managed_apt resources
+* removed pytest cache
+* Sync in temp dirs
+* Sync templates and scripts in shell handler
+* Dynamic import of optional transports in BAT
+* Removed outdated commented code
+* Use trackers from resource transports
+* Adjust keystone_puppet to use Librarian resource
+* Adjust rabbitmq_service to use Librarian resource
+* Use connect from resource module
+* Remove Librarian part from handler
+* Do not install librarian. Hiera does not use redis anymore
+* Changed torrent tracker to public
+* Added some info how torrent transport works
+* Create torrent dir if not exists (/vagrant/torrents)
+* Correct readme for torrent example
+* Added python-libtorrent to bootstrap base.yaml
+* Sleep only in case if some tasks are not finished
+* Use modules_path name
+* Fix docs for the libvirt setup case
+* Do not configure default route in SDN template
+* Modify and rename config_dir input to modules_dir
+* Make multiple networks only when PREPROVISIONED
+* Remove the default route hack
+* Add default route with metric 1 for vbox
+* Fix dev nodes naming indexes
+* Fix libvirt integration for multi-nets
+* Del junk puts command
+* Parametrize networks, box and provider
+* Adjust parameters for vagrantfile YAML
+* Change remote_file to use transports
+* Add remote file resource which will download keys
+* Restore Vagrantfile
+* Add librarian example
+* Remove reverse option
+* Librarian resource
+* Make vagrant silently run pxe nodes, without checks
+* Change action temp files to contain resource.name
+* Cleanup example
+* Added torrent transport example (hosts_file)
+* run.yaml for torrent adjusted
+* bind_other works for Bat + Torrent
+* Packer builds for Juno image
+* Add README.md for library ceph installation example
+* Add option to boot slave using pxe into bootstrap image
+* Improvements in torrent transport
+* Undo libvirt custom change
+* Fix eth0->eth3 settings for nodes
+* Rename SDN network template yml to yaml
+* Use PuppetV2 for ceph_mon
+* Use puppet modules for ceph_mon resource
+* Add ceph_keys resource
+* Implement library resource
+* Refactor shell handler to use transports
+* Add ceph_mon resource and example
+* Use git provider to copy fuel-library
+* Del node_network's ssh* inputs as not required
+* Notifications does not work. Removing
+* Fix dup IP in sdn template
+* Fix node2 connection for sdn resource
+* Fix network_schemas data
+* Add two more networks
+* Workaround l23network module issue
+* Fix node network resource
+* Add composition layer for nodes networking
+* Update node_network resource
+* Fix static IPs for mgmt bridges
+* Add nodes network template
+* Add node_network puppet resource
+* Send travis notifications only if something changed
+* Added travis + slack notification
+* torrent transport resource improvements
+* Correct meta.yaml name
+* First stage porting torrent transport to new transorts
+* Mirantis infra tracker as default
+* Copied clean files from pr 117
+* Fixed invalid obj usage in operations
+* Fix forgotten exception in graph.py
+* List input values support in VR
+* Move time.sleep to CLI
+* Change summary to print STATE: count for every possible state
+* Add tests for graph.wait_finish routine
+* Add wait option that will wait sometime for run to finish
+* Only one worker for system_log queue
+* Add default event for removal
+* Stop celery instad of killing it. Kill did not kill children
+* Use new images
+* added info about orch stuff + openstack example
+* Fix hosts_file/riak and solard examples
+* Run full upgrade after upating repos
+* Install vim-nox and mc packages
+* Update README.md
+* Install vagrant-vbguest plugin automaticly
+* Changed click install instructions in README
+* Install solard
+* Use pip install instead of setup.py develop
+* Removed `split` method from SolarRunResult
+* Added missing attributes to RunResult
+* SolarRunResult improved, fixes issues with puppet
+* Fix transport usage in puupet handler
+* Fix cli example - create nodes from VR - remove old command
+* Command `connections clear_all` does not exists any more
+* Added information about library
+* Add newest module mysql_user from 2.0 release
+* Add update action for mariadb_user
+* Added update option for solard
+* Added solard cli for starting it + adjusted actions Added child recycler in solard
+* If mapping is not provided pass None to connect
+* Fixed usage of `last` when no history file
+* Correct riaks.py example template
+* Add ip->db_host connection
+* Change example to create nodes from VR
+* Add info about snapshoter requirements
+* fix typo in README
+* Change hosts_file example to use Resource.connect_with_defaults
+* Add connect_with_events method for resource.Resource class
+* Fix example in README
+* Removed "Launch standard deployment:" from "setup deployment env"
+* Always convert to set
+* Removed gevent from requirements.txt
+* Changed comment in signals.py
+* Added clarifications in usage section
+* Add test for load by tags and add/remove tags
+* Improve interface in cli for working with tags
+* Add add_tags/remove_tags to orm and resource object
+* Refactor interface for using resources with tags
+* Sort connections before applying diff to them
+* Stop solard before start
+* .get for checking if $uuid
+* Everything validates now
+* Possibility to add solard in riak example
+* Docummented signals.py magic, adjusted behaviour in some cases
+* Changed start-stop-daemon arguments
+* Adjustments in transports for latest changes
+* Better debug in solard transport
+* Added BAT transport
+* Removed gevent requirement for now
+* Removed some debug statement
+* Added solard example
+* Fixed problem with transports connected to another transports - When transports_id value is False no magic mappings - Added is_own to location_id, when set to False location_id is not mapped
+* Solard resource with run action (start-stop-daemon)
+* Added SolarRunResult to wrap all Run transports results
+* Fixed small bug when sending files
+* properly handle files with 0 size in solard
+* solard_transport added
+* missing import
+* transport_class defaults to tcp
+* tcp_core with consts
+* Added requirements
+* Removed 'use_sudo' from solard core
+* sudo should work now
+* Changed logger
+* Added licenses
+* Added naive forks
+* More changes
+* Speed improvements
+* Small adjustments
+* Really PoC
+* Fixed resource validate in CLI
+* Move extracting resources from tags to seperate functions
+* Add test for setting a location
+* id is mandatory in metadata
+* Use function to get tags
+* Remove `>>>>` after merge
+* Update README.md
+* Add information about virtualbox guest vagrant plugin
+* Pass args to create function
+* Fix test
+* Update Virtual Resource for riak cluster
+* Split riak cluster into smaller pieces
+* Add support for tags in Virtual Resources - resouces are now taged propperly - with_tags selector may be used to make connections for more than one resource
+* Fix using tags in show command and log in tag
+* Restore tags support in resources
+* Add update action for hosts_file resource
+* Fix quotes
+* Add node tag
+* Remove autogenerated tags, add default value
+* Perform connect/disconnect only for relevant connections
+* Add validation for uids and short how to in hosts_file/README.md
+* Add tests for discard changes
+* Parametrize discard command
+* Add discard routine to system log cli and api
+* Raise error if provided UID is not found in history
+* Make connections for transports and location optional
+* VR optimalization for riak cluster
+* Add location key to Virtual Resources
+* Guess mapping only if it is None
+* Fix riak cluster virtual resource after removing ssh_* inputs
+* Fix several inconsistencies with data and receiver input in case of hash
+* Make removal of staged data only after commit
+* Store events separetely from resource
+* Use staged log in routine for building orchestration graph
+* Add test for connected resources with revert of create/update
+* Add support for revert of create
+* Add support for revert of the removal
+* Add base_path to log_item to revert removal
+* Make signals between resources reversable
+* Add methods to create graph of input thats is related to a single resource
+* Snapshotter show outputs ALL snapshots
+* Added comment about perf concerns
+* openstack example to new transports
+* hosts file example ported to new transports
+* Removed old commented meta part
+* fix tests for transports
+* rsync transport ported to transports
+* Riak example ported to new transports
+* Uncommented riak debug actions
+* If transports and location already mapped skip autoadd
+* Removed ssh_* things from meta.yaml
+* Added vr for nodes with transports
+* Added comments in controversial parts
+* Ansible template handler adjusted to transports_as_resource
+* Added ip method to resource (based on location_id)
+* ssh transport adjustments for transports_as_resoruce
+* Late binding / lazy val for transports
+* Still wip, but connections are ok
+* Still wip
+* location_id introduced, transports resources added
+* Add coverage dir to .gitignore
+* Fix interfaces in add_dep and add_react
+* Allow VirtualResource only with `updates` section
+* Raise error when static data is in list
+* Add fixture file for tests
+* Add updates section
+* Add coverage icon
+* Do not create virtualenv on travis
+* corrected Vagrant to VB in docs
+* added Travis CI status icon
+* install pip-accel in run_tests.sh
+* pip accel in tests instead of plain pip
+* Fix typo
+* Enable cache for pip
+* corrected backticks and vagrant version
+* Run coveralls from solar dir
+* Run py.test from solar dir
+* Run coveralls from solar/solar dir
+* Add debug option
+* Run coveralls for coverages stats
+* Add coverage stats
+* Add test for revert of value update
+* Setup redis
+* Add travis file
+* Fix unused and forgotten imports in cli/resource.py
+* Add tox.ini
+* Add test for removal resource with connections
+* Add thoughts about recursive removal of resource
+* Add support for removal of resource
+* Move VR for riak to riak example dir
+* Add key name to an exception
+* fix typo
+* Use paren/child notation
+* Add tests for virtual resources
+* Require pytest-mock in tests
+* Add resources fixture
+* Add support for revert of a change
+* Move adding connections to seperate function
+* Update riak cluster example after changes is HAProxy resources
+* Remove unused input `ports`
+* Fix build_edges routing to take into account order between events
+* Make riak unit test to fail
+* Use db_related_field to store events for resource
+* Adopt orm interface in events/api.py module
+* Add EventDB object in orm.py module
+* paravirt from config for master
+* ORM: fix test_orm.py
+* ORM: maneuvers with proper hash replacement with tags inside a list input
+* ORM, signals: more tests
+* ORM: backtrack_value_emitter tests, fix hash disconnection
+* CLI: print out backtracked value
+* Riak: yet another naming fix
+* Improve VirtualResources - add support for events - refactor code after orm changes
+* Riak cluster as VirtualResource
+* Improve VirtualResources - support lists - allow to use jinja functions like 'range'
+* Add pydot to requirements.txt
+* Remove double mock
+* riaks: fix names for haproxy
+* riaks: node name fix
+* Riaks: fix template example, small riaks.py fixes
+* CLI: make 'last' the default for orch run-once and report
+* connections graph as svg
+* validation: don't print debugging stuff
+* fixed dot generation for restricted names
+* removed duplicate name in ro_node
+* fixes #171 - Correcting documentation regarding requirements
+* Paravirt provider is customizable from vagrant-settings.yaml
+* Check minimal Vagrant version in Vagrantfile
+* Removed old stuff
+* Fixed haproxy resource
+* Add option set number of CPUs
+* ORM: change function property 'value' to better name 'as_set'
+* tasks: fix save_graph call args
+* CLI: more main.py cleanups
+* First stage of porting
+* Change riak hostnames mapping
+* Speed improvements for libvirt
+* CLI: minor fixes
+* CLI: fix show_emitter_connections function, remove connections clear_all
+* CLI: fix changes validate
+* Vagrant-settings: add missin master/slaves image defaults
+* Bootstrap README: move vagrant-settings to yaml file
+* Add slaves/master images to vagrant-settings.yaml
+* Example-bootstrap: added readme, sample Vagrantfile
+* CLI: better graph
+* CLI: color graph output, show values along edges
+* CLI connections graph show
+* signals: change tagging separator from : to |
+* signals: add optional hash tagging parameter
+* Cover graph api with tests and small cleanup
+* Remove unused forwarded port
+* Add vagrant-settings.yaml to .gitignore
+* hosts example is now using recent hash changes
+* Signals: fix hash update for multiple connections syntax with list
+* Remove clearing connections. db.clear does the job
+* Don't use dicts as default values for args
+* Fix undeploy. Use new API
+* Add support for hash inputs, enable multiple inputs to connect into one hash
+* Events: no need for db_convert
+* DBObjectMeta should wrap functions only once
+* Add spaces
+* Add option to choose sync_type
+* Fixed schemas in haproxy / riak
+* Remove db_convert in all_events function
+* Remove forgotten function in tests
+* Add unit tests to cover db usage by events module
+* Fix hosts_file run action
+* hosts.py: remove Connections.clear()
+* Renamed default vagrant settings to follow yml=>yaml changes
+* changed all yml occurrences to yaml
+* Renamed all yml files to yaml
+* keystone_service_endpoint test fix
+* more ip => host fixes
+* Testing fix
+* Fix update and db interface used in commited data
+* Testing fixes, added option to 'solar chages test' only one resource
+* Remove '.value' from inputs in resource tests
+* Resolve several problems after conflicts
+* hiera.yaml: no Redis, use files instead
+* ORM: bring back default events adding
+* Libvirt support
+* Bring back 'value' in input data, fix ansible_template .value
+* Graph DB: upload hiera yaml configs for puppet
+* ORM: resource, actions, handlers fixes
+* Orch: fix wrong merge in graph.py
+* ORM: no input validation on input create, validate only on demand
+* Remove unittest where it is not needed
+* signals.py: small code simplification
+* ORM: move all db stuff from signals.py to the ORM
+* ORM: backtrack value for relations
+* Tests pass now
+* ORM: add_input, more tests
+* ORM: db relations work now, adding is possible
+* Add missing orm.py and test_orm.py files
+* Graph ORM: resource save/load works
+* Fix tests for diff generation
+* Restore default signals in signals.connect
+* Fix usage of old signals module and some data interfaces
+* Raw ssh transport added
+* Dynamic import of DB backend
+* Fix interface for system log module
+* Fix wrong variable in riaks.py
+* Use prefork backend with 3 workers
+* Add target to parameters so that target based limit will be used
+* Up network>=1.10 and use OrderedMultiDiGraph
+* Show total delta time in report
+* Add S: <start_time> E: <end_time> output to solar orch report
+* Change 2nd celery worker to use gevent backend and example with sleeps
+* Remove old resource/signals/observers stuff
+* Fix usage of db interface in events module
+* Use graph db interface for orchestration
+* Fixes for more syntax errors/wrong arguments passing
+* Add missing licenses
+* Remove unused imports
+* ansible_playbook.py: fix missing log import
+* Events: add event load test
+* riaks.py: no Connection clearing anymore
+* Undefined variable in redis_db fixed
+* Fix apply_config action in haproxy service: ip -> host
+* Add basic validation for orch filter action
+* Preserve original states if no filters supplied
+* Reset filtered tasks on each filter action
+* Add comments and disable specifying tasks directly
+* Add tests with riak fixture
+* Move two_path.yml example to solar/test
+* Add filter command that will save graph after filters are applied
+* Change traverse logic so it will ignore skipped predecessors
+* Add more simple filters and two_path example
+* Graph filtering helpers
+* Fix validation for new graph db (test_validation.py passes now)
+* Fixed delete when no keys in redis_graph_db, added test for resource load
+* Cleanup codebase from code that isnt used or broken
+* Redis backend passes test_resource.py and test_signals.py now
+* Added readme in rsync transport about host key verification
+* VBox Guest Additions automatic installation
+* Neo4j fixes and improvements to fit the common Graph DB interface schema
+* Added hosts_file_example
+* Update lxc README
+* Update README.md
+* Make README more user friendly
+* Add `bash` to command
+* Update CLI example
+* Make -n required for snapshot restore
+* Compiled resources README and example simplification
+* Update README.md
+* Graph DB: resource fixes, added redis_graph_db
+* Changed exception to comment in ansible_playbook
+* Fix tests and requirements.txt for neo4j
+* More README fixes
+* README + template.py documentation fixes
+* Add README for lxc example
+* Move requiring mock to requirements.txt. It is used in cli
+* Add required packages for run_tests.sh
+* Remove mock from requirements. It is already added to requiremenets-test
+* Remove unused ansible modules. Update resources
+* Removed not needed puppet handler parts
+* Sync /templates and /scripts dir from resource
+* Delete main.yml
+* README fixes
+* Delete simple-deployment.yaml
+* Delete Dockerfile
+* Added description about SUCCESS state in riak example
+* Fixed paths in riak README
+* Added riak example README
+* Move all examples to examples dir
+* Rename riak example files
+* Move riak examples to separate dir
+* Rename example-puppet.py to openstack.py
+* Update README
+* Fixed renderer
+* Moved ansible log from /tmp/ansible.log to /var/tmp/ansible.log
+* Move example-puppet.py to examples dir and add README file
+* Remove old stuff
+* Remove outdated examples directory and create orch_fixtures with README
+* fixed missing `
+* Delete TODO.md
+* Ansible log stuff together in solar-master.json
+* Create ansible.log file during provisioning
+* Remove cinder.yml from solar_resource
+* Volume group changes - fix path - remove file at the end
+* Add unit tests for system log item details
+* Fix ansible.cfg file sync in Vagrantfile
+* Add bootstrap/packer_cache to .gitignore
+* Remove unused ansible playbooks
+* main.yaml: subversion is in bootstrap already
+* LXC: add svn to bootstrap, add comment on how to run to example-lxc.py
+* snapshotter: vboxmanage poweroff and start (headless)
+* example-puppet.py: admin_role_services explicit disconnect wasn't needed
+* Address comments to lxc branch and fix several bugs with example-lxc.py
+* Add remove action for Volum Group resource
+* Snapshotter: fixes to vboxmanage (machineoutput), stop & resume vm for restore
+* Use comments as tasks names
+* Snapshotter: get machinereadable output if possible
+* Volum Group resource
+* Remove creating cinder volume from bootstrap
+* Snapshotter: make an executable
+* Snapshotter: fixes to 'show' list command
+* SVNProvider downloads repository in resources-directory from config
+* Create multiple containers and add rabbitmq resource on idx=28
+* Add example-lxc.py and several fixes
+* Add container_networks, ssh_key and vxlan_mesh resources
+* Finish lxc container and lxc host resources
+* Add SVN provider for downloading dependencies
+* Lxc container resource
+* Add resource for lxc_hosts and lxc_container
+* Add .solar_cli_uids to .gitignore
+* Testing: fix exception catching
+* example-riaks-template.py: added a warning
+* Better display of 'solar changes test' results
+* Fix nova conductor resource's README
+* Fix nova_generic_service resource
+* Add nova generic service resource
+* Add admin user as admin role to service tenant
+* Added description to snapshots + echo fix
+* Fix endpoint names for glance and cinder
+* Print <name>:[<pos>] if item is a list, and only member is changed
+* Unwrap diff structure till value is found
+* More template.py and example-riaks-template improvements
+* template.py - custom DSL for easier resource creation
+* example-riaks-template.py stub
+* Changed prints to click.echo
+* Added utility script snapshotter
+* Added better logic when reading defaults in Vagrantfile
+* Added vagrant-settings.yml to gitignore
+* Added possibility to ajdust Vagrantfile settings from yml file
+* Fix import typo (cherry-pick of c69a4cda63073b02a97)
+* Fix system_log and add compact view for changes
+* Disable host key checking for ansible
+* Add several helpers for creation of events and add events in puppet-example.py
+* Move changes of the graph into single module (events/controls.py)
+* Fix conditions in Dependency and React controls
+* Add events into orchestration builder procedure
+* Add several test cases for events builder
+* Add cli for working with events api
+* Add api for working with events
+* Add AliasedGroup for click
+* Add several tokens to control events between resources
+* Add a draft for events hadling
+* Remove outdated TODO from orchestration module
+* Added comment about wget ... | bash things
+* added missing haproxy_config file
+* added missing update file in riak_node resource
+* renamed haproxy actions (forgotten files)
+* renamed haproxy actions
+* Del duplicated puppet parameter
+* Add detailed output for system log items
+* Fix system_log and add compact view for changes
+* Packer: fix-missing is always run now
+* Vagrantfile: typo fix
+* Vagrantfile: fix ansible_playbook_command ruby string formatting
+* Ansible playbook: call with --verbose arg
+* packer: cloud_archive apt-get update fixes
+* Packer.io: add juno packages, fix for ansible cfg and logging
+* Vagrantfile: add slave custom setups
+* Vagrantfile: add libvirt paravirtualization by default (works for VB >= 5.0)
+* Fix solar-master box
+* Fix ml2 agent resource and compostion
+* Add tags for rabbitmq_user resource
+* W/a LP1490438 for ml2 plugin resource
+* Neo4j: small fixes
+* Sync path in ansible_template fixed
+* Adjusted defaults in actions
+* basic rsync sync transport
+* Fix ml2 agent resource inputs
+* Remove ovs plugin and agent
+* Add composition later for ML2 plugin and agent
+* Add neutron agent ovs with ml2 plugin resource
+* Add neutron ml2 plugin resource
+* Commented status of ansible_playbook handler
+* Adjust ssh transport to latest changes
+* Further work on pluggable transports
+* Renamed handler_run|sync to transport_run|sync
+* bind transports together
+* fixup! AnsibleTemplate uses now `host` instead of `ip` as ansible `-hosts`
+* AnsibleTemplate uses now `host` instead of `ip` as ansible `-hosts`
+* still wip
+* Neo4j: performance improvements
+* PROFILE option added to example-puppet.py
+* Virtual resources work now
+* Remove duplicated code in virtual_resource.py
+* example-puppet: don't use virtual resources, since they don't work yet
+* Use json-ified values for inputs to prevent Neo4j errors about dict's etc
+* Neo4j storage demo -- first draft
+* First working version of Transports, puppet handler uses it
+* Fixed incorrect 'how to'
+* Add neutron agents to the composition
+* Fix puppet id and module in meta.yaml
+* Fix neutron conf for compute and nova_neutron resource
+* added cgenie short howto
+* Fix neutron db stamp head
+* Removed not needed ip calc
+* Implemented uids history for solar cli commands
+* Implemented uids history for solar cli commands
+* riak join fixes
+* One more signals fix in riak example
+* extended events in riak example
+* haproxy update action
+* small reorder in example-riaks
+* More flexibility in signals.connect
+* Further work on riak_example
+* Added hosts_file resource
+* Riak cluster 3 nodes example with haproxy on each node
+* Added plan command
+* Removed not needed files
+* Added riak example with events
+* Fix cycle when same node visited multiple times
+* Idea 1
+* Fixed import typo
+* Fix deployment order for example puppet
+* Fix system_log and add compact view for changes
+* Disable host key checking for ansible
+* Add solar-dev3 node for testing
+* Bootstrap resource added
+* Add neutron metadata agent resource
+* Add several helpers for creation of events and add events in puppet-example.py
+* Use namespaces for L3 & DHCP agents
+* Add neutron L3 agent resource
+* Add neutron DHCP agent resource
+* Fix neutron stamp/upgrade head
+* Moved pre-install stuff (ansible, pip) to separate script
+* Move changes of the graph into single module (events/controls.py)
+* Fix conditions in Dependency and React controls
+* Add events into orchestration builder procedure
+* Add several test cases for events builder
+* Add cli for working with events api
+* Add api for working with events
+* Add AliasedGroup for click
+* Add several tokens to control events between resources
+* Add a draft for events hadling
+* Remove outdated TODO from orchestration module
+* Fix resource.py when value is not specified in meta.yaml
+* Fix resource.py when value is not specified in meta.yaml
+* Solar bootstarpping playbooks & packer.io guide
+* Fix undef default
+* Fix core plugin, remove external class ref for neutron
+* Fix removed sql_con
+* Add composition for OVS plugin/agent
+* Remove deprecated/unused sql conn inputs
+* Add neutron OVS agent resource
+* Fix undef inputs for neutron
+* Add neutron ovs plugin resource
+* Remove external class ref for neutron server resource
+* Decouple neutron resource
+* Fix undef inputs for apache2
+* Add apache puppet resource
+* main.yml cleanup
+* CLI: move DryRunExecutors to separate module
+* Fix undefined inputs
+* Validation: allow None for not required fields
+* Refactor example-puppet.py actions
+* Fix glance compostion manifest
+* Decompose glance_api_servicers input
+* Fix cinder_glance ref
+* Add cinder volume ISCSI resource
+* Add cinder_glance resource
+* Nova API test.py with servers, flavors, images
+* Fix glance api servers for nova compute
+* TODO fix glance_api_servers for compute
+* Add nova_neutron resource
+* Fix libvirt inject password input
+* Add nova comp libvirt resource
+* Add exec post config and network refresh to n-compute
+* Fix example puppet for multinode
+* Fix nodes template
+* Add compostion layer for node2 nova compute
+* Add compute node2
+* Add nova compute resource
+* Add nova conductor resource
+* Fix remove nova api resource
+* Fix schema and db-sync condition
+* Add missing post-config and nova-common
+* Add missed admin_password for nova api resource
+* Fix typo
+* Add nova api puppet resource
+* Fix cinder puppet module references
+* Del nova_api after moved to nova_puppet resource
+* Fix schema for nova puppet
+* Add missing port parameter for nova puppet
+* Create nova base puppet resource
+* Add generic token validation function
+* Fix glance/cinder test.py input names
+* Disconnect uniq inputs for g-api/g-registry
+* Fix remove actions for glance puppet resources
+* Fix missing collation and encoding for mariadb_db
+* Add compostion layer for glance registry puppet
+* Add glance registry puppet resource
+* Del duplicated params
+* Fix glance keystone user role to admin
+* Fix glance puppet classes dependencies
+* Fix glance puppet
+* Align glance_puppet with cinder_puppet and upstream
+* Glance-puppet, not fully working yet
+* Fix db_host connections for nova resource
+* Add test-requirements.txt
+* Upgrade all packages on nodes
+* Add compostion layer for c-volume puppet
+* Remove enabled and manage_services params for c-volume
+* Add cinder volume puppet resource
+* Remove enabled and manage_service for c-scheduler
+* Fix cinder scheduler puppet params
+* Add composition layer for cinder scheduler puppet
+* Add cinder scheduler puppet resource
+* Add OS_VOLUME_API_VERSION 2 to openrc
+* Add fixes for celery executor and unit test
+* Remove enabled and manage_service for c-api
+* Fix undeploy and resource_name ref at cinder api
+* Replace undef to empty strings for cinder api
+* Fix package cinder dependency for cinder api
+* Fix indentation and parameters
+* Fix cinder api resource metadata
+* Add a composition layer for cinder api
+* Fix cinder api resource metadata
+* Fix README.md
+* Add cinder api puppet resource
+* Add tests for rules and filtering chain
+* Introduce NOOP state with unit tests for traversal
+* Remove/Update outdated tests
+* Integrate traversal/limits/execution in schedule action
+* Cleanup traversal module
+* Move traversal to separate module
+* Add chain and rules for specifying limits
+* Add missing db_host input to cinder puppet
+* Fix db_host connections for cinder puppet
+* Handle puppet error during remove as WARNING in example-puppet.py
+* Use detailed error codes to handle puppet errors
+* Clean keystone resources
+* Add ansible to dependencies
+* Update path in tests
+* Create cinde-volume on all slaves
+* Fix system_log commands in README.md
+* Take into account only predecessors that are changed
+* Use correct port numbers
+* Update virtual resource for current branch
+* Fix remove and resource name ref for cinder
+* Add basica documentation for orchestration/system log usage
+* Fix rabbitmq connection for cinder resource
+* Neutron fixes
+* Use default nodename when removing
+* Fix cinder endpoint
+* Replace undef to empty strings for cinder
+* Fix README.md
+* Remove nodename
+* Fix admin role for cinder in services tenant
+* change path
+* add tag
+* nova-api resource
+* Fix cinder endpoint port connection
+* Fix keystone_host connection for cinder endp
+* Fix rabbit connections after rebase
+* Align cinder connections
+* Fix undef db conneciton for cinder
+* Update a composition layer for cinder puppet
+* Add keystone specific metadata to cinder
+* Add README for cinder puppet resource
+* Fix the cinder puppet parameters schema
+* Add a composition layer for cinder puppet
+* Add cinder puppet resource
+* Keystone fixes
+* Revert "Use detailed error codes to handle puppet errors"
+* Use detailed error codes to handle puppet errors
+* Puppet should inheir from correct TempFileHandler
+* Fix variables names in action command
+* Fix resource imports after rebase
+* Fix update of logitem bug in system_log
+* Prevent fabric from raising SystemExit in case of errors
+* Use absolute path for resources
+* Limit celery workers
+* Prepare orchestration plan based on precedence scheduling
+* Simplify information stored for history
+* Improve ordering for stage/commit log
+* Add several helpers for cleanup and fixes
+* Add show command for a plan
+* Add plan creation based on resources topological sort
+* Send events to modules from base task class
+* Move system log cli to separate module
+* Add discovery of tasks stored in separate modules
+* Add system_log module
+* Add ordered redis data structure to store system log
+* Add lost handler for puppet
+* Use Ubuntu python-mock
+* Fix rabbitmq startup
+* Use deb package
+* More example-puppet simplifications
+* Stop execution by marking all tasks SKIPPED
+* Small resources fixes
+* example-puppet.py: reformat dicts to be more readable
+* Rabbitmq remove action and fixes
+* Add second rabbitmq
+* Fix resource name
+* Rabbimtq service from puppet
+* Add openrc file
+* Del duplicating connections
+* Fix keystone admin connection
+* Use /var/tmp for librarian puppet storage
+* Add error handling for ansible_playbook handler
+* Unify LocalAnsible and Ansible implementations
+* Add local_ansible handler that will execute ansible-playbook locally
+* Del duplicating connection
+* Rebase on master
+* Comment out cinder WIP
+* Organize the simple deploy composition layer
+* Fix include path for virtual_resource
+* Fix puppet owner for librarian storage
+* Update librarian puppet data storage path
+* Add resources_compiled.py to gitignore
+* Fix bools in puppet manifests
+* Puppet handler fixes
+* README.md: fix deprecated rs/ dirs and cli.py
+* Add some README's to couple of resources
+* README update
+* Add keystone endpoint for ... keystone
+* Virtual resources are files
+* README updated with resources compiled
+* solar connections graph fix, README updated
+* Puppet: return codes TODO added
+* Dry run: hash startswith mapping, added possibility to read from file
+* Validation: add bool to supported schemas for the custom format
+* Use FACTER_resource_name in shell variables
+* validation.py: docstring added
+* Remove accidentall commented 'python setup.py deploy'
+* Vagrant: pip, setuptools upgraded to newest versions
+* Python pip install fixes in main.yml
+* Run puppet in debug mode
+* Fix remove
+* Clean forge entry
+* Add forge "https://forge.puppetlabs.com to Puppetfile
+* fix
+* Use json for tasks serialization and run celery with sudo
+* Remove unnecessary code for now with some cleanup
+* Move orchestraton cli to solar namespace
+* Move everything into solar subproject
+* Add celery.yml playbook to configure celery
+* Add several examples and improvements to orchestration
+* Add soft stop support and update for deployment plan
+* Add basic workflow into cli
+* Basic API for orchestration
+* Add example with timeout support
+* Add timelimit and target examples
+* Graph orchestration with celery
+* keystone_service_endpoint test improvements
+* keystone_service_endpoint: working with neutron, tests added
+* Separate DryRunExecutor class, used also in 'solar run' command
+* Resource action dry run: hash also call number
+* resource action dry-run added with possibility to modify fabric return values
+* neutron_puppet works now with upstream openstack manifests
+* log.debug instead of print for resource tests
+* keystone_user: added test for logging with token
+* Keystone_puppet test added
+* Various fixes for example.py and resource testing
+* Puppet: lots of fixes & improvements
+* Remove obsolete keystone_puppet file
+* example-puppet: added nova-network
+* Puppet: add symlink for newer hiera configs
+* example-compiled-resources fix for missing field in glance_api_container
+* Various fixes for example.py and resource testing
+* Compiled resources: various code fixes to make example work
+* testing: add warning about not tested resources
+* Make dedicated example-compiled-resources.py file, keep original example.py
+* cli.py: validate has optional --check-missing-connections
+* example.py: keystone service pulled from git, not zip
+* Find missing connections: remove duplicated pairs
+* Validation of resource input value duplication added
+* cli.py: resource create/connect/update alternative input formats
+* cli.py: better printing during resource/connection creation
+* README updated, fix for printing in resource.show
+* cli.py: path validation, show resource by name option added
+* Operations: fix updating of resource data with stage/commit
+* Replace subprocess.call with fabric.api.local
+* Update README
+* README: extend sample cluster setup with update showoff
+* Update documentation
+* fixed repo name
+* Testing: autonomous resource testing draft
+* Replace subprocess.call with fabric.api.local
+* Remove defaults
+* openrc file resource
+* Fix broken python-pip package, use easy_install
+* Hiera fixes for trusty
+* name -> resource_name
+* Update example.py for virtual resources
+* Move validation to seperate function and cli command. Add support for ResourceProviders
+* Fix port
+* Use juno image
+* Fix swapped vars
+* Make resource universal
+* Remove debug
+* Save resource vars to inventory. Change resource name in args
+* Create connections after resource is created
+* Puppet: nova, cinder -- not working yet
+* Rabbitmq service: fix ports to be ints
+* Use Fuel packages and change box to trusty
+* Neutron is working now
+* Add glance
+* Remove unused node
+* Add admin token, fix keystone_admin_port
+* Validate created resources
+* Print created resources
+* Fix validation
+* Puppet: neutron keystone credentials added
+* Controller `role`
+* Openstack base virtual resource helper
+* Puppet: neutron works now with very simple config
+* Glance virtual resources
+* Keystone virtual resources
+* Puppet: adjust git resources path
+* Change name and password input
+* Do not connect virtual resources
+* Add virtual resource
+* example-puppet.py typo fix
+* Replace subprocess.call with fabric.api.local
+* Move Puppet resources to outside repos
+* Bring back keystone_* resources here
+* GitProvider: do not clone when directory is present
+* RemoteZipProvider added for resources, with a sample in example.py
+* Resource providers added (with GitProvider as sample)
+* hiera-redis added, single-master redis cluster
+* Hiera storage showoff
+* Puppet: Keystone remove action is working now
+* Puppet: added port to keystone
+* Keystone can now be deployed using Puppet
+* Puppet handler added
+* Compiled resources showoff
+* Tests: mark test_update_list_resource as failing
+* cli.py: better, color format of resource connections
+* Stage: remove mocks, fix test_update_list_resource missing connect
+* Redis: bulk read for get_list
+* signals.py: better variable names
+* connections graph: added end_with, simplified the algorithm
+* Graph connections start_with: take subgraph
+* cli.py: connections graph start_with option
+* Redis: bulk save added
+* Create resource for tests
+* Added tests for propagated data and connections
+* Remove xfail from tests
+* Add test for rolling back one attribute
+* Add conftest and other setup for testing
+* Use full resource representation in staged data
+* Remove file based databases
+* Add tests with some fixes for changes stage procedure
+* Removed print's, added logging
+* Some fixes & cleanup
+* Use solar/requirements.txt and setup solar in ansible playbook
+* Redis: get rid of global CLIENTS variable
+* load_all fix to reconnect all resources
+* Use ansible docker module to remove services
+* cli.py: refactor duplicated 'run' function
+* cli.py: remove duplicated connect, sort functions alphabetically
+* cli.py fixes & resource show colors added
+* Remove cli.py, move all to solar/solar/cli.py, migrate all to click
+* Signals: fix list observer not notifying on disconnect
+* Remove commented code, Resource.actions refactor
+* Resource: args_dict refactor
+* Redis: proxied resource
+* Redis: fix tests
+* Resource: load method raises error if resource not found
+* Redis: fix get_obj_resource undefined method
+* state.py: some code removal
+* Redis: state.py db fixes
+* Redis: observer notify creates resource instance on demand
+* Redis: connections are now saved to Redis DB
+* Redis: first version
+* Glance: add DB migration, fix timeout in example.py
+* Fix example.sh clean command
+* Scale up only config and service
+* Add clean, clean_all, clean_local, start, scaleup commands
+* Glance: better requests test for registry
+* Glance API works now with HAProxy
+* Remove hardcoded name, for different resources different names should be used
+* Fix connect and disconnect cli commands
+* Fixing update procedure and timeouts for services
+* Add removal of keystone service and endpoint
+* Fixing rollback and other operations
+* Add error passing from ansible and handling it in commit procedure
+* Glance: API is now accessible via HAProxy
+* example.sh fixes
+* Change password to mariadb
+* Added atexit.register(flush) for DB and Connections
+* Add mariadb user back
+* Add mariadb_db resource back
+* Fix conflicts
+* Fix DB init
+* Fix rabbitmq resources
+* Fix reading resources from storage
+* Vagrantfile fix, added python-keystoneclient to main.yml
+* Remove state dir from git repository
+* Added rabbitmq connections
+* Fix example.py
+* Added prefix meaningfull prefix for each resource instance
+* Add generation of keystone user, role, tenant, endpoint
+* Use highlevel deployment tool in example.sh
+* Revert count of nodes in Vagrantfile back to 2
+* Working mariadb -> keystone -> haproxy connections
+* Fix remove actions
+* Glance: Keystone API endpoint added
+* Validation fix
+* Cached file system and Connections flush
+* Json.dumps fix for Obervable values
+* Glance registry finally working
+* Simulate removing keystone services
+* Wait until rabbitmq is ready
+* Better validation by taking resource.Resource subclasses
+* Increase slave RAM to 1024 MB
+* Change update to use remove with context and run with new
+* glance: registry & api fixes
+* Rabbitmq resources
+* Forked ansible rabbitmq modules to run in docker
+* Add path to custom ansible modules
+* glance_registry_service works
+* Move glance_service to glance_api_service resource
+* Glance docker container is up
+* Keystone related resources
+* Fix mariadb container name in resource description
+* 2 Vagrant slave machines
+* 2 Vagrant slave machines
+* Fixes to example.py and Vagrantfile
+* Fixes to example.py and Vagrantfile
+* Add execution of action on commiting changes
+* Fix resource assignment, pass only values in args parameter
+* Add information about action to commit log
+* Rollback support by uid and last one
+* Several stylistic changes
+* Shortcut for commiting log items
+* Add staging procedure
+* Add entities for commited/staging pipeline
+* Fix resource __repr__ function, to_dict is a function
+* Update pip before running through requirements
+* Glance: more configs, keystone_user fix
+* Added glance keystone user resource instance
+* Keystone Glance script, should be later moved to some other resource
+* Glance /v2/images GET works now with glance_admin token
+* Glance: add mariadb config
+* Glance resource and deployment added
+* Bring back init script for slaves
+* example.py: undeploy action is functional
+* wrap_resource fix
+* Ansible: _render_inventory refactor
+* example.py: deploy/undeploy actions
+* Use base path in as resources directory
+* example.py validation fixes
+* cli.py: add option to print out resource as JSON
+* Validation fixes
+* Fix example.py after refactoring of storage
+* Fix path to actions in handler
+* Fixed tests
+* Set default for WORKSPACE in run_tests.sh
+* Fix tagging for resources
+* Implemented a single storage for resources
+* Cleaned file_system_db from unused code
+* Remove x-README.md because it's merged with README.md
+* Fix nodes examples
+* Remove remove node to resource convertation
+* Fix config after rebase
+* Renamed clients.json to connections.yaml
+* Create resource from node and connect it to resource during the assignment
+* Use path to resources instances from config
+* Fix example.py
+* Cleanup of repository
+* Updated README.md with information from x/README.md
+* Restore TODO.md
+* Add connect action
+* Fix connection order in profile
+* Remove attrs key from node_list
+* Added jsonschema in requirements
+* Added defaults for resources
+* Add connections example
+* Changed path to resources
+* Remove x directory
+* Added tags to resources
+* Remove init script for slaves and remove copy-pasted nodes creation
+* example.py fixes, tests added
+* Fix example
+* Move haproxy.cfg to haproxy resource templates
+* Move remaining x stuff to main directory
+* Docs: commit-log update
+* Docs: commit log
+* Fix nested jsonschema construction
+* Fix test imports
+* Added resource validation
+* Replaced && with "&" and "," operators and replaced "||" with "|"
+* Fix tags concatination for resources creation
+* Update readme
+* Implemented resources to nodes assignment
+* Added assign command and implemented resources and nodes retrival
+* Implemented tags filtration language
+* Remove data action
+* Fix imports for s/x/solar.core/
+* Restored removed files after the latest merge
+* Moved all of entities from x directory to solar core
+* Fix encoding system in signals.py file
+* Add run_tests.sh and x configs
+* README, TODO moved to x
+* example.py fix
+* example.py fixes
+* TODO updated
+* Example deployement
+* Run only resource specific tasks. Use host net mode by default
+* Expose IPs from keystone service. Host mode not needed anymore
+* Increase memory for vms. Mariadb needs 256 MB for internal use
+* Use docker-py version 1.1.0
+* Install python-mysqldb on all nodes
+* Remove not resource related tasks from action
+* Install docker-py on all dev vms
+* Remove solar-de[5,6]
+* Fix haproxy config removal
+* Use absolute path for resource base dir
+* Fix resource error message for not existing base resource
+* Remove not needed code from haproxy_config resource
+* Add command to keyston service resource and run it in host network
+* Add user name to maria_db_user resource and use it instead of resource name
+* Add db name to maria_db resource and use it instead of resource name
+* Rename mariadb resource to mariadb_service
+* Keystone user resource
+* Keystone config resource
+* Rename keystone resource to keystone_service
+* Allow connections from any host
+* Stylistic changes
+* haproxy-deployment.yaml fixes according to new keystone inputs
+* Add resource path to args
+* ListObserver fixes
+* Found, fixed and tested simple circular connection
+* Implemented node based scope
+* Increased debugging level for ansible
+* Add containers actions to profile
+* Implement ensure mechanism for containers
+* Unsubscribe for simple observer when reconnecting to another observer
+* ListObserver refactored to really represent list, not some dict
+* Connections abstraction added over CLIENTS
+* Test fixes, __eq__ added to Observer
+* Keystone resource and action run
+* Restart haproxy after config update
+* Implemented idempotent docker run and user creation for mariadb
+* Small disconnect refactor
+* Fix unsubscribing for ListObserver
+* Disconnect fix & test
+* Old tests pass now
+* Use yaml based instead of template based format for objects filtering
+* Mariadb resource
+* Add mariadb db and user resources
+* Generated detailed connection graph, also output to PNG
+* Use graphviz to render graph instead of matplotlib
+* HAProxy config listen_port name fix
+* Add listen_port to haproxy_config
+* HAProxy deployment
+* Successful HAProxy deployment with config file
+* First working version of haproxy Docker
+* Mariadb resource
+* Fix resource.py input args so that validation is performed
+* TODO updated
+* Some signals/connections refactoring
+* README: added info about 'deploy' command
+* Vagrant fixes
+* Extend haproxy test case
+* Remove unused code
+* haproxy-deployment haproxy connection fixes
+* Deployment from YAML file, added tests for haproxy
+* One more connect 'guessed' fix
+* Connect -- provided mapping overrides guessed
+* Connect event bubbling
+* Add remove actions for keystone, mariadb, haproxy
+* Changed resources to use templating language and tags, without hardcoded values
+* Revert change which filters resources by profile's tags
+* Set emitter's values to receiver upon connection
+* List input-type introduced
+* Fix renderer to serialize numbers without changes
+* Fix python object searilization problem in yaml
+* HAProxy deployment elements
+* Implemented resources iterator in render engine
+* Implemented first_with_tags method call
+* Implemented "this" instruction for render engine
+* Implement tags dependencies retrieving from templates
+* Add data graph example with mariadb, haproxy, keystone
+* Add networkx
+* Remove modules/playbook.py
+* Add a way to execute playbook only once
+* Use resource as primary citizen in inventory
+* TODO updated
+* Disconnect receiver inputs before reconnecting to a new one
+* Basic inventory with links to another values
+* Fix guess_mapping mapping value
+* Move handlers to seperate files. Add Ansible handler
+* Basic tagging support
+* TODO updated Please enter the commit message for your changes. Lines starting
+* Remove from run task containers removing
+* Add simple script to check that keystone works via haproxy
+* Add keystone and haproxy installation into default profile template
+* Add haproxy with hardcoded keystone
+* Add keystone resource
+* Remove pulling of image for docker resource
+* User mariadb from kolla project
+* Added missing main.yml, docker.yml for Astute, fixed graph outputting
+* TODO updated
+* Disconnect method added, refactoring, added CLI update
+* Add new item to TODO
+* Disconnect functionality
+* Fix up the markup in README
+* Add missed items in Dockerfile and kolla.yml
+* Make paths in ansible extention fully qualified
+* Fix extra 's' in template-:dir so that the value can be found
+* TODO: added deployment task
+* Basic CLI implementation with Click
+* Guessing of resource keys, automatic connection
+* Translate todo to english
+* Networkx added, graph created from CLIENTS
+* Fixed resource saving, option to load all resources
+* CLIENTS and Resources are saved and loaded
+* todo
+* Actions are in separate directory
+* Fix paths to match the README example
+* Move all hardcoded paths to one config.yml file
+* Init x
+* Prepare for X
+* DB storage path must be absolute, not relative
+* Update path to vagrant box, because previous was removed
+* apt hangs when it tries to install lxc-docker from ubuntu url
+* It's not required to pull specific docker image for development env
+* Do not run development env configuration for all VMs
+* Default tags for resources should not be node specific
+* Fixed multi-node deployment
+* Do not override existen nodes during the discovery
+* Add node specific tag generation
+* Rename execute to discover in Discovery extension
+* Remove profile from extensions list in profile template
+* Fix readme formatting
+* Fix configuration run in readme
+* If none of nodes have resources the resource should be skipped even if it defined in the profile
+* Change pudb to python-pudb
+* Add instruction how to use solar into README file
+* Configure command accepts id of the profile instead of file
+* Add profile related commands
+* All files which are stored by dirdbm are yaml files
+* Introduced collections for storage
+* Renamed storage directory from "created" to "storage"
+* Move profile example into templates directory
+* Improve orchestration examples and remove outdated schema
+* Execute profile actions with cli
+* Allow to provide actions to configure
+* Add execute methods which will work by providing path
+* Add single doc to refrence all of fuel's orchestration logics
+* Add dockerfile to build container
+* Some code cleanup
+* Fixed resources duplication
+* Fix template inventory identation
+* Fix nodes generation for inventory
+* Set vms names and less memory for the second node
+* Add tags implementation
+* Added tags for profile and filtering of the nodes
+* Add second VM for distributed deployment
+* Implemented extensions communication mechanism
+* Add profile example
+* Add configuration action
+* Add additional actions store and store_from_file for storage
+* Add notes how to handle primary/non-primary resources
+* Add helpers for yaml files in utils
+* Added extensions manager in the core
+* Add exaples with 3 resources converted to ansible
+* Moved ansible orchestrator into extension
+* Add spec on building dependencies procedure
+* Renamed resource to extension, added ID and NAME for each extension
+* Add nodes resources generation for discovery
+* Add ipython for development
+* Create tmp directory
+* Set vm name to solar-dev
+* Created a single db entry point
+* Add discovery
+* Add init
+* Moved dirdbm into separate third_party directory
+* Add more commands to work with resources
+* Add commands for creating resources
+* Fix error when tmp directory is not created
+* Ansible playbook fixes
+* Add development info in README
+* Setup development env for solar in vm
+* Use pip to install the latest ansible version
+* Add commands to work with prototype using ansible
+* Install and run ansible in vm
+* Fixed path in template
+* Create initial structure of the project
+* Add working debian jessie distribution
+* Change Vagrantfile to use debian jessie
+* Building block of the deployment
+* Second iteration of specification
+* Original schema
+* Initial commit

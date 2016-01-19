@@ -104,7 +104,8 @@ transition and type of event.
 Right now we are supporting 2 types of events:
 
 1. Dependency - inserts edge between 2 changes into the deployment plan.
-2. Reaction - inserts change specified in reaction and makes edge between parent and child.
+2. Reaction - inserts change specified in reaction and makes edge between parent
+   and child.
 
 Example ::
 

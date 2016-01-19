@@ -17,7 +17,8 @@ Let's look into simple ``hosts_file/actions/run.yaml`` example ::
           state: present
       {% endfor %}
 
-It's pretty much standard ansible playbook, but it is processed with jinja2 before ansible is executed.
+It's pretty much standard ansible playbook, but it is processed with jinja2
+before ansible is executed.
 
 Solar will create proper inventory ::
 
@@ -43,6 +44,7 @@ Playbook will be also created ::
           line: "10.0.0.3 node0"
           state: present
 
-You may wonder about ``hosts: [{{host}}]``, we have our own :ref:`res-transports-term` so we execute ansible like this ::
+You may wonder about ``hosts: [{{host}}]``, we have our own
+:ref:`res-transports-term` so we execute ansible like this ::
 
   ansible-playbook --module-path /tmp/library -i /tmp/tmpkV0U5F/tmpGmLGEwhosts_file2/inventory /tmp/tmpkV0U5F/tmpGmLGEwhosts_file2/runlNjnI3
