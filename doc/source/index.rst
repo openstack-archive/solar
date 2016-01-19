@@ -11,6 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   installation
+   usage
+   tutorials/index
    glossary
    resource
    resource_repository
@@ -19,7 +22,6 @@ Contents:
    handler_ansible
    examples
    deployment_plan
-   tutorials/index
 
 
 Indices and tables
