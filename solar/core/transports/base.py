@@ -41,48 +41,55 @@ class Executor(object):
 
     def run(self, transport):
         if self.valid:
-            result = self._executor(transport)
-            if isinstance(result, tuple) and len(result) == 3:
+            executor_result = self._executor(transport)
+            obj = SolarTransportResult()
+            if isinstance(executor_result, tuple) \
+               and len(executor_result) == 3:
                 # TODO Include file information in result
-                rc, out, err = result
-                log.debug('RC %s OUT %s ERR %s', rc, out, err)
-                if rc:
-                    raise errors.SolarError(err)
+                obj.from_tuple(*executor_result)
+            log.debug(
+                'RC %s OUT %s ERR %s',
+                obj.return_code,
+                obj.stdout,
+                obj.stderr
+            )
+            if not obj.success:
+                raise errors.SolarError(obj.output)
 
 
-class SolarRunResultWrp(object):
+class SolarTransportResult(object):
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.return_code = None
+        self.stderr = None
+        self.stdout = None
 
-    def __get__(self, obj, objtype):
-        res = obj._result
-        if isinstance(res, dict):
-            try:
-                return res[self.name]
-            except KeyError:
-                # Let's keep the same exceptions
-                raise AttributeError(self.name)
-        return getattr(obj._result, self.name)
+    @property
+    def success(self):
+        if self.return_code is not None:
+            return self.return_code == 0
+        return None
 
+    @property
+    def output(self):
+        if self.success:
+            return self.stdout
+        return self.stderr
 
-class SolarRunResult(object):
+    @classmethod
+    def from_tuple(cls, return_code, stdout, stderr):
+        obj = cls()
+        obj.return_code = return_code
+        obj.stdout = stdout
+        obj.stderr = stderr
+        return obj
 
-    def __init__(self, result):
-        self._result = result
-
-    failed = SolarRunResultWrp('failed')
-    stdout = SolarRunResultWrp('stdout')
-    stderr = SolarRunResultWrp('stderr')
-    succeeded = SolarRunResultWrp('succeeded')
-    command = SolarRunResultWrp('command')
-    real_command = SolarRunResultWrp('real_command')
-    return_code = SolarRunResultWrp('return_code')
-
-    def __str__(self):
-        if self.failed:
-            return str(self.stderr)
-        return str(self.stdout)
+    def from_fabric(cls, fabric_obj):
+        obj = cls()
+        obj.return_code = fabric_obj['return_code']
+        obj.stdout = fabric_obj['stdout']
+        obj.stderr = fabric_obj['stderr']
+        return obj
 
 
 def find_named_transport(resource, req_name):

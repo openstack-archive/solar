@@ -18,7 +18,7 @@ from solar_agent.client import SolarAgentClient
 from solar.core.log import log
 from solar.core.transports.base import Executor
 from solar.core.transports.base import RunTransport
-from solar.core.transports.base import SolarRunResult
+from solar.core.transports.base import SolarTransportResult
 from solar.core.transports.base import SyncTransport
 
 
@@ -59,7 +59,11 @@ class SolarAgentRunTransport(RunTransport, SolarAgentTransport):
     preffered_transport_name = 'solar_agent'
 
     def get_result(self, result):
-        return SolarRunResult(result)
+        obj = SolarTransportResult()
+        obj.return_code = result['return_code']
+        obj.stderr = result['stderr']
+        obj.stdout = result['stdout']
+        return obj
 
     def run(self, resource, *args, **kwargs):
         log.debug("SolarAgent run: %s", args)
