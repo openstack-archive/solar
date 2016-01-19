@@ -101,6 +101,8 @@ There is possibility to add and remove inputs from given resource.
 To do so you can use ``solar input add`` or ``solar input remove`` in Solar CLI.
 
 
+.. _computable-inputs:
+
 Computable Inputs
 -----------------
 Computable input is special input type, it shares all logic that standard input

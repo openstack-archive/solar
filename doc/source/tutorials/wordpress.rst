@@ -35,9 +35,9 @@ handler nor actions. Let's create base structure:
 
 .. code-block:: bash
 
-  mkdir /vagrant/tmp/wp_repo
-  mkdir /vagrant/tmp/wp_repo/wp_config
-  touch /vagrant/tmp/wp_repo/wp_config/meta.yaml
+  mkdir /tmp/wp_repo
+  mkdir /tmp/wp_repo/1.0.0/wp_config
+  touch /tmp/wp_repo/1.0.0/wp_config/meta.yaml
 
 Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite
 text editor and paste the following data:
@@ -105,7 +105,7 @@ following data:
     - id: config
       from: wp_repo/wp_config
       location: node1
-      values:
+      input:
         db_root_pass: 'r00tme'
         db_port: 3306
         wp_db_name: 'wp'
@@ -115,18 +115,23 @@ following data:
     - id: mysql
       from: resources/docker_container
       location: node1
-      values:
+      input:
         ip: node1::ip
         image: mysql:5.6
         ports:
           - config::db_port
         env:
           MYSQL_ROOT_PASSWORD: config::db_root_pass
+        wait_cmd:
+          computable:
+            func: "mysql -p{{env['MYSQL_ROOT_PASSWORD']}} -uroot -e 'SELECT 1'"
+            connections:
+              - mysql::env::NO_EVENTS
 
     - id: wp_db
       from: resources/mariadb_db
       location: node1
-      values:
+      input:
         db_name: config::wp_db_name
         db_host: mysql::ip
         login_user: 'root'
@@ -136,7 +141,7 @@ following data:
     - id: wp_user
       from: resources/mariadb_user
       location: node1
-      values:
+      input:
         user_password: config::wp_db_pass
         user_name: config::wp_db_user
         db_name: wp_db::db_name
@@ -148,7 +153,7 @@ following data:
     - id: wordpress
       from: resources/docker_container
       location: node1
-      values:
+      input:
         ip: node1::ip
         image: wordpress:latest
         env:
@@ -184,8 +189,20 @@ Another format is:
   login_port: config::db_port
 
 This means that input `login_port` will have the same value as input `db_port`
-from resource `config`. In Solar we call it Connection. Now when value of
+from resource `config`. In Solar we call it Connection. When value of
 `db_port` changes, value of `login_port` will also change.
+
+`wait_cmd` is special, it's :ref:`computable input <computable-inputs>`. In
+`wait_cmd` input we define command which will be used to check if docker
+container is ready. In this case it's
+
+.. code-block:: bash
+
+   `mysql -pr00tme -uroot -e 'SELECT 1`
+
+Password for mysql is defined in config resource and can change at any time.
+Instead of hard-coding it, computable input is used making this resource more
+maintainable.
 
 When all files are ready we need add created resources to solar repository:
 
