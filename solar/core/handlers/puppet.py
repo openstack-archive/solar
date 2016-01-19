@@ -48,7 +48,7 @@ class Puppet(TempFileHandler):
             cmd_args.append('--modulepath={}'.format(
                 resource.args['puppet_modules']))
 
-        rc, out, err = self.transport_run.run(
+        res = self.transport_run.run(
             resource,
             *cmd_args,
             env={
@@ -57,6 +57,7 @@ class Puppet(TempFileHandler):
             use_sudo=True,
             warn_only=True
         )
+        rc, out, err = res.return_code, res.stdout, res.stderr
         log.debug('CMD %r RC %s OUT %s ERR %s', cmd_args, rc, out, err)
         # 0 - no changes, 2 - successfull changes
         if rc not in [0, 2]:

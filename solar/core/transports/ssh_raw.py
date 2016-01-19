@@ -16,6 +16,7 @@
 import os
 
 from solar.core.log import log
+from solar.core.transports.base import SolarTransportResult
 from solar.core.transports.base import RunTransport
 from solar.utils import execute
 
@@ -91,4 +92,4 @@ class RawSSHRunTransport(RunTransport, _RawSSHTransport):
 
         res = execute(' '.join(ssh_cmd), shell=True, env=env)
         log.debug("Remote SSH result: %r", res)
-        return res
+        return SolarTransportResult.from_tuple(*res)
