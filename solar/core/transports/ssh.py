@@ -21,7 +21,7 @@ from fabric.contrib import project as fabric_project
 from solar.core.log import log
 from solar.core.transports.base import Executor
 from solar.core.transports.base import RunTransport
-from solar.core.transports.base import SolarRunResult
+from solar.core.transports.base import SolarTransportRunResult
 from solar.core.transports.base import SyncTransport
 
 
@@ -102,7 +102,7 @@ class SSHRunTransport(RunTransport, _SSHTransport):
 
     def get_result(self, output):
         """Needed for compatibility with other handlers / transports"""
-        return SolarRunResult(output)
+        return SolarTransportRunResult.from_fabric(output)
 
     def run(self, resource, *args, **kwargs):
         log.debug('SSH: %s', args)
