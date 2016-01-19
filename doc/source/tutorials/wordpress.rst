@@ -3,10 +3,15 @@ Wordpress tutorial
 
 1. Introduction
 ---------------
-In this tutorial we will create Worpdress site using docker containers. We will create one container with Mysql database, then we will create database and user for it. After that we will create Wordpress container which is running on Apache.
+In this tutorial we will create Worpdress site using docker containers. We will
+create one container with Mysql database, then we will create database and user
+for it. After that we will create Wordpress container which is running on
+Apache.
 
-For now you can use Solar only in our Vagrant environment.
-First checkout Solar repo and start vagrant. We need two virtual machines. One where Solar database and Orchestrator will run and one where we will install Wordpress and all components:
+For now you can use Solar only in our Vagrant environment.  First checkout Solar
+repo and start vagrant. We need two virtual machines. One where Solar database
+and Orchestrator will run and one where we will install Wordpress and all
+components:
 
 2. Solar installation
 ---------------------
@@ -24,8 +29,9 @@ First checkout Solar repo and start vagrant. We need two virtual machines. One w
 
 3. Config resource
 ------------------
-
-First we need to create Solar Resource definition where global configuration will be stored. This will be a `data container` only, so it will not have any handler nor actions. Let's create base structure:
+First we need to create Solar Resource definition where global configuration
+will be stored. This will be a `data container` only, so it will not have any
+handler nor actions. Let's create base structure:
 
 .. code-block:: bash
 
@@ -33,7 +39,8 @@ First we need to create Solar Resource definition where global configuration wil
   mkdir /vagrant/tmp/wp_repo/wp_config
   touch /vagrant/tmp/wp_repo/wp_config/meta.yaml
 
-Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite text editor and paste the following data:
+Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite
+text editor and paste the following data:
 
 .. code-block:: yaml
 
@@ -56,7 +63,10 @@ Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite tex
       schema: str!
       value:
 
-Let's go through this document line by line. `handler: none` says that this resource has no handler and no actions. In next line we define version. The most important part starts from line 3. We define there the inputs for this resource. It will be possible to configure following inputs:
+Let's go through this document line by line. `handler: none` says that this
+resource has no handler and no actions. In next line we define version. The most
+important part starts from line 3. We define there the inputs for this resource.
+It will be possible to configure following inputs:
 
 * `db_root_pass` - Mysql root password
 * `db_port` - Mysql port
@@ -64,22 +74,26 @@ Let's go through this document line by line. `handler: none` says that this reso
 * `wp_db_user` - database user name for Wordpress
 * `wp_db_pass` - database user password for Wordpress
 
-In schema it's defined if input will be string or integer, `!` at the end means that the input is mandatory and value cannot be empty.
+In schema it's defined if input will be string or integer, `!` at the end means
+that the input is mandatory and value cannot be empty.
 
 4. Composer file
 -------------------
 
-All other required resources are already available in solar repositores: `resources` and `templates`. We will use four more resources:
+All other required resources are already available in solar repositores:
+`resources` and `templates`. We will use four more resources:
 
 * resources/docker - it installs docker
 * resources/docker_container - it manages docker container
 * resources/mariadb_db - it creates database in MariaDB and Mysql
 * resources/mariadb_user - it creates user in MariaDB and Mysql
 
-There are three ways to create resources in Solar: Python API, CLI and Composer files. We will use the last option.
-Composer file is just a simple yaml file where we define all needed resources and connections.
+There are three ways to create resources in Solar: Python API, CLI and Composer
+files. We will use the last option.  Composer file is just a simple yaml file
+where we define all needed resources and connections.
 
-Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the following data:
+Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the
+following data:
 
 .. code-block:: yaml
 
@@ -143,16 +157,19 @@ Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the followi
           WORDPRESS_DB_PASSWORD: wp_user::user_password
           WORDPRESS_DB_NAME: wp_db::db_name
 
-In block `resources` we define... resources. Each section is one resource. Each resource definition has a following structure:
+In block `resources` we define... resources. Each section is one resource. Each
+resource definition has a following structure:
 
 * id - resource name
 * from - path to resource dir
 * location - node where resource will be run
 * values: initialization of a Resource Inputs
 
-In `location` we define `node1`. It's name of our virtual machine resource. It's not created yet, we will do it shortly.
+In `location` we define `node1`. It's name of our virtual machine resource. It's
+not created yet, we will do it shortly.
 
-In our configuration there are two formats which we use to assign values to inputs. First:
+In our configuration there are two formats which we use to assign values to
+inputs. First:
 
 .. code-block:: yaml
 
@@ -166,7 +183,9 @@ Another format is:
 
   login_port: config::db_port
 
-This means that input `login_port` will have the same value as input `db_port` from resource `config`. In Solar we call it Connection. Now when value of `db_port` changes, value of `login_port` will also change.
+This means that input `login_port` will have the same value as input `db_port`
+from resource `config`. In Solar we call it Connection. Now when value of
+`db_port` changes, value of `login_port` will also change.
 
 When all files are ready we need add created resources to solar repository:
 
@@ -174,7 +193,8 @@ When all files are ready we need add created resources to solar repository:
 
   solar repo import tmp/wp_repo
 
-This command created new solar resource repository. To list resources in this repository run:
+This command created new solar resource repository. To list resources in this
+repository run:
 
 .. code-block:: bash
 
@@ -183,13 +203,18 @@ This command created new solar resource repository. To list resources in this re
 5. Deploying
 ------------
 
-Now it's time to deploy our configuration. When running `vagrant up solar-dev solar-dev1` you started two virtual machines. We will deploy Wordpress on solar-dev1. To do it we need to create a resource for it. We already have in repo composer file which is doing it. Just run:
+Now it's time to deploy our configuration. When running `vagrant up solar-dev
+solar-dev1` you started two virtual machines. We will deploy Wordpress on
+solar-dev1. To do it we need to create a resource for it. We already have in
+repo composer file which is doing it. Just run:
 
 .. code-block:: bash
 
   solar resource create nodes templates/nodes count=1
 
-It will create all required resources to run actions on solar-dev1. You can analyze content of `templates/nodes/1.0.0/nodes.yaml` later (that's the source for `templates/nodes`). Now we create resources defined in `docker`
+It will create all required resources to run actions on solar-dev1. You can
+analyze content of `templates/nodes/1.0.0/nodes.yaml` later (that's the source
+for `templates/nodes`). Now we create resources defined in `docker`
 
 .. code-block:: bash
 
@@ -211,7 +236,8 @@ To see deployment progress run:
 
   solar orch report
 
-Wait until all task will return status `SUCCESS`. When it's done you should be able to open Wordpress site at http://10.0.0.3
+Wait until all task will return status `SUCCESS`. When it's done you should be
+able to open Wordpress site at http://10.0.0.3
 
 If it fails, before reporting a bug, please try to retry deployment:
 
@@ -236,4 +262,5 @@ and deploy new changes
   solar changes process
   solar orch run-once
 
-Using `report` command wait until all tasks finish. Wordpress should still working and new password should be used.
+Using `report` command wait until all tasks finish. Wordpress should still
+working and new password should be used.

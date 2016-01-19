@@ -14,3 +14,6 @@ os-testr
 # to test if everything works on gevent
 gevent
 
+# docs
+openstack-doc-tools>=0.30
+doc8  # Apache-2.0
