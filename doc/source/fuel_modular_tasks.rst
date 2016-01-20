@@ -10,9 +10,11 @@ Workflow
 
 3. Create ``/var/lib/astute directory`` on nodes
 
-4. Run upload_core_repos task ``fuel node --node 1,2,3 --tasks upload_core_repos``
+4. Run upload_core_repos task ``fuel node --node 1,2,3 --tasks
+   upload_core_repos``
 
-5. Configure `/etc/puppet/hiera.yaml` and create ``/etc/puppet/hieradata`` directory on slaves
+5. Configure `/etc/puppet/hiera.yaml` and create ``/etc/puppet/hieradata``
+   directory on slaves
 
     \:backends\:
       \- yaml
@@ -25,17 +27,21 @@ Workflow
 
       \- resource
 
-6. Distribute keys and certs
+6. Distribute keys and certs ::
 
   scp /var/lib/astute/ceph/ceph* root@node-1:/var/lib/astute/ceph/
 
-  sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i 1 -h public.fuel.local -o 'haproxy' -p /var/lib/fuel/keys/
+  sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh \
+  -i 1 -h public.fuel.local -o 'haproxy' -p /var/lib/fuel/keys/
 
-  scp /var/lib/fuel/keys/1/haproxy/public_haproxy.pem root@node-1:/var/lib/astute/haproxy/public_haproxy.pem
+  scp /var/lib/fuel/keys/1/haproxy/public_haproxy.pem \
+  root@node-1:/var/lib/astute/haproxy/public_haproxy.pem
 
-  scp /var/lib/fuel/keys/1/haproxy/public_haproxy.crt root@node-1:/etc/pki/tls/certs/public_haproxy.pem
+  scp /var/lib/fuel/keys/1/haproxy/public_haproxy.crt \
+  root@node-1:/etc/pki/tls/certs/public_haproxy.pem
 
-7. To use solar on Fuel master we need to use containers because of python2.6 there. Also Solar by itself relies on several services
+7. To use solar on Fuel master we need to use containers because of python2.6
+   there. Also Solar by itself relies on several services ::
 
   yum -y install git
 
@@ -45,9 +51,12 @@ Workflow
 
   docker run --name redis -d -p 6379:6379 -e REDIS_PASS=**None** tutum/redis
 
-  docker run --name solar -d -v /root/solar/solar:/solar -v /root/solar/solard:/solard -v /root/solar/templates:/templates \
+  docker run --name solar -d -v /root/solar/solar:/solar \
+  -v /root/solar/solard:/solard -v /root/solar/templates:/templates \
   -v /root/solar/resources:/resources -v /root/solar/f2s:/f2s \
-  -v /var/lib/fuel:/var/lib/fuel -v /root/.config/fuel/fuel_client.yaml:/etc/fuel/client/config.yaml -v /etc/puppet/modules:/etc/puppet/modules \
+  -v /var/lib/fuel:/var/lib/fuel -v /root/.config/fuel/fuel \
+  _client.yaml:/etc/fuel/client/config.yaml \
+  -v /etc/puppet/modules:/etc/puppet/modules \
   -v /root/.ssh:/root/.ssh \
   --link=riak:riak --link=redis:redis solarproject/solar-celery:f2s
 
@@ -55,7 +64,8 @@ Workflow
 
 ``docker exec -ti solar bash``
 
-9. Prepare transport for master and nodes, generate keys, create tasks and apply composer files on nodes
+9. Prepare transport for master and nodes, generate keys, create tasks and apply
+   composer files on nodes
 
   ./f2s/fsclient.py master 1
 
@@ -100,10 +110,10 @@ node. Right now it takes time, so please be patient.
 Fetching data from nailgun
 --------------------------
 
-Special entity which allows to fetch data from any source *before* any actual deployment.
-This entity provides mechanism to specify *manager* for resources (or list them).
-Manager accepts inputs as json in stdin, and outputs result in stdout,
-with result of manager execution we are updating solar storage.
+Special entity which allows to fetch data from any source *before* any actual
+deployment.  This entity provides mechanism to specify *manager* for resources
+(or list them).  Manager accepts inputs as json in stdin, and outputs result in
+stdout, with result of manager execution we are updating solar storage.
 
 Examples can be found at f2s/resources/role_data/managers.
 Data can be fetched by solar command
