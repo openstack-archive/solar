@@ -13,14 +13,35 @@
 #    under the License.
 
 import click
+from functools import wraps
 import os
 import yaml
 
 from solar.core.resource.repository import Repository
-from solar.core.resource.repository import RepositoryExists
+from solar.core.resource.repository import RepositoryException
+
+from solar.cli.base import EGroup
 
 
-@click.group(help="Manages Solar repositories")
+class RepoGroup(EGroup):
+
+    def error_wrapper(self, f):
+        @wraps(f)
+        def _in(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except OSError as e:
+                if self.error_wrapper_enabled:
+                    raise click.ClickException(str(e))
+                raise
+            except RepositoryException as e:
+                if self.error_wrapper_enabled:
+                    raise click.ClickException(str(e))
+                raise
+        return _in
+
+
+@click.group(help="Manages Solar repositories", cls=RepoGroup)
 def repository():
     pass
 
@@ -56,14 +77,10 @@ def _import(name, source, link):
     if name is None:
         name = os.path.split(source)[-1]
     repo = Repository(name)
-    try:
-        repo.create(source, link)
-    except RepositoryExists as e:
-        click.echo(click.style(str(e), fg='red'))
-    else:
-        cnt = len(list(repo.iter_contents()))
-        click.echo(
-            "Created new repository with {} resources".format(cnt))
+    repo.create(source, link)
+    cnt = len(list(repo.iter_contents()))
+    click.echo(
+        "Created new repository with {} resources".format(cnt))
 
 
 @repository.command(help="Updates existing repository with new content")

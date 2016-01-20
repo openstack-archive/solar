@@ -38,3 +38,15 @@ class AliasedGroup(click.Group):
         elif len(matches) == 1:
             return click.Group.get_command(self, ctx, matches[0])
         ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
+
+
+class EGroup(click.Group):
+
+    error_wrapper_enabled = False
+
+    error_wrapper = None
+
+    def add_command(self, cmd, name=None):
+        if self.error_wrapper:
+            cmd.callback = self.error_wrapper(cmd.callback)
+        return super(EGroup, self).add_command(cmd, name)
