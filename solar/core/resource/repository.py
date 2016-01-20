@@ -158,7 +158,13 @@ class Repository(object):
                     raise
             self._add_contents(source)
         else:
-            os.symlink(source, self.fpath)
+            try:
+                os.symlink(source, self.fpath)
+            except OSError as e:
+                if e.errno == errno.EEXIST:
+                    raise RepositoryExists("Repository %s exists" % self.name)
+                else:
+                    raise
 
     def update(self, source, overwrite=False):
         self._add_contents(source, overwrite)
