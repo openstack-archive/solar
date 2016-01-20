@@ -1,3 +1,11 @@
+try:
+    from gevent import monkey
+except ImportError:
+    pass
+else:
+    from solar.dblayer.gevent_patches import patch_all
+    patch_all()
+
 from solar.dblayer.model import ModelMeta
 from solar.config import C
 from solar.utils import parse_database_conn
