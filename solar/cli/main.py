@@ -19,6 +19,7 @@ On create "golden" resource should be moved to special place
 
 import collections
 import json
+import os
 
 import click
 from fabric import api as fabric_api
@@ -58,8 +59,11 @@ def show_emitter_connections(res):
 
 
 @click.group(cls=base.AliasedGroup)
-def main():
-    pass
+@click.option('--debug/--no-debug', default=False)
+def main(debug):
+    debug = debug or os.getenv("SOLAR_CLI_DEBUG")
+    if not debug:
+        base.EGroup.error_wrapper_enabled = True
 
 
 def init_actions():
