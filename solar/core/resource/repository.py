@@ -153,12 +153,20 @@ class Repository(object):
                 os.mkdir(self.fpath)
             except OSError as e:
                 if e.errno == errno.EEXIST:
-                    raise RepositoryExists("Repository %s exists" % self.name)
+                    raise RepositoryExists("Repository %s "
+                                           "already exists" % self.name)
                 else:
                     raise
             self._add_contents(source)
         else:
-            os.symlink(source, self.fpath)
+            try:
+                os.symlink(source, self.fpath)
+            except OSError as e:
+                if e.errno == errno.EEXIST:
+                    raise RepositoryExists("Repository %s "
+                                           "already exists" % self.name)
+                else:
+                    raise
 
     def update(self, source, overwrite=False):
         self._add_contents(source, overwrite)
