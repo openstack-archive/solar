@@ -143,7 +143,10 @@ def get_bucket(_, owner, mcs):
     bucket = bucket_type.bucket(name)
     if owner.bucket_properties:
         bucket.set_properties(owner.bucket_properties)
-    bucket.resolver = dblayer_conflict_resolver
+    if getattr(owner, 'conflict_resolver', None):
+        bucket.resolver = owner.conflict_resolver
+    else:
+        bucket.resolver = dblayer_conflict_resolver
     return bucket
 
 

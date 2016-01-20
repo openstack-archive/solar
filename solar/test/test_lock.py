@@ -17,30 +17,31 @@ import pytest
 
 from solar.dblayer.locking import Lock
 from solar.dblayer.model import clear_cache
+from solar.dblayer.solar_models import Lock as DBLock
 
 
 def test_acquire_release_logic():
     uid = '2131'
     first = '1111'
     second = '2222'
-    assert Lock._acquire(uid, first).identity == first
+    assert Lock._acquire(uid, first, 'a').who_is_locking() == first
     clear_cache()
-    assert Lock._acquire(uid, second).identity == first
-    Lock._release(uid)
-    assert Lock._acquire(uid, second).identity == second
+    assert Lock._acquire(uid, second, 'a').who_is_locking() == first
+    Lock._release(uid, first, 'a')
+    assert Lock._acquire(uid, second, 'a').who_is_locking() == second
 
 
 def test_lock_acquired_released():
     uid = '11'
     with Lock(uid, uid):
         clear_cache()
-        assert Lock._acquire(uid, '12').identity == '11'
-    assert Lock._acquire(uid, '12').identity == '12'
+        assert Lock._acquire(uid, '12', 'a').who_is_locking() == '11'
+    assert Lock._acquire(uid, '12', 'a').who_is_locking() == '12'
 
 
 def test_raise_error_if_acquired():
     uid = '11'
-    Lock._acquire(uid, '12')
+    Lock._acquire(uid, '12', 'a')
     clear_cache()
     with pytest.raises(RuntimeError):
         with Lock(uid, '13'):
@@ -50,7 +51,7 @@ def test_raise_error_if_acquired():
 @patch('solar.dblayer.locking.time.sleep')
 def test_time_sleep_called(msleep):
     uid = '11'
-    Lock._acquire(uid, '12')
+    Lock._acquire(uid, '12', 'a')
     clear_cache()
     sleep_time = 5
     with pytest.raises(RuntimeError):
@@ -65,5 +66,15 @@ def test_lock_released_exception():
         with Lock(uid, uid):
             raise Exception
 
-    new_lock = Lock._acquire(uid, '12')
-    assert new_lock.identity == '12'
+    new_lock = Lock._acquire(uid, '12', 'a')
+    assert new_lock.who_is_locking() == '12'
+
+
+def test_locker_logic():
+    uid = '11'
+    l = DBLock.from_dict(uid, {})
+
+    l.lockers = [['a', -1, 'x'], ['a', 1, 'y'], ['b', 1, 'z']]
+    l.reduce()
+    assert l.am_i_locking('b')
+    l.who_is_locking() == 'b'
