@@ -52,6 +52,7 @@ def scheduler(tasks_for_scheduler, address):
 
     worker.for_all.before(session_start)
     worker.for_all.after(session_end)
+
     executor = zerorpc_executor.Executor(worker, address)
     gevent.spawn(executor.run)
     return worker, zerorpc_executor.Client(address)

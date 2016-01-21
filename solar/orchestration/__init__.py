@@ -27,6 +27,7 @@ SCHEDULER_CLIENT = Client(C.scheduler_address)
 
 def construct_scheduler(tasks_address, scheduler_address):
     scheduler = wscheduler.Scheduler(Client(tasks_address))
+    scheduler_executor = Executor(scheduler, scheduler_address)
     scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
     scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
     Executor(scheduler, scheduler_address).run()
@@ -44,6 +45,8 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
     scheduler = wscheduler.SchedulerCallbackClient(
         Client(scheduler_address))
     tasks = Tasks()
+    tasks_executor = Executor(tasks, tasks_address)
+    tasks.for_all.before(tasks_executor.register)
     tasks.for_all.on_success(syslog.commit)
     tasks.for_all.on_error(syslog.error)
     tasks.for_all.on_success(scheduler.update)

@@ -19,26 +19,12 @@ import pytest
 
 from solar.core.resource import composer
 from solar.dblayer.model import clear_cache
+from solar.errors import ExecutionTimeout
 from solar import orchestration
 from solar.orchestration.graph import wait_finish
 from solar.orchestration.traversal import states
 from solar.system_log import change
 from solar.system_log import data
-
-
-@pytest.fixture
-def tasks_address(address):
-    return address + 'tasks'
-
-
-@pytest.fixture
-def system_log_address(address):
-    return address + 'system_log'
-
-
-@pytest.fixture
-def scheduler_address(address):
-    return address + 'scheduler'
 
 
 @pytest.fixture
@@ -75,19 +61,22 @@ def resources(request, sequence_vr):
             'sequence_%s' % idx, sequence_vr, inputs={'idx': idx})
 
 
-@pytest.mark.parametrize('scale', [20])
+@pytest.mark.parametrize('scale', [5])
 def test_concurrent_sequences_with_no_handler(scale, scheduler_client):
     total_resources = scale * 3
-    timeout = scale
+    timeout = scale * 2
 
     assert len(change.stage_changes()) == total_resources
     plan = change.send_to_orchestration()
     scheduler_client.next({}, plan.graph['uid'])
 
     def wait_function(timeout):
-        for summary in wait_finish(plan.graph['uid'], timeout):
-            assert summary[states.ERROR.name] == 0
-            time.sleep(0.5)
+        try:
+            for summary in wait_finish(plan.graph['uid'], timeout):
+                assert summary[states.ERROR.name] == 0
+                time.sleep(0.5)
+        except ExecutionTimeout:
+            pass
         return summary
     waiter = gevent.spawn(wait_function, timeout)
     waiter.join(timeout=timeout)

@@ -46,10 +46,19 @@ class Scheduler(base.Worker):
                 task_id = '{}:{}'.format(dg.graph['uid'], task_name)
                 task_type = dg.node[task_name]['type']
                 dg.node[task_name]['status'] = 'INPROGRESS'
-                ctxt = {'task_id': task_id, 'task_name': task_name}
+                timelimit = dg.node[task_name].get('timelimit', 0)
+                ctxt = {
+                    'task_id': task_id,
+                    'task_name': task_name,
+                    'plan_uid': plan_uid,
+                    'timelimit': timelimit}
                 self._tasks(
                     task_type, ctxt,
                     *dg.node[task_name]['args'])
+                if timelimit:
+                    log.debug(
+                        'Timelimit for task %s will be %s',
+                        task_id, timelimit)
             graph.update_graph(dg)
             log.debug('Scheduled tasks %r', rst)
             # process tasks with tasks client
@@ -64,6 +73,9 @@ class Scheduler(base.Worker):
             graph.update_graph(dg)
 
     def update_next(self, ctxt, status, errmsg):
+        log.debug(
+            'Received update for TASK %s - %s %s',
+            ctxt['task_id'], status, errmsg)
         plan_uid, task_name = ctxt['task_id'].rsplit(':', 1)
         with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
             dg = graph.get_graph(plan_uid)
@@ -75,10 +87,19 @@ class Scheduler(base.Worker):
                 task_id = '{}:{}'.format(dg.graph['uid'], task_name)
                 task_type = dg.node[task_name]['type']
                 dg.node[task_name]['status'] = 'INPROGRESS'
-                ctxt = {'task_id': task_id, 'task_name': task_name}
+                timelimit = dg.node[task_name].get('timelimit', 0)
+                ctxt = {
+                    'task_id': task_id,
+                    'task_name': task_name,
+                    'plan_uid': plan_uid,
+                    'timelimit': timelimit}
                 self._tasks(
                     task_type, ctxt,
                     *dg.node[task_name]['args'])
+                if timelimit:
+                    log.debug(
+                        'Timelimit for task %s will be %s',
+                        task_id, timelimit)
             graph.update_graph(dg)
             log.debug('Scheduled tasks %r', rst)
             return rst
