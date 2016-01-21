@@ -30,12 +30,13 @@ Just update resource::
 How can I run solar celery worker ?
 -----------------------------------
 
-We created utils/celery-worker script. If you use `vagrant` then you can just `service solar-celery start|restart` as `vagrant` user.
+- If you use `vagrant` then you can just `service solar-celery start|restart` as `vagrant` user.
+- If you have `gevent` installed then you can use utils/solar-celery script. You may need to adjust log files etc.
+- You can spawn celery by hand too: ``celery multi start 2 -A solar.orchestration.runner -P prefork -c:1 1 -c:2 2 -Q:1 scheduler,system_log -Q:2 celery``
 
 .. note::
 
    We're currently working on removing celery completely.
-
 
 How can I configure solar ?
 ---------------------------
