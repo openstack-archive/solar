@@ -49,21 +49,3 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
     tasks.for_all.on_success(scheduler.update)
     tasks.for_all.on_error(scheduler.error)
     Executor(tasks, tasks_address).run()
-
-
-def main():
-    import sys
-    from gevent import spawn
-    from gevent import joinall
-    servers = [
-        spawn(construct_scheduler, C.tasks_address, C.scheduler_address),
-        spawn(construct_system_log, C.system_log_address),
-        spawn(construct_tasks, C.system_log_address, C.tasks_address,
-              C.scheduler_address)
-        ]
-    try:
-        log.info('Spawning scheduler, system log and tasks workers.')
-        joinall(servers)
-    except KeyboardInterrupt:
-        log.info('Exit solar-worker')
-        sys.exit()

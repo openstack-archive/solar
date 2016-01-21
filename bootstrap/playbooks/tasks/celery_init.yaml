@@ -1,8 +1,0 @@
----
-
-- copy: src=/vagrant/utils/solar-celery dest=/etc/init.d/solar-celery
-- shell: chmod +x /etc/init.d/solar-celery
-- shell: chown vagrant:vagrant /etc/init.d/solar-celery
-- shell: update-rc.d solar-celery defaults
-- shell: update-rc.d solar-celery enable
-- shell: su vagrant service solar-celery start

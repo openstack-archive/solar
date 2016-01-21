@@ -1,0 +1,8 @@
+---
+
+- copy: src=/vagrant/utils/solar-workerd dest=/etc/init.d/solar-workerd
+- shell: chmod +x /etc/init.d/solar-workerd
+- shell: chown vagrant:vagrant /etc/init.d/solar-workerd
+- shell: update-rc.d solar-workerd defaults
+- shell: update-rc.d solar-workerd enable
+- shell: service solar-workerd start
