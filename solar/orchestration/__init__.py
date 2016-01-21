@@ -20,13 +20,17 @@ from solar.orchestration.executors.zerorpc_executor import Executor
 from solar.orchestration.workers import scheduler as wscheduler
 from solar.orchestration.workers.system_log import SystemLog
 from solar.orchestration.workers.tasks import Tasks
+from solar.orchestration.workers.time_watch import TimeWatcher
 
 
 SCHEDULER_CLIENT = Client(C.scheduler_address)
 
 
-def construct_scheduler(tasks_address, scheduler_address):
-    scheduler = wscheduler.Scheduler(Client(tasks_address))
+def construct_scheduler(tasks_address,
+                        scheduler_address, timewatcher_address):
+    timewatcher = Client(timewatcher_address)
+    scheduler = wscheduler.Scheduler(Client(tasks_address), timewatcher)
+    scheduler_executor = Executor(scheduler, scheduler_address)
     scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
     scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
     Executor(scheduler, scheduler_address).run()
@@ -44,6 +48,8 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
     scheduler = wscheduler.SchedulerCallbackClient(
         Client(scheduler_address))
     tasks = Tasks()
+    tasks_executor = Executor(tasks, tasks_address)
+    tasks.for_all.before(tasks_executor.register)
     tasks.for_all.on_success(syslog.commit)
     tasks.for_all.on_error(syslog.error)
     tasks.for_all.on_success(scheduler.update)
@@ -51,12 +57,21 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
     Executor(tasks, tasks_address).run()
 
 
+def construct_timewatcher(timewatcher_address, scheduler_address,
+                          tasks_address):
+    tasks = Client(tasks_address)
+    scheduler = Client(scheduler_address)
+    time_worker = TimeWatcher(tasks, scheduler)
+    Executor(time_worker, timewatcher_address).run()
+
+
 def main():
     import sys
     from gevent import spawn
     from gevent import joinall
     servers = [
-        spawn(construct_scheduler, C.tasks_address, C.scheduler_address),
+        spawn(construct_scheduler,
+            C.tasks_address, C.scheduler_address, C.timewatcher_address),
         spawn(construct_system_log, C.system_log_address),
         spawn(construct_tasks, C.system_log_address, C.tasks_address,
               C.scheduler_address)

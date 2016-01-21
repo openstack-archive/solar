@@ -39,7 +39,7 @@ def tasks_for_scheduler(tasks_worker, address):
 @pytest.fixture
 def scheduler(tasks_for_scheduler, address):
     address = address + 'scheduler'
-    worker = wscheduler.Scheduler(tasks_for_scheduler)
+    worker = wscheduler.Scheduler(tasks_for_scheduler, None)
     worker.for_all.before(ModelMeta.session_start)
     worker.for_all.after(ModelMeta.session_end)
     executor = zerorpc_executor.Executor(worker, address)
