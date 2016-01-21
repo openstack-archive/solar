@@ -35,5 +35,8 @@ class Worker(object):
 
     for_all = CollectionSub()
 
+    def __init__(self):
+        self._executor = None
+
     def ping(self, ctxt):
         return 'pong'
