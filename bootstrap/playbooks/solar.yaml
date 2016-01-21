@@ -71,4 +71,4 @@
       ignore_errors: yes
     - shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type activate counters
 
-    - include: tasks/celery_init.yaml
+    - include: tasks/worker_init.yaml
