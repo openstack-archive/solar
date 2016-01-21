@@ -12,33 +12,23 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import random
-import string
 
-import pytest
+import time
 
-
-@pytest.fixture
-def address():
-    return 'ipc:///tmp/solar_test_' + ''.join(
-        (random.choice(string.ascii_lowercase) for x in xrange(4)))
+from solar.core.log import log
+from solar.orchestration.workers import base
 
 
-@pytest.fixture
-def tasks_address(address):
-    return address + 'tasks'
+class TimeWatcher(base.Worker):
 
+    def __init__(self, tasks, scheduler):
+        self.tasks = tasks
+        self.scheduler = scheduler
 
-@pytest.fixture
-def system_log_address(address):
-    return address + 'system_log'
-
-
-@pytest.fixture
-def scheduler_address(address):
-    return address + 'scheduler'
-
-
-@pytest.fixture
-def timewatcher_address(address):
-    return address + 'timewatcher'
+    def timelimit(self, ctxt, task_id, limit):
+        """Send kill message to tasks worker, and timeout message
+        should be sent by tasks worker if task was killed
+        """
+        time.sleep(limit)
+        log.debug('Sending kill request %s', task_id)
+        self.tasks.kill(ctxt, task_id)
