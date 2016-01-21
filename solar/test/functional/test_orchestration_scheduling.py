@@ -40,7 +40,7 @@ def tasks_for_scheduler(tasks_worker, address):
 @pytest.fixture
 def scheduler(tasks_for_scheduler, address):
     address = address + 'scheduler'
-    worker = wscheduler.Scheduler(tasks_for_scheduler)
+    worker = wscheduler.Scheduler(tasks_for_scheduler, None)
 
     def session_end(ctxt):
         log.debug('Session end ID %s', id(gevent.getcurrent()))
@@ -52,6 +52,7 @@ def scheduler(tasks_for_scheduler, address):
 
     worker.for_all.before(session_start)
     worker.for_all.after(session_end)
+
     executor = zerorpc_executor.Executor(worker, address)
     gevent.spawn(executor.run)
     return worker, zerorpc_executor.Client(address)
