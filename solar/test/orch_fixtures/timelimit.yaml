@@ -1,0 +1,12 @@
+name: timelimit
+tasks:
+    - uid: t1
+      parameters:
+          type: sleep
+          args: [10]
+          timelimit: 1
+    - uid: t2
+      parameters:
+        type: echo
+        args: ['message']
+      after: [t1]

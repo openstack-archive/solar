@@ -17,13 +17,17 @@ import time
 from solar.core import actions
 from solar.core.log import log
 from solar.core import resource
+from solar.errors import ExecutionTimeout
 from solar.orchestration.workers import base
 
 
 class Tasks(base.Worker):
 
     def sleep(self, ctxt, seconds):
-        return time.sleep(seconds)
+        log.debug('Received sleep for %s', seconds)
+        time.sleep(seconds)
+        log.debug('Finished sleep %s', seconds)
+        return None
 
     def error(self, ctxt, message):
         raise Exception(message)
@@ -36,3 +40,10 @@ class Tasks(base.Worker):
                   resource_name, action)
         res = resource.load(resource_name)
         return actions.resource_action(res, action)
+
+    def kill(self, ctxt, task_id):
+        log.debug('Received kill request for task_id %s', task_id)
+        if not hasattr(self._executor, 'kill'):
+            raise NotImplemented(
+                'Current executor doesnt support interruping tasks')
+        self._executor.kill(task_id, ExecutionTimeout)

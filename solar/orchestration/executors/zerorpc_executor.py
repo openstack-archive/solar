@@ -20,19 +20,22 @@ import zerorpc
 from solar.core.log import log
 
 
-class ImprovedPuller(zerorpc.Puller):
+class PoolBasedPuller(zerorpc.Puller):
     """ImprovedPuller allows to control pool of gevent threads and
     track assignments of gevent threads
     """
     def __init__(self, pool_size=100, *args, **kwargs):
         # TODO put pool_size into config for each worker
         self._tasks_pool = gevent.pool.Pool(pool_size)
-        super(ImprovedPuller, self).__init__(*args, **kwargs)
+        super(PoolBasedPuller, self).__init__(*args, **kwargs)
 
     def _receiver(self):
         while True:
             event = self._events.recv()
-            self._tasks_pool.spawn(self._async_event, event)
+            self._handle_event(event)
+
+    def _handle_event(self, event):
+        self._tasks_pool.spawn(self._async_event, event)
 
     def _async_event(self, event):
         try:
@@ -55,9 +58,24 @@ class ImprovedPuller(zerorpc.Puller):
 
     def run(self):
         try:
-            super(ImprovedPuller, self).run()
+            super(PoolBasedPuller, self).run()
         finally:
             self._tasks_pool.join(raise_error=True)
+
+
+class LimitedExecutionPuller(PoolBasedPuller):
+
+    def _handle_event(self, event):
+        ctxt = event.args[0]
+        timelimit = ctxt.get('timelimit', 0)
+        if timelimit and 'kill' in self._methods:
+            # greenlet for interupting pool-based greenlets shouldn't
+            # share a pool with them, or it is highly possible that
+            # it wont be ever executed with low number of greenlets in
+            # a pool
+            gevent.spawn_later(
+                timelimit, self._methods['kill'], ctxt, ctxt['task_id'])
+        self._tasks_pool.spawn(self._async_event, event)
 
 
 class Executor(object):
@@ -79,7 +97,7 @@ class Executor(object):
             self._tasks_register.pop(task_id)
 
     def run(self):
-        server = ImprovedPuller(methods=self.worker)
+        server = LimitedExecutionPuller(methods=self.worker)
         server.bind(self.bind_to)
         server.run()
 
