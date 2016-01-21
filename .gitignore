@@ -44,7 +44,8 @@ vagrant-settings.yaml
 .cache
 
 .tox
-
+ChangeLog
+AUTHORS
 .coverage
 
 
