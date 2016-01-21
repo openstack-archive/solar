@@ -7,7 +7,7 @@ ADMIN_PASSWORD=vagrant
 ADMIN_USER=vagrant
 INSTALL_DIR=/vagrant
 
-ENV_NAME=${ENV_NAME:-solar-test}
+ENV_NAME=${ENV_NAME:-solar-example}
 SLAVES_COUNT=${SLAVES_COUNT:-0}
 CONF_PATH=${CONF_PATH:-utils/jenkins/default.yaml}
 
