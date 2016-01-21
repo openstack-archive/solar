@@ -39,7 +39,8 @@ def save_graph(graph):
              'target': graph.node[n].get('target', '') or '',
              'task_type': graph.node[n].get('type', ''),
              'args': graph.node[n].get('args', []),
-             'errmsg': graph.node[n].get('errmsg', '') or ''})
+             'errmsg': graph.node[n].get('errmsg', '') or '',
+             'timelimit': graph.node[n].get('timelimit', 0)})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
@@ -77,7 +78,8 @@ def get_graph(uid):
             type=t.task_type, args=t.args,
             target=t.target or None,
             errmsg=t.errmsg or None,
-            task=t)
+            task=t,
+            timelimit=t.timelimit or 0)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg

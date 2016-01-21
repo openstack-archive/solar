@@ -110,6 +110,11 @@ def two_path_plan():
 
 
 @pytest.fixture
+def timelimit_plan():
+    return plan_from_fixture('timelimit')
+
+
+@pytest.fixture
 def sequence_vr(tmpdir):
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),

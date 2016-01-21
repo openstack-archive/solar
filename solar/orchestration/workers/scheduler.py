@@ -25,8 +25,9 @@ from solar.utils import get_current_ident
 
 class Scheduler(base.Worker):
 
-    def __init__(self, tasks_client):
+    def __init__(self, tasks_client, timewatcher):
         self._tasks = tasks_client
+        self._timewatcher = timewatcher
         super(Scheduler, self).__init__()
 
     def _next(self, dg):
@@ -46,10 +47,19 @@ class Scheduler(base.Worker):
                 task_id = '{}:{}'.format(dg.graph['uid'], task_name)
                 task_type = dg.node[task_name]['type']
                 dg.node[task_name]['status'] = 'INPROGRESS'
-                ctxt = {'task_id': task_id, 'task_name': task_name}
+                ctxt = {
+                    'task_id': task_id,
+                    'task_name': task_name,
+                    'plan_uid': plan_uid}
                 self._tasks(
                     task_type, ctxt,
                     *dg.node[task_name]['args'])
+                timelimit = dg.node[task_name].get('timelimit', 0)
+                if timelimit:
+                    log.debug(
+                        'Timelimit for task %s will be %s',
+                        task_id, timelimit)
+                    self._timewatcher.timelimit(ctxt, task_id, timelimit)
             graph.update_graph(dg)
             log.debug('Scheduled tasks %r', rst)
             # process tasks with tasks client
@@ -64,6 +74,9 @@ class Scheduler(base.Worker):
             graph.update_graph(dg)
 
     def update_next(self, ctxt, status, errmsg):
+        log.debug(
+            'Received update for TASK %s - %s %s',
+            ctxt['task_id'], status, errmsg)
         plan_uid, task_name = ctxt['task_id'].rsplit(':', 1)
         with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
             dg = graph.get_graph(plan_uid)
@@ -75,7 +88,10 @@ class Scheduler(base.Worker):
                 task_id = '{}:{}'.format(dg.graph['uid'], task_name)
                 task_type = dg.node[task_name]['type']
                 dg.node[task_name]['status'] = 'INPROGRESS'
-                ctxt = {'task_id': task_id, 'task_name': task_name}
+                ctxt = {
+                    'task_id': task_id,
+                    'task_name': task_name,
+                    'plan_uid': plan_uid}
                 self._tasks(
                     task_type, ctxt,
                     *dg.node[task_name]['args'])
