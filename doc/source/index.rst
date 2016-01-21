@@ -20,6 +20,7 @@ Contents:
    examples
    deployment_plan
    tutorials/index
+   faq
 
 
 Indices and tables
