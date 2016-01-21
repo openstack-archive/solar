@@ -1,0 +1,9 @@
+Code-Review+1: Dmitry Shulyak <dshulyak@mirantis.com>
+Code-Review+2: Jedrzej Nowak <jnowak@mirantis.com>
+Workflow+1: Jedrzej Nowak <jnowak@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 21 Jan 2016 14:51:50 +0000
+Reviewed-on: https://review.openstack.org/270679
+Project: openstack/solar
+Branch: refs/heads/master
