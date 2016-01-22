@@ -25,6 +25,7 @@ if _connection.mode == 'riak':
 from solar.core.log import log
 from solar.dblayer.model import DBLayerNotFound
 from solar.dblayer.solar_models import Lock as DBLock
+from solar.dblayer.model import ModelMeta
 
 from uuid import uuid4
 
@@ -63,6 +64,7 @@ class _Lock(object):
             log.debug(
                 'Lock %s acquired by another identity %s != %s, lockers %s',
                 self.uid, self.identity, lk.who_is_locking(), lk.lockers)
+
             while self.retries:
                 del DBLock._c.obj_cache[lk.key]
                 time.sleep(self.wait)
@@ -101,7 +103,10 @@ class _CRDTishLock(_Lock):
         except KeyError:
             pass
         try:
+            ModelMeta.session_end()
+            ModelMeta.session_start()
             lk = DBLock.get(uid)
+            log.debug('Found lock UID %s lockers %s', uid, lk.lockers)
         except DBLayerNotFound:
             log.debug(
                 'Create lock UID %s for %s', uid, identity)
@@ -114,7 +119,6 @@ class _CRDTishLock(_Lock):
                 log.debug(
                     'Found lock with UID %s, owned by %s,'
                     ' owner %r, lockers %s',
-                    uid, locking, lk.am_i_locking(identity), lk.lockers)
                 return lk
             else:
                 log.debug(
