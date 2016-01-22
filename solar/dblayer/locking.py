@@ -63,6 +63,7 @@ class _Lock(object):
             log.debug(
                 'Lock %s acquired by another identity %s != %s, lockers %s',
                 self.uid, self.identity, lk.who_is_locking(), lk.lockers)
+
             while self.retries:
                 del DBLock._c.obj_cache[lk.key]
                 time.sleep(self.wait)
@@ -102,6 +103,7 @@ class _CRDTishLock(_Lock):
             pass
         try:
             lk = DBLock.get(uid)
+            log.debug('FIRST Found lock UID %s lockers %s', uid, lk.lockers)
         except DBLayerNotFound:
             log.debug(
                 'Create lock UID %s for %s', uid, identity)

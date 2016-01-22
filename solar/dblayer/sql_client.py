@@ -432,21 +432,9 @@ class SqlClient(object):
 
     def session_start(self):
         clear_cache()
-        sess = self._sql_session
-        # TODO: (jnowak) remove this, it's a hack
-        # because of pytest nested calls
-        if getattr(sess, '_started', False):
-            sess.begin()
-        setattr(sess, '_started', True)
 
     def session_end(self, result=True):
-        sess = self._sql_session
-        if result:
-            sess.commit()
-        else:
-            sess.rollback()
         clear_cache()
-        setattr(sess, '_started', False)
 
     def delete_all(self, cls):
         # naive way for SQL, we could delete whole table contents

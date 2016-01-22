@@ -17,6 +17,7 @@ import time
 import gevent
 import pytest
 
+from solar.core.log import log
 from solar.dblayer.model import ModelMeta
 from solar.orchestration.executors import zerorpc_executor
 from solar.orchestration.workers import scheduler as wscheduler
@@ -40,8 +41,17 @@ def tasks_for_scheduler(tasks_worker, address):
 def scheduler(tasks_for_scheduler, address):
     address = address + 'scheduler'
     worker = wscheduler.Scheduler(tasks_for_scheduler)
-    worker.for_all.before(lambda ctxt: ModelMeta.session_start())
-    worker.for_all.after(lambda ctxt: ModelMeta.session_end())
+
+    def session_end(ctxt):
+        log.debug('Session end ID %s', id(gevent.getcurrent()))
+        ModelMeta.session_end()
+
+    def session_start(ctxt):
+        log.debug('Session start ID %s', id(gevent.getcurrent()))
+        ModelMeta.session_start()
+
+    worker.for_all.before(session_start)
+    worker.for_all.after(session_end)
     executor = zerorpc_executor.Executor(worker, address)
     gevent.spawn(executor.run)
     return worker, zerorpc_executor.Client(address)
@@ -96,17 +106,16 @@ def test_sequential_fixture(sequential_plan, scheduler):
 
 def test_two_path_fixture(two_path_plan, scheduler):
     worker, client = scheduler
-    scheduling_results = []
-    expected = [{'a', 'c'}, {'a', 'c'}, {'b', 'd'}, {'b', 'd'}, {'e'}]
+    scheduling_results = set()
+    expected = {'a', 'b', 'c', 'd', 'e'}
 
     def register(ctxt, rst, *args, **kwargs):
         if 'task_name' in ctxt:
-            scheduling_results.append(ctxt['task_name'])
+            scheduling_results.add(ctxt['task_name'])
     worker.for_all.on_success(register)
 
     def _result_waiter():
         while len(scheduling_results) != len(expected):
             time.sleep(0.1)
     _wait_scheduling(two_path_plan, 3, _result_waiter, client)
-    for si, ei in zip(scheduling_results, expected):
-        assert any([si == e for e in ei])
+    assert scheduling_results == expected

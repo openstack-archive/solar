@@ -16,11 +16,11 @@ if _connection.mode == 'sqlite':
     from solar.dblayer.sql_client import SqlClient
     if _connection.database == ':memory:' or _connection.database is None:
         opts = {'threadlocals': True,
-                'autocommit': False}
+                'autocommit': True}
         _connection.database = ":memory:"
     else:
         opts = {'threadlocals': True,
-                'autocommit': False,
+                'autocommit': True,
                 'pragmas': (('journal_mode', 'WAL'),
                             ('synchronous', 'NORMAL'))}
     opts.update(_connection_details.toDict())
