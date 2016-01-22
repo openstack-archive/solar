@@ -57,7 +57,8 @@ class AnsibleTemplateLocal(AnsibleTemplateBase):
         log.debug('inventory_file: %s', inventory_file)
         log.debug('playbook_file: %s', playbook_file)
 
-        call_args = ['ansible-playbook', '--module-path', '/tmp/library',
+        lib_path = self.get_library_path()
+        call_args = ['ansible-playbook', '--module-path', lib_path,
                      '-i', inventory_file, playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 

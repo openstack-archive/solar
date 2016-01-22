@@ -16,6 +16,7 @@
 from fabric.state import env
 import os
 
+from pkg_resources import resource_filename
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
@@ -48,6 +49,9 @@ class AnsibleTemplateBase(TempFileHandler):
     def _create_playbook(self, resource, action):
         return self._compile_action_file(resource, action)
 
+    def get_library_path(self):
+        return resource_filename('solar', 'ansible_library')
+
 
 # if we would have something like solar_agent that would render this then
 # we would not need to render it there
@@ -63,7 +67,7 @@ class AnsibleTemplate(AnsibleTemplateBase):
 
         self._copy_templates_and_scripts(resource, action_name)
         self.transport_sync.copy(resource, self.dst, '/tmp')
-        self.transport_sync.copy(resource, '/vagrant/library', '/tmp')
+        self.transport_sync.copy(resource, self.get_library_path(), '/tmp')
         self.transport_sync.sync_all()
 
         # remote paths are not nested inside solar_local
