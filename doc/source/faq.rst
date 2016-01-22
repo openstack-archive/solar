@@ -27,6 +27,11 @@ Just update resource::
     solar resource update rsync1 '{"password": "vagrant", "key": null}'
 
 
+.. note::
+
+   You need to change it for all transport resources (ssh and rsync by default).
+
+
 How can I run solar celery worker ?
 -----------------------------------
 
