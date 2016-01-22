@@ -1,3 +1,5 @@
+.. _tutorial_wordpress:
+
 Wordpress tutorial
 ==================
 
@@ -8,10 +10,9 @@ create one container with Mysql database, then we will create database and user
 for it. After that we will create Wordpress container which is running on
 Apache.
 
-For now you can use Solar only in our Vagrant environment.  First checkout Solar
-repo and start vagrant. We need two virtual machines. One where Solar database
-and Orchestrator will run and one where we will install Wordpress and all
-components:
+In this tutorial we will use our vagrant environment. We need two virtual
+machines. One where Solar database and Orchestrator will run and one where we
+will install Wordpress and all components:
 
 2. Solar installation
 ---------------------
