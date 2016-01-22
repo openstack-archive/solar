@@ -26,6 +26,7 @@ Just update resource::
 
     solar resource update rsync1 '{"password": "vagrant", "key": null}'
 
+.. _faq_running_celery_worker:
 
 How can I run solar celery worker ?
 -----------------------------------
@@ -48,6 +49,7 @@ There are several places where we search for config values:
 3. `.config.override` in CWD
 4. You can also set upper-cased env variable which matches one of those in config
 
+.. _faq_using_sqlbackend:
 
 Why do you use celery with SQL backend instead of X ?
 -----------------------------------------------------
@@ -57,6 +59,7 @@ For simplicity, but nothing stops you from changing these defaults::
   celery_broker: sqla+sqlite:////tmp/celery.db
   celery_backend: db+sqlite:////tmp/celery.db
 
+.. _faq_what_database:
 
 What database can I use with solar ?
 ------------------------------------
