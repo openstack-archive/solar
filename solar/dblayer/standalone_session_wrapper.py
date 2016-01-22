@@ -23,7 +23,7 @@ shouldn't be used from long running processes (workers etc)
 def create_all():
 
     import sys
-    if not sys.executable.endswith(('python', )):
+    if sys.executable.split('/')[-1] not in ['python', 'python2']:
         # auto add session to only standalone python runs
         return
 
