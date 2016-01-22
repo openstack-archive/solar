@@ -80,6 +80,7 @@ class _Lock(object):
                         ' owned by identity {}'.format(
                             lk.key, lk.who_is_locking()))
         log.debug('Lock for %s acquired by %s', self.uid, self.identity)
+        return lk
 
     def __exit__(self, *err):
         self._release(self.uid, self.identity, self.stamp)
@@ -100,15 +101,25 @@ class _CRDTishLock(_Lock):
             del DBLock._c.obj_cache[uid]
         except KeyError:
             pass
+        _check = True
         try:
             lk = DBLock.get(uid)
+            _check = True
         except DBLayerNotFound:
             log.debug(
-                'Create lock UID %s for %s', uid, identity)
+                'Create new lock UID %s for %s', uid, identity)
             lk = DBLock.from_dict(uid, {})
             lk.change_locking_state(identity, 1, stamp)
             lk.save(force=True)
-        else:
+            if len(lk.sum_all().keys()) != 1:
+                # concurrent create
+                lk.change_locking_state(identity, -1, stamp)
+                lk.save(force=True)
+                log.debug("Concurrent lock %s create", uid)
+                _check = True
+            else:
+                _check = False
+        if _check:
             locking = lk.who_is_locking()
             if locking is not None:
                 log.debug(
@@ -120,14 +131,13 @@ class _CRDTishLock(_Lock):
                     'Create lock UID %s for %s', uid, identity)
                 lk.change_locking_state(identity, 1, stamp)
                 lk.save(force=True)
-        del DBLock._c.obj_cache[lk.key]
-        lk = DBLock.get(uid)
-        locking = lk.who_is_locking()
-        if locking is not None and identity != locking:
-            if [identity, 1, stamp] in lk.lockers:
+        summed = lk.sum_all()
+        if len(summed.keys()) != 1:
+            log.debug("More than one acquire")
+            if identity in summed:
                 lk.change_locking_state(identity, -1, stamp)
                 lk.save(force=True)
-                log.debug("I was not locking, so removing me %s" % identity)
+                log.debug("I may be not locking, so removing me %s", identity)
         return lk
 
 

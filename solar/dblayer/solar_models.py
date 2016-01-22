@@ -1231,7 +1231,12 @@ class Lock(Model):
 
     def save(self, *args, **kwargs):
         self.reduce()
-        super(Lock, self).save(*args, **kwargs)
+        res = super(Lock, self).save(*args, **kwargs)
+        all_lockers = []
+        all_lockers.extend(res.data['lockers'])
+        all_lockers.extend(self.lockers)
+        self.lockers = self._reduce(all_lockers)
+        return res
 
     @staticmethod
     def conflict_resolver(riak_object):
