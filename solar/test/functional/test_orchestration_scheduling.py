@@ -30,7 +30,7 @@ def tasks_worker():
 
 
 @pytest.fixture
-def tasks_for_scheduler(tasks_worker, address):
+def tasks_for_scheduler(request, tasks_worker, address):
     address = address + 'tasks'
     executor = zerorpc_executor.Executor(tasks_worker, address)
     gevent.spawn(executor.run)
@@ -38,8 +38,8 @@ def tasks_for_scheduler(tasks_worker, address):
 
 
 @pytest.fixture
-def scheduler(tasks_for_scheduler, address):
-    address = address + 'scheduler'
+def scheduler(tasks_for_scheduler, scheduler_address):
+    address = scheduler_address
     worker = wscheduler.Scheduler(tasks_for_scheduler, None)
 
     def session_end(ctxt):

@@ -62,7 +62,8 @@ def test_wait_finish(simple):
         'NOOP': 0,
         'ERROR': 0,
         'INPROGRESS': 0,
-        'PENDING': 0
+        'PENDING': 0,
+        'ERROR_RETRY': 0,
     }
 
 
@@ -76,7 +77,8 @@ def test_several_updates(simple):
         'NOOP': 0,
         'ERROR': 1,
         'INPROGRESS': 0,
-        'PENDING': 1
+        'PENDING': 1,
+        'ERROR_RETRY': 0,
     }
 
     simple.node['echo_stuff']['status'] = states.ERROR.name
@@ -88,5 +90,6 @@ def test_several_updates(simple):
         'NOOP': 0,
         'ERROR': 2,
         'INPROGRESS': 0,
-        'PENDING': 0
+        'PENDING': 0,
+        'ERROR_RETRY': 0,
     }
