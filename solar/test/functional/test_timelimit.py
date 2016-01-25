@@ -17,54 +17,15 @@
 import time
 
 import gevent
-import pytest
 
-from solar.dblayer import ModelMeta
 from solar.errors import ExecutionTimeout
-from solar.orchestration import Client
-from solar.orchestration import Executor
 from solar.orchestration import graph
 from solar.orchestration.traversal import states
-from solar.orchestration import workers
 
 
-@pytest.fixture(autouse=True)
-def scheduler(scheduler_address, tasks_address, timewatcher_address):
-    timewatcher = Client(timewatcher_address)
-    scheduler = workers.Scheduler(Client(tasks_address), timewatcher)
-    scheduler_executor = Executor(scheduler, scheduler_address)
-    scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
-    scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
-    gevent.spawn(scheduler_executor.run)
-
-
-@pytest.fixture(autouse=True)
-def tasks(tasks_address, scheduler_address):
-    scheduler = workers.SchedulerCallbackClient(
-        Client(scheduler_address))
-    tasks = workers.Tasks()
-    tasks_executor = Executor(tasks, tasks_address)
-    tasks.for_all.before(tasks_executor.register)
-    tasks.for_all.on_success(scheduler.update)
-    tasks.for_all.on_error(scheduler.error)
-    gevent.spawn(tasks_executor.run)
-
-
-@pytest.fixture(autouse=True)
-def timewatcher(tasks_address, scheduler_address, timewatcher_address):
-    tasks = Client(tasks_address)
-    scheduler = Client(scheduler_address)
-    time_worker = workers.TimeWatcher(tasks, scheduler)
-    gevent.spawn(Executor(time_worker, timewatcher_address).run)
-
-
-@pytest.fixture
-def scheduler_client(scheduler_address):
-    return Client(scheduler_address)
-
-
-def test_timelimit_plan(timelimit_plan, scheduler_client):
-    scheduler_client.next({}, timelimit_plan.graph['uid'])
+def test_timelimit_plan(timelimit_plan, scheduler, tasks, timewatcher):
+    worker, client = scheduler
+    client.next({}, timelimit_plan.graph['uid'])
 
     def wait_function(timeout):
         try:

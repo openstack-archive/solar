@@ -15,56 +15,6 @@
 import time
 
 import gevent
-import pytest
-
-from solar.core.log import log
-from solar.dblayer.model import ModelMeta
-from solar.orchestration.executors import zerorpc_executor
-from solar.orchestration.workers import scheduler as wscheduler
-from solar.orchestration.workers import tasks as wtasks
-
-
-@pytest.fixture
-def tasks_worker():
-    return wtasks.Tasks()
-
-
-@pytest.fixture
-def tasks_for_scheduler(request, tasks_worker, address):
-    address = address + 'tasks'
-    executor = zerorpc_executor.Executor(tasks_worker, address)
-    gevent.spawn(executor.run)
-    return zerorpc_executor.Client(address)
-
-
-@pytest.fixture
-def scheduler(tasks_for_scheduler, scheduler_address):
-    address = scheduler_address
-    worker = wscheduler.Scheduler(tasks_for_scheduler, None)
-
-    def session_end(ctxt):
-        log.debug('Session end ID %s', id(gevent.getcurrent()))
-        ModelMeta.session_end()
-
-    def session_start(ctxt):
-        log.debug('Session start ID %s', id(gevent.getcurrent()))
-        ModelMeta.session_start()
-
-    worker.for_all.before(session_start)
-    worker.for_all.after(session_end)
-
-    executor = zerorpc_executor.Executor(worker, address)
-    gevent.spawn(executor.run)
-    return worker, zerorpc_executor.Client(address)
-
-
-@pytest.fixture(autouse=True)
-def setup_scheduler_callback(scheduler, tasks_worker):
-    worker, client = scheduler
-    scheduler_client = wscheduler.SchedulerCallbackClient(
-        zerorpc_executor.Client(client.connect_to))
-    tasks_worker.for_all.on_success(scheduler_client.update)
-    tasks_worker.for_all.on_error(scheduler_client.update)
 
 
 def _wait_scheduling(plan, wait_time, waiter, client):
@@ -73,7 +23,7 @@ def _wait_scheduling(plan, wait_time, waiter, client):
     waiter.join(timeout=wait_time)
 
 
-def test_simple_fixture(simple_plan, scheduler):
+def test_simple_fixture(simple_plan, scheduler, tasks):
     worker, client = scheduler
     scheduling_results = []
     expected = [['echo_stuff'], ['just_fail'], []]
@@ -89,7 +39,7 @@ def test_simple_fixture(simple_plan, scheduler):
     assert scheduling_results == expected
 
 
-def test_sequential_fixture(sequential_plan, scheduler):
+def test_sequential_fixture(sequential_plan, scheduler, tasks):
     worker, client = scheduler
     scheduling_results = set()
     expected = {('s1',), ('s2',), ('s3',), ()}
@@ -105,7 +55,7 @@ def test_sequential_fixture(sequential_plan, scheduler):
     assert scheduling_results == expected
 
 
-def test_two_path_fixture(two_path_plan, scheduler):
+def test_two_path_fixture(two_path_plan, scheduler, tasks):
     worker, client = scheduler
     scheduling_results = set()
     expected = {'a', 'b', 'c', 'd', 'e'}
