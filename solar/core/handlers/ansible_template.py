@@ -16,7 +16,7 @@
 from fabric.state import env
 import os
 
-from pkg_resources import resource_filename
+import shutil
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
@@ -49,8 +49,16 @@ class AnsibleTemplateBase(TempFileHandler):
     def _create_playbook(self, resource, action):
         return self._compile_action_file(resource, action)
 
-    def get_library_path(self):
-        return resource_filename('solar', 'ansible_library')
+    def _copy_ansible_library(self, resource):
+        base_path = resource.db_obj.base_path
+        src_ansible_library_dir = os.path.join(base_path, 'ansible_library')
+        trg_ansible_library_dir = None
+        if os.path.exists(src_ansible_library_dir):
+            log.debug("Adding ansible_library for %s", resource.name)
+            trg_ansible_library_dir = os.path.join(
+                self.dirs[resource.name], 'ansible_library')
+            shutil.copytree(src_ansible_library_dir, trg_ansible_library_dir)
+        return trg_ansible_library_dir
 
 
 # if we would have something like solar_agent that would render this then
@@ -66,8 +74,8 @@ class AnsibleTemplate(AnsibleTemplateBase):
         log.debug('playbook_file: %s', playbook_file)
 
         self._copy_templates_and_scripts(resource, action_name)
+        ansible_library_path = self._copy_ansible_library(resource)
         self.transport_sync.copy(resource, self.dst, '/tmp')
-        self.transport_sync.copy(resource, self.get_library_path(), '/tmp')
         self.transport_sync.sync_all()
 
         # remote paths are not nested inside solar_local
@@ -76,14 +84,24 @@ class AnsibleTemplate(AnsibleTemplateBase):
         remote_inventory_file = inventory_file.replace(
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        call_args = [
-            'ansible-playbook',
-            '--module-path',
-            '/tmp/ansible_library',
-            '-i',
-            remote_inventory_file,
-            remote_playbook_file
-        ]
+        if ansible_library_path:
+            remote_ansible_library_path = ansible_library_path.replace(
+                SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+            call_args = [
+                'ansible-playbook',
+                '--module-path',
+                remote_ansible_library_path,
+                '-i',
+                remote_inventory_file,
+                remote_playbook_file
+            ]
+        else:
+            call_args = [
+                'ansible-playbook',
+                '-i',
+                remote_inventory_file,
+                remote_playbook_file
+            ]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         rst = self.transport_run.run(resource, *call_args)
