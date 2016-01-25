@@ -24,6 +24,7 @@ if _connection.mode == 'riak':
 
 from solar.core.log import log
 from solar.dblayer.model import DBLayerNotFound
+from solar.dblayer.model import ModelMeta
 from solar.dblayer.solar_models import Lock as DBLock
 
 from uuid import uuid4
@@ -47,6 +48,14 @@ class _Lock(object):
         self.stamp = str(uuid4())
 
     @classmethod
+    def _after_acquire(cls, uid, identity):
+        """Will be called after lock successfully acquired."""
+
+    @classmethod
+    def _before_retry(cls, uid, identity):
+        """WIll be called before retry."""
+
+    @classmethod
     def _acquire(cls, uid, identity):
         raise NotImplemented(
             'Different strategies for handling collisions')
@@ -64,7 +73,9 @@ class _Lock(object):
                 'Lock %s acquired by another identity %s != %s, lockers %s',
                 self.uid, self.identity, lk.who_is_locking(), lk.lockers)
             while self.retries:
-                del DBLock._c.obj_cache[lk.key]
+                self._before_retry(self.uid, self.identity)
+                if lk.key in DBLock._c.obj_cache:
+                    del DBLock._c.obj_cache[lk.key]
                 time.sleep(self.wait)
                 lk = self._acquire(self.uid, self.identity, self.stamp)
                 self.retries -= 1
@@ -79,6 +90,7 @@ class _Lock(object):
                         'Failed to acquire {},'
                         ' owned by identity {}'.format(
                             lk.key, lk.who_is_locking()))
+        self._after_acquire(self.uid, self.identity)
         log.debug('Lock for %s acquired by %s', self.uid, self.identity)
         return lk
 
@@ -145,7 +157,18 @@ class RiakLock(_CRDTishLock):
 
 
 class SQLiteLock(_CRDTishLock):
-    pass
+
+    @classmethod
+    def _end_start_session(cls, uid, identity):
+        """Because of isolated versions of data in concurrent sessions
+        we need to ensure that session will be re-started at certain
+        hooks during locking logic
+        """
+        ModelMeta.session_end()
+        ModelMeta.session_start()
+
+    _after_acquire = _end_start_session
+    _before_retry = _end_start_session
 
 
 class RiakEnsembleLock(_Lock):
