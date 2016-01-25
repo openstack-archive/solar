@@ -32,51 +32,38 @@ class Scheduler(base.Worker):
         self._timewatcher = timewatcher
         super(Scheduler, self).__init__()
 
-    def _next(self, dg):
-        tasks = traverse(dg)
+    def _next(self, plan):
+        tasks = traverse(plan)
         filtered_tasks = list(limits.get_default_chain(
-            dg,
-            [t for t in dg if dg.node[t]['status'] == states.INPROGRESS.name],
+            plan,
+            [t for t in plan
+             if plan.node[t]['status'] == states.INPROGRESS.name],
             tasks))
         return filtered_tasks
 
     def next(self, ctxt, plan_uid):
         with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
             log.debug('Received *next* event for %s', plan_uid)
-            dg = graph.get_graph(plan_uid)
-            rst = self._next(dg)
+            plan = graph.get_graph(plan_uid)
+            rst = self._next(plan)
             for task_name in rst:
-                task_id = '{}:{}'.format(dg.graph['uid'], task_name)
-                task_type = dg.node[task_name]['type']
-                dg.node[task_name]['status'] = states.INPROGRESS.name
-                ctxt = {
-                    'task_id': task_id,
-                    'task_name': task_name,
-                    'plan_uid': plan_uid}
-                self._tasks(
-                    task_type, ctxt,
-                    *dg.node[task_name]['args'])
-                timelimit = dg.node[task_name].get('timelimit', 0)
-                if timelimit:
-                    log.debug(
-                        'Timelimit for task %s will be %s',
-                        task_id, timelimit)
-                    self._timewatcher.timelimit(ctxt, task_id, timelimit)
-            graph.update_graph(dg)
+                self._do_scheduling(plan, task_name)
+            graph.update_graph(plan)
             log.debug('Scheduled tasks %r', rst)
             # process tasks with tasks client
             return rst
 
     def soft_stop(self, ctxt, plan_uid):
         with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
-            dg = graph.get_graph(plan_uid)
-            for n in dg:
-                if dg.node[n]['status'] in (
+            plan = graph.get_graph(plan_uid)
+            for n in plan:
+                if plan.node[n]['status'] in (
                         states.PENDING.name, states.PENDING_RETRY.name):
-                    dg.node[n]['status'] = states.SKIPPED.name
-            graph.update_graph(dg)
+                    plan.node[n]['status'] = states.SKIPPED.name
+            graph.update_graph(plan)
 
-    def _handle_update(self, plan, task_name, status, errmsg=''):
+    def _do_update(self, plan, task_name, status, errmsg=''):
+        """For single update correct state and other relevant data."""
         old_status = plan.node[task_name]['status']
         if old_status in VISITED:
             return
@@ -93,27 +80,36 @@ class Scheduler(base.Worker):
         plan.node[task_name]['errmsg'] = errmsg
         plan.node[task_name]['retry'] = retries_count
 
+    def _do_scheduling(self, plan, task_name):
+        task_id = '{}:{}'.format(plan.graph['uid'], task_name)
+        task_type = plan.node[task_name]['type']
+        plan.node[task_name]['status'] = states.INPROGRESS.name
+        ctxt = {
+            'task_id': task_id,
+            'task_name': task_name,
+            'plan_uid': plan.graph['uid']}
+        self._tasks(
+            task_type, ctxt,
+            *plan.node[task_name]['args'])
+        timelimit = plan.node[task_name].get('timelimit', 0)
+        if timelimit:
+            log.debug(
+                'Timelimit for task %s will be %s',
+                task_id, timelimit)
+            self._timewatcher.timelimit(ctxt, task_id, timelimit)
+
     def update_next(self, ctxt, status, errmsg):
         log.debug(
             'Received update for TASK %s - %s %s',
             ctxt['task_id'], status, errmsg)
         plan_uid, task_name = ctxt['task_id'].rsplit(':', 1)
         with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
-            dg = graph.get_graph(plan_uid)
-            self._handle_update(dg, task_name, status, errmsg=errmsg)
-            rst = self._next(dg)
+            plan = graph.get_graph(plan_uid)
+            self._do_update(plan, task_name, status, errmsg=errmsg)
+            rst = self._next(plan)
             for task_name in rst:
-                task_id = '{}:{}'.format(dg.graph['uid'], task_name)
-                task_type = dg.node[task_name]['type']
-                dg.node[task_name]['status'] = states.INPROGRESS.name
-                ctxt = {
-                    'task_id': task_id,
-                    'task_name': task_name,
-                    'plan_uid': plan_uid}
-                self._tasks(
-                    task_type, ctxt,
-                    *dg.node[task_name]['args'])
-            graph.update_graph(dg)
+                self._do_scheduling(plan, task_name)
+            graph.update_graph(plan)
             log.debug('Scheduled tasks %r', rst)
             return rst
 
