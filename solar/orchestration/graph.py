@@ -40,7 +40,8 @@ def save_graph(graph):
              'task_type': graph.node[n].get('type', ''),
              'args': graph.node[n].get('args', []),
              'errmsg': graph.node[n].get('errmsg', '') or '',
-             'timelimit': graph.node[n].get('timelimit', 0)})
+             'timelimit': graph.node[n].get('timelimit', 0),
+             'retry': graph.node[n].get('retry', 0)})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
@@ -49,12 +50,13 @@ def save_graph(graph):
         t.save()
 
 
-def update_graph(graph):
+def update_graph(graph, force=False):
     for n in graph:
         task = graph.node[n]['task']
         task.status = graph.node[n]['status']
         task.errmsg = graph.node[n]['errmsg'] or ''
-        task.save()
+        task.retry = graph.node[n].get('retry', 0)
+        task.save(force=force)
 
 
 def set_states(uid, tasks):
@@ -79,7 +81,8 @@ def get_graph(uid):
             target=t.target or None,
             errmsg=t.errmsg or None,
             task=t,
-            timelimit=t.timelimit or 0)
+            timelimit=t.timelimit or 0,
+            retry=t.retry)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg
