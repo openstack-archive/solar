@@ -75,7 +75,7 @@ def resources(request, sequence_vr):
             'sequence_%s' % idx, sequence_vr, inputs={'idx': idx})
 
 
-@pytest.mark.parametrize('scale', [20])
+@pytest.mark.parametrize('scale', [10])
 def test_concurrent_sequences_with_no_handler(scale, scheduler_client):
     total_resources = scale * 3
     timeout = scale
