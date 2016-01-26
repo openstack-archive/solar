@@ -1,0 +1,3 @@
+SOLAR_UID=vagrant
+SOLAR_GID=vagrant
+SOLAR_PIDFILE=/var/opt/solar/solar-worker.pid
