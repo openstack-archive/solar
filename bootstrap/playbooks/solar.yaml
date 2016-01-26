@@ -14,9 +14,6 @@
 
 - hosts: all
   tasks:
-    # add application related directories
-    - file: path=/var/log/solar state=directory owner=vagrant group=vagrant
-    - file: path=/var/run/celery state=directory owner=vagrant group=vagrant
     #  setup solar-resources
     # change to openstack/solar-resources later
     - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
@@ -71,4 +68,4 @@
       ignore_errors: yes
     - shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type activate counters
 
-    - include: tasks/celery_init.yaml
+    - include: tasks/worker_upstart.yaml
