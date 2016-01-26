@@ -7,12 +7,12 @@ FAQ
 
 .. _faq_hardcoded_params:
 
-Why nodes/transports have hardcoded keys ip and other inputs ?
+Why nodes/transports have hardcoded keys, ips and other inputs ?
 --------------------------------------------------------------
 
 This is temporary situation, we will improve it in near future.
 
-I want to use different keys
+I want to use different SSH keys
 ----------------------------
 
 Just update resource for example::
@@ -36,9 +36,15 @@ Just update resource::
 How can I run solar celery worker ?
 -----------------------------------
 
-- If you use `vagrant` then you can just `service solar-celery start|restart` as `vagrant` user.
-- If you have `gevent` installed then you can use utils/solar-celery script. You may need to adjust log files etc.
-- You can spawn celery by hand too: ``celery multi start 2 -A solar.orchestration.runner -P prefork -c:1 1 -c:2 2 -Q:1 scheduler,system_log -Q:2 celery``
+- If you use `vagrant` then you can just `service solar-celery start|restart`
+as `vagrant` user.
+- If you have `gevent` installed then you can use utils/solar-celery script.
+You may need to adjust log files etc.
+- You can spawn celery by hand too:
+
+.. code-block:: bash
+
+  celery multi start 2 -A solar.orchestration.runner -P prefork -c:1 1 -c:2 2 -Q:1 scheduler,system_log -Q:2 celery
 
 .. note::
 
@@ -50,9 +56,11 @@ How can I configure solar ?
 There are several places where we search for config values:
 
 1. `.config` file in CWD or in path from `SOLAR_CONFIG` env variable
-2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override previous values
+2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override previous
+values
 3. `.config.override` in CWD
-4. You can also set upper-cased env variable which matches one of those in config
+4. You can also set upper-cased env variable which matches one of those in
+config
 
 .. _faq_using_sqlbackend:
 
@@ -69,11 +77,13 @@ For simplicity, but nothing stops you from changing these defaults::
 What database can I use with solar ?
 ------------------------------------
 
-By default for simplicity we use `sqlite`. On our vagrant environment we use single node `riak`.
-You can also use multiple node `riak`, with some strong consistent buckets.
+By default for simplicity we use `sqlite`. On our vagrant environment we use
+single node `riak`.
+You can also use multiple nodes `riak`, with some strong consistent buckets.
 
 
 Where can I find solar examples ?
 ---------------------------------
 
-Example resources, composer templates and examples itself are located: https://github.com/Mirantis/solar-resources
+Example resources, composer templates and examples itself are located:
+https://github.com/Mirantis/solar-resources

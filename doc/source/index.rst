@@ -15,6 +15,7 @@ Contents:
    usage
    tutorials/index
    glossary
+   architecture
    resource
    resource_repository
    orchestration
