@@ -44,7 +44,9 @@ def save_graph(graph):
              'errmsg': graph.node[n].get('errmsg', '') or '',
              'timelimit': graph.node[n].get('timelimit', 0),
              'retry': graph.node[n].get('retry', 0),
-             'timeout': graph.node[n].get('timeout', 0)})
+             'timeout': graph.node[n].get('timeout', 0),
+             'start_time': 0.0,
+             'end_time': 0.0})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
@@ -60,6 +62,8 @@ def update_graph(graph, force=False):
         task.errmsg = graph.node[n]['errmsg'] or ''
         task.retry = graph.node[n].get('retry', 0)
         task.timeout = graph.node[n].get('timeout', 0)
+        task.start_time = graph.node[n].get('start_time', 0.0)
+        task.end_time = graph.node[n].get('end_time', 0.0)
         task.save(force=force)
 
 
@@ -87,10 +91,43 @@ def get_graph(uid):
             task=t,
             timelimit=t.timelimit,
             retry=t.retry,
-            timeout=t.timeout)
+            timeout=t.timeout,
+            start_time=t.start_time,
+            end_time=t.end_time)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg
+
+
+def longest_path_time(graph):
+    """We are not interested in the path itself, just get the start
+    of execution and the end of it.
+    """
+    start = None
+    end = None
+    for n in graph:
+        node_start = graph.node[n]['start_time']
+        node_end = graph.node[n]['end_time']
+        if node_start is 0.0 or node_end is 0.0:
+            continue
+
+        if node_start < start or start is None:
+            start = node_start
+
+        if node_end > end or end is None:
+            end = node_end
+    return end - start
+
+
+def total_delta(graph):
+    delta = 0.0
+    for n in graph:
+        node_start = graph.node[n]['start_time']
+        node_end = graph.node[n]['end_time']
+        if node_start is 0.0 or node_end is 0.0:
+            continue
+        delta += node_end - node_start
+    return delta
 
 
 get_plan = get_graph
@@ -162,14 +199,20 @@ def reset_filtered(uid):
     reset_by_uid(uid, state_list=[states.SKIPPED.name, states.NOOP.name])
 
 
-def report_topo(uid):
+def report_progress(uid):
+    return report_progress_graph(get_graph(uid))
 
-    dg = get_graph(uid)
-    report = []
+
+def report_progress_graph(dg):
+    tasks = []
+    report = {
+        'total_time': longest_path_time(dg),
+        'total_delta': total_delta(dg),
+        'tasks': tasks}
 
     for task in nx.topological_sort(dg):
         data = dg.node[task]
-        report.append([
+        tasks.append([
             task,
             data['status'],
             data['errmsg'],

@@ -1044,6 +1044,8 @@ class Task(Model):
     timelimit = Field(int, default=int)
     retry = Field(int, default=int)
     timeout = Field(int, default=int)
+    start_time = Field(float, default=float)
+    end_time = Field(float, default=float)
 
     execution = IndexedField(basestring)
     parents = ParentField(default=list)

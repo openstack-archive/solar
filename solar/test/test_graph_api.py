@@ -14,6 +14,7 @@
 
 import os
 
+import networkx as nx
 from pytest import fixture
 
 from solar.orchestration import graph
@@ -93,3 +94,28 @@ def test_several_updates(simple):
         'PENDING': 0,
         'ERROR_RETRY': 0,
     }
+
+
+@fixture
+def times():
+    rst = nx.DiGraph()
+    rst.add_node('t1', start_time=1.0, end_time=12.0,
+                 status='', errmsg='')
+    rst.add_node('t2', start_time=1.0, end_time=3.0,
+                 status='', errmsg='')
+    rst.add_node('t3', start_time=3.0, end_time=7.0,
+                 status='', errmsg='')
+    rst.add_node('t4', start_time=7.0, end_time=13.0,
+                 status='', errmsg='')
+    rst.add_node('t5', start_time=12.0, end_time=14.0,
+                 status='', errmsg='')
+    rst.add_path(['t1', 't5'])
+    rst.add_path(['t2', 't3', 't4'])
+    return rst
+
+
+def test_report_progress(times):
+    report = graph.report_progress_graph(times)
+    assert report['total_time'] == 13.0
+    assert report['total_delta'] == 25.0
+    assert len(report['tasks']) == 5
