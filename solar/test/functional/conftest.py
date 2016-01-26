@@ -22,3 +22,18 @@ import pytest
 def address():
     return 'ipc:///tmp/solar_test_' + ''.join(
         (random.choice(string.ascii_lowercase) for x in xrange(4)))
+
+
+@pytest.fixture
+def tasks_address(address):
+    return address + 'tasks'
+
+
+@pytest.fixture
+def system_log_address(address):
+    return address + 'system_log'
+
+
+@pytest.fixture
+def scheduler_address(address):
+    return address + 'scheduler'
