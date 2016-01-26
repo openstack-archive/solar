@@ -23,14 +23,15 @@ Additional software
 `VirtualBox <https://www.virtualbox.org/wiki/Downloads/>`_ 5.x,
 `Vagrant <http://www.vagrantup.com/downloads.html/>`_ 1.7.x
 
-Note: Make sure that `Vagrant VirtualBox Guest plugin <https://github.com/dotless-de/vagrant-vbguest/>`_ is installed
+Note: Make sure that `Vagrant VirtualBox Guest plugin
+<https://github.com/dotless-de/vagrant-vbguest/>`_ is installed
 
 .. code-block:: bash
 
   vagrant plugin install vagrant-vbguest
 
-Note: If you are using VirtualBox 5.0 on Linux system, it's worth uncommenting paravirtprovider
-setting in `vagrant-settings.yaml` for speed improvements:
+Note: If you are using VirtualBox 5.0 on Linux system, it's worth uncommenting
+paravirtprovider setting in `vagrant-settings.yaml` for speed improvements:
 
 .. code-block:: bash
 
