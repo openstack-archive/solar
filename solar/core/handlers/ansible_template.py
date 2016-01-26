@@ -76,8 +76,14 @@ class AnsibleTemplate(AnsibleTemplateBase):
         remote_inventory_file = inventory_file.replace(
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        call_args = ['ansible-playbook', '--module-path', '/tmp/library',
-                     '-i', remote_inventory_file, remote_playbook_file]
+        call_args = [
+            'ansible-playbook',
+            '--module-path',
+            '/tmp/ansible_library',
+            '-i',
+            remote_inventory_file,
+            remote_playbook_file
+        ]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         rst = self.transport_run.run(resource, *call_args)
