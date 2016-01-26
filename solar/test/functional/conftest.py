@@ -12,18 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from solar.orchestration.runner import app
-from solar.system_log.operations import move_to_commited
-from solar.system_log.operations import set_error
+import random
+import string
 
-__all__ = ['error_logitem', 'commit_logitem']
-
-
-@app.task(name='error_logitem')
-def error_logitem(task_uuid):
-    return set_error(task_uuid.rsplit(':', 1)[-1])
+import pytest
 
 
-@app.task(name='commit_logitem')
-def commit_logitem(task_uuid):
-    return move_to_commited(task_uuid.rsplit(':', 1)[-1])
+@pytest.fixture
+def address():
+    return 'ipc:///tmp/solar_test_' + ''.join(
+        (random.choice(string.ascii_lowercase) for x in xrange(4)))
