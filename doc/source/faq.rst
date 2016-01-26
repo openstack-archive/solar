@@ -26,29 +26,16 @@ Just update resource::
 
     solar resource update rsync1 '{"password": "vagrant", "key": null}'
 
-.. _faq_running_celery_worker:
-
 .. note::
 
    You need to change it for all transport resources (ssh and rsync by default).
 
 
-How can I run solar celery worker ?
+How can I run solar worker ?
 -----------------------------------
 
-- If you use `vagrant` then you can just `service solar-celery start|restart`
+- If you use `vagrant` then you can just `start solar-worker`
 as `vagrant` user.
-- If you have `gevent` installed then you can use utils/solar-celery script.
-You may need to adjust log files etc.
-- You can spawn celery by hand too:
-
-.. code-block:: bash
-
-  celery multi start 2 -A solar.orchestration.runner -P prefork -c:1 1 -c:2 2 -Q:1 scheduler,system_log -Q:2 celery
-
-.. note::
-
-   We're currently working on removing celery completely.
 
 How can I configure solar ?
 ---------------------------
@@ -61,16 +48,6 @@ values
 3. `.config.override` in CWD
 4. You can also set upper-cased env variable which matches one of those in
 config
-
-.. _faq_using_sqlbackend:
-
-Why do you use celery with SQL backend instead of X ?
------------------------------------------------------
-
-For simplicity, but nothing stops you from changing these defaults::
-
-  celery_broker: sqla+sqlite:////tmp/celery.db
-  celery_backend: db+sqlite:////tmp/celery.db
 
 .. _faq_what_database:
 

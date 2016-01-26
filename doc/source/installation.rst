@@ -117,8 +117,6 @@ Create solar configuration `solar_config` and paste following data:
 
 .. code-block:: yaml
 
-  celery_broker: sqla+sqlite:////tmp/celery.db
-  celery_backend: db+sqlite:////tmp/celery.db
   solar_db: sqlite:////tmp/solar.db
 
 and set path to this configuration:
@@ -128,7 +126,6 @@ and set path to this configuration:
   export SOLAR_CONFIG_OVERRIDE=<full/path/solar_config>
 
 For more information about configuration see our FAQ questions:
-:ref:`here <faq_using_sqlbackend>` and
 :ref:`here <faq_what_database>`.
 
 You also need to download Solar resources and
@@ -148,13 +145,4 @@ Next step is to start Solar orchestration worker.
 
 .. code-block:: bash
 
-  pip install gevent
-  sudo mkdir -p /var/run/celery/
-  sudo chown salmon -R /var/run/celery/
-  solar-celery start
-
-.. note::
-
-  `gevent` is not required to use Solar. If you don't want to use it
-  see :ref:`How can I run solar celery worker <faq_running_celery_worker>`.
-
+  solar-celery
