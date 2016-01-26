@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from functools import partial
 import time
 
 from solar.core.log import log
@@ -65,6 +66,10 @@ class Scheduler(base.Worker):
         """For single update correct state and other relevant data."""
         old_status = plan.node[task_name]['status']
         if old_status in VISITED:
+            log.debug(
+                'Task %s already in visited status %s'
+                ', skipping update to %s',
+                task_name, old_status, status)
             return
         retries_count = plan.node[task_name]['retry']
 
@@ -84,18 +89,21 @@ class Scheduler(base.Worker):
         task_type = plan.node[task_name]['type']
         plan.node[task_name]['status'] = states.INPROGRESS.name
         timelimit = plan.node[task_name].get('timelimit', 0)
+        timeout = plan.node[task_name].get('timeout', 0)
         ctxt = {
             'task_id': task_id,
             'task_name': task_name,
             'plan_uid': plan.graph['uid'],
-            'timelimit': timelimit}
+            'timelimit': timelimit,
+            'timeout': timeout}
+        log.debug(
+            'Timelimit for task %s - %s, timeout - %s',
+            task_id, timelimit, timeout)
         self._tasks(
             task_type, ctxt,
             *plan.node[task_name]['args'])
-        if timelimit:
-            log.debug(
-                'Timelimit for task %s will be %s',
-                task_id, timelimit)
+        if timeout:
+            self._configure_timeout(ctxt, timeout)
 
     def update_next(self, ctxt, status, errmsg):
         log.debug(
@@ -111,6 +119,14 @@ class Scheduler(base.Worker):
             graph.update_graph(plan)
             log.debug('Scheduled tasks %r', rst)
             return rst
+
+    def _configure_timeout(self, ctxt, timeout):
+        if not hasattr(self._executor, 'register_timeout'):
+            raise NotImplemented('Timeout is not supported')
+        self._executor.register_timeout(
+            timeout,
+            partial(self.update_next, ctxt,
+                    states.ERROR.name, 'Timeout Error'))
 
 
 class SchedulerCallbackClient(object):

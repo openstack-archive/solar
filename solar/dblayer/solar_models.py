@@ -1043,6 +1043,7 @@ class Task(Model):
     errmsg = Field(basestring, default=str)
     timelimit = Field(int, default=int)
     retry = Field(int, default=int)
+    timeout = Field(int, default=int)
 
     execution = IndexedField(basestring)
     parents = ParentField(default=list)

@@ -17,6 +17,8 @@
 import time
 
 import gevent
+import mock
+import pytest
 
 from solar.errors import ExecutionTimeout
 from solar.orchestration import graph
@@ -39,3 +41,29 @@ def test_timelimit_plan(timelimit_plan, scheduler, tasks):
     finished_plan = graph.get_graph(timelimit_plan.graph['uid'])
     assert 'ExecutionTimeout' in finished_plan.node['t1']['errmsg']
     assert finished_plan.node['t2']['status'] == states.PENDING.name
+
+
+@pytest.fixture
+def timeout_plan(simple_plan):
+    simple_plan.node['echo_stuff']['timeout'] = 1
+    graph.update_graph(simple_plan, force=True)
+    return simple_plan
+
+
+def test_timeout_plan(timeout_plan, scheduler):
+    worker, client = scheduler
+    worker._tasks = mock.Mock()
+    client.next({}, timeout_plan.graph['uid'])
+
+    def wait_function(timeout):
+        for summary in graph.wait_finish(
+                timeout_plan.graph['uid'], timeout):
+            if summary[states.ERROR.name] == 1:
+                return summary
+            time.sleep(0.3)
+        return summary
+    waiter = gevent.spawn(wait_function, 2)
+    waiter.get(block=True, timeout=2)
+    timeout_plan = graph.get_graph(timeout_plan.graph['uid'])
+    assert (timeout_plan.node['echo_stuff']['status']
+            == states.ERROR.name)
