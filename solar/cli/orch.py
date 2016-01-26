@@ -81,18 +81,14 @@ def click_report(uid):
         'SKIPPED': 'blue',
         'NOOP': 'black'}
 
-    total = 0.0
-    report = graph.report_topo(uid)
-    for item in report:
+    report = graph.report_progress(uid)
+    for item in report['tasks']:
         msg = '{} -> {}'.format(item[0], item[1])
         if item[2]:
             msg += ' :: {}'.format(item[2])
-        if item[4] and item[3]:
-            delta = float(item[4]) - float(item[3])
-            total += delta
-            msg += ' D: {}'.format(delta)
         click.echo(click.style(msg, fg=colors[item[1]]))
-    click.echo('Delta SUM: {}'.format(total))
+    click.echo('Total Delta: {}'.format(report['total_delta']))
+    click.echo('Total Time: {}'.format(report['total_time']))
 
 
 @orchestration.command()
