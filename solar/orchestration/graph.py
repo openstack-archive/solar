@@ -31,6 +31,8 @@ def save_graph(graph):
     # maybe it is possible to store part of information in AsyncResult backend
     uid = graph.graph['uid']
 
+    # TODO(dshulyak) remove duplication of parameters
+    # in solar_models.Task and this object
     for n in nx.topological_sort(graph):
         t = Task.new(
             {'name': n,
@@ -41,7 +43,8 @@ def save_graph(graph):
              'args': graph.node[n].get('args', []),
              'errmsg': graph.node[n].get('errmsg', '') or '',
              'timelimit': graph.node[n].get('timelimit', 0),
-             'retry': graph.node[n].get('retry', 0)})
+             'retry': graph.node[n].get('retry', 0),
+             'timeout': graph.node[n].get('timeout', 0)})
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
@@ -56,6 +59,7 @@ def update_graph(graph, force=False):
         task.status = graph.node[n]['status']
         task.errmsg = graph.node[n]['errmsg'] or ''
         task.retry = graph.node[n].get('retry', 0)
+        task.timeout = graph.node[n].get('timeout', 0)
         task.save(force=force)
 
 
@@ -81,8 +85,9 @@ def get_graph(uid):
             target=t.target or None,
             errmsg=t.errmsg or None,
             task=t,
-            timelimit=t.timelimit or 0,
-            retry=t.retry)
+            timelimit=t.timelimit,
+            retry=t.retry,
+            timeout=t.timeout)
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg

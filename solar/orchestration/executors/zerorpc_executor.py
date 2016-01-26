@@ -65,6 +65,11 @@ class PoolBasedPuller(zerorpc.Puller):
 
 class LimitedExecutionPuller(PoolBasedPuller):
 
+    def __init__(self, *args, **kwargs):
+        super(LimitedExecutionPuller, self).__init__(*args, **kwargs)
+        self._timelimit_group = gevent.pool.Group()
+        self._timeout_group = gevent.pool.Group()
+
     def _handle_event(self, event):
         ctxt = event.args[0]
         timelimit = ctxt.get('timelimit', 0)
@@ -73,9 +78,21 @@ class LimitedExecutionPuller(PoolBasedPuller):
             # share a pool with them, or it is highly possible that
             # it wont be ever executed with low number of greenlets in
             # a pool
-            gevent.spawn_later(
-                timelimit, self._methods['kill'], ctxt, ctxt['task_id'])
+            self._timelimit_group.add(gevent.spawn_later(
+                timelimit, self._methods['kill'],
+                ctxt, ctxt['task_id']))
         self._tasks_pool.spawn(self._async_event, event)
+
+    def register_timeout(self, seconds, callable_):
+        self._timeout_group.add(
+            gevent.spawn_later(seconds, callable_))
+
+    def run(self):
+        try:
+            super(LimitedExecutionPuller, self).run()
+        finally:
+            self._timelimit_group.join(raise_error=True)
+            self._timeout_group.join(raise_error=True)
 
 
 class Executor(object):
@@ -85,6 +102,7 @@ class Executor(object):
         self.bind_to = bind_to
         self._tasks_register = {}
         worker._executor = self
+        self._server = LimitedExecutionPuller(methods=self.worker)
 
     def register(self, ctxt):
         if 'task_id' in ctxt:
@@ -96,10 +114,12 @@ class Executor(object):
             self._tasks_register[task_id].kill(exc, block=True)
             self._tasks_register.pop(task_id)
 
+    def register_timeout(self, *args):
+        self._server.register_timeout(*args)
+
     def run(self):
-        server = LimitedExecutionPuller(methods=self.worker)
-        server.bind(self.bind_to)
-        server.run()
+        self._server.bind(self.bind_to)
+        self._server.run()
 
 
 class Client(object):
