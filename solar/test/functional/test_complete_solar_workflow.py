@@ -33,24 +33,24 @@ def scheduler_client(scheduler_address):
 
 
 @pytest.fixture(autouse=True)
-def tasks(system_log_address, tasks_address, scheduler_address):
+def tasks(extensions, clients):
     gevent.spawn(
         orchestration.construct_tasks,
-        system_log_address, tasks_address, scheduler_address)
+        extensions, clients)
 
 
 @pytest.fixture(autouse=True)
-def scheduler(tasks_address, scheduler_address):
+def scheduler(extensions, clients):
     gevent.spawn(
         orchestration.construct_scheduler,
-        tasks_address, scheduler_address)
+        extensions, clients)
 
 
 @pytest.fixture(autouse=True)
-def system_log(system_log_address):
+def system_log(extensions, clients):
     gevent.spawn(
         orchestration.construct_system_log,
-        system_log_address)
+        extensions, clients)
 
 
 @pytest.fixture(autouse=True)
@@ -62,9 +62,10 @@ def resources(request, sequence_vr):
 
 
 @pytest.mark.parametrize('scale', [10])
-def test_concurrent_sequences_with_no_handler(scale, scheduler_client):
+def test_concurrent_sequences_with_no_handler(scale, clients):
     total_resources = scale * 3
     timeout = scale * 2
+    scheduler_client = clients['scheduler']
 
     assert len(change.stage_changes()) == total_resources
     plan = change.send_to_orchestration()
