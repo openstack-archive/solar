@@ -74,6 +74,7 @@ class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
             resource.actions[action])
 
         self.prepare_templates_and_scripts(resource, action)
+        ansible_library_path = self._copy_ansible_library(resource)
         files = self._make_playbook(resource,
                                     action,
                                     action_file)
@@ -94,16 +95,28 @@ class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
         remote_extra_vars_file = extra_vars_file.replace(
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        call_args = [
-            'ansible-playbook',
-            '--module-path',
-            '/tmp/ansible_library',
-            '-i',
-            remote_inventory_file,
-            '--extra-vars',
-            '@%s' % remote_extra_vars_file,
-            remote_playbook_file
-        ]
+        if ansible_library_path:
+            remote_ansible_library_path = ansible_library_path.replace(
+                SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+            call_args = [
+                'ansible-playbook',
+                '--module-path',
+                remote_ansible_library_path,
+                '-i',
+                remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
+                remote_playbook_file
+            ]
+        else:
+            call_args = [
+                'ansible-playbook',
+                '-i',
+                remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
+                remote_playbook_file
+            ]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         rst = self.transport_run.run(resource, *call_args)
