@@ -28,9 +28,6 @@ wrapt
 peewee
 # if you want to use lua computable inputs
 # lupa
-# required for celery sql backends
-sqlalchemy
-
 
 # if you want to use complex version check in repositories
 semver

@@ -24,8 +24,6 @@ CWD = os.getcwd()
 
 
 C = Bunch(solar_db="")
-C.celery_broker = 'sqla+sqlite:////tmp/celery.db'
-C.celery_backend = 'db+sqlite:////tmp/celery.db'
 C.riak_ensemble = False
 C.lock_bucket_type = None
 C.counter_bucket_type = None
