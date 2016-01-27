@@ -15,8 +15,8 @@
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
-from solar.orchestration.executors.zerorpc_executor import Client
-from solar.orchestration.executors.zerorpc_executor import Executor
+from solar.orchestration.executors import Client
+from solar.orchestration.executors import Executor
 from solar.orchestration.workers import scheduler as wscheduler
 from solar.orchestration.workers.system_log import SystemLog
 from solar.orchestration.workers.tasks import Tasks
@@ -46,7 +46,7 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
         Client(scheduler_address))
     tasks = Tasks()
     tasks_executor = Executor(tasks, tasks_address)
-    tasks.for_all.before(tasks_executor.register)
+    tasks.for_all.before(tasks_executor.register_task)
     tasks.for_all.on_success(syslog.commit)
     tasks.for_all.on_error(syslog.error)
     tasks.for_all.on_success(scheduler.update)

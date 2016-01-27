@@ -18,6 +18,7 @@ import gevent
 import zerorpc
 
 from solar.core.log import log
+from solar.orchestration.executors import base
 
 
 class PoolBasedPuller(zerorpc.Puller):
@@ -95,16 +96,15 @@ class LimitedExecutionPuller(PoolBasedPuller):
             self._timeout_group.join(raise_error=True)
 
 
-class Executor(object):
+class Executor(base.Executor):
 
     def __init__(self, worker, bind_to):
-        self.worker = worker
-        self.bind_to = bind_to
+        super(Executor, self).__init__(worker, bind_to)
         self._tasks_register = {}
         worker._executor = self
         self._server = LimitedExecutionPuller(methods=self.worker)
 
-    def register(self, ctxt):
+    def register_task(self, ctxt):
         if 'task_id' in ctxt:
             self._tasks_register[ctxt['task_id']] = gevent.getcurrent()
 
@@ -114,23 +114,17 @@ class Executor(object):
             self._tasks_register[task_id].kill(exc, block=True)
             self._tasks_register.pop(task_id)
 
-    def register_timeout(self, *args):
-        self._server.register_timeout(*args)
+    def register_timeout(self, timeout, callable_):
+        self._server.register_timeout(timeout, callable_)
 
     def run(self):
         self._server.bind(self.bind_to)
         self._server.run()
 
 
-class Client(object):
+class Client(base.Client):
 
     def __init__(self, connect_to):
-        self.connect_to = connect_to
+        super(Client, self).__init__(connect_to)
         self.client = zerorpc.Pusher()
         self.client.connect(connect_to)
-
-    def __getattr__(self, method):
-        return getattr(self.client, method)
-
-    def __call__(self, method, ctxt, *args, **kwargs):
-        return getattr(self.client, method)(ctxt, *args, **kwargs)
