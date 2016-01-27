@@ -2,7 +2,6 @@
 set -xe
 
 # for now we assume that master ip is 10.0.0.2 and slaves ips are 10.0.0.{3,4,5,...}
-ADMIN_IP=10.0.0.2
 ADMIN_PASSWORD=vagrant
 ADMIN_USER=vagrant
 INSTALL_DIR=/vagrant
@@ -16,7 +15,10 @@ TEST_SCRIPT=${TEST_SCRIPT:-/vagrant/examples/hosts_file/hosts.py}
 DEPLOY_TIMEOUT=${DEPLOY_TIMEOUT:-60}
 
 dos.py erase ${ENV_NAME} || true
-ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py
+ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py create_env
+
+SLAVE_IPS=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_slaves_ips`
+ADMIN_IP=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_admin_ip`
 
 # Wait for master to boot
 sleep 30
@@ -42,6 +44,7 @@ export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
 
 solar repo update templates ${INSTALL_DIR}/utils/jenkins/repository
 
+solar resource create nodes templates/nodes ips="${SLAVE_IPS}" count="${SLAVES_COUNT}"
 bash -c "${TEST_SCRIPT}"
 
 solar changes stage
