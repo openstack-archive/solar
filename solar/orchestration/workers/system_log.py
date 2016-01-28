@@ -24,3 +24,9 @@ class SystemLog(base.Worker):
 
     def error(self, ctxt, *args, **kwargs):
         return set_error(ctxt['task_id'].rsplit(':', 1)[-1])
+
+
+def tasks_subscribe(tasks, clients):
+    syslog = clients['system_log']
+    tasks.for_all.on_success(syslog.commit)
+    tasks.for_all.on_error(syslog.error)
