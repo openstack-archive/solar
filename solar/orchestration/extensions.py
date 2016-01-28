@@ -81,3 +81,16 @@ def load_contruct_hooks(name, extensions, clients):
         namespace='solar.orchestration.hooks.{}.construct'.format(name),
         invoke_on_load=True,
         invoke_args=(extensions[name], clients))
+
+
+def get_runner(name):
+    return driver.DriverManager(
+        namespace='solar.orchestration.runners',
+        name=name,
+        invoke_on_load=False)
+
+
+def get_constructors():
+    return extension.ExtensionManager(
+        namespace='solar.orchestration.constructors',
+        invoke_on_load=False)

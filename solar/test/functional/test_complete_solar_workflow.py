@@ -33,24 +33,9 @@ def scheduler_client(scheduler_address):
 
 
 @pytest.fixture(autouse=True)
-def tasks(extensions, clients):
-    gevent.spawn(
-        orchestration.construct_tasks,
-        extensions, clients)
-
-
-@pytest.fixture(autouse=True)
-def scheduler(extensions, clients):
-    gevent.spawn(
-        orchestration.construct_scheduler,
-        extensions, clients)
-
-
-@pytest.fixture(autouse=True)
-def system_log(extensions, clients):
-    gevent.spawn(
-        orchestration.construct_system_log,
-        extensions, clients)
+def prepare_all(constructors, extensions, clients):
+    for cons in constructors:
+        gevent.spawn(cons.plugin, extensions, clients)
 
 
 @pytest.fixture(autouse=True)
@@ -61,7 +46,7 @@ def resources(request, sequence_vr):
             'sequence_%s' % idx, sequence_vr, inputs={'idx': idx})
 
 
-@pytest.mark.parametrize('scale', [10])
+@pytest.mark.parametrize('scale', [3])
 def test_concurrent_sequences_with_no_handler(scale, clients):
     total_resources = scale * 3
     timeout = scale * 2

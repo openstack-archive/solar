@@ -18,7 +18,7 @@ import string
 import gevent
 import pytest
 
-
+from solar.config import C
 from solar.core.log import log
 from solar.dblayer.model import ModelMeta
 from solar.orchestration import executors
@@ -104,3 +104,13 @@ def clients(request):
 @pytest.fixture
 def extensions(clients):
     return loader.get_extensions(clients)
+
+
+@pytest.fixture
+def runner():
+    return loader.get_runner(C.runner)
+
+
+@pytest.fixture
+def constructors():
+    return loader.get_constructors()

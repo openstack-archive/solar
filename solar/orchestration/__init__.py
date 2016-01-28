@@ -12,8 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from stevedore import extension
-
+from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
 from solar.orchestration import extensions as loader
@@ -24,6 +23,7 @@ SCHEDULER_CLIENT = loader.get_client('scheduler')
 
 
 def wrap_session(extension, clients):
+    log.debug('DB session for %r', extension)
     extension.for_all.before(lambda ctxt: ModelMeta.session_start())
     extension.for_all.after(lambda ctxt: ModelMeta.session_end())
 
@@ -51,19 +51,8 @@ def construct_tasks(extensions, clients):
 
 
 def main():
-    import sys
-    from gevent import spawn
-    from gevent import joinall
+    runner = loader.get_runner(C.runner)
+    constructors = loader.get_constructors()
     clients = loader.get_clients()
-    mgr = loader.get_extensions(clients)
-    servers = [
-        spawn(construct_scheduler, mgr, clients),
-        spawn(construct_system_log, mgr, clients),
-        spawn(construct_tasks, mgr, clients)
-        ]
-    try:
-        log.info('Spawning scheduler, system log and tasks workers.')
-        joinall(servers)
-    except KeyboardInterrupt:
-        log.info('Exit solar-worker')
-        sys.exit()
+    exts = loader.get_extensions(clients)
+    runner.driver(constructors, exts, clients)

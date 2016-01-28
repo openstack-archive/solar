@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from solar.core.log import log
 from solar.orchestration.workers import base
 from solar.system_log.operations import move_to_commited
 from solar.system_log.operations import set_error
@@ -27,6 +28,7 @@ class SystemLog(base.Worker):
 
 
 def tasks_subscribe(tasks, clients):
+    log.debug('System log subscribes to tasks hooks')
     syslog = clients['system_log']
     tasks.for_all.on_success(syslog.commit)
     tasks.for_all.on_error(syslog.error)
