@@ -38,6 +38,7 @@ C.executor = 'zerorpc'
 C.tasks_driver = 'solar'
 C.scheduler_driver = 'solar'
 C.system_log_driver = 'solar'
+C.runner = 'gevent'
 
 
 def _lookup_vals(setter, config, prefix=None):
