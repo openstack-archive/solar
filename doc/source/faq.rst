@@ -17,7 +17,7 @@ I want to use different SSH keys
 
 Just update resource for example::
 
-    solar resource update ssh_transport1 '{"ssh_key": "/path/to/some/key"}'
+    solar resource update ssh_transport1 '{"key": "/path/to/some/key"}'
 
 I want to use passwords not keys
 --------------------------------

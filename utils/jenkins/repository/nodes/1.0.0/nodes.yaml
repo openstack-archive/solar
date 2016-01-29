@@ -5,8 +5,8 @@ resources:
   - id: ssh_transport#{j}#
     from: resources/transport_ssh
     input:
-      ssh_user: 'vagrant'
-      ssh_password: 'vagrant'
+      user: 'vagrant'
+      password: 'vagrant'
   - id: rsync#{j}#
     from: resources/transport_rsync
     input:
@@ -16,9 +16,9 @@ resources:
     from: resources/transports
     input:
       transports:
-        - password: ssh_transport#{j}#::ssh_password
-          user: ssh_transport#{j}#::ssh_user
-          port: ssh_transport#{j}#::ssh_port
+        - password: ssh_transport#{j}#::password
+          user: ssh_transport#{j}#::user
+          port: ssh_transport#{j}#::port
           name: ssh_transport#{j}#::name
         - password: rsync#{j}#::password
           name: rsync#{j}#::name
