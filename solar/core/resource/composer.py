@@ -14,18 +14,17 @@
 #    under the License.
 
 from collections import defaultdict
-from collections import OrderedDict
 from StringIO import StringIO
 
 from jinja2 import Environment
 from jinja2 import meta
 
 import os
-import re
 import yaml
 
 from solar.core.log import log
 from solar.core import provider
+from solar.core.resource import CreatedResources
 from solar.core.resource import load as load_resource
 from solar.core.resource import load_by_tags
 from solar.core.resource.repository import Repository
@@ -42,33 +41,6 @@ VR_ENV = Environment(block_start_string="#%",
                      variable_end_string="}#",
                      trim_blocks=True,
                      lstrip_blocks=True)
-
-
-class CreatedResources(object):
-
-    def __init__(self, resources):
-        if isinstance(resources, (list, tuple)):
-            c = OrderedDict((r.name, r) for r in resources)
-        else:
-            c = resources
-        self.data = c
-
-    def __getitem__(self, key):
-        if isinstance(key, int):
-            key = self.data.keys()[key]
-        return self.data[key]
-
-    def __iter__(self):
-        return self.data.itervalues()
-
-    def __len__(self):
-        return self.data.__len__()
-
-    def like(self, regex):
-        keys = self.data.keys()
-        matched_keys = filter(lambda key: re.match(regex, key), keys)
-        return CreatedResources(
-            OrderedDict((rname, self[rname]) for rname in matched_keys))
 
 
 def create(name, spec, inputs=None, tags=None):

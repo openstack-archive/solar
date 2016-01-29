@@ -13,11 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections import OrderedDict
 from copy import deepcopy
 from hashlib import md5
 import itertools
 import json
 import os
+import re
 from uuid import uuid4
 
 from enum import Enum
@@ -326,6 +328,33 @@ class Resource(object):
                 self.update(json.loads(rst))
 
 
+class CreatedResources(object):
+
+    def __init__(self, resources):
+        if isinstance(resources, (list, tuple)):
+            c = OrderedDict((r.name, r) for r in resources)
+        else:
+            c = resources
+        self.data = c
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            key = self.data.keys()[key]
+        return self.data[key]
+
+    def __iter__(self):
+        return self.data.itervalues()
+
+    def __len__(self):
+        return self.data.__len__()
+
+    def like(self, regex):
+        keys = self.data.keys()
+        matched_keys = filter(lambda key: re.match(regex, key), keys)
+        return CreatedResources(
+            OrderedDict((rname, self[rname]) for rname in matched_keys))
+
+
 def load(name):
     r = DBResource.get(name)
 
@@ -343,7 +372,8 @@ def load_updated(since=None, with_childs=True):
     candids = DBResource.updated.filter(startkey, StrInt.p_max())
     if with_childs:
         candids = DBResource.childs(candids)
-    return [Resource(r) for r in DBResource.multi_get(candids)]
+    return CreatedResources([Resource(r)
+                            for r in DBResource.multi_get(candids)])
 
 # TODO
 
@@ -364,7 +394,7 @@ def load_by_tags(query):
 
     nodes = filter(
         lambda n: Expression(query, n.tags).evaluate(), candids)
-    return nodes
+    return CreatedResources(nodes)
 
 
 def validate_resources():
