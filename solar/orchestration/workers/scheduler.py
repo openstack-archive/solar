@@ -140,3 +140,10 @@ class SchedulerCallbackClient(object):
 
     def error(self, ctxt, result, *args, **kwargs):
         self.client.update_next(ctxt, states.ERROR.name, repr(result))
+
+
+def tasks_subscribe(tasks, clients):
+    log.debug('Scheduler subscribes to tasks hooks')
+    scheduler = SchedulerCallbackClient(clients['scheduler'])
+    tasks.for_all.on_success(scheduler.update)
+    tasks.for_all.on_error(scheduler.error)

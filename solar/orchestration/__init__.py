@@ -17,58 +17,42 @@ from solar.core.log import log
 from solar.dblayer import ModelMeta
 from solar.orchestration import extensions as loader
 from solar.orchestration.executors import Executor
-from solar.orchestration.workers.scheduler import SchedulerCallbackClient
 
 
 SCHEDULER_CLIENT = loader.get_client('scheduler')
 
 
+def wrap_session(extension, clients):
+    log.debug('DB session for %r', extension)
+    extension.for_all.before(lambda ctxt: ModelMeta.session_start())
+    extension.for_all.after(lambda ctxt: ModelMeta.session_end())
+
+
 def construct_scheduler(extensions, clients):
     scheduler = extensions['scheduler']
+    loader.load_contruct_hooks('scheduler', extensions, clients)
     scheduler_executor = Executor(
         scheduler, clients['scheduler'].connect_to)
-    scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
-    scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
     scheduler_executor.run()
 
 
 def construct_system_log(extensions, clients):
     syslog = extensions['system_log']
-    syslog.for_all.before(lambda ctxt: ModelMeta.session_start())
-    syslog.for_all.after(lambda ctxt: ModelMeta.session_end())
+    loader.load_contruct_hooks('system_log', extensions, clients)
     Executor(syslog, clients['system_log'].connect_to).run()
 
 
 def construct_tasks(extensions, clients):
-    syslog = clients['system_log']
-    # FIXME will be solved by hooks on certain events
-    # solar.orchestraion.extensions.tasks.before =
-    #   1 = solar.orchestration.workers.scheduler:subscribe
-    scheduler = SchedulerCallbackClient(clients['scheduler'])
     tasks = extensions['tasks']
+    loader.load_contruct_hooks('tasks', extensions, clients)
     tasks_executor = Executor(tasks, clients['tasks'].connect_to)
     tasks.for_all.before(tasks_executor.register_task)
-    tasks.for_all.on_success(syslog.commit)
-    tasks.for_all.on_error(syslog.error)
-    tasks.for_all.on_success(scheduler.update)
-    tasks.for_all.on_error(scheduler.error)
     tasks_executor.run()
 
 
 def main():
-    import sys
-    from gevent import spawn
-    from gevent import joinall
+    runner = loader.get_runner(C.runner)
+    constructors = loader.get_constructors()
     clients = loader.get_clients()
-    mgr = loader.get_extensions(clients)
-    servers = [
-        spawn(construct_scheduler, mgr, clients),
-        spawn(construct_system_log, mgr, clients),
-        spawn(construct_tasks, mgr, clients)
-        ]
-    try:
-        log.info('Spawning scheduler, system log and tasks workers.')
-        joinall(servers)
-    except KeyboardInterrupt:
-        log.info('Exit solar-worker')
-        sys.exit()
+    exts = loader.get_extensions(clients)
+    runner.driver(constructors, exts, clients)

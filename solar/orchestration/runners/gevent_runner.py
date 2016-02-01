@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #    Copyright 2015 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -12,6 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import solar.orchestration.workers.scheduler
-import solar.orchestration.workers.system_log
-import solar.orchestration.workers.tasks
+import sys
+
+import gevent
+
+from solar.core.log import log
+
+
+def run_all(construct_manager, extensions, clients):
+
+    def _spawn(constructor, extensions, clients):
+        return gevent.spawn(constructor.plugin, extensions, clients)
+
+    try:
+        log.info('Spawning scheduler, system log and tasks workers.')
+        gevent.joinall(
+            construct_manager.map(_spawn, extensions, clients))
+    except KeyboardInterrupt:
+        log.info('Exit solar-worker')
+        sys.exit()
