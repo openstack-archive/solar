@@ -22,6 +22,7 @@ import pytest
 from solar.core.log import log
 from solar.dblayer.model import ModelMeta
 from solar.orchestration import executors
+from solar.orchestration import extensions as loader
 from solar.orchestration import workers
 
 
@@ -86,3 +87,20 @@ def tasks(request, tasks_address):
 
     gevent.spawn(executor.run)
     return worker, executors.Client(tasks_address)
+
+
+@pytest.fixture
+def clients(request):
+    rst = {}
+    rst['tasks'] = executors.Client(request.getfuncargvalue(
+        'tasks_address'))
+    rst['scheduler'] = executors.Client(request.getfuncargvalue(
+        'scheduler_address'))
+    rst['system_log'] = executors.Client(request.getfuncargvalue(
+        'system_log_address'))
+    return rst
+
+
+@pytest.fixture
+def extensions(clients):
+    return loader.get_extensions(clients)

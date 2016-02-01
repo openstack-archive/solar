@@ -15,54 +15,56 @@
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
-from solar.orchestration.executors import Client
+from solar.orchestration import extensions as loader
 from solar.orchestration.executors import Executor
-from solar.orchestration.workers import scheduler as wscheduler
-from solar.orchestration.workers.system_log import SystemLog
-from solar.orchestration.workers.tasks import Tasks
+from solar.orchestration.workers.scheduler import SchedulerCallbackClient
 
 
-SCHEDULER_CLIENT = Client(C.scheduler_address)
+SCHEDULER_CLIENT = loader.get_client('scheduler')
 
 
-def construct_scheduler(tasks_address, scheduler_address):
-    scheduler = wscheduler.Scheduler(Client(tasks_address))
-    scheduler_executor = Executor(scheduler, scheduler_address)
+def construct_scheduler(extensions, clients):
+    scheduler = extensions['scheduler']
+    scheduler_executor = Executor(
+        scheduler, clients['scheduler'].connect_to)
     scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
     scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
-    Executor(scheduler, scheduler_address).run()
+    scheduler_executor.run()
 
 
-def construct_system_log(system_log_address):
-    syslog = SystemLog()
+def construct_system_log(extensions, clients):
+    syslog = extensions['system_log']
     syslog.for_all.before(lambda ctxt: ModelMeta.session_start())
     syslog.for_all.after(lambda ctxt: ModelMeta.session_end())
-    Executor(syslog, system_log_address).run()
+    Executor(syslog, clients['system_log'].connect_to).run()
 
 
-def construct_tasks(system_log_address, tasks_address, scheduler_address):
-    syslog = Client(system_log_address)
-    scheduler = wscheduler.SchedulerCallbackClient(
-        Client(scheduler_address))
-    tasks = Tasks()
-    tasks_executor = Executor(tasks, tasks_address)
+def construct_tasks(extensions, clients):
+    syslog = clients['system_log']
+    # FIXME will be solved by hooks on certain events
+    # solar.orchestraion.extensions.tasks.before =
+    #   1 = solar.orchestration.workers.scheduler:subscribe
+    scheduler = SchedulerCallbackClient(clients['scheduler'])
+    tasks = extensions['tasks']
+    tasks_executor = Executor(tasks, clients['tasks'].connect_to)
     tasks.for_all.before(tasks_executor.register_task)
     tasks.for_all.on_success(syslog.commit)
     tasks.for_all.on_error(syslog.error)
     tasks.for_all.on_success(scheduler.update)
     tasks.for_all.on_error(scheduler.error)
-    Executor(tasks, tasks_address).run()
+    tasks_executor.run()
 
 
 def main():
     import sys
     from gevent import spawn
     from gevent import joinall
+    clients = loader.get_clients()
+    mgr = loader.get_extensions(clients)
     servers = [
-        spawn(construct_scheduler, C.tasks_address, C.scheduler_address),
-        spawn(construct_system_log, C.system_log_address),
-        spawn(construct_tasks, C.system_log_address, C.tasks_address,
-              C.scheduler_address)
+        spawn(construct_scheduler, mgr, clients),
+        spawn(construct_system_log, mgr, clients),
+        spawn(construct_tasks, mgr, clients)
         ]
     try:
         log.info('Spawning scheduler, system log and tasks workers.')
