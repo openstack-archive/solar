@@ -10,6 +10,11 @@ The last one is showed in :ref:`tutorial_wordpress`.
 Examples
 --------
 
+.. note::
+
+   You need to have nodes resources created before running example. You can add them by calling
+   `solar resource create nodes templates/nodes count=X` where `X` is required nodes number
+
 Each API is used in different examples:
 
 Python API
