@@ -18,7 +18,7 @@ Contents:
    architecture
    resource
    resource_repository
-   orchestration
+   orchestration/index
    transports
    handler_ansible
    examples
