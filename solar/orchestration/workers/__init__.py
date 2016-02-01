@@ -18,3 +18,6 @@ from solar.orchestration.workers.scheduler import Scheduler
 from solar.orchestration.workers.scheduler import SchedulerCallbackClient
 from solar.orchestration.workers.system_log import SystemLog
 from solar.orchestration.workers.tasks import Tasks
+
+
+__all__ = ['Scheduler', 'SchedulerCallbackClient', 'SystemLog', 'Tasks']
