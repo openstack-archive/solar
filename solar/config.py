@@ -32,6 +32,7 @@ C.system_log_address = 'ipc:///tmp/solar_system_log'
 C.tasks_address = 'ipc:///tmp/solar_tasks'
 C.scheduler_address = 'ipc:///tmp/solar_scheduler'
 C.timewatcher_address = 'ipc:///tmp/solar_timewatcher'
+C.executor = 'zerorpc'
 
 
 def _lookup_vals(setter, config, prefix=None):

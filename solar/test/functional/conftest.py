@@ -21,7 +21,7 @@ import pytest
 
 from solar.core.log import log
 from solar.dblayer.model import ModelMeta
-from solar.orchestration.executors import zerorpc_executor
+from solar.orchestration import executors
 from solar.orchestration import workers
 
 
@@ -51,7 +51,7 @@ def scheduler(request, scheduler_address):
     tasks_client = None
 
     if 'tasks' in request.node.fixturenames:
-        tasks_client = zerorpc_executor.Client(
+        tasks_client = executors.Client(
             request.getfuncargvalue('tasks_address'))
 
     worker = workers.scheduler.Scheduler(tasks_client)
@@ -67,22 +67,22 @@ def scheduler(request, scheduler_address):
     worker.for_all.before(session_start)
     worker.for_all.after(session_end)
 
-    executor = zerorpc_executor.Executor(worker, scheduler_address)
+    executor = executors.Executor(worker, scheduler_address)
     gevent.spawn(executor.run)
-    return worker, zerorpc_executor.Client(scheduler_address)
+    return worker, executors.Client(scheduler_address)
 
 
 @pytest.fixture
 def tasks(request, tasks_address):
     worker = workers.tasks.Tasks()
-    executor = zerorpc_executor.Executor(worker, tasks_address)
-    worker.for_all.before(executor.register)
+    executor = executors.Executor(worker, tasks_address)
+    worker.for_all.before(executor.register_task)
     if 'scheduler' in request.node.fixturenames:
         scheduler_client = workers.scheduler.SchedulerCallbackClient(
-            zerorpc_executor.Client(request.getfuncargvalue(
+            executors.Client(request.getfuncargvalue(
                 'scheduler_address')))
         worker.for_all.on_success(scheduler_client.update)
         worker.for_all.on_error(scheduler_client.error)
 
     gevent.spawn(executor.run)
-    return worker, zerorpc_executor.Client(tasks_address)
+    return worker, executors.Client(tasks_address)
