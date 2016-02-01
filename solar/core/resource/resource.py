@@ -348,8 +348,13 @@ def load_updated(since=None, with_childs=True):
 # TODO
 
 
-def load_all():
-    candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
+def load_all(startswith=None):
+    if startswith:
+        start = startswith
+        end = startswith + '~'
+        candids = DBResource.bucket.get_index("$key", start, end).results
+    else:
+        candids = DBResource.updated.filter(StrInt.p_min(), StrInt.p_max())
     return [Resource(r) for r in DBResource.multi_get(candids)]
 
 

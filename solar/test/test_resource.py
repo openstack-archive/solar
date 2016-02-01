@@ -166,3 +166,23 @@ input:
         with self.assertRaises(Exception):  # NOQA
             sample1.input_computable_change('value', '{{value}}')
         return sample1
+
+    def test_load_all(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
+
+        self.create_resource('sample1', sample_meta_dir, {'value': 1})
+        self.create_resource('sample2', sample_meta_dir, {'value': 1})
+        self.create_resource('x_sample1', sample_meta_dir, {'value': 1})
+
+        assert len(resource.load_all()) == 3
+        assert len(resource.load_all(startswith='sample')) == 2
+        assert len(resource.load_all(startswith='x_sample')) == 1
+        assert len(resource.load_all(startswith='nothing')) == 0
