@@ -27,7 +27,6 @@ SCHEDULER_CLIENT = Client(C.scheduler_address)
 
 def construct_scheduler(tasks_address, scheduler_address):
     scheduler = wscheduler.Scheduler(Client(tasks_address))
-    scheduler_executor = Executor(scheduler, scheduler_address)
     scheduler.for_all.before(lambda ctxt: ModelMeta.session_start())
     scheduler.for_all.after(lambda ctxt: ModelMeta.session_end())
     Executor(scheduler, scheduler_address).run()
@@ -55,15 +54,15 @@ def construct_tasks(system_log_address, tasks_address, scheduler_address):
 
 
 def main():
-    import sys
-    from gevent import spawn
     from gevent import joinall
+    from gevent import spawn
+    import sys
     servers = [
         spawn(construct_scheduler, C.tasks_address, C.scheduler_address),
         spawn(construct_system_log, C.system_log_address),
         spawn(construct_tasks, C.system_log_address, C.tasks_address,
               C.scheduler_address)
-        ]
+    ]
     try:
         log.info('Spawning scheduler, system log and tasks workers.')
         joinall(servers)
