@@ -24,8 +24,8 @@ def host_diff():
             [u'ip', u'10.0.0.3'],
             [u'hosts_names', ['riak_server1.solar', 'riak_server2.solar',
                               'riak_server3.solar']],
-            [u'ssh_user', u'vagrant'],
-            [u'ssh_key',
+            [u'user', u'vagrant'],
+            [u'key',
              u'/vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'],
         ]]
     ]
@@ -35,8 +35,8 @@ def test_details_for_add(host_diff):
     assert data.details(host_diff) == [
         '++ ip: 10.0.0.3',
         "++ hosts_names: ['riak_server1.solar', 'riak_server2.solar', 'riak_server3.solar']",  # NOQA
-        '++ ssh_user: vagrant',
-        '++ ssh_key: /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'  # NOQA
+        '++ user: vagrant',
+        '++ key: /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key'  # NOQA
     ]
 
 
