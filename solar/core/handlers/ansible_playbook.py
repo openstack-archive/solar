@@ -19,7 +19,6 @@ import json
 import shutil
 import tempfile
 
-from solar.core.handlers import base
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
@@ -29,7 +28,7 @@ from solar.core.provider import SVNProvider
 ROLES_PATH = '/etc/ansible/roles'
 
 
-class AnsiblePlaybookBase(base.BaseHandler):
+class AnsiblePlaybookBase(TempFileHandler):
 
     def download_roles(self, urls):
         if not os.path.exists(ROLES_PATH):
@@ -39,8 +38,43 @@ class AnsiblePlaybookBase(base.BaseHandler):
             provider.run()
             shutil.copytree(provider.directory, ROLES_PATH)
 
+    def make_ansible_command(self, remote_playbook_file,
+                             remote_inventory_file, remote_extra_vars_file,
+                             ansible_library_path):
+        if ansible_library_path:
+            remote_ansible_library_path = ansible_library_path.replace(
+                SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+            call_args = [
+                'ansible-playbook',
+                '--module-path',
+                remote_ansible_library_path,
+                '-i',
+                remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
+                remote_playbook_file
+            ]
+        else:
+            call_args = [
+                'ansible-playbook',
+                '-i',
+                remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
+                remote_playbook_file
+            ]
+        return call_args
 
-class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
+    def _copy_ansible_library(self, resource):
+        base_path = resource.db_obj.base_path
+        src_ansible_library_dir = os.path.join(base_path, 'ansible_library')
+        trg_ansible_library_dir = None
+        if os.path.exists(src_ansible_library_dir):
+            log.debug("Adding ansible_library for %s", resource.name)
+            trg_ansible_library_dir = os.path.join(
+                self.dirs[resource.name], 'ansible_library')
+            shutil.copytree(src_ansible_library_dir, trg_ansible_library_dir)
+        return trg_ansible_library_dir
 
     def _make_playbook(self, resource, action, action_path):
         dir_path = self.dirs[resource.name]
@@ -67,6 +101,9 @@ class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
     def _make_extra_vars(self, resource):
         r_args = resource.args
         return json.dumps(r_args)
+
+
+class AnsiblePlaybook(AnsiblePlaybookBase):
 
     def action(self, resource, action):
         action_file = os.path.join(
@@ -95,28 +132,11 @@ class AnsiblePlaybook(AnsiblePlaybookBase, TempFileHandler):
         remote_extra_vars_file = extra_vars_file.replace(
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
-        if ansible_library_path:
-            remote_ansible_library_path = ansible_library_path.replace(
-                SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-            call_args = [
-                'ansible-playbook',
-                '--module-path',
-                remote_ansible_library_path,
-                '-i',
-                remote_inventory_file,
-                '--extra-vars',
-                '@%s' % remote_extra_vars_file,
-                remote_playbook_file
-            ]
-        else:
-            call_args = [
-                'ansible-playbook',
-                '-i',
-                remote_inventory_file,
-                '--extra-vars',
-                '@%s' % remote_extra_vars_file,
-                remote_playbook_file
-            ]
+        call_args = self.make_ansible_command(remote_playbook_file,
+                                              remote_inventory_file,
+                                              remote_extra_vars_file,
+                                              ansible_library_path)
+
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         rst = self.transport_run.run(resource, *call_args)

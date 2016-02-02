@@ -15,73 +15,60 @@
 
 import os
 
-# this has to be before callbacks, otherwise ansible circural import problem
-from ansible import utils
-
-# intentional line, otherwise H306
-from ansible import callbacks
-
-import ansible.constants as C
-from ansible.playbook import PlayBook
-
-from solar.core.transports.base import find_named_transport
 from solar import errors
 
 from solar.core.handlers.ansible_playbook import AnsiblePlaybookBase
+from solar.core.log import log
+from solar.core.transports.base import find_named_transport
+from solar.utils import execute
 
 
 class AnsiblePlaybookLocal(AnsiblePlaybookBase):
 
+    def _make_inventory(self, resource):
+        ssh_transport = find_named_transport(resource, 'ssh')
+        ssh_key = ssh_transport.get('key')
+        ssh_password = ssh_transport.get('password')
+
+        if ssh_key:
+            inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh \
+            ansible_ssh_user={2} ansible_ssh_private_key_file={3}'
+            ssh_auth_data = ssh_key
+        elif ssh_password:
+            inventory = '{0} ansible_ssh_host={1} \
+            ansible_ssh_user={2} ansible_ssh_pass={3}'
+            ssh_auth_data = ssh_password
+        else:
+            raise Exception("No key and no password given")
+        user = ssh_transport['user']
+        host = resource.ip()
+        return inventory.format(host, host, user, ssh_auth_data)
+
     def action(self, resource, action):
-        # This would require to put this file to remote and execute it (mostly)
-
-        ssh_props = find_named_transport(resource, 'ssh')
-
-        remote_user = ssh_props['user']
-        private_key_file = ssh_props.get('key')
-        ssh_password = ssh_props.get('password')
 
         action_file = os.path.join(
             resource.db_obj.actions_path,
             resource.actions[action])
 
+        files = self._make_playbook(resource,
+                                    action,
+                                    action_file)
+        playbook_file, inventory_file, extra_vars_file = files
+
         variables = resource.args
         if 'roles' in variables:
             self.download_roles(variables['roles'])
 
-        host = resource.ip()
-        transport = C.DEFAULT_TRANSPORT
+        ansible_library_path = self._copy_ansible_library(resource)
+        call_args = self.make_ansible_command(playbook_file,
+                                              inventory_file,
+                                              extra_vars_file,
+                                              ansible_library_path)
 
-        C.HOST_KEY_CHECKING = False
+        log.debug('EXECUTING: %s', ' '.join(call_args))
 
-        stats = callbacks.AggregateStats()
-        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        runner_cb = callbacks.PlaybookRunnerCallbacks(
-            stats, verbose=utils.VERBOSITY)
-
-        opts = dict(
-            playbook=action_file,
-            remote_user=remote_user,
-            host_list=[host],
-            extra_vars=variables,
-            callbacks=playbook_cb,
-            runner_callbacks=runner_cb,
-            stats=stats,
-            transport=transport)
-
-        if ssh_password:
-            opts['remote_pass'] = ssh_password
-        elif private_key_file:
-            opts['private_key_file'] = private_key_file
+        ret, out, err = execute(call_args)
+        if ret == 0:
+            return
         else:
-            raise Exception("No key and no password given")
-
-        play = PlayBook(**opts)
-
-        play.run()
-        summary = stats.summarize(host)
-
-        if summary.get('unreachable') or summary.get('failures'):
-            raise errors.SolarError(
-                'Ansible playbook %s failed with next summary %s',
-                action_file, summary)
+            raise errors.SolarError(out)
