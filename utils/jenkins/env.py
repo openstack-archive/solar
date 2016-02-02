@@ -1,9 +1,25 @@
 # -*- coding: utf-8 -*-
+from copy import copy
 import os
+import subprocess as sub
 import sys
 import yaml
 
 from devops.models import Environment
+
+
+def create_overlay_image(env_name, node_name, base_image):
+    overlay_image_path = 'tmp/{}_{}.qcow2'.format(env_name, node_name)
+    base_image = os.path.abspath(base_image)
+    if os.path.exists(overlay_image_path):
+        os.unlink(overlay_image_path)
+    try:
+        sub.call(['qemu-img', 'create', '-b', base_image, '-f', 'qcow2',
+                  overlay_image_path])
+    except sub.CalledProcessError as e:
+        print e.output
+        raise
+    return overlay_image_path
 
 
 def create_config():
@@ -19,14 +35,15 @@ def create_config():
 
     conf['env_name'] = env_name
     node_params = conf['rack-01-node-params']
-    node_params['volumes'][0]['source_image'] = image_path
 
     group = conf['groups'][0]
     for i in range(slaves_count):
         group['nodes'].append({'name': 'slave-{}'.format(i),
                                'role': 'slave'})
     for node in group['nodes']:
-        node['params'] = node_params
+        node['params'] = copy(node_params)
+        vol_path = create_overlay_image(env_name, node['name'], image_path)
+        node['params']['volumes'][0]['source_image'] = vol_path
     return {'template': {'devops_settings': conf}}
 
 def get_env():
