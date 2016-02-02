@@ -55,6 +55,9 @@ functionality of Solar. Interesting examples might be Chef, SaltStack,
 CFEngine etc. Using handlers allows Solar to be quickly implemented in various
 environments and integrate with already used configuration management tools.
 
+
+.. _resource_input:
+
 Input
 -----
 Inputs are essentially values that given resource can accept. Exact usage

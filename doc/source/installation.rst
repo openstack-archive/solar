@@ -113,7 +113,7 @@ If you want to test Solar locally you may install it via pip:
 
   pip install solar
 
-Create solar configuration `solar_config` and paste following data:
+Create solar configuration `solar_config` file and paste following data:
 
 .. code-block:: yaml
 
@@ -121,7 +121,7 @@ Create solar configuration `solar_config` and paste following data:
 
 and set path to this configuration:
 
-.. code-bloc:: bash
+.. code-block:: bash
 
   export SOLAR_CONFIG_OVERRIDE=<full/path/solar_config>
 

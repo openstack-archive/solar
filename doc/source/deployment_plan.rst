@@ -9,11 +9,10 @@ configured between this changes.
 
 Required information
 ----------------------
-Inputs
-TODO link to the page with inputs
 
-Orchestration
-TODO link to the page with orchestration API details
+* :ref:`resource_input`
+* :ref:`orchestration`
+
 
 Changes
 --------
