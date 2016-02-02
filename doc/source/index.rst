@@ -20,7 +20,6 @@ Contents:
    resource_repository
    orchestration
    transports
-   handler_ansible
    examples
    deployment_plan
    faq
