@@ -12,4 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from .api import *
+from solar.events.api import add_dep
+from solar.events.api import add_event
+from solar.events.api import add_react
+from solar.events.api import Dep
+from solar.events.api import React
+
+
+__all__ = ['add_dep', 'add_react', 'Dep', 'React', 'add_event']

@@ -19,10 +19,10 @@ from solar.config import C
 
 
 mgr = driver.DriverManager(
-        namespace='solar.orchestration.executors',
-        name=C.executor,
-        invoke_on_load=False,
-    )
+    namespace='solar.orchestration.executors',
+    name=C.executor,
+    invoke_on_load=False,
+)
 
 Client = mgr.driver.Client
 Executor = mgr.driver.Executor

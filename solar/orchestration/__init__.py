@@ -15,8 +15,8 @@
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
-from solar.orchestration import extensions as loader
 from solar.orchestration.executors import Executor
+from solar.orchestration import extensions as loader
 
 
 SCHEDULER_CLIENT = loader.get_client('scheduler')

@@ -12,4 +12,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from .resource import Resource, load, load_all, validate_resources, load_by_tags, load_updated, RESOURCE_STATE
+from solar.core.resource.resource import load
+from solar.core.resource.resource import load_all
+from solar.core.resource.resource import load_by_tags
+from solar.core.resource.resource import load_updated
+from solar.core.resource.resource import Resource
+from solar.core.resource.resource import RESOURCE_STATE
+from solar.core.resource.resource import validate_resources
+
+__all__ = [
+    'RESOURCE_STATE',
+    'Resource',
+    'load',
+    'load_all',
+    'load_by_tags',
+    'load_updated',
+    'validate_resources'
+]
