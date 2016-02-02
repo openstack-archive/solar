@@ -2,36 +2,12 @@ id: simple_riak_with_transports
 resources:
 #% for i in range(count|int) %#
    #% set j = i +1 %#
-  - id: ssh_transport#{j}#
-    from: resources/transport_ssh
-    input:
-      user: 'vagrant'
-      password: 'vagrant'
-  - id: rsync#{j}#
-    from: resources/transport_rsync
-    input:
-      user: vagrant
-      password: vagrant
-  - id: transports#{j}#
-    from: resources/transports
-    input:
-      transports:
-        - password: ssh_transport#{j}#::password
-          user: ssh_transport#{j}#::user
-          port: ssh_transport#{j}#::port
-          name: ssh_transport#{j}#::name
-        - password: rsync#{j}#::password
-          name: rsync#{j}#::name
-          user: rsync#{j}#::user
-          port: rsync#{j}#::port
   - id: node#{j}#
-    from: resources/ro_node
+    from: templates/node
     input:
       name: node#{j}#
-      ip: '10.0.0.#{i + 3}#'
-      transports_id: transports#{j}#::transports_id
-  - id: hosts_file#{j}#
-    from: resources/hosts_file
-    location: node#{j}#
-    tags: ['location=node#{j}#']
+      ssh_user: 'vagrant'
+      ssh_key: ''
+      ssh_password: 'vagrant'
+      ip: '#{ips[i]}#'
 #% endfor %#
