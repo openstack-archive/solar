@@ -4,7 +4,7 @@
   hosts: all
   sudo: yes
   vars:
-    ssh_ip_mask: "10.0.0.*"
+    ssh_ip_mask: "10.*.*.*"
   tasks:
     - include: tasks/base.yaml
     - include: tasks/puppet.yaml
