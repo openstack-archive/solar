@@ -43,6 +43,8 @@
 # PIP
 - shell: sudo pip install httpie
 - shell: sudo pip install docker-py==1.1.0
+# pre install solare requirements
+- shell: pip install -r https://raw.githubusercontent.com/openstack/solar/master/requirements.txt
 
 # faster json
 - shell: pip install ujson
