@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import sys
+
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
@@ -50,7 +52,8 @@ def construct_tasks(extensions, clients):
     tasks_executor.run()
 
 
-def main():
+def main(args=sys.argv[1:]):
+    C(args)
     runner = loader.get_runner(C.runner)
     constructors = loader.get_constructors()
     clients = loader.get_clients()

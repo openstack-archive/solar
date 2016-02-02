@@ -20,6 +20,7 @@ On create "golden" resource should be moved to special place
 import collections
 import json
 import os
+import sys
 
 import click
 from fabric import api as fabric_api
@@ -28,6 +29,7 @@ import networkx as nx
 from solar.core import resource as sresource
 from solar.core import signals
 
+from solar.config import C
 from solar.cli import base
 from solar.cli.events import events
 from solar.cli.inputs import inputs as cli_inputs
@@ -61,6 +63,11 @@ def show_emitter_connections(res):
 @click.group(cls=base.AliasedGroup)
 @click.option('--debug/--no-debug', default=False)
 def main(debug):
+    if '--' in sys.argv:
+        conf_args = sys.argv[sys.argv.index('--') + 1:]
+    else:
+        conf_args  = []
+    C(conf_args)
     debug = debug or os.getenv("SOLAR_CLI_DEBUG")
     if not debug:
         base.EGroup.error_wrapper_enabled = True
@@ -169,7 +176,11 @@ def run():
     main.add_command(events)
     main.add_command(cli_repository)
     main.add_command(cli_inputs)
-    main()
+
+    main_args = sys.argv[1:]
+    if '--' in main_args:
+        main_args = main_args[:main_args.index('--')]
+    main(main_args)
 
 
 if __name__ == '__main__':

@@ -13,11 +13,16 @@
 #    under the License.
 
 import os
+import sys
 
 from solar.config import C
 from solar import utils
 
-
+conf_args = []
+delimiter = '--'
+if delimiter in sys.argv:
+    conf_args = sys.argv[sys.argv.index(delimiter) + 1:]
+C(conf_args)
 C.solar_db = C.solar_db.format(PID=os.getpid())
 
 

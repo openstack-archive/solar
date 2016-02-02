@@ -1,0 +1,5 @@
+---
+
+- file: path=/etc/solar state=directory
+- shell: chown vagrant:vagrant /etc/solar
+- template: src=files/solar.conf dest=/etc/solar/solar.conf
