@@ -57,9 +57,13 @@ class AnsibleTemplateLocal(AnsibleTemplateBase):
         log.debug('inventory_file: %s', inventory_file)
         log.debug('playbook_file: %s', playbook_file)
 
-        lib_path = self.get_library_path()
-        call_args = ['ansible-playbook', '--module-path', lib_path,
-                     '-i', inventory_file, playbook_file]
+        lib_path = self._copy_ansible_library(resource)
+        if lib_path:
+            call_args = ['ansible-playbook', '--module-path', lib_path,
+                         '-i', inventory_file, playbook_file]
+        else:
+            call_args = ['ansible-playbook', '-i', inventory_file,
+                         playbook_file]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         ret, out, err = execute(call_args)
