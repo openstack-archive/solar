@@ -14,7 +14,6 @@
 
 from solar.config import C
 from solar.core.log import log
-from solar.dblayer import ModelMeta
 from solar.orchestration.executors import Executor
 from solar.orchestration import extensions as loader
 
@@ -24,6 +23,8 @@ SCHEDULER_CLIENT = loader.get_client('scheduler')
 
 def wrap_session(extension, clients):
     log.debug('DB session for %r', extension)
+    # TODO remove eager initialization of database driver
+    from solar.dblayer import ModelMeta
     extension.for_all.before(lambda ctxt: ModelMeta.session_start())
     extension.for_all.after(lambda ctxt: ModelMeta.session_end())
 

@@ -32,5 +32,4 @@ fi
 pip install pip-accel
 pip-accel install -r test-requirements.txt
 
-
-SOLAR_CONFIG=../.config CONFIG_FILE=$CONFIG_FILE py.test --cov=solar -s solar
+py.test --cov=solar -s solar
