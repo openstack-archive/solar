@@ -439,6 +439,10 @@ class InputsFieldWrp(IndexFieldWrp):
             _res = self._get_raw_field_val(name)
             self._cache[name] = _res
             if other:
+                if other == '_key':
+                    k = self._instance.key
+                    self._cache[full_name] = k
+                    return k
                 other_res = self._get_field_val(other)
                 self._cache[full_name] = other_res
                 return other_res

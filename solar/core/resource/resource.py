@@ -123,6 +123,11 @@ class Resource(object):
         db_obj = self.db_obj
         return db_obj.inputs._get_field_val('location_id', other='ip')
 
+    def get_file_path(self, rel_path):
+        base_path = self.db_obj.base_path
+        path = os.path.join(base_path, rel_path)
+        return path
+
     @property
     def actions(self):
         if self.db_obj.actions:
@@ -370,6 +375,10 @@ def load_by_tags(query):
     nodes = filter(
         lambda n: Expression(query, n.tags).evaluate(), candids)
     return nodes
+
+
+def load_by_names(names):
+    return [Resource(r) for r in DBResource.multi_get(names)]
 
 
 def validate_resources():
