@@ -23,12 +23,14 @@ else:
     patch_all()
 
 from solar.config import C
+from solar.core.log import log
 from solar.dblayer.model import ModelMeta
 from solar.utils import parse_database_conn
 
 _connection, _connection_details = parse_database_conn(C.solar_db)
 
 if _connection.mode == 'sqlite':
+    log.debug('SQLite backend will be used, connection %s', C.solar_db)
     from solar.dblayer.sql_client import SqlClient
     if _connection.database == ':memory:' or _connection.database is None:
         opts = {'threadlocals': True,
@@ -45,6 +47,7 @@ if _connection.mode == 'sqlite':
         **opts)
 
 elif _connection.mode == 'riak':
+    log.debug('Riak backend will be used, connection %s', C.solar_db)
     from solar.dblayer.riak_client import RiakClient
     proto = _connection_details.get('protocol', 'pbc')
     opts = _connection_details.toDict()

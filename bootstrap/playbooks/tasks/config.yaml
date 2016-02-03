@@ -1,0 +1,4 @@
+---
+
+- file: path=/etc/solar state=directory owner=vagrant group=vagrant
+- template: src=files/solar.conf dest=/etc/solar/solar.conf
