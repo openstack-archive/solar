@@ -19,37 +19,10 @@
     - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
     - file: path=/vagrant/solar-resources owner=vagrant group=vagrant recurse=yes
     - shell: pip install gevent
-    # set default config location
-    - lineinfile:
-        dest: /home/vagrant/.bashrc
-        line: export SOLAR_CONFIG="/vagrant/.config"
-        state: present
-
     # create custom config file /vagrant/.solar_config_override for vagrant env
-    - file: path=/.solar_config_override state=touch mode=0644
-    - lineinfile:
-        dest: /.solar_config_override
-        line: "solar_db: riak://127.0.0.1:8087"
-        state: present
-        create: yes
-    - lineinfile:
-        dest: /.solar_config_override
-        line: "log_file: /var/log/solar/solar.log"
-        state: present
-        create: yes
-    - lineinfile:
-        dest: /.solar_config_override
-        line: "counter_bucket_type: counters"
-        state: present
-        create: yes
     - lineinfile:
         dest: /home/vagrant/.bashrc
         line: export PYTHONWARNINGS="ignore"
-        state: present
-    # make riak default on vagrant env
-    - lineinfile:
-        dest: /home/vagrant/.bashrc
-        line: export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
         state: present
     - lineinfile:
         dest: /home/vagrant/.bashrc
@@ -68,5 +41,5 @@
     - shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type create counters '{"props":{"datatype":"counter"}}'
       ignore_errors: yes
     - shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type activate counters
-
+    - include: tasks/config.yaml
     - include: tasks/worker_upstart.yaml

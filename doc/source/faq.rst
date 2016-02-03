@@ -40,14 +40,13 @@ as `vagrant` user.
 How can I configure solar ?
 ---------------------------
 
-There are several places where we search for config values:
+Solar uses oslo.config for configuration, it means that by default
+solar will find config files matched by following patterns::
 
-1. `.config` file in CWD or in path from `SOLAR_CONFIG` env variable
-2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override previous
-values
-3. `.config.override` in CWD
-4. You can also set upper-cased env variable which matches one of those in
-config
+    ~/.solar/*.conf
+    /etc/solar/*.conf
+
+Additionally user is able to specify SOLAR_CONFIG environment variable.
 
 .. _faq_what_database:
 
