@@ -3,7 +3,7 @@
 - hosts: all
   sudo: yes
   vars:
-    ssh_ip_mask: "10.0.0.*"
+    ssh_ip_mask: "10.*.*.*"
   tasks:
     # upgrade pbr first, old version throws strange errors
     - shell: pip install pbr -U
@@ -29,7 +29,7 @@
     - file: path=/.solar_config_override state=touch mode=0644
     - lineinfile:
         dest: /.solar_config_override
-        line: "solar_db: riak://10.0.0.2:8087"
+        line: "solar_db: riak://127.0.0.1:8087"
         state: present
         create: yes
     - lineinfile:
