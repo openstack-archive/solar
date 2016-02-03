@@ -28,6 +28,9 @@ from solar.core.provider import SVNProvider
 ROLES_PATH = '/etc/ansible/roles'
 
 
+# TODO: make shared logic for ansible_template and ansible_playbook
+
+
 class AnsiblePlaybookBase(TempFileHandler):
 
     def download_roles(self, urls):
