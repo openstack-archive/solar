@@ -15,6 +15,7 @@ TEST_SCRIPT=${TEST_SCRIPT:-/vagrant/examples/hosts_file/hosts.py}
 DEPLOY_TIMEOUT=${DEPLOY_TIMEOUT:-60}
 
 dos.py erase ${ENV_NAME} || true
+mkdir -p tmp
 ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py create_env
 
 SLAVE_IPS=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_slaves_ips`
