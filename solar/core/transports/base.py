@@ -46,16 +46,20 @@ class Executor(object):
                and len(executor_result) == 3:
                 # TODO Include file information in result
                 obj = SolarTransportResult.from_tuple(*executor_result)
-            log.debug(
-                'RC %s OUT %s ERR %s',
-                obj.return_code,
-                obj.stdout,
-                obj.stderr
-            )
-            if obj.success is False:
-                raise errors.SolarError(obj.output)
-            elif obj.success is None:
-                log.debug("Cannot verify result")
+                log.debug(
+                    'RC %s OUT %s ERR %s',
+                    obj.return_code,
+                    obj.stdout,
+                    obj.stderr
+                )
+                if obj.success is False:
+                    raise errors.SolarError(obj.output)
+                elif obj.success is None:
+                    log.debug("Cannot verify result")
+            elif executor_result is None:
+                pass
+            else:
+                log.debug("Unknown executor_result %r", executor_result)
 
 
 class SolarTransportResult(object):
