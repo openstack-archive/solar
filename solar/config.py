@@ -16,85 +16,41 @@
 
 import os
 
-from bunch import Bunch
-import yaml
+from oslo_config import cfg
 
 
-CWD = os.getcwd()
+class SolarConf(cfg.ConfigOpts):
+    """oslo_config performs default config files search based on
+    provided project name
+    """
+
+    def __call__(self, *args, **kwargs):
+        if 'project' not in kwargs:
+            kwargs['project'] = 'solar'
+        return super(SolarConf, self).__call__(*args, **kwargs)
 
 
-C = Bunch(solar_db="")
-C.riak_ensemble = False
-C.lock_bucket_type = None
-C.counter_bucket_type = None
-C.log_file = 'solar.log'
-C.system_log_address = 'ipc:///tmp/solar_system_log'
-C.tasks_address = 'ipc:///tmp/solar_tasks'
-C.scheduler_address = 'ipc:///tmp/solar_scheduler'
-C.timewatcher_address = 'ipc:///tmp/solar_timewatcher'
-C.executor = 'zerorpc'
-C.tasks_driver = 'solar'
-C.scheduler_driver = 'solar'
-C.system_log_driver = 'solar'
-C.runner = 'gevent'
+C = SolarConf()
 
+C.register_opts([
+    cfg.StrOpt(
+        'solar_db',
+        default=os.environ.get('SOLAR_DB', 'sqlite:////tmp/solar.db')),
+    cfg.BoolOpt('riak_ensemble', default=False),
+    cfg.StrOpt('lock_bucket_type'),
+    cfg.StrOpt('counter_bucket_type'),
+    cfg.StrOpt('log_file', default='solar.log'),
+    cfg.StrOpt('system_log_address',
+               default='ipc:///tmp/solar_system_log'),
+    cfg.StrOpt('tasks_address',
+               default='ipc:///tmp/solar_tasks'),
+    cfg.StrOpt('scheduler_address',
+               default='ipc:///tmp/solar_scheduler'),
+    cfg.StrOpt('executor', default='zerorpc'),
+    cfg.StrOpt('tasks_driver', default='solar'),
+    cfg.StrOpt('scheduler_driver', default='solar'),
+    cfg.StrOpt('system_log_driver', default='solar'),
+    cfg.StrOpt('runner', default='gevent')])
 
-def _lookup_vals(setter, config, prefix=None):
-    for key, val in config.iteritems():
-        if prefix is None:
-            sub = [key]
-        else:
-            sub = prefix + [key]
-        if isinstance(val, Bunch):
-            _lookup_vals(setter, val, sub)
-        else:
-            setter(config, sub)
+C.set_default('config-file', os.environ.get('SOLAR_CONFIG', None))
 
-
-def from_configs():
-
-    paths = [
-        os.getenv('SOLAR_CONFIG', os.path.join(CWD, '.config')),
-        os.getenv('SOLAR_CONFIG_OVERRIDE', None),
-        os.path.join(CWD, '.config.override')
-    ]
-    data = {}
-
-    def _load_from_path(data, path):
-        with open(path) as f:
-            loaded = yaml.load(f)
-            if loaded:
-                data.update(loaded)
-
-    for path in paths:
-        if not path:
-            continue
-        if not os.path.exists(path):
-            continue
-        if not os.path.isfile(path):
-            continue
-        with open(path) as f:
-            loaded = yaml.load(f)
-            if loaded:
-                data.update(loaded)
-
-    def _setter(config, path):
-        vals = data
-        for key in path:
-            if key not in vals:
-                return
-            vals = vals[key]
-        config[path[-1]] = vals
-    if data:
-        _lookup_vals(_setter, C)
-
-
-def from_env():
-    def _setter(config, path):
-        env_key = '_'.join(path).upper()
-        if env_key in os.environ:
-            config[path[-1]] = os.environ[env_key]
-    _lookup_vals(_setter, C)
-
-from_configs()
-from_env()

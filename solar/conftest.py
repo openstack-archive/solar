@@ -18,6 +18,7 @@ from solar.config import C
 from solar import utils
 
 
+C([])
 C.solar_db = C.solar_db.format(PID=os.getpid())
 
 

@@ -28,6 +28,7 @@ import networkx as nx
 from solar.core import resource as sresource
 from solar.core import signals
 
+from solar.config import C
 from solar.cli import base
 from solar.cli.events import events
 from solar.cli.inputs import inputs as cli_inputs
@@ -61,6 +62,7 @@ def show_emitter_connections(res):
 @click.group(cls=base.AliasedGroup)
 @click.option('--debug/--no-debug', default=False)
 def main(debug):
+    C([])
     debug = debug or os.getenv("SOLAR_CLI_DEBUG")
     if not debug:
         base.EGroup.error_wrapper_enabled = True

@@ -12,6 +12,7 @@ inflection
 Fabric==1.10.2
 tabulate==0.7.5
 gevent>=1.0.2
+oslo.config>=3.4.0
 
 # we need callbacks for now
 ansible<2.0
@@ -20,7 +21,6 @@ mock
 multipledispatch==0.4.8
 pbr
 pydot
-bunch
 wrapt
 # if you want to use riak backend then
 # riak
