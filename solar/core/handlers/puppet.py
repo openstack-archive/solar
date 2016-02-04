@@ -59,7 +59,7 @@ class Puppet(TempFileHandler):
         )
         rc, out, err = res.return_code, res.stdout, res.stderr
         log.debug('CMD %r RC %s OUT %s ERR %s', cmd_args, rc, out, err)
-        # 0 - no changes, 2 - successfull changes
+        # 0 - no changes, 2 - successful changes
         if rc not in [0, 2]:
             raise errors.SolarError(
                 'Puppet for {} failed with RC {}'.format(

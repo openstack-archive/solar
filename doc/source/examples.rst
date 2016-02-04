@@ -116,7 +116,7 @@ Step 7: Think of the deployment composition
 +++++++++++++++++++++++++++++++++++++++++++
 
 The deployment composition is which resources should be used and in which order
-it should be executed to achive the expected result, which is a successfull
+it should be executed to achieve the expected result, which is a successful
 :ref:`deploy-plan-term`. For the given example, the composition may be as
 following:
 
