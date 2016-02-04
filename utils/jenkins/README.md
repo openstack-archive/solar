@@ -1,7 +1,7 @@
 Examples testing
 ================
 
-To automaticly test examples install first fuel-devops framework. Installation process is described here https://github.com/openstack/fuel-devops. After installation run migrations scripts:
+To automatically test examples install first fuel-devops framework. Installation process is described here https://github.com/openstack/fuel-devops. After installation run migrations scripts:
 
 ```bash
 export DJANGO_SETTINGS_MODULE=devops.settings

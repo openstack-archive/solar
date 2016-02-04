@@ -182,7 +182,7 @@ class RiakEnsembleLock(_Lock):
             lk.save(force=True)
             return lk
         except RiakError as exc:
-            # TODO object shouldnt be cached before successfull save
+            # TODO object shouldnt be cached before successful save
             del DBLock._c.obj_cache[lk.key]
             # check documentation for error message
             # http://docs.basho.com/riak/latest/dev/advanced/strong-consistency/#Error-Messages

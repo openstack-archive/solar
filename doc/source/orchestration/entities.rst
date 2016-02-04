@@ -37,7 +37,7 @@ Subscriptions
 Each public method of worker is subscribable, in current version
 4 events are available to subscribers.
 
-on_sucess
+on_success
   Called in the case of successful execution, provides context, result
   and event arguments
 on_error

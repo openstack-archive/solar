@@ -113,7 +113,8 @@ has (connections etc), but you can set a function that will return final input
 value.
 
 .. note::
-   Remeber, that you need to connect inputs to have it accessible in
+
+   Remember, that you need to connect inputs to have it accessible in
    Computable Inputs logic.
 
 Currently you can write the functions using:
