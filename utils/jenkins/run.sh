@@ -14,6 +14,8 @@ IMAGE_PATH=${IMAGE_PATH:-bootstrap/output-qemu/ubuntu1404}
 TEST_SCRIPT=${TEST_SCRIPT:-/vagrant/examples/hosts_file/hosts.py}
 DEPLOY_TIMEOUT=${DEPLOY_TIMEOUT:-60}
 
+SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 dos.py erase ${ENV_NAME} || true
 mkdir -p tmp
 ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py create_env
@@ -22,11 +24,27 @@ SLAVE_IPS=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_slaves_ips`
 ADMIN_IP=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_admin_ip`
 
 # Wait for master to boot
-sleep 30
+elapsed_time=0
+master_wait_time=30
+while true
+do
+  report=$(sshpass -p ${ADMIN_PASSWORD} ssh ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP} echo ok || echo not ready)
 
-sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
+  if [ "${report}" = "ok" ]; then
+    break
+  fi
 
-sshpass -p ${ADMIN_PASSWORD} ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
+  if [ "${elapsed_time}" -gt "${master_wait_time}" ]; then
+    exit 2
+  fi
+
+  sleep 1
+  let elapsed_time+=1
+done
+
+sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh ${SSH_OPTIONS}" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
+
+sshpass -p ${ADMIN_PASSWORD} ssh ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
 set -x
 export PYTHONWARNINGS="ignore"
 
