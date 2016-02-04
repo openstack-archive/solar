@@ -14,15 +14,19 @@
 #    under the License.
 
 from fabric.state import env
+import json
 import os
-
 import shutil
+
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.handlers.base import TempFileHandler
 from solar.core.log import log
 
 # otherwise fabric will sys.exit(1) in case of errors
 env.warn_only = True
+
+
+# TODO: make shared logic for ansible_template and ansible_playbook
 
 
 class AnsibleTemplateBase(TempFileHandler):
@@ -35,14 +39,10 @@ class AnsibleTemplateBase(TempFileHandler):
         return inventory_path
 
     def _render_inventory(self, r):
-        inventory = '{0} ansible_connection=local user={1} {2}'
+        inventory = '{0} ansible_connection=local user={1}'
         user = self.transport_run.get_transport_data(r)['user']
         host = 'localhost'
-        args = []
-        for arg in r.args:
-            args.append('{0}="{1}"'.format(arg, r.args[arg]))
-        args = ' '.join(args)
-        inventory = inventory.format(host, user, args)
+        inventory = inventory.format(host, user)
         log.debug(inventory)
         return inventory
 
@@ -60,6 +60,17 @@ class AnsibleTemplateBase(TempFileHandler):
             shutil.copytree(src_ansible_library_dir, trg_ansible_library_dir)
         return trg_ansible_library_dir
 
+    def _make_extra_vars(self, resource):
+        r_args = resource.args
+        return json.dumps(r_args)
+
+    def _create_extra_vars(self, resource):
+        dir_path = self.dirs[resource.name]
+        path = os.path.join(dir_path, 'extra_vars')
+        with open(path, 'w') as extra:
+            extra.write(self._make_extra_vars(resource))
+        return path
+
 
 # if we would have something like solar_agent that would render this then
 # we would not need to render it there
@@ -70,8 +81,11 @@ class AnsibleTemplate(AnsibleTemplateBase):
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
         playbook_file = self._create_playbook(resource, action_name)
+        extra_vars_file = self._create_extra_vars(resource)
+
         log.debug('inventory_file: %s', inventory_file)
         log.debug('playbook_file: %s', playbook_file)
+        log.debug('extra_vars_file: %s', extra_vars_file)
 
         self._copy_templates_and_scripts(resource, action_name)
         ansible_library_path = self._copy_ansible_library(resource)
@@ -83,6 +97,8 @@ class AnsibleTemplate(AnsibleTemplateBase):
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
         remote_inventory_file = inventory_file.replace(
             SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
+        remote_extra_vars_file = extra_vars_file.replace(
+            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
 
         if ansible_library_path:
             remote_ansible_library_path = ansible_library_path.replace(
@@ -93,6 +109,8 @@ class AnsibleTemplate(AnsibleTemplateBase):
                 remote_ansible_library_path,
                 '-i',
                 remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
                 remote_playbook_file
             ]
         else:
@@ -100,6 +118,8 @@ class AnsibleTemplate(AnsibleTemplateBase):
                 'ansible-playbook',
                 '-i',
                 remote_inventory_file,
+                '--extra-vars',
+                '@%s' % remote_extra_vars_file,
                 remote_playbook_file
             ]
         log.debug('EXECUTING: %s', ' '.join(call_args))

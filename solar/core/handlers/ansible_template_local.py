@@ -33,37 +33,49 @@ class AnsibleTemplateLocal(AnsibleTemplateBase):
 
         if ssh_key:
             inventory = '{0} ansible_ssh_host={1} ansible_connection=ssh \
-            ansible_ssh_user={2} ansible_ssh_private_key_file={3} {4}'
+            ansible_ssh_user={2} ansible_ssh_private_key_file={3}'
             ssh_auth_data = ssh_key
         elif ssh_password:
             inventory = '{0} ansible_ssh_host={1} \
-            ansible_ssh_user={2} ansible_ssh_pass={3} {4}'
+            ansible_ssh_user={2} ansible_ssh_pass={3}'
             ssh_auth_data = ssh_password
         else:
             raise Exception("No key and no password given")
         host = r.ip()
         user = ssh_transport['user']
-        args = []
-        for arg in r.args:
-            args.append('{0}="{1}"'.format(arg, r.args[arg]))
-        args = ' '.join(args)
-        inventory = inventory.format(host, host, user, ssh_auth_data, args)
+        inventory = inventory.format(host, host, user, ssh_auth_data)
         log.debug(inventory)
         return inventory
 
     def action(self, resource, action_name):
         inventory_file = self._create_inventory(resource)
         playbook_file = self._create_playbook(resource, action_name)
+        extra_vars_file = self._create_extra_vars(resource)
+
         log.debug('inventory_file: %s', inventory_file)
         log.debug('playbook_file: %s', playbook_file)
 
         lib_path = self._copy_ansible_library(resource)
         if lib_path:
-            call_args = ['ansible-playbook', '--module-path', lib_path,
-                         '-i', inventory_file, playbook_file]
+            call_args = [
+                'ansible-playbook',
+                '--module-path',
+                lib_path,
+                '-i',
+                inventory_file,
+                '--extra-vars',
+                '@%s' % extra_vars_file,
+                playbook_file
+            ]
         else:
-            call_args = ['ansible-playbook', '-i', inventory_file,
-                         playbook_file]
+            call_args = [
+                'ansible-playbook',
+                '-i',
+                inventory_file,
+                '--extra-vars',
+                '@%s' % extra_vars_file,
+                playbook_file
+            ]
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         ret, out, err = execute(call_args)
