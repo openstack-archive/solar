@@ -24,9 +24,9 @@ ADMIN_IP=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_admin_ip`
 # Wait for master to boot
 sleep 30
 
-sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh -o StrictHostKeyChecking=no" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
+sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
 
-sshpass -p ${ADMIN_PASSWORD} ssh -o StrictHostKeyChecking=no ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
+sshpass -p ${ADMIN_PASSWORD} ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
 set -x
 export PYTHONWARNINGS="ignore"
 
