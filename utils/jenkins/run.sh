@@ -22,7 +22,23 @@ SLAVE_IPS=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_slaves_ips`
 ADMIN_IP=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_admin_ip`
 
 # Wait for master to boot
-sleep 30
+elapsed_time=0
+master_wait_time=30
+while true
+do
+  report=$(sshpass -p ${ADMIN_PASSWORD} ssh -o StrictHostKeyChecking=no ${ADMIN_USER}@${ADMIN_IP} echo ok || echo not ready)
+
+  if [ "${report}" = "ok" ]; then
+    break
+  fi
+
+  if [ "${elapsed_time}" -gt "${master_wait_time}" ]; then
+    exit 2
+  fi
+
+  sleep 1
+  let elapsed_time+=1
+done
 
 sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh -o StrictHostKeyChecking=no" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
 
