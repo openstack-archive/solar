@@ -13,6 +13,8 @@
 #    under the License.
 
 from solar.core.log import log
+from solar.core.resource.resource import load
+from solar.core.resource.resource import load_by_names
 from solar import errors
 
 
@@ -100,6 +102,18 @@ class SolarTransportResult(object):
 def find_named_transport(resource, req_name):
     transport = next(x for x in resource.transports()
                      if x['name'] == req_name)
+    return transport
+
+
+def locate_named_transport_resoruce(resource, name):
+    transports = resource.db_obj.inputs._get_field_val('transports_id',
+                                                       other='_key')
+    transports_resource = load(transports)
+    connections = transports_resource.connections
+    just_names = filter(lambda x: x[1] == 'name', connections)
+    transports = load_by_names([x[0] for x in just_names])
+    transport = next(x for x in transports
+                     if x.db_obj.inputs._get_raw_field_val('name') == name)
     return transport
 
 

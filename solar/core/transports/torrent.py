@@ -22,6 +22,7 @@ import libtorrent as lt
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.log import log
 from solar.core.transports.base import Executor
+from solar.core.transports.base import locate_named_transport_resoruce
 from solar.core.transports.base import SyncTransport
 from solar.core.transports.ssh import SSHSyncTransport
 
@@ -89,20 +90,20 @@ class TorrentSyncTransport(SyncTransport):
             self._sudo_torrents.append((name, magnet_uri, root))
         return name
 
-    def _start_seeding(self):
+    def _start_seeding(self, resource):
         # XXX: naive naive naive
         # we don't need use sudo there for now
         from fabric import api as fabric_api
+        torrent_t = locate_named_transport_resoruce(resource, 'torrent')
+
+        solar_torrent = torrent_t.get_file_path('scripts/solar_torrent.py')
         torrents = self._torrents + self._sudo_torrents
         to_seed = ["%s|%s" % (os.path.abspath(
             os.path.join(x[2], '..')), x[0]) for x in torrents]
         seed_args = ';'.join(to_seed)
         # TODO: 'g' is just for debug, it should be 's', remove when sure
-        # TODO: find a way to use solar_torrent.py from transport resource
-        helpers_path = os.path.normpath(
-            os.path.join(os.path.realpath(__file__), '..', 'helpers'))
         cmd = ['/usr/bin/python',
-               '%s/solar_torrent.py' % helpers_path,
+               solar_torrent,
                'g',
                '"%s"' % seed_args]
         log.debug("Will start seeding: %r" % ' '.join(cmd))
@@ -135,8 +136,8 @@ class TorrentSyncTransport(SyncTransport):
         self._create_single_torrent(executor.resource, _from, _to, use_sudo)
 
     def run_all(self):
-        self._start_seeding()
         resource = self.executors[0].resource
+        self._start_seeding(resource)
         # TODO: we should paralelize it
         if self._torrents:
             self._start_remote_fetch(resource, use_sudo=False)
