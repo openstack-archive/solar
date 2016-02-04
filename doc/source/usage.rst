@@ -22,7 +22,7 @@ Python API
 
 * `3 node cluster riak <https://github.com/Mirantis/solar-resources/blob/master/examples/riak/riaks.py>`_
 * `hosts files <https://github.com/Mirantis/solar-resources/blob/master/examples/hosts_file/hosts.py>`_
-* `2 node Openstack Cluster <https://github.com/Mirantis/solar-resources/blob/master/examples/openstack/openstack.py>`_
+* `2 node OpenStack Cluster <https://github.com/Mirantis/solar-resources/blob/master/examples/openstack/openstack.py>`_
 
 Composer files
 ~~~~~~~~~~~~~~
