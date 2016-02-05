@@ -18,6 +18,9 @@ SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 dos.py erase ${ENV_NAME} || true
 mkdir -p tmp
+
+mkdir -p logs
+rm -rf logs/*
 ENV_NAME=${ENV_NAME} SLAVES_COUNT=${SLAVES_COUNT} IMAGE_PATH=${IMAGE_PATH} CONF_PATH=${CONF_PATH} python utils/jenkins/env.py create_env
 
 SLAVE_IPS=`ENV_NAME=${ENV_NAME} python utils/jenkins/env.py get_slaves_ips`
@@ -44,8 +47,10 @@ done
 
 sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh ${SSH_OPTIONS}" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
 
+set +e
 sshpass -p ${ADMIN_PASSWORD} ssh ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
 set -x
+
 export PYTHONWARNINGS="ignore"
 
 sudo rm -rf /vagrant
@@ -100,6 +105,15 @@ do
 done
 EOF
 
-if [ "$?" -eq "0" ];then
-  dos.py erase ${ENV_NAME} || true
+deploy_res=$?
+
+# collect logs
+sshpass -p ${ADMIN_PASSWORD} scp ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP}:/var/log/solar/solar.log logs/
+
+if [ "${deploy_res}" -eq "0" ];then
+  dos.py erase ${ENV_NAME}
+else
+  dos.py snapshot ${ENV_NAME} ${ENV_NAME}.snapshot
+  dos.py destroy ${ENV_NAME}
+  echo "To revert snapshot please run: dos.py revert ${ENV_NAME} ${ENV_NAME}.snapshot"
 fi
