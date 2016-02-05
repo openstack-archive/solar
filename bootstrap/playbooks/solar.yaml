@@ -61,7 +61,14 @@
     - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
 
     - name: start riak container
-      shell: docker-compose up -d riak chdir=/vagrant
+      docker:
+        name: vagrant_riak_1
+        image: solarproject/riak
+        volumes:
+            - /vagrant/utils/riak/app.config:/etc/riak/app.confi
+        ports:
+          - 8087:8087
+          - 8098:8098
     # preconfigure docker container
     # add counters datatype etc.
     - shell: timeout 60 docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv
