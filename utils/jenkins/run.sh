@@ -100,6 +100,14 @@ do
 done
 EOF
 
+# collect logs
+
+mkdir -p logs
+rm -rf logs/*
+sshpass -p ${ADMIN_PASSWORD} scp ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP}:/var/log/solar/solar.log logs/
+
 if [ "$?" -eq "0" ];then
   dos.py erase ${ENV_NAME} || true
+else
+  dos.py snapshot ${ENV_NAME} || true
 fi
