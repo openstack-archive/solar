@@ -7,7 +7,6 @@
   with_items:
   - git
   - subversion
-  - python-mock
   - python-keystoneclient
   - python-mysqldb
   - python-setuptools
@@ -39,18 +38,21 @@
   # for tests on jenkins
   - sshpass
 
+- name: Uninstall packages
+  apt: name={{ item }} state=absent
+  with_items:
+  - python-pbr
 
 # PIP
-- shell: sudo pip install httpie
-- shell: sudo pip install docker-py==1.1.0
+- pip: name={{item}} state=present
+  with_items:
+  - httpie
+  - docker-py==1.1.0
+  - ujson
+  - tox
+  - riak
+  - pbr
+
 # pre install solare requirements
 - shell: pip install -r https://raw.githubusercontent.com/openstack/solar/master/requirements.txt
-
-# faster json
-- shell: pip install ujson
-
-# fresh tox
-- shell: sudo pip install tox
-
-# install riak package
-- shell: sudo pip install riak
+- shell: pip install -r https://raw.githubusercontent.com/Mirantis/solar-agent/master/requirements.txt

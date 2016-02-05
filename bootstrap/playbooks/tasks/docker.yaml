@@ -16,9 +16,5 @@
 #- shell: apt-get update
 #- shell: apt-get install -y -q docker-engine
 
-# install docker compose
-- shell: curl -L https://github.com/docker/compose/releases/download/1.5.1/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-- shell: chmod +x /usr/local/bin/docker-compose
-
 # pre download riak image
 - shell: docker pull solarproject/riak
