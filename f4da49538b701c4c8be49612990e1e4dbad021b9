@@ -1,0 +1,8 @@
+Code-Review+2: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Workflow+1: Dmitry Shulyak <dshulyak@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 05 Feb 2016 10:02:57 +0000
+Reviewed-on: https://review.openstack.org/276637
+Project: openstack/solar
+Branch: refs/heads/master
