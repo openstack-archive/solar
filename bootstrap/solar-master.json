@@ -1,7 +1,7 @@
 {
   "variables": {
     "cleanup_pause": "",
-    "headless": "",
+    "headless": "{{env `headless`}}",
     "update": "true",
     "ssh_username": "vagrant",
     "ssh_password": "vagrant",
