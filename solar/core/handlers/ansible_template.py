@@ -13,115 +13,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from fabric.state import env
-import json
-import os
-import shutil
-
-from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
-from solar.core.handlers.base import TempFileHandler
+from solar.core.handlers.ansible import AnsibleHandlerRemote
 from solar.core.log import log
 
-# otherwise fabric will sys.exit(1) in case of errors
-env.warn_only = True
 
+class AnsibleTemplate(AnsibleHandlerRemote):
 
-# TODO: make shared logic for ansible_template and ansible_playbook
-
-
-class AnsibleTemplateBase(TempFileHandler):
-
-    def _create_inventory(self, r):
-        directory = self.dirs[r.name]
-        inventory_path = os.path.join(directory, 'inventory')
-        with open(inventory_path, 'w') as inv:
-            inv.write(self._render_inventory(r))
-        return inventory_path
-
-    def _render_inventory(self, r):
-        inventory = '{0} ansible_connection=local user={1}'
-        user = self.transport_run.get_transport_data(r)['user']
-        host = 'localhost'
-        inventory = inventory.format(host, user)
-        log.debug(inventory)
-        return inventory
-
-    def _create_playbook(self, resource, action):
+    def _make_playbook(self, resource, action, action_path):
         return self._compile_action_file(resource, action)
 
-    def _copy_ansible_library(self, resource):
-        base_path = resource.db_obj.base_path
-        src_ansible_library_dir = os.path.join(base_path, 'ansible_library')
-        trg_ansible_library_dir = None
-        if os.path.exists(src_ansible_library_dir):
-            log.debug("Adding ansible_library for %s", resource.name)
-            trg_ansible_library_dir = os.path.join(
-                self.dirs[resource.name], 'ansible_library')
-            shutil.copytree(src_ansible_library_dir, trg_ansible_library_dir)
-        return trg_ansible_library_dir
-
-    def _make_extra_vars(self, resource):
-        r_args = resource.args
-        return json.dumps(r_args)
-
-    def _create_extra_vars(self, resource):
-        dir_path = self.dirs[resource.name]
-        path = os.path.join(dir_path, 'extra_vars')
-        with open(path, 'w') as extra:
-            extra.write(self._make_extra_vars(resource))
-        return path
-
-
-# if we would have something like solar_agent that would render this then
-# we would not need to render it there
-# for now we redender it locally, sync to remote, run ansible on remote
-# host as local
-class AnsibleTemplate(AnsibleTemplateBase):
-
-    def action(self, resource, action_name):
-        inventory_file = self._create_inventory(resource)
-        playbook_file = self._create_playbook(resource, action_name)
-        extra_vars_file = self._create_extra_vars(resource)
-
-        log.debug('inventory_file: %s', inventory_file)
-        log.debug('playbook_file: %s', playbook_file)
-        log.debug('extra_vars_file: %s', extra_vars_file)
-
-        self._copy_templates_and_scripts(resource, action_name)
-        ansible_library_path = self._copy_ansible_library(resource)
-        self.transport_sync.copy(resource, self.dst, '/tmp')
-        self.transport_sync.sync_all()
-
-        # remote paths are not nested inside solar_local
-        remote_playbook_file = playbook_file.replace(
-            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-        remote_inventory_file = inventory_file.replace(
-            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-        remote_extra_vars_file = extra_vars_file.replace(
-            SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-
-        if ansible_library_path:
-            remote_ansible_library_path = ansible_library_path.replace(
-                SOLAR_TEMP_LOCAL_LOCATION, '/tmp/')
-            call_args = [
-                'ansible-playbook',
-                '--module-path',
-                remote_ansible_library_path,
-                '-i',
-                remote_inventory_file,
-                '--extra-vars',
-                '@%s' % remote_extra_vars_file,
-                remote_playbook_file
-            ]
-        else:
-            call_args = [
-                'ansible-playbook',
-                '-i',
-                remote_inventory_file,
-                '--extra-vars',
-                '@%s' % remote_extra_vars_file,
-                remote_playbook_file
-            ]
+    def action(self, resource, action):
+        call_args = self.prepare(resource, action)
         log.debug('EXECUTING: %s', ' '.join(call_args))
 
         rst = self.transport_run.run(resource, *call_args)
