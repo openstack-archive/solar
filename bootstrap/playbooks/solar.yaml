@@ -17,7 +17,13 @@
     #  setup solar-resources
     # change to openstack/solar-resources later
     - git: repo=https://github.com/Mirantis/solar-resources.git dest=/vagrant/solar-resources update=no
+
+    - shell: 'mount|grep " /vagrant"'
+      register: vagrant_mounted
+      ignore_errors: True
     - file: path=/vagrant/solar-resources owner=vagrant group=vagrant recurse=yes
+      when: vagrant_mounted|failed
+
     - shell: pip install gevent
     # set default config location
     - lineinfile:
