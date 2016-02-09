@@ -17,6 +17,7 @@ import time
 
 from solar.core.log import log
 from solar.dblayer.locking import Lock
+from solar.dblayer.locking import Waiter
 from solar.orchestration import graph
 from solar.orchestration import limits
 from solar.orchestration.traversal import states
@@ -42,7 +43,12 @@ class Scheduler(base.Worker):
         return filtered_tasks
 
     def next(self, ctxt, plan_uid):
-        with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        with Lock(
+                plan_uid,
+                str(get_current_ident()),
+                retries=20,
+                waiter=Waiter(1)
+        ):
             log.debug('Received *next* event for %s', plan_uid)
             plan = graph.get_graph(plan_uid)
             rst = self._next(plan)
@@ -54,7 +60,12 @@ class Scheduler(base.Worker):
             return rst
 
     def soft_stop(self, ctxt, plan_uid):
-        with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        with Lock(
+                plan_uid,
+                str(get_current_ident()),
+                retries=20,
+                waiter=Waiter(1)
+        ):
             plan = graph.get_graph(plan_uid)
             for n in plan:
                 if plan.node[n]['status'] in (
@@ -111,7 +122,12 @@ class Scheduler(base.Worker):
             'Received update for TASK %s - %s %s',
             ctxt['task_id'], status, errmsg)
         plan_uid, task_name = ctxt['task_id'].rsplit(':', 1)
-        with Lock(plan_uid, str(get_current_ident()), retries=20, wait=1):
+        with Lock(
+                plan_uid,
+                str(get_current_ident()),
+                retries=20,
+                waiter=Waiter(1)
+        ):
             plan = graph.get_graph(plan_uid)
             self._do_update(plan, task_name, status, errmsg=errmsg)
             rst = self._next(plan)
