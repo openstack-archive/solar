@@ -14,6 +14,7 @@ Contents:
    installation
    usage
    tutorials/index
+   development
    glossary
    architecture
    resource
