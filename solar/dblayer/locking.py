@@ -27,12 +27,71 @@ from solar.dblayer.model import DBLayerNotFound
 from solar.dblayer.model import ModelMeta
 from solar.dblayer.solar_models import Lock as DBLock
 
+from threading import Semaphore
+
 from uuid import uuid4
+
+
+class LockWaiter(object):
+
+    def __init__(self):
+        pass
+
+    def wait(self, uid, identity):
+        raise NotImplementedError()
+
+    def notify(self, uid, identity, state):
+        raise NotImplementedError()
+
+
+class NaiveWaiter(LockWaiter):
+    """Works like time.sleep(timeout)"""
+
+    def __init__(self, timeout):
+        self.timeout = timeout
+
+    def wait(self, uid, identity):
+        time.sleep(self.timeout)
+        return True
+
+    def notify(self, uid, identity, state):
+        return True
+
+
+class SemaWaiter(LockWaiter):
+    """Simple wait improvement that waits on semaphore
+It waits on non blocking semaphore in a loop.
+Other thread *may* release semaphore, then wait loop finishes.
+If nothing released semaphore, it works like time.sleep(timeout)
+"""
+
+    _sema = Semaphore()
+    _last = (None, None, -1)
+
+    def __init__(self, timeout):
+        self.timeout = timeout
+        self._delay = 0.02
+
+    def wait(self, uid, identity):
+        tries = self.timeout / self._delay
+        while tries:
+            result = self._sema.acquire(blocking=False)
+            if result:
+                return True
+            else:
+                time.sleep(self._delay)
+            tries -= 1
+        return False
+
+    def notify(self, uid, identity, state):
+        if state == 0:
+            self._sema.release()
+        return True
 
 
 class _Lock(object):
 
-    def __init__(self, uid, identity, retries=0, wait=1):
+    def __init__(self, uid, identity, retries=0, waiter=None):
         """Storage based lock mechanism
 
         :param uid: target of lock
@@ -44,7 +103,9 @@ class _Lock(object):
         self.uid = uid
         self.identity = identity
         self.retries = retries
-        self.wait = wait
+        if waiter is None:
+            waiter = Waiter(1)
+        self.waiter = waiter
         self.stamp = str(uuid4())
 
     @classmethod
@@ -76,7 +137,7 @@ class _Lock(object):
                 self._before_retry(self.uid, self.identity)
                 if lk.key in DBLock._c.obj_cache:
                     del DBLock._c.obj_cache[lk.key]
-                time.sleep(self.wait)
+                self.waiter.wait(self.uid, self.identity)
                 lk = self._acquire(self.uid, self.identity, self.stamp)
                 self.retries -= 1
                 if lk.am_i_locking(self.identity):
@@ -96,6 +157,7 @@ class _Lock(object):
 
     def __exit__(self, *err):
         self._release(self.uid, self.identity, self.stamp)
+        self.waiter.notify(self.uid, self.identity, 0)
 
 
 class _CRDTishLock(_Lock):
@@ -200,3 +262,6 @@ elif _connection.mode == 'riak':
         Lock = RiakEnsembleLock
     else:
         Lock = RiakLock
+
+# Waiter = NaiveWaiter
+Waiter = SemaWaiter
