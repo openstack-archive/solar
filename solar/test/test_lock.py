@@ -16,6 +16,7 @@ from mock import patch
 import pytest
 
 from solar.dblayer.locking import Lock
+from solar.dblayer.locking import Waiter
 from solar.dblayer.model import clear_cache
 from solar.dblayer.solar_models import Lock as DBLock
 
@@ -33,7 +34,7 @@ def test_acquire_release_logic():
 
 def test_lock_acquired_released():
     uid = '11'
-    with Lock(uid, uid):
+    with Lock(uid, uid, waiter=Waiter(1)):
         clear_cache()
         assert Lock._acquire(uid, '12', 'a').who_is_locking() == '11'
     assert Lock._acquire(uid, '12', 'a').who_is_locking() == '12'
@@ -48,16 +49,16 @@ def test_raise_error_if_acquired():
             assert True
 
 
-@patch('solar.dblayer.locking.time.sleep')
+@patch('solar.dblayer.locking.Waiter.wait')
 def test_time_sleep_called(msleep):
     uid = '11'
     Lock._acquire(uid, '12', 'a')
     clear_cache()
     sleep_time = 5
     with pytest.raises(RuntimeError):
-        with Lock(uid, '13', 1, sleep_time):
+        with Lock(uid, '13', 1, waiter=Waiter(sleep_time)):
             assert True
-    msleep.assert_called_once_with(sleep_time)
+    msleep.assert_called_once_with(uid, '13')
 
 
 def test_lock_released_exception():
