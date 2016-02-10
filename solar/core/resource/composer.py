@@ -20,6 +20,7 @@ from StringIO import StringIO
 from jinja2 import Environment
 from jinja2 import meta
 
+
 import os
 import re
 import yaml
@@ -36,6 +37,7 @@ from solar.events.controls import React
 
 
 # Custom environment with custom blocks, to make yaml parsers happy
+# globals extendend at the very end
 VR_ENV = Environment(block_start_string="#%",
                      block_end_string="%#",
                      variable_start_string="#{",
@@ -157,6 +159,14 @@ def get_inputs(content):
     return meta.find_undeclared_variables(ast) - set(jinja_globals)
 
 
+def _fix_content(content):
+    start = VR_ENV.variable_start_string
+    end = VR_ENV.variable_end_string
+    return re.sub(r'%s([^}]+)%s' % (start, end),
+                  r'%sdump_back(\1)%s' % (start, end),
+                  content)
+
+
 def _get_template(name, content, kwargs, inputs):
     missing = []
     for input in inputs:
@@ -165,6 +175,7 @@ def _get_template(name, content, kwargs, inputs):
     if missing:
         raise Exception(
             '[{0}] Validation error. Missing data in input: {1}'.format(name, missing))  # NOQA
+    content = _fix_content(content)
     template = VR_ENV.from_string(content)
     template = template.render(str=str, zip=zip, **kwargs)
     return template
@@ -401,3 +412,16 @@ def parse_connection(child_input, element):
             'parent_input': parent_input,
             'events': events
             }
+
+
+# TODO: this is rather temporary solution
+# we need to find better way of solving this prolbem
+# please look at lp #1539174
+def dump_back_to_file(data):
+    val = yaml.safe_dump(data)
+    if val.endswith('\n...\n'):
+        # yaml dumps in that way, when we operate on single value
+        val = val[:-5]
+    return val
+
+VR_ENV.globals['dump_back'] = dump_back_to_file
