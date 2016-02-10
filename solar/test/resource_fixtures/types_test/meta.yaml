@@ -1,0 +1,13 @@
+id: type
+handler: none
+version: 1.0.0
+input:
+  as_null:
+    schema: str
+    value: "as_null"
+  as_int:
+    schema: int
+    value: "as_int"
+  as_string:
+    schema: str
+    value: "as_str"
