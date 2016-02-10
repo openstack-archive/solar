@@ -21,7 +21,7 @@ Additional software
 ~~~~~~~~~~~~~~~~~~~
 
 `VirtualBox <https://www.virtualbox.org/wiki/Downloads/>`_ 5.x,
-`Vagrant <http://www.vagrantup.com/downloads.html/>`_ 1.7.x
+`Vagrant <http://www.vagrantup.com/downloads.html/>`_ 1.7.4 or higher
 
 Note: Make sure that `Vagrant VirtualBox Guest plugin
 <https://github.com/dotless-de/vagrant-vbguest/>`_ is installed
