@@ -17,6 +17,14 @@ typical resource.
 .. note::
    You can find example resources https://github.com/Mirantis/solar-resources
 
+You can easily use this resource in your system,
+from CLI you just need to call ``solar resource create`` with correct options.
+During that operation solar will remember the version of this resource.
+
+.. seealso::
+   :ref:`resource_repository_details`
+
+
 
 Basic resource structure
 ------------------------
