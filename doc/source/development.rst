@@ -10,6 +10,7 @@ Additional software
 ~~~~~~~~~~~~~~~~~~~
 
 `VirtualBox <https://www.virtualbox.org/wiki/Downloads/>`_ 5.x,
+or `Libvirt <https://libvirt.org/>`_
 `Vagrant <http://www.vagrantup.com/downloads.html/>`_ 1.7.4 or higher
 
 Note: Make sure that `Vagrant VirtualBox Guest plugin
@@ -94,6 +95,36 @@ Image based provisioning with Solar
   `/vagrant/solar-resources/examples/provisioning/provision.sh`
 
 To develop Solar we use Vagrant
+
+Using Libvirt instead of Virtualbox
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Virtualbox is a default provider for Vagrant, but it's also possible to use
+another providers. It should be possible to use any of Vagrant providers. As
+for today we support Libvirt provider. It can be used only on Linux systems.
+
+To use Libvirt with vagrant just run:
+
+.. code-block:: bash
+
+  vagrant up --provider libvirt
+
+This will download libvirt image for vagrant.
+
+In nodes definition we have hardcoded ssh keys paths, where we assume that
+Virtualbox is used. You need to copy keys to vagrant libvirt dir:
+
+.. code-block:: bash
+
+  cp /vagrant/.vagrant/machines/solar-dev1/libvirt/private_key /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key
+
+do it for each solar-dev* machine.
+
+.. note::
+
+  Libvirt be default is using KVM. You cannot run KVM and Virtualbox
+  at the same time.
+
 
 Contribution
 ------------
