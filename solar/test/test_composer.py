@@ -22,6 +22,8 @@ from solar.core.resource import composer as cr
 from solar.events.controls import Dep
 from solar.events.controls import React
 
+from types import NoneType
+
 
 @pytest.fixture
 def good_events():
@@ -250,3 +252,25 @@ def test_setting_location(tmpdir):
     cr.create('nodes', str(vr_file))
     resources = cr.create('updates', str(location_file))
     assert 'location=node1' in resources[0].tags
+
+
+def test_correct_types(tmpdir):
+    base_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'resource_fixtures')
+    vr_tmpl_path = os.path.join(base_path, 'types.yaml.tmpl')
+    sub_resource_path = os.path.join(base_path, 'type.yaml.tmpl')
+    target_resource_path = os.path.join(base_path, 'types_test')
+    with open(sub_resource_path) as f:
+        vr_sub_data = f.read()
+        vr_sub_data = vr_sub_data.replace('{type_path}', target_resource_path)
+    vr_sub_file = tmpdir.join('type.yaml')
+    vr_sub_file.write(vr_sub_data)
+    with open(vr_tmpl_path) as f:
+        vr_data = f.read().format(sub_path=str(vr_sub_file))
+    vr_file = tmpdir.join('types.yaml')
+    vr_file.write(vr_data)
+    resource = cr.create('types', str(vr_file))[0]
+    exps = (('as_int', int), ('as_string', str), ('as_null', NoneType))
+    for name, exp in exps:
+        assert isinstance(resource.args[name], exp)
