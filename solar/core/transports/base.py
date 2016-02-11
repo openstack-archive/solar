@@ -81,7 +81,10 @@ class SolarTransportResult(object):
     def output(self):
         if self.success:
             return self.stdout
-        return self.stderr
+        msg = self.stderr
+        if not msg:
+            msg = self.stdout
+        return msg
 
     @classmethod
     def from_tuple(cls, return_code, stdout, stderr):
