@@ -12,6 +12,8 @@ Why nodes/transports have hardcoded keys, ips and other inputs ?
 
 This is temporary situation, we will improve it in near future.
 
+.. _faq_different_ssh_keys:
+
 I want to use different SSH keys
 ----------------------------
 
