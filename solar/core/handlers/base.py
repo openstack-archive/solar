@@ -49,7 +49,11 @@ class BaseHandler(object):
         if not result.success:
             message = 'CMD %r failed RC %s ERR %s' % (cmd, rc, err)
             log.error(message)
-            raise errors.SolarError(result.output)
+            # TODO: https://bugs.launchpad.net/solar/+bug/1544537
+            e_cnt = "stdout:\n{}\n{}\nstderr:\n{}".format(result.stdout,
+                                                          '=' * 80,
+                                                          result.stderr)
+            raise errors.SolarError(e_cnt)
 
     def __enter__(self):
         return self
