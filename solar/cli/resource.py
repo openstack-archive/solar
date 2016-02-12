@@ -222,6 +222,8 @@ def prefetch(name, tag):
         resources = [sresource.load(name)]
     elif tag:
         resources = sresource.load_by_tags(set(tag))
+    else:
+        raise click.ClickException("No resource defined, use --tag or --name")
 
     for res in resources:
         res.prefetch()
