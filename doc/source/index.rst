@@ -6,6 +6,22 @@
 Welcome to Solar's documentation!
 =================================
 
+Solar provides flexible orchestration and resource management framework for
+deploying distributed systems. It leverages abstraction layer over commonly
+used configuration management systems like puppet, ansible etc. to enable
+complex, multi node orchestration.
+
+Solar can be used as separate tool for quick prototyping deployment topology,
+but as a framework it can be also integrated with existing tools used to
+configure and deploy distributed systems including
+OpenStack clouds. Solar also provides control over resulting changes by
+introducing changes log and history for deployment entities. This enables more
+control over lifecycle management of infrastructure.
+
+Solar can deploy and manage any distributed system, focusing on OpenStack
+ecosystem e.g. OpenStack itself, Ceph, etc. There are also other examples
+like Riak.
+
 Contents:
 
 .. toctree::
