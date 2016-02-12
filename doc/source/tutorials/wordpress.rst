@@ -23,10 +23,6 @@ will install Wordpress and all components:
    cd solar
    vagrant up solar-dev solar-dev1
    vagrant ssh solar-dev
-   cd /vagrant
-
-.. note::
-   For now please assume that all `solar` commands are run from dir `/vagrant`
 
 3. Config resource
 ------------------
@@ -36,11 +32,10 @@ handler nor actions. Let's create base structure:
 
 .. code-block:: bash
 
-  mkdir /tmp/wp_repo
-  mkdir /tmp/wp_repo/1.0.0/wp_config
-  touch /tmp/wp_repo/1.0.0/wp_config/meta.yaml
+  mkdir -p wp_repo/wp_config/1.0.0
+  touch wp_repo/wp_config/1.0.0/meta.yaml
 
-Open meta file `/vagrant/tmp/wp_repo/wp_config/meta.yaml` with your favorite
+Open meta file `wp_repo/wp_config/1.0.0/meta.yaml` with your favorite
 text editor and paste the following data:
 
 .. code-block:: yaml
@@ -91,9 +86,13 @@ All other required resources are already available in solar repositores:
 
 There are three ways to create resources in Solar: Python API, CLI and Composer
 files. We will use the last option.  Composer file is just a simple yaml file
-where we define all needed resources and connections.
+where we define all needed resources and connections. Run:
 
-Create new file `/vagrant/tmp/wp_repo/docker.yaml`, open it and past the
+.. code-block:: bash
+
+  mkdir -p wp_repo/docker/1.0.0
+
+Create new file `wp_repo/docker/1.0.0/docker.yaml`, open it and past the
 following data:
 
 .. code-block:: yaml
@@ -209,7 +208,7 @@ When all files are ready we need add created resources to solar repository:
 
 .. code-block:: bash
 
-  solar repo import tmp/wp_repo
+  solar repo import wp_repo
 
 This command created new solar resource repository. To list resources in this
 repository run:
