@@ -34,9 +34,11 @@ SLAVES_COUNT = cfg["slaves_count"]
 SLAVES_RAM = cfg["slaves_ram"]
 SLAVES_IPS = cfg["slaves_ips"]
 SLAVES_IMAGE = cfg["slaves_image"]
+SLAVES_IMAGE_VERSION = cfg["slaves_image_version"]
 MASTER_RAM = cfg["master_ram"]
 MASTER_IPS = cfg["master_ips"]
 MASTER_IMAGE = cfg["master_image"]
+MASTER_IMAGE_VERSION = cfg["master_image_version"]
 SYNC_TYPE = cfg["sync_type"]
 MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
@@ -60,6 +62,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
     config.vm.box = MASTER_IMAGE
+    config.vm.box_version = MASTER_IMAGE_VERSION
 
     config.vm.provision "shell", inline: solar_script, privileged: true
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
@@ -113,6 +116,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # Standard box with all stuff preinstalled
       config.vm.box = SLAVES_IMAGE
+      config.vm.box_version = SLAVES_IMAGE_VERSION
       config.vm.host_name = "solar-dev#{index}"
 
       if PREPROVISIONED
