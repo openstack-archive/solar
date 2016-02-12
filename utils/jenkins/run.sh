@@ -117,3 +117,5 @@ else
   dos.py destroy ${ENV_NAME}
   echo "To revert snapshot please run: dos.py revert ${ENV_NAME} ${ENV_NAME}.snapshot"
 fi
+
+exit ${deploy_res}
