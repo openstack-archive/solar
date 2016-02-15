@@ -230,7 +230,7 @@ class RiakLock(_CRDTishLock):
     pass
 
 
-class SQLiteLock(_CRDTishLock):
+class SQLLock(_CRDTishLock):
 
     @classmethod
     def _end_start_session(cls, uid, identity):
@@ -267,12 +267,14 @@ class RiakEnsembleLock(_Lock):
             raise
 
 
-if _connection.mode == 'sqlite':
-    Lock = SQLiteLock
+if _connection.type == 'sql':
+    Lock = SQLLock
 elif _connection.mode == 'riak':
     if C.riak_ensemble:
         Lock = RiakEnsembleLock
     else:
         Lock = RiakLock
+else:
+    raise RuntimeError("Unsupported database connection setting")
 
 Waiter = SemaWaiter

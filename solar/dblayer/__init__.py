@@ -40,6 +40,7 @@ if _connection.mode == 'sqlite':
                 'pragmas': (('journal_mode', 'WAL'),
                             ('synchronous', 'NORMAL'))}
     opts.update(_connection_details.toDict())
+    opts.setdefault('db_class', 'SqliteDatabase')
     client = SqlClient(
         _connection.database,
         **opts)
@@ -60,6 +61,24 @@ elif _connection.mode == 'riak':
                             **opts)
     else:
         raise Exception('Unknown riak protocol %s', proto)
+
+elif _connection.mode == 'postgresql':
+    # TODO: collation has to be `C`
+    from solar.dblayer.sql_client import SqlClient
+    opts = {'autocommit': False}
+    opts.update(_connection_details.toDict())
+    if _connection.port:
+        _connection.port = int(_connection.port)
+    else:
+        _connection.port = None
+    opts["user"] = _connection.username
+    opts["host"] = _connection.host
+    opts["port"] = _connection.port
+    opts["password"] = _connection.password
+    # TODO: allow set Postgresql classes from playhouse
+    opts.setdefault('db_class', 'PostgresqlDatabase')
+    client = SqlClient(_connection.database,
+                       **opts)
 else:
     raise Exception('Unknown dblayer backend %s', C.solar_db)
 

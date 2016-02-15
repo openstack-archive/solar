@@ -38,6 +38,9 @@
   # for tests on jenkins
   - sshpass
 
+  # for pg backend
+  - python-psycopg2
+
 - name: Uninstall packages
   apt: name={{ item }} state=absent
   with_items:

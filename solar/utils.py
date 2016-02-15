@@ -167,6 +167,7 @@ def parse_database_conn(name):
     m = regex.match(name)
     if m is not None:
         groups = m.groupdict()
+        groups['type'] = 'riak' if groups['mode'] == 'riak' else 'sql'
         return Bunch(groups), Bunch(opts)
     else:
         raise Exception("Invalid database connection string: %r "

@@ -1072,7 +1072,7 @@ system log
 """
 
 _connection, _connection_details = parse_database_conn(C.solar_db)
-if _connection.mode == 'sqlite':
+if _connection.type == 'sql':
     class NegativeCounter(Model):
 
         count = Field(int, default=int)
