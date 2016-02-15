@@ -20,15 +20,15 @@ Each API is used in different examples:
 Python API
 ~~~~~~~~~~
 
-* `3 node cluster riak <https://github.com/Mirantis/solar-resources/blob/master/examples/riak/riaks.py>`_
-* `hosts files <https://github.com/Mirantis/solar-resources/blob/master/examples/hosts_file/hosts.py>`_
-* `2 node OpenStack Cluster <https://github.com/Mirantis/solar-resources/blob/master/examples/openstack/openstack.py>`_
+* `3 node cluster riak <https://github.com/openstack/solar-resources/blob/master/examples/riak/riaks.py>`_
+* `hosts files <https://github.com/openstack/solar-resources/blob/master/examples/hosts_file/hosts.py>`_
+* `2 node OpenStack Cluster <https://github.com/openstack/solar-resources/blob/master/examples/openstack/openstack.py>`_
 
 Composer files
 ~~~~~~~~~~~~~~
 
-* `Wordpress site <https://github.com/Mirantis/solar-resources/tree/master/examples/wordpress>`_
-* `3 node cluster riak <https://github.com/Mirantis/solar-resources/blob/master/examples/riak/riak_cluster.yaml>`_
+* `Wordpress site <https://github.com/openstack/solar-resources/tree/master/examples/wordpress>`_
+* `3 node cluster riak <https://github.com/openstack/solar-resources/blob/master/examples/riak/riak_cluster.yaml>`_
 
 
 CLI API

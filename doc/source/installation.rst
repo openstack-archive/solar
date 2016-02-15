@@ -38,7 +38,7 @@ add them to a Solar repository.
 
 .. code-block:: bash
 
-  git clone https://github.com/Mirantis/solar-resources
+  git clone https://github.com/openstack/solar-resources
 
   sudo mkdir -p /var/lib/solar/repositories
   sudo chown -R <your_user_name> /var/lib/solar/
