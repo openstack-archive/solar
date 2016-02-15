@@ -65,4 +65,4 @@ Where can I find solar examples ?
 ---------------------------------
 
 Example resources, composer templates and examples itself are located:
-https://github.com/Mirantis/solar-resources
+https://github.com/openstack/solar-resources

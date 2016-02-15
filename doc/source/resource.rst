@@ -15,7 +15,7 @@ typical resource.
 
 .. TODO: change to openstack/solar-resources later
 .. note::
-   You can find example resources https://github.com/Mirantis/solar-resources
+   You can find example resources https://github.com/openstack/solar-resources
 
 You can easily use this resource in your system,
 from CLI you just need to call ``solar resource create`` with correct options.
