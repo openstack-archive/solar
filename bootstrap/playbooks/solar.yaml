@@ -16,7 +16,7 @@
   tasks:
     #  setup solar-resources
     # change to openstack/solar-resources later
-    - git: repo=https://github.com/Mirantis/solar-resources.git version=0.2.0 dest=/vagrant/solar-resources update=no
+    - git: repo=https://github.com/openstack/solar-resources.git version=0.2.0 dest=/vagrant/solar-resources update=no
 
     - shell: 'mount|grep " /vagrant"'
       register: vagrant_mounted
