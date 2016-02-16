@@ -22,10 +22,14 @@ pbr
 pydot
 bunch
 wrapt
+
 # if you want to use riak backend then
 # riak
 # if you want to use sql backend then
 peewee
+# if you want to use sql + postgresql then
+# psycopg2
+
 # if you want to use lua computable inputs
 # lupa
 
@@ -38,4 +42,3 @@ stevedore
 #zerorpc doesnt consume messages with >13.0.2, need to debug
 pyzmq==13.0.2
 zerorpc>=0.5.2
-

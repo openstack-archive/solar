@@ -268,7 +268,10 @@ class Bucket(object):
 
         self._sql_model = type(table_name, (_SqlBucket, ), {'Meta': ModelMeta,
                                                             'bucket': self})
-        _idx_key = ForeignKeyField(self._sql_model, null=False, index=True)
+        _idx_key = ForeignKeyField(self._sql_model,
+                                   null=False,
+                                   index=True,
+                                   on_delete='cascade')
 
         class IdxMeta(object):
             db_table = idx_table_name
@@ -405,9 +408,9 @@ class SqlClient(object):
     search_dir = None
 
     def __init__(self, *args, **kwargs):
-        db_class_str = kwargs.pop("db_class", 'SqliteDatabase')
+        db_class_str = kwargs.pop("db_class")
         try:
-            mod, fromlist = db_class_str.split('.')
+            mod, fromlist = db_class_str.rsplit('.', 1)
         except ValueError:
             mod = 'peewee'
             fromlist = db_class_str
