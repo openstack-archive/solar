@@ -7,6 +7,9 @@ master_image: solar-project/solar-master
 master_image_version: ">= 0.3.0.pre0"
 slaves_image: solar-project/solar-master
 slaves_image_version: ">= 0.3.0.pre0"
+docker_master_image: solar-project/solar-master
+docker_slaves_image: solar-project/solar-master
+docker_cmd: "/usr/sbin/sshd -D"
 master_ram: 1024
 master_cpus: 1
 master_ips:
