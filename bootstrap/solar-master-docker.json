@@ -19,95 +19,22 @@
     "disk_size": "4500",
     "mem_size": "512",
     "vcpu_num": "1",
-    "cleanup": "true",
+    "cleanup": "false",
     "ansible_config_path": "/etc/ansible",
     "ansible_config_file": "ansible.cfg",
     "ansible_log_file": "/var/tmp/ansible.log"
   },
   "builders": [{
-    "vm_name": "ubuntu1404",
-    "type": "qemu",
-    "format": "qcow2",
-    "accelerator": "kvm",
-    "http_directory": "http",
-    "iso_url": "{{ user `iso_url` }}",
-    "iso_checksum": "{{ user `iso_checksum` }}",
-    "iso_checksum_type": "md5",
-    "ssh_username": "{{ user `ssh_username` }}",
-    "ssh_password": "{{ user `ssh_password` }}",
-    "ssh_wait_timeout": "10000s",
-    "headless": "{{ user `headless` }}",
-    "boot_wait": "30s",
-    "boot_command": [
-      "<esc><esc><enter><wait>",
-      "/install/vmlinuz auto",
-      " console-setup/ask_detect=false",
-      " console-setup/layoutcode=us",
-      " console-setup/modelcode=SKIP",
-      " debconf/frontend=noninteractive",
-      " debian-installer=en_US",
-      " fb=false",
-      " initrd=/install/initrd.gz",
-      " keymap=us debian-installer/keymap=us",
-      " kbd-chooser/method=us",
-      " keyboard-configuration/layout=USA",
-      " keyboard-configuration/variant=USA",
-      " locale=en_US",
-      " netcfg/get_domain=vm",
-      " netcfg/get_hostname=vagrant",
-      " noapic" ,
-      " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
-      " -- ",
-      "<enter>"
-    ],
-    "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
-    "disk_size": "{{ user `disk_size`}}",
-    "qemuargs": [
-      [
-        "-m",
-        "{{user `mem_size`}}M"
-      ],
-      [
-        "-smp",
-        "{{ user `vcpu_num`}}"
-      ]
-    ]
-  },
-  {
-    "vm_name": "ubuntu1404",
-    "type": "virtualbox-iso",
-    "http_directory": "http",
-    "iso_url": "{{ user `iso_url` }}",
-    "iso_checksum": "{{ user `iso_checksum` }}",
-    "iso_checksum_type": "md5",
-    "guest_os_type": "Ubuntu_64",
-    "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
-    "virtualbox_version_file": ".vbox_version",
-    "headless": "{{ user `headless` }}",
-    "ssh_username": "{{ user `ssh_username` }}",
-    "ssh_password": "{{ user `ssh_password` }}",
-    "ssh_wait_timeout": "10000s",
-    "boot_wait": "30s",
-    "boot_command": [
-      "<esc><esc><enter><wait>",
-      "/install/vmlinuz noapic ",
-      "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
-      "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
-      "hostname={{ .Name }} ",
-      "fb=false debconf/frontend=noninteractive ",
-      "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
-      "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
-      "keymap=us debian-installer/keymap=us ",
-      "initrd=/install/initrd.gz -- <enter>"
-    ],
-    "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
-    "disk_size": "{{ user `disk_size`}}",
-    "vboxmanage": [
-      ["modifyvm", "{{.Name}}", "--memory", "{{ user `mem_size`}}"],
-      ["modifyvm", "{{.Name}}", "--cpus", "{{ user `vcpu_num`}}"]
-    ]
+    "type": "docker",
+    "image": "ubuntu:trusty",
+    "commit": true
   }],
   "provisioners": [{
+    "type": "shell",
+    "execute_command": "echo 'vagrant' | sh '{{.Path}}'",
+    "scripts": [
+      "playbooks/files/sudo.sh"
+    ]}, {
       "type": "shell",
       "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
       "inline": [
@@ -160,7 +87,7 @@
       "type": "ansible-local",
       "playbook_dir": "playbooks",
       "playbook_file": "playbooks/build-main.yaml",
-      "command": "DOCKER_NESTED=false ansible-playbook",
+      "command": "DOCKER_NESTED=true ansible-playbook",
       "extra_arguments": ["--verbose"]
     }, {
       "type": "shell",
@@ -177,16 +104,10 @@
   "post-processors": [
     [
       {
-        "type": "vagrant",
-        "keep_input_artifact": true,
-        "only": ["qemu"],
-        "output": "solar-master-libvirt.box"
-      },
-      {
-        "type": "vagrant",
-        "keep_input_artifact": false,
-        "only": ["virtualbox-iso"],
-        "output": "solar-master-virtualbox.box"
+        "type": "docker-tag",
+        "repository": "bogdando/solar-master",
+        "tag": "latest",
+        "keep_input_artifact": false
       }
     ]
   ]
