@@ -16,6 +16,7 @@
 
 Vagrant.require_version ">= 1.7.4"
 
+require 'log4r'
 require 'yaml'
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
@@ -44,68 +45,147 @@ MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
 PARAVIRT_PROVIDER = cfg.fetch('paravirtprovider', false)
 PREPROVISIONED = cfg.fetch('preprovisioned', true)
+DOCKER_MASTER_IMAGE=cfg['docker_master_image']
+DOCKER_SLAVES_IMAGE=cfg['docker_slaves_image']
+DOCKER_CMD=cfg['docker_cmd'] || "/sbin/init"
 SOLAR_DB_BACKEND = cfg.fetch('solar_db_backend', 'riak')
 
 # Initialize noop plugins only in case of PXE boot
 require_relative 'bootstrap/vagrant_plugins/noop' unless PREPROVISIONED
 
+# FIXME(bogdando) more natively to distinguish a provider specific logic
+provider = (ARGV[2] || ENV['VAGRANT_DEFAULT_PROVIDER'] || :docker).to_sym
+
 def ansible_playbook_command(filename, args=[])
-  "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
+  ansible_script_crafted = "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
+  @logger.info("Crafted ansible-script: #{ansible_script_crafted})")
+  ansible_script_crafted
+end
+
+def shell_script(filename, args=[])
+  shell_script_crafted = "/bin/bash #{filename} #{args.join ' '} 2>/dev/null"
+  @logger.info("Crafted shell-script: #{shell_script_crafted})")
+  shell_script_crafted
+end
+
+# W/a unimplemented docker-exec, see https://github.com/mitchellh/vagrant/issues/4179
+# Use docker exec instead of the SSH provisioners
+# TODO(bogdando) lxc-docker support (there is no exec)
+def docker_exec (name, script)
+  @logger.info("Executing docker-exec at #{name}: #{script}")
+  system "docker exec -it #{name} #{script}"
 end
 
 solar_script = ansible_playbook_command("solar.yaml")
 solar_agent_script = ansible_playbook_command("solar-agent.yaml")
-
 master_pxe = ansible_playbook_command("pxe.yaml")
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+# Render hosts entries as we do not use provisioners for the docker provider
+# TODO(bogdando) use https://github.com/jpetazzo/pipework for multi net.
+# Hereafter, we will use only the 1st IP address and a single interface.
+entries = ["\"#{MASTER_IPS[0]} solar-dev\""]
+index = 1
+SLAVES_COUNT.times do
+  ip_index = index + 2
+  entries << "\"#{SLAVES_IPS[0]}.#{ip_index} solar-dev#{index}\""
+  index = index + 1
+end
+hosts_setup = shell_script("/vagrant/vagrant_script/conf_hosts.sh", entries)
 
-  config.vm.define "solar-dev", primary: true do |config|
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  if provider == :docker
+    # W/a unimplemented docker networking, see
+    # https://github.com/mitchellh/vagrant/issues/6667.
+    # Create or delete the solar net (depends on the vagrant action)
+    config.trigger.before :up do
+      system <<-SCRIPT
+      if ! docker network inspect solar >/dev/null 2>&1 ; then
+        docker network create -d bridge \
+          -o "com.docker.network.bridge.enable_icc"="true" \
+          -o "com.docker.network.bridge.enable_ip_masquerade"="true" \
+          -o "com.docker.network.driver.mtu"="1500" \
+          --gateway=#{SLAVES_IPS[0]}.1/24 \
+          --ip-range=#{SLAVES_IPS[0]}.0/24 \
+          --subnet=#{SLAVES_IPS[0]}.0/24 \
+          solar >/dev/null 2>&1
+      fi
+      SCRIPT
+    end
+    config.trigger.after :destroy do
+      system <<-SCRIPT
+      docker network rm solar >/dev/null 2>&1
+      SCRIPT
+    end
+    config.vm.provider :docker do |d, override|
+      d.image = DOCKER_MASTER_IMAGE
+      d.remains_running = false
+      d.has_ssh = false
+      d.cmd = DOCKER_CMD.split(' ')
+      d.volumes << "~/.vagrant.d/insecure_private_key:/vagrant/keys/ssh_private:ro"
+      d.volumes << "/sys/fs/cgroup:/sys/fs/cgroup"
+      d.volumes << "/var/run/docker.sock:/var/run/docker.sock"
+    end
+  else
     config.vm.box = MASTER_IMAGE
     config.vm.box_version = MASTER_IMAGE_VERSION
+  end
 
-    config.vm.provision "shell", inline: solar_script, privileged: true, env: {"SOLAR_DB_BACKEND": SOLAR_DB_BACKEND}
-    config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
-    config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
-    config.vm.host_name = "solar-dev"
-
-    config.vm.provider :virtualbox do |v|
-      v.memory = MASTER_RAM
-      v.cpus = MASTER_CPUS
-      v.customize [
-        "modifyvm", :id,
-        "--memory", MASTER_RAM,
-        "--cpus", MASTER_CPUS,
-        "--ioapic", "on",
-      ]
-      if PARAVIRT_PROVIDER
-        v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+  config.vm.define "solar-dev", primary: true do |config|
+    if provider == :docker
+      config.vm.provider :docker do |d, override|
+        d.name = "solar-dev"
+        d.create_args = ["-i", "-t", "--privileged", "--ip=#{MASTER_IPS[0]}", "--net=solar"]
       end
-      v.name = "solar-dev"
-    end
+      config.trigger.after :up do
+        docker_exec("solar-dev","#{hosts_setup} >/dev/null 2>&1")
+        docker_exec("solar-dev","#{solar_script} >/dev/null 2>&1")
+        docker_exec("solar-dev","SOLAR_DB_BACKEND=#{SOLAR_DB_BACKEND} #{master_pxe} >/dev/null 2>&1") unless PREPROVISIONED
+      end
+    else
+      # not the docker provider
+      config.vm.provision "shell", inline: solar_script, privileged: true, env: {"SOLAR_DB_BACKEND": SOLAR_DB_BACKEND}
+      config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
+      config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
+      config.vm.host_name = "solar-dev"
 
-    config.vm.provider :libvirt do |libvirt|
-      libvirt.driver = 'kvm'
-      libvirt.memory = MASTER_RAM
-      libvirt.cpus = MASTER_CPUS
-      libvirt.nested = true
-      libvirt.cpu_mode = 'host-passthrough'
-      libvirt.volume_cache = 'unsafe'
-      libvirt.disk_bus = "virtio"
+      config.vm.provider :virtualbox do |v|
+        v.memory = MASTER_RAM
+        v.cpus = MASTER_CPUS
+        v.customize [
+          "modifyvm", :id,
+          "--memory", MASTER_RAM,
+          "--cpus", MASTER_CPUS,
+          "--ioapic", "on",
+        ]
+        if PARAVIRT_PROVIDER
+          v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+        end
+        v.name = "solar-dev"
+      end
+
+      config.vm.provider :libvirt do |libvirt|
+        libvirt.driver = 'kvm'
+        libvirt.memory = MASTER_RAM
+        libvirt.cpus = MASTER_CPUS
+        libvirt.nested = true
+        libvirt.cpu_mode = 'host-passthrough'
+        libvirt.volume_cache = 'unsafe'
+        libvirt.disk_bus = "virtio"
+      end
+
+      ind = 0
+      MASTER_IPS.each do |ip|
+        config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
+        ind = ind + 1
+     end
     end
 
     if SYNC_TYPE == 'nfs'
       config.vm.synced_folder ".", "/vagrant", type: "nfs"
     end
     if SYNC_TYPE == 'rsync'
-      config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+      config.vm.synced_folder ".", "/vagrant", type: "rsync",
         rsync__args: ["--verbose", "--archive", "--delete", "-z"]
-    end
-
-    ind = 0
-    MASTER_IPS.each do |ip|
-      config.vm.network :private_network, ip: "#{ip}", :dev => "solbr#{ind}", :mode => 'nat'
-      ind = ind + 1
     end
   end
 
@@ -113,55 +193,67 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     index = i + 1
     ip_index = i + 3
     config.vm.define "solar-dev#{index}" do |config|
-
-      # Standard box with all stuff preinstalled
-      config.vm.box = SLAVES_IMAGE
-      config.vm.box_version = SLAVES_IMAGE_VERSION
-      config.vm.host_name = "solar-dev#{index}"
-
-      if PREPROVISIONED
-        config.vm.provision "shell", inline: solar_agent_script, privileged: true
-        #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
-        ind = 0
-        SLAVES_IPS.each do |ip|
-          config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
-          ind = ind + 1
+      if provider == :docker
+        config.vm.provider :docker do |d, override|
+          d.name = "solar-dev#{index}"
+          d.image = DOCKER_SLAVES_IMAGE
+          d.create_args = ["-i", "-t", "--privileged", "--ip=#{SLAVES_IPS[0]}.#{ip_index}", "--net=solar"]
+        end
+        config.trigger.after :up do
+          docker_exec("solar-dev#{index}","#{hosts_setup} >/dev/null 2>&1")
+          docker_exec("solar-dev#{index}","#{solar_agent_script} >/dev/null 2>&1") if PREPROVISIONED
         end
       else
-        # Disable attempts to install guest os and check that node is booted using ssh,
-        # because nodes will have ip addresses from dhcp, and vagrant doesn't know
-        # which ip to use to perform connection
-        config.vm.communicator = :noop
-        config.vm.guest = :noop_guest
-        # Configure network to boot vm using pxe
-        config.vm.network "private_network", adapter: 1, ip: "10.0.0.#{ip_index}"
-        config.vbguest.no_install = true
-        config.vbguest.auto_update = false
-      end
+        # not the docker provider
+        # Standard box with all stuff preinstalled
+        config.vm.box = SLAVES_IMAGE
+        config.vm.box_version = SLAVES_IMAGE_VERSION
+        config.vm.host_name = "solar-dev#{index}"
 
-      config.vm.provider :virtualbox do |v|
-        boot_order(v, ['net', 'disk'])
-        v.customize [
-            "modifyvm", :id,
-            "--memory", SLAVES_RAM,
-            "--cpus", SLAVES_CPUS,
-            "--ioapic", "on",
-            "--macaddress1", "auto",
-        ]
-        if PARAVIRT_PROVIDER
-          v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+        if PREPROVISIONED
+          config.vm.provision "shell", inline: solar_agent_script, privileged: true
+          #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
+          ind = 0
+          SLAVES_IPS.each do |ip|
+            config.vm.network :private_network, ip: "#{ip}#{ip_index}", :dev => "solbr#{ind}", :mode => 'nat'
+            ind = ind + 1
+          end
+        else
+          # Disable attempts to install guest os and check that node is booted using ssh,
+          # because nodes will have ip addresses from dhcp, and vagrant doesn't know
+          # which ip to use to perform connection
+          config.vm.communicator = :noop
+          config.vm.guest = :noop_guest
+          # Configure network to boot vm using pxe
+          config.vm.network "private_network", adapter: 1, ip: "10.0.0.#{ip_index}"
+          config.vbguest.no_install = true
+          config.vbguest.auto_update = false
         end
-        v.name = "solar-dev#{index}"
-      end
 
-      config.vm.provider :libvirt do |libvirt|
-        libvirt.driver = 'kvm'
-        libvirt.memory = SLAVES_RAM
-        libvirt.cpus = SLAVES_CPUS
-        libvirt.nested = true
-        libvirt.cpu_mode = 'host-passthrough'
-        libvirt.volume_cache = 'unsafe'
-        libvirt.disk_bus = "virtio"
+        config.vm.provider :virtualbox do |v|
+          boot_order(v, ['net', 'disk'])
+          v.customize [
+              "modifyvm", :id,
+              "--memory", SLAVES_RAM,
+              "--cpus", SLAVES_CPUS,
+              "--ioapic", "on",
+              "--macaddress1", "auto",
+          ]
+          if PARAVIRT_PROVIDER
+            v.customize ['modifyvm', :id, "--paravirtprovider", PARAVIRT_PROVIDER] # for linux guest
+          end
+          v.name = "solar-dev#{index}"
+        end
+
+        config.vm.provider :libvirt do |libvirt|
+          libvirt.driver = 'kvm'
+          libvirt.memory = SLAVES_RAM
+          libvirt.cpus = SLAVES_CPUS
+          libvirt.nested = true
+          libvirt.cpu_mode = 'host-passthrough'
+          libvirt.volume_cache = 'unsafe'
+          libvirt.disk_bus = "virtio"
+        end
       end
 
       if PREPROVISIONED
@@ -169,13 +261,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           config.vm.synced_folder ".", "/vagrant", type: "nfs"
         end
         if SYNC_TYPE == 'rsync'
-          config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+          config.vm.synced_folder ".", "/vagrant", type: "rsync",
           rsync__args: ["--verbose", "--archive", "--delete", "-z"]
         end
       end
     end
   end
-
 end
 
 
