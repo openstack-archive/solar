@@ -14,6 +14,8 @@ IMAGE_PATH=${IMAGE_PATH:-bootstrap/output-qemu/ubuntu1404}
 TEST_SCRIPT=${TEST_SCRIPT:-/vagrant/examples/hosts_file/hosts.py}
 DEPLOY_TIMEOUT=${DEPLOY_TIMEOUT:-60}
 
+SOLAR_DB_BACKEND=${SOLAR_DB_BACKEND:-riak}
+
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 dos.py erase ${ENV_NAME} || true
@@ -57,12 +59,20 @@ sudo rm -rf /vagrant
 sudo mv /home/vagrant/solar /vagrant
 
 sudo chown -R ${ADMIN_USER} ${INSTALL_DIR}
-sudo ansible-playbook -v -i \"localhost,\" -c local ${INSTALL_DIR}/bootstrap/playbooks/solar.yaml
+sudo SOLAR_DB_BACKEND=${SOLAR_DB_BACKEND} ansible-playbook -v -i \"localhost,\" -c local ${INSTALL_DIR}/bootstrap/playbooks/solar.yaml
 
 set -e
 
 # wait for riak
-sudo docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv
+
+if [ $SOLAR_DB_BACKEND == "riak" ]
+then
+   sudo docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv;
+elif [ $SOLAR_DB_BACKEND == "postgres" ]
+then
+   # TODO: Should be replaced with something smarter
+   sleep 5
+fi
 
 export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
 

@@ -1,0 +1,20 @@
+- name: start riak container
+  docker:
+    name: vagrant_riak_1
+    image: solarproject/riak
+    volumes:
+        - /vagrant/utils/riak/app.config:/etc/riak/app.config
+    ports:
+      - 8087:8087
+      - 8098:8098
+# preconfigure docker container
+# add counters datatype etc.
+- shell: timeout 60 docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv
+- shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type create counters '{"props":{"datatype":"counter"}}'
+  ignore_errors: yes
+- shell: timeout 10 docker exec vagrant_riak_1 riak-admin bucket-type activate counters
+- lineinfile:
+    dest: /.solar_config_override
+    line: "solar_db: riak://127.0.0.1:8087"
+    state: present
+    create: yes

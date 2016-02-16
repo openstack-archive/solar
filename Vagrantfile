@@ -44,6 +44,7 @@ MASTER_CPUS = cfg["master_cpus"]
 SLAVES_CPUS = cfg["slaves_cpus"]
 PARAVIRT_PROVIDER = cfg.fetch('paravirtprovider', false)
 PREPROVISIONED = cfg.fetch('preprovisioned', true)
+SOLAR_DB_BACKEND = cfg.fetch('solar_db_backend', 'riak')
 
 # Initialize noop plugins only in case of PXE boot
 require_relative 'bootstrap/vagrant_plugins/noop' unless PREPROVISIONED
@@ -57,14 +58,13 @@ solar_agent_script = ansible_playbook_command("solar-agent.yaml")
 
 master_pxe = ansible_playbook_command("pxe.yaml")
 
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "solar-dev", primary: true do |config|
     config.vm.box = MASTER_IMAGE
     config.vm.box_version = MASTER_IMAGE_VERSION
 
-    config.vm.provision "shell", inline: solar_script, privileged: true
+    config.vm.provision "shell", inline: solar_script, privileged: true, env: {"SOLAR_DB_BACKEND": SOLAR_DB_BACKEND}
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.host_name = "solar-dev"

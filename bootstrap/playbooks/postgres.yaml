@@ -1,0 +1,18 @@
+- name: start pg container
+  docker:
+    name: vagrant_pg_1
+    image: alpine-postgres
+    ports:
+      5432:5432
+    env:
+      POSTGRES_USER: solar
+      POSTGRES_PASSWORD: solar
+      POSTGRES_DATABASE: solar
+- wait_for: host=127.0.0.1 port=5432 timeout=15 delay=1
+- shell: docker exec vagrant_pg_1 gosu postgres psql -c "DROP DATABASE solar;"
+- shell: docker exec vagrant_pg_1 gosu postgres psql -c "CREATE DATABASE solar WITH owner=postgres LC_COLLATE='C' TEMPLATE template0;"
+- lineinfile:
+    dest: /.solar_config_override
+    line: "solar_db: postgresql://solar:solar@127.0.0.1:5432/solar"
+    state: present
+    create: yes
