@@ -31,15 +31,18 @@ Driver name should be registered in entrypoints, see :ref:`namespace_executors`
 
 tasks_driver
 ^^^^^^^^^^^^
-Driver name should be registered in appropriate entrypoints (see :ref:`namespace_workers`)
+Driver name should be registered in appropriate entrypoints
+(see :ref:`namespace_workers`)
 
 scheduler_driver
 ^^^^^^^^^^^^^^^^
-Driver name should be registered in appropriate entrypoints (see :ref:`namespace_workers`)
+Driver name should be registered in appropriate entrypoints
+(see :ref:`namespace_workers`)
 
 system_log_driver
 ^^^^^^^^^^^^^^^^^
-Driver name should be registered in appropriate entrypoints (see :ref:`namespace_workers`)
+Driver name should be registered in appropriate entrypoints
+(see :ref:`namespace_workers`)
 
 runner
 ^^^^^^

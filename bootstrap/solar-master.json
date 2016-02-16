@@ -1,5 +1,7 @@
 {
   "variables": {
+    "cm": "puppet",
+    "cm_version": "latest",
     "cleanup_pause": "",
     "headless": "{{env `headless`}}",
     "update": "true",
@@ -17,6 +19,7 @@
     "disk_size": "4500",
     "mem_size": "512",
     "vcpu_num": "1",
+    "cleanup": "true",
     "ansible_config_path": "/etc/ansible",
     "ansible_config_file": "ansible.cfg",
     "ansible_log_file": "/var/tmp/ansible.log"
@@ -124,6 +127,8 @@
     ]}, {
       "type": "shell",
       "environment_vars": [
+        "CM={{user `cm`}}",
+        "CM_VERSION={{user `cm_version`}}",
         "CLEANUP_PAUSE={{user `cleanup_pause`}}",
         "UPDATE={{user `update`}}",
         "INSTALL_VAGRANT_KEY={{user `install_vagrant_key`}}",
@@ -138,12 +143,18 @@
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
         "playbooks/files/update.sh",
+        "playbooks/files/tools.sh",
+        "playbooks/files/cmtool.sh",
         "playbooks/files/vagrant.sh",
         "playbooks/files/sshd.sh"
       ]
     }, {
       "type": "shell",
-      "script": "playbooks/files/ubuntu-ansible.sh",
+      "environment_vars": [
+        "CM=ansible",
+        "CM_VERSION=latest"
+      ],
+      "script": "playbooks/files/cmtool.sh",
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'"
     }, {
       "type": "ansible-local",
@@ -152,6 +163,9 @@
       "extra_arguments": ["--verbose"]
     }, {
       "type": "shell",
+      "environment_vars": [
+        "cleanup={{user `cleanup`}}"
+      ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
         "playbooks/files/vmtool.sh",
