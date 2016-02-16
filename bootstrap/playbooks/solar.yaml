@@ -57,6 +57,7 @@
         line: eval "$(_SOLAR_COMPLETE=source solar)"
         state: present
 
+    - file: path=/var/log/solar state=directory owner=vagrant
     - file: path=/var/lib/solar/repositories state=directory owner=vagrant
     - file: src=/vagrant/solar-resources/resources dest=/var/lib/solar/repositories/resources state=link owner=vagrant
     - file: src=/vagrant/solar-resources/templates dest=/var/lib/solar/repositories/templates state=link owner=vagrant
