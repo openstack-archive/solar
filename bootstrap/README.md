@@ -1,5 +1,8 @@
 # Solar image building
 
+[Atlas Vagrant Boxes (Ubuntu 14.04)](https://atlas.hashicorp.com/solar-project/boxes)
+| [Docker Image (Ubuntu 14.04)](https://hub.docker.com/r/bogdando/solar-master)
+
 Building on the host OS
 -----------------------
 
@@ -26,6 +29,16 @@ $ vagrant up --provider libvirt
 
 ```
 Note, this requires a vagrant-libvirt plugin.
+
+To build for a docker, use:
+```
+# docker pull ubuntu:trusty
+$ packer build -only=docker solar-master-docker.json
+$ cd ..
+$ vagrant up --provider docker
+```
+Note, this requires a vagrant-triggers plugin.
+The minimal docker 1.10.0 version is required.
 
 Building in the docker container
 --------------------------------
