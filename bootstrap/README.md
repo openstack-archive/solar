@@ -1,5 +1,8 @@
 # Solar image building
 
+[Atlas Vagrant Boxes (Ubuntu 14.04)](https://atlas.hashicorp.com/solar-project/boxes)
+| [Docker Image (Ubuntu 14.04)](https://hub.docker.com/r/bogdando/solar-master)
+
 To build for a Virtualbox, install Packer (https://www.packer.io/):
 ```
 cp vagrant-settings.yaml_defaults vagrant-settings.yaml
@@ -22,6 +25,15 @@ vagrant box add solar-master solar-master.box --provider libvirt
 vagrant up --provider libvirt
 
 ```
+Note, this requires a vagrant-libvirt plugin.
+
+To build for a docker, use:
+```
+packer build -only=docker solar-master-docker.json
+cd ..
+vagrant up --provider docker
+```
+Note, this requires a vagrant-triggers plugin.
 
 If Vagrant throws error about `vboxsf` try this:
 ```
