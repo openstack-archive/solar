@@ -31,15 +31,7 @@ from solar.orchestration import utils
 
 @click.group(name='orch')
 def orchestration():
-    """\b
-
-    create solar/orchestration/examples/multi.yaml
-    <id>
-    run-once <id>
-    report <id>
-    <task> -> <status>
-    restart <id> --reset
-    """
+    pass
 
 
 @orchestration.command()
