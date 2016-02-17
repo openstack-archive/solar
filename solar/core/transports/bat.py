@@ -22,8 +22,17 @@ from solar.core.transports.base import SyncTransport
 from operator import itemgetter
 
 
+def suppress_stevedore_errors(manager, entrypoint, exception):
+    pass
+
+
 def _find_transports(mode):
-    mgr = extension.ExtensionManager(namespace='solar.transports.%s' % mode)
+    # instead of suppressing errors we may consider switching to
+    # EnabledExtensionManager
+    mgr = extension.ExtensionManager(
+        namespace='solar.transports.%s' % mode,
+        on_load_failure_callback=suppress_stevedore_errors
+    )
     extensions = mgr.extensions
     transports = dict(map(lambda x: (x.name, x.plugin), extensions))
     orders = map(lambda x: (getattr(x.plugin, '_priority', -1),
