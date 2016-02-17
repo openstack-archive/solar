@@ -34,7 +34,7 @@ def write_graph(plan):
         color = colors[plan.node[n]['status']]
         plan.node[n]['color'] = color
 
-    nx.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    nx.nx_pydot.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
         'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(
             name=plan.graph['name']),
