@@ -4,9 +4,9 @@
 slaves_count: 2
 slaves_ram: 1024
 master_image: solar-project/solar-master
-master_image_version: <0.3.0
+master_image_version: ">= 0.3.0.pre0"
 slaves_image: solar-project/solar-master
-slaves_image_version: <0.3.0
+slaves_image_version: ">= 0.3.0.pre0"
 master_ram: 1024
 master_cpus: 1
 master_ips:
@@ -35,3 +35,8 @@ preprovisioned: true
 # it should be used in order to provision nodes
 # by solar
 # preprovisioned: false
+
+
+# needed for starting / preparing db server
+# you can choose from riak | postgresql
+solar_db_backend: riak
