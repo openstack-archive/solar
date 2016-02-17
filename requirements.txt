@@ -1,6 +1,6 @@
 six>=1.9.0
 ply
-click==4.0
+click>=6.2
 jinja2==2.7.3
 networkx>=1.10
 PyYAML
