@@ -19,7 +19,7 @@ ansible
 mock
 multipledispatch==0.4.8
 pbr
-pydot
+pydotplus
 bunch
 wrapt
 

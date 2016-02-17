@@ -154,7 +154,7 @@ def init_cli_connections():
                                               end_with=end_with,
                                               details=details)
 
-        nx.write_dot(g, 'graph.dot')
+        nx.nx_pydot.write_dot(g, 'graph.dot')
         fabric_api.local('dot -Tsvg graph.dot -o graph.svg')
 
 

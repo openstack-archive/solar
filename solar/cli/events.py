@@ -66,7 +66,7 @@ def rem(etype, parent_node, parent_action, state, depend_node, depend_action):
 @click.argument('resource')
 def trav(resource):
     dg = evapi.bft_events_graph(resource)
-    nx.write_dot(dg, '{name}.dot'.format(name='events'))
+    nx.nx_pydot.write_dot(dg, '{name}.dot'.format(name='events'))
     subprocess.call(
         'dot -Tpng {name}.dot -o {name}.png'.format(name='events'),
         shell=True)
