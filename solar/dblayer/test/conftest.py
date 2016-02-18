@@ -12,20 +12,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import pytest
 import random
 import string
-import time
-
-import pytest
-
-
-from solar.dblayer.model import get_bucket
-from solar.dblayer.model import Model
-from solar.dblayer.model import ModelMeta
-
-
-def patched_get_bucket_name(cls):
-    return cls.__name__ + str(time.time())
 
 
 class RndObj(object):
@@ -63,18 +52,6 @@ def rt(request):
     return obj
 
 
-@pytest.fixture(autouse=True)
-def setup(request):
-
-    for model in ModelMeta._defined_models:
-        model.bucket = get_bucket(None, model, ModelMeta)
-
-
-def pytest_runtest_teardown(item, nextitem):
-    ModelMeta.session_end(result=True)
-    return nextitem
-
-
 def pytest_runtest_setup(item):
     # ALL Computable Inputs tests are in single file
     # so for easy skip we need this
@@ -86,10 +63,6 @@ def pytest_runtest_setup(item):
             pytest.skip("Lupa is required to test lua")
 
 
-def pytest_runtest_call(item):
-    ModelMeta.session_start()
-
-
 def dicts_to_hashable(list_of_dics):
     rst = []
     for item in list_of_dics:
@@ -99,6 +72,3 @@ def dicts_to_hashable(list_of_dics):
 
 def pytest_namespace():
     return {'dicts_to_hashable': dicts_to_hashable}
-
-
-Model.get_bucket_name = classmethod(patched_get_bucket_name)
