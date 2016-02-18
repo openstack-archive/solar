@@ -65,6 +65,9 @@ elif _connection.mode == 'riak':
 elif _connection.mode == 'postgresql':
     # TODO: collation has to be `C`
     from solar.dblayer.sql_client import SqlClient
+    import psycogreen.gevent
+    psycogreen.gevent.patch_psycopg()
+
     opts = {'autocommit': False}
     opts.update(_connection_details.toDict())
     if _connection.port:

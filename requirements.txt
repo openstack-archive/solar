@@ -29,6 +29,7 @@ wrapt
 peewee
 # if you want to use sql + postgresql then
 # psycopg2
+# psycogreen
 
 # if you want to use lua computable inputs
 # lupa
