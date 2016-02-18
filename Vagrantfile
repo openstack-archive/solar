@@ -98,7 +98,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.synced_folder ".", "/vagrant", type: "nfs"
     end
     if SYNC_TYPE == 'rsync'
-      config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+      config.vm.synced_folder ".", "/vagrant", type: "rsync",
         rsync__args: ["--verbose", "--archive", "--delete", "-z"]
     end
 
@@ -169,7 +169,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           config.vm.synced_folder ".", "/vagrant", type: "nfs"
         end
         if SYNC_TYPE == 'rsync'
-          config.vm.synced_folder ".", "/vagrant", rsync: "nfs",
+          config.vm.synced_folder ".", "/vagrant", type: "rsync",
           rsync__args: ["--verbose", "--archive", "--delete", "-z"]
         end
       end
