@@ -271,7 +271,7 @@ class Bucket(object):
         _idx_key = ForeignKeyField(self._sql_model,
                                    null=False,
                                    index=True,
-                                   on_delete='cascade')
+                                   on_delete='CASCADE')
 
         class IdxMeta(object):
             db_table = idx_table_name
