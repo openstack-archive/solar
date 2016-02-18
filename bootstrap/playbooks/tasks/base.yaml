@@ -55,6 +55,8 @@
   - tox
   - riak
   - pbr
+  # for pg backend
+  - psycogreen
 
 # pre install solare requirements
 - shell: pip install -r https://raw.githubusercontent.com/openstack/solar/master/requirements.txt
