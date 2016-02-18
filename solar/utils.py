@@ -20,11 +20,11 @@ import os
 import re
 import subprocess
 import threading
-import urlparse
 import uuid
 
 from bunch import Bunch
 from jinja2 import Environment
+import six.moves.urllib.parse as urlparse
 import yaml
 
 
