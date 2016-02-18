@@ -47,7 +47,7 @@ do
   let elapsed_time+=1
 done
 
-sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh ${SSH_OPTIONS}" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv
+sshpass -p ${ADMIN_PASSWORD} rsync -rz . -e "ssh ${SSH_OPTIONS}" ${ADMIN_USER}@${ADMIN_IP}:/home/vagrant/solar --include bootstrap/playbooks --exclude "bootstrap/*" --exclude .tox --exclude tmp --exclude x-venv --exclude doc --exclude .vagrant --exclude .testrepository --exclude .eggs --exclude *.box
 
 set +e
 sshpass -p ${ADMIN_PASSWORD} ssh ${SSH_OPTIONS} ${ADMIN_USER}@${ADMIN_IP} bash -s <<EOF
