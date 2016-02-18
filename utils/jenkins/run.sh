@@ -65,13 +65,9 @@ set -e
 
 # wait for riak
 
-if [ $SOLAR_DB_BACKEND == "riak" ]
+if [ ${SOLAR_DB_BACKEND} == "riak" ]
 then
    sudo docker exec vagrant_riak_1 riak-admin wait_for_service riak_kv;
-elif [ $SOLAR_DB_BACKEND == "postgres" ]
-then
-   # TODO: Should be replaced with something smarter
-   sleep 5
 fi
 
 export SOLAR_CONFIG_OVERRIDE="/.solar_config_override"
