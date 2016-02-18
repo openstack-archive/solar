@@ -9,6 +9,12 @@
       POSTGRES_PASSWORD: solar
       POSTGRES_DATABASE: solar
 - wait_for: host=127.0.0.1 port=5432 timeout=15 delay=1
+- name: Waiting for postgresql in container
+  shell: docker exec vagrant_pg_1 gosu postgres psql -c "SELECT 1;"
+  register: result
+  until: result.rc == 0
+  retries: 15
+  delay: 1
 - shell: docker exec vagrant_pg_1 gosu postgres psql -c "DROP DATABASE solar;"
 - shell: docker exec vagrant_pg_1 gosu postgres psql -c "CREATE DATABASE solar WITH owner=postgres LC_COLLATE='C' TEMPLATE template0;"
 - lineinfile:
