@@ -17,6 +17,7 @@ import time
 import gevent
 import pytest
 
+from solar.config import C  # NOQA
 from solar.core.resource import composer
 from solar.dblayer.model import clear_cache
 from solar.errors import ExecutionTimeout
@@ -46,6 +47,7 @@ def resources(request, sequence_vr):
             'sequence_%s' % idx, sequence_vr, inputs={'idx': idx})
 
 
+@pytest.mark.skipif('"postgres" in C.solar_db')
 @pytest.mark.parametrize('scale', [3])
 def test_concurrent_sequences_with_no_handler(scale, clients):
     total_resources = scale * 3
@@ -66,7 +68,8 @@ def test_concurrent_sequences_with_no_handler(scale, clients):
         return summary
     waiter = gevent.spawn(wait_function, timeout)
     waiter.join(timeout=timeout)
-    assert waiter.get(block=True)[states.SUCCESS.name] == total_resources
+    res = waiter.get(block=True)
+    assert res[states.SUCCESS.name] == total_resources
     assert len(data.CL()) == total_resources
     clear_cache()
     assert len(change.stage_changes()) == 0

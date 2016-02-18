@@ -12,9 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import gevent
+import pytest
 import time
 
-import gevent
+from solar.config import C  # NOQA
 
 
 def _wait_scheduling(plan, wait_time, waiter, client):
@@ -55,6 +57,7 @@ def test_sequential_fixture(sequential_plan, scheduler, tasks):
     assert scheduling_results == expected
 
 
+@pytest.mark.skipif('"postgres" in C.solar_db')
 def test_two_path_fixture(two_path_plan, scheduler, tasks):
     worker, client = scheduler
     scheduling_results = set()
