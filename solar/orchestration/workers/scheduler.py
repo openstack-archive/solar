@@ -87,7 +87,7 @@ class Scheduler(base.Worker):
         if status == states.ERROR.name and retries_count > 0:
             retries_count -= 1
             status = states.ERROR_RETRY.name
-            log.debug('Retry task %s in plan, retries left %s',
+            log.debug('Retry task %s in plan %s, retries left %s',
                       task_name, plan.graph['uid'], retries_count)
         else:
             plan.node[task_name]['end_time'] = time.time()
