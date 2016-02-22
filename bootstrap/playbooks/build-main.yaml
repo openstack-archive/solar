@@ -2,7 +2,7 @@
 
 - name: Main build script
   hosts: all
-  sudo: yes
+  become: yes
   vars:
     ssh_ip_mask: "10.*.*.*"
   tasks:
