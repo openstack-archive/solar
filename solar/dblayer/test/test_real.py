@@ -739,7 +739,7 @@ def test_remove_input(rk):
     not ('riak' in C.solar_db and not C.riak_ensemble),
     reason=('Siblings error on write is expected'
             ' only with n_val=1 and 1 node installation'))
-def test_return_siblings_on_write(rk):
+def test_conflict_resolution_called(rk):
     pytest.importorskip('riak')
 
     uid = next(rk)
@@ -747,11 +747,31 @@ def test_return_siblings_on_write(rk):
     lock.save()
     clear_cache()
 
-    with pytest.raises(SiblingsError):
+    # manual mock like because riak_bucket disallow delattr
+    # which is used by mock
+    class PseudoMock(object):
+
+        def __init__(self):
+            self.call_count = 0
+
+        def __enter__(self):
+            def _manual_pseudo_mock(riak_object):
+                self.call_count += 1
+                assert len(riak_object.siblings) == 2
+                return Lock.bucket._orig_resolver(riak_object)
+            Lock.bucket._orig_resolver = Lock.bucket.resolver
+            Lock.bucket.resolver = _manual_pseudo_mock
+            return self
+
+        def __exit__(self, *exc_info):
+            Lock.bucket.resolver = Lock.bucket._orig_resolver
+            del Lock.bucket._orig_resolver
+            return False
+
+    with PseudoMock() as m:
         lock1 = Lock.from_dict(uid, {'identity': uid})
         lock1.save()
-    s1, s2 = lock1._riak_object.siblings
-    assert s1.data == s2.data
+        assert m.call_count == 1
 
 
 @pytest.mark.skipif(
