@@ -21,9 +21,7 @@ import os
 from uuid import uuid4
 
 from enum import Enum
-from multipledispatch import dispatch
 import networkx
-
 
 from solar.computable_inputs import ComputablePassedTypes
 from solar.core.resource.repository import read_meta
@@ -48,8 +46,7 @@ class Resource(object):
     _metadata = {}
 
     # Create
-    @dispatch(basestring, basestring)
-    def __init__(self, name, spec, args=None, tags=None):
+    def create_from_spec(self, name, spec, args=None, tags=None):
         args = args or {}
         self.name = name
         if spec:
@@ -95,11 +92,24 @@ class Resource(object):
         self.db_obj.save()
 
     # Load
-    @dispatch(object)  # noqa
-    def __init__(self, resource_db):
+    def create_from_db(self, resource_db):
         self.db_obj = resource_db
         self.name = resource_db.name
         self.base_path = resource_db.base_path
+
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1:
+            return self.create_from_db(args[0])
+        elif len(args) == 0 and 'resource_db' in kwargs:
+            return self.create_from_db(**kwargs)
+        args_names = ('name', 'spec', 'args', 'tags')
+        for i, arg in enumerate(args):
+            kwargs[args_names[i]] = arg
+        if isinstance(kwargs[args_names[0]], basestring) and \
+           isinstance(kwargs[args_names[1]], basestring):
+            return self.create_from_spec(**kwargs)
+        raise RuntimeError("Failed to create Resoruce object "
+                           "from args: %r and kwargs: %r" % (args, kwargs))
 
     def auto_extend_inputs(self, inputs):
         # XXX: we didn't agree on `location_id` and `transports_id`
