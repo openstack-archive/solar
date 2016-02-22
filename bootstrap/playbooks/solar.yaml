@@ -1,7 +1,7 @@
 ---
 
 - hosts: localhost
-  sudo: yes
+  become: yes
   vars:
     ssh_ip_mask: "10.*.*.*"
   tasks:

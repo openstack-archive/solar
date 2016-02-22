@@ -2,7 +2,7 @@
 
 - name: Setup dhcp server with bootstrap image
   hosts: all
-  sudo: yes
+  become: yes
   vars:
     tftp_root: /var/lib/tftp
     dhcp_range_start: 10.0.0.42
