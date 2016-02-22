@@ -17,7 +17,6 @@ import os
 
 import click
 from functools import wraps
-import tabulate
 import yaml
 
 from solar.cli.base import EGroup
@@ -164,25 +163,10 @@ def update(name, args):
 
 
 @resource.command()
-@click.option('--check-missing-connections', default=False, is_flag=True)
-def validate(check_missing_connections):
+def validate():
     errors = sresource.validate_resources()
     for r, error in errors:
         click.echo('ERROR: %s: %s' % (r.name, error))
-
-    if check_missing_connections:
-        missing_connections = cr.find_missing_connections()
-        if missing_connections:
-            click.echo(
-                'The following resources have inputs of the same value '
-                'but are not connected:'
-            )
-            click.echo(
-                tabulate.tabulate([
-                    ['%s::%s' % (r1, i1), '%s::%s' % (r2, i2)]
-                    for r1, i1, r2, i2 in missing_connections
-                ])
-            )
 
 
 @resource.command()
