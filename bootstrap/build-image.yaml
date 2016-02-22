@@ -1,7 +1,7 @@
 ---
 
 - hosts: all
-  sudo: yes
+  become: yes
   tasks:
      #- shell: vagrant init ubuntu/trusty64
     - shell: /usr/local/bin/packer build -only=qemu solar-master.json -var 'is_master=true'
