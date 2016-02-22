@@ -41,4 +41,4 @@ class Shell(TempFileHandler):
             use_sudo=True,
             warn_only=True
         )
-        self.verify_run_results(['bash', action_file_name], rst)
+        self.verify_run_result(['bash', action_file_name], rst)
