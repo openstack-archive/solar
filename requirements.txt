@@ -1,43 +1,43 @@
+ansible>=2.0.0
 six>=1.9.0
-ply
-click>=6.2
-jinja2==2.7.3
+jinja2>=2.8
 networkx>=1.10
-PyYAML
-jsonschema==2.4.0
-requests
-dictdiffer==0.4.0
-enum34==1.0.4
-inflection
-Fabric==1.10.2
-gevent>=1.0.2
+PyYAML>=3.1.0
+jsonschema>=2.0.0,<3.0.0,!=2.5.0
+requests>=2.8.1,!=2.9.0  # Apache-2.0
+enum34;python_version=='2.7' or python_version=='2.6' or python_version=='3.3'
 
-# we need callbacks for now
-ansible
-
-mock
-pbr
-pydotplus
-bunch
-wrapt
+mock>=1.2
+pbr>=1.6
 
 # if you want to use riak backend then
-# riak
+# riak>=2.1
 # if you want to use sql backend then
-peewee
+peewee >= 2.8.0
 # if you want to use sql + postgresql then
-# psycopg2
-# psycogreen
+# psycopg2>=2.5
+# psycogreen>=1.0
 
 # if you want to use lua computable inputs
-# lupa
+# lupa>=1.2
 
 # if you want to use complex version check in repositories
-semver
+semver>=2.4.0
 
 # plugins
-stevedore
+stevedore>=1.5.0
 
 #zerorpc doesnt consume messages with >13.0.2, need to debug
 pyzmq==13.0.2
 zerorpc>=0.5.2
+
+
+# Packages beyond this comment are not in OS Global Requirements
+bunch>=1.0.1
+click>=6.2
+dictdiffer>=0.4.0
+Fabric>=1.10.2
+gevent>=1.0.2
+ply>=3.8
+pydotplus>=2.0.2
+wrapt>=1.7.0
