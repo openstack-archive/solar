@@ -1,0 +1,121 @@
+{
+  "variables": {
+    "cm": "puppet",
+    "cm_version": "latest",
+    "cleanup_pause": "",
+    "headless": "{{env `headless`}}",
+    "update": "true",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "install_vagrant_key": "true",
+    "http_proxy": "{{env `http_proxy`}}",
+    "https_proxy": "{{env `https_proxy`}}",
+    "ftp_proxy": "{{env `ftp_proxy`}}",
+    "rsync_proxy": "{{env `rsync_proxy`}}",
+    "no_proxy": "{{env `no_proxy`}}",
+    "cleanup": "false",
+    "ansible_config_path": "/etc/ansible",
+    "ansible_config_file": "ansible.cfg",
+    "ansible_log_file": "/var/tmp/ansible.log"
+  },
+  "builders": [{
+    "type": "docker",
+    "image": "centos:centos7",
+    "commit": true,
+    "run_command": [
+      "-ti",
+      "--privileged",
+      "-v",
+      "/sys/fs/cgroup:/sys/fs/cgroup",
+      "-v",
+      "/var/run/docker.sock:/var/run/docker.sock",
+      "-d",
+      "{{.Image}}",
+      "/bin/bash"
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "execute_command": "echo 'vagrant' | sh '{{.Path}}'",
+    "scripts": [
+      "centos/playbooks/files/sudo.sh"
+    ]}, {
+      "type": "shell",
+      "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "echo '%sudo    ALL=(ALL)  NOPASSWD:ALL' >> /etc/sudoers"
+    ]}, {
+      "type": "shell",
+      "inline": ["sudo mkdir -p {{ user `ansible_config_path` }}"]
+    }, {
+      "type": "shell",
+      "inline": [
+        "touch /tmp/ansible.cfg",
+        "sudo mv /tmp/ansible.cfg {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
+        "sudo echo '[defaults]' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
+        "sudo echo 'log_path = {{ user `ansible_log_file` }}' >> {{ user `ansible_config_path` }}/{{ user `ansible_config_file` }}",
+        "sudo touch {{ user `ansible_log_file` }}",
+        "sudo chmod 666 {{ user `ansible_log_file` }}"
+    ]}, {
+      "type": "shell",
+      "environment_vars": [
+        "OSTYPE=centos",
+        "CM={{user `cm`}}",
+        "CM_VERSION={{user `cm_version`}}",
+        "CLEANUP_PAUSE={{user `cleanup_pause`}}",
+        "UPDATE={{user `update`}}",
+        "INSTALL_VAGRANT_KEY={{user `install_vagrant_key`}}",
+        "SSH_USERNAME={{user `ssh_username`}}",
+        "SSH_PASSWORD={{user `ssh_password`}}",
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}",
+        "ftp_proxy={{user `ftp_proxy`}}",
+        "rsync_proxy={{user `rsync_proxy`}}",
+        "no_proxy={{user `no_proxy`}}"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "centos/playbooks/files/update.sh",
+        "centos/playbooks/files/tools.sh",
+        "centos/playbooks/files/cmtool.sh",
+        "centos/playbooks/files/vagrant.sh",
+        "centos/playbooks/files/sshd.sh"
+      ]
+    }, {
+      "type": "shell",
+      "environment_vars": [
+        "OSTYPE=centos",
+        "CM=ansible",
+        "CM_VERSION=latest"
+      ],
+      "script": "centos/playbooks/files/cmtool.sh",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'"
+    }, {
+      "type": "ansible-local",
+      "playbook_dir": "playbooks",
+      "playbook_file": "centos/playbooks/build-main.yaml",
+      "extra_arguments": ["--verbose"],
+      "command": "OSTYPE=centos ansible-playbook"
+    }, {
+      "type": "shell",
+      "environment_vars": [
+        "OSTYPE=centos",
+        "cleanup={{user `cleanup`}}"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "centos/playbooks/files/minimize.sh",
+        "centos/playbooks/files/cleanup.sh"
+      ]
+    }],
+  "post-processors": [
+    [
+      {
+        "type": "docker-tag",
+        "repository": "bogdando/solar-master-centos",
+        "tag": "latest",
+        "keep_input_artifact": false
+      }
+    ]
+  ]
+}

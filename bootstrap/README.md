@@ -27,10 +27,15 @@ $ vagrant up --provider libvirt
 ```
 Note, this requires a vagrant-libvirt plugin.
 
-To build for a docker, use:
+To build for a docker (Ubuntu based), use:
 ```
 # docker pull ubuntu:trusty
 $ packer build -only=docker solar-master-docker.json
+```
+And for the Centos based:
+```
+# docker pull centos:centos7
+$ packer build -only=docker solar-master-centos-docker.json
 $ cd ..
 $ vagrant up --provider docker
 ```

@@ -1,0 +1,17 @@
+---
+
+- shell: docker --version
+  ignore_errors: true
+  register: docker_version
+- shell: curl -sSL https://get.docker.com/ | sudo sh
+  when: docker_version | failed
+
+# pre download riak image
+- shell: docker pull solarproject/riak
+
+# prebuild pg container
+- git: repo=https://github.com/kiasaki/docker-alpine-postgres.git dest=/tmp/docker-alpine-postgres update=yes
+- shell: make build
+  args:
+    chdir: /tmp/docker-alpine-postgres
+- shell: rm -fr /tmp/docker-alpine-postgres

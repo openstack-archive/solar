@@ -1,0 +1,7 @@
+---
+
+# TODO(bogdando) for centos7
+# The CentOS 7 Kilo repository may be found at http://mirror.centos.org/centos/7/cloud/x86_64/
+# The Juno CentOS 6 repository may be found at http://mirror.centos.org/centos/6/cloud/x86_64/
+# you can yum install centos-release-openstack-kilo for Kilo and yum install centos-release-openstack-juno
+- shell: /bin/true
