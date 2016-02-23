@@ -1,5 +1,6 @@
 ---
 
+# TODO(bogdando) centos/ubuntu split
 - name: Setup dhcp server with bootstrap image
   hosts: all
   sudo: yes
