@@ -127,6 +127,7 @@
     ]}, {
       "type": "shell",
       "environment_vars": [
+        "OSTYPE=ubuntu",
         "CM={{user `cm`}}",
         "CM_VERSION={{user `cm_version`}}",
         "CLEANUP_PAUSE={{user `cleanup_pause`}}",
@@ -142,35 +143,38 @@
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
-        "playbooks/files/update.sh",
-        "playbooks/files/tools.sh",
-        "playbooks/files/cmtool.sh",
-        "playbooks/files/vagrant.sh",
-        "playbooks/files/sshd.sh"
+        "playbooks/ubuntu/files/update.sh",
+        "playbooks/ubuntu/files/tools.sh",
+        "playbooks/ubuntu/files/cmtool.sh",
+        "playbooks/ubuntu/files/vagrant.sh",
+        "playbooks/ubuntu/files/sshd.sh"
       ]
     }, {
       "type": "shell",
       "environment_vars": [
+        "OSTYPE=ubuntu",
         "CM=ansible",
         "CM_VERSION=latest"
       ],
-      "script": "playbooks/files/cmtool.sh",
+      "script": "playbooks/ubuntu/files/cmtool.sh",
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'"
     }, {
       "type": "ansible-local",
       "playbook_dir": "playbooks",
       "playbook_file": "playbooks/build-main.yaml",
-      "extra_arguments": ["--verbose"]
+      "extra_arguments": ["--verbose"],
+      "command": "OSTYPE=ubuntu ansible-playbook"
     }, {
       "type": "shell",
       "environment_vars": [
+        "OSTYPE=ubuntu",
         "cleanup={{user `cleanup`}}"
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
-        "playbooks/files/vmtool.sh",
-        "playbooks/files/minimize.sh",
-        "playbooks/files/cleanup.sh"
+        "playbooks/ubuntu/files/vmtool.sh",
+        "playbooks/ubuntu/files/minimize.sh",
+        "playbooks/ubuntu/files/cleanup.sh"
       ]
     }],
   "post-processors": [

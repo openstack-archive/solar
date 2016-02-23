@@ -71,8 +71,8 @@ def ansible_playbook_command(filename, args=[])
   ansible_script_crafted
 end
 
-def shell_script(filename, args=[])
-  shell_script_crafted = "/bin/bash #{filename} #{args.join ' '} 2>/dev/null"
+def shell_script(filename, env=[], args=[])
+  shell_script_crafted = "/bin/bash -c \"#{env.join ' '} #{filename} #{args.join ' '} 2>/dev/null\""
   @logger.info("Crafted shell-script: #{shell_script_crafted})")
   shell_script_crafted
 end
@@ -88,6 +88,8 @@ end
 solar_script = ansible_playbook_command("solar.yaml")
 solar_agent_script = ansible_playbook_command("solar-agent.yaml")
 master_pxe = ansible_playbook_command("pxe.yaml")
+fix_six = shell_script("/vagrant/bootstrap/playbooks/fix_centos7_six.sh")
+solar_exec =  shell_script("#{solar_script}", ["SOLAR_DB_BACKEND=#{SOLAR_DB_BACKEND}"])
 
 if provider == :docker
   # TODO(bogdando) use https://github.com/jpetazzo/pipework for multi net.
@@ -154,8 +156,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.trigger.after :up, :option => { :vm => 'solar-dev'} do
         docker_exec("solar-dev","/usr/sbin/rsyslogd >/dev/null 2>&1")
         docker_exec("solar-dev","/usr/sbin/sshd >/dev/null 2>&1")
-        docker_exec("solar-dev","#{solar_script} >/dev/null 2>&1")
-        docker_exec("solar-dev","SOLAR_DB_BACKEND=#{SOLAR_DB_BACKEND} #{master_pxe} >/dev/null 2>&1") unless PREPROVISIONED
+        docker_exec("solar-dev","#{fix_six} >/dev/null 2>&1")
+        docker_exec("solar-dev","#{solar_exec}")
+        docker_exec("solar-dev","#{master_pxe} >/dev/null 2>&1") unless PREPROVISIONED
       end
     else
       # not the docker provider
@@ -219,7 +222,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config.trigger.after :up, :option => { :vm => "solar-dev#{index}" } do
           docker_exec("solar-dev#{index}","/usr/sbin/rsyslogd >/dev/null 2>&1")
           docker_exec("solar-dev#{index}","/usr/sbin/sshd >/dev/null 2>&1")
-          docker_exec("solar-dev#{index}","#{solar_agent_script} >/dev/null 2>&1") if PREPROVISIONED
+          docker_exec("solar-dev#{index}","#{fix_six} >/dev/null 2>&1")
+          docker_exec("solar-dev#{index}","#{solar_agent_script}") if PREPROVISIONED
         end
       else
         # not the docker provider
