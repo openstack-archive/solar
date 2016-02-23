@@ -36,7 +36,7 @@ Just update resource::
 How can I run solar worker ?
 -----------------------------------
 
-- If you use `vagrant` then you can just `sudo start solar-worker` 
+- If you use `vagrant` then you can just `sudo start solar-worker`
   as `vagrant` user.
 
 How can I configure solar ?
@@ -45,10 +45,10 @@ How can I configure solar ?
 There are several places where we search for config values:
 
 1. `.config` file in CWD or in path from `SOLAR_CONFIG` env variable
-2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override 
+2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override
    previous values
 3. `.config.override` in CWD
-4. You can also set upper-cased env variable which matches one of those in 
+4. You can also set upper-cased env variable which matches one of those in
    config
 
 .. _faq_what_database:
@@ -81,11 +81,16 @@ done at the host system:
 .. code-block:: bash
 
   # docker pull solarproject/riak
+
+or, depending on the configured DB backend:
+
+.. code-block:: bash
+
   # git clone https://github.com/kiasaki/docker-alpine-postgres.git
   # cd docker-alpine-postgres
   # make build && cd -
 
-This will allow the solar nodes to run required nested docker containers.
+This will allow the solar nodes to run required nested DB containers.
 
 .. note ::
   The command ``vagrant ssh`` will not be working for the docker case.
@@ -95,3 +100,9 @@ This will allow the solar nodes to run required nested docker containers.
 
     # ssh vagrant@10.0.0.2
     # docker exec -it solar-dev bash
+
+.. note ::
+  The command ``vagrant destroy`` only cleans up containers for solar nodes
+  and does not clean up other containers launched, like riak, postgres,
+  kolla or the like. You should stop and remove them from the host system
+  manually!

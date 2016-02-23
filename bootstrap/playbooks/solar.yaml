@@ -10,7 +10,10 @@
     # Setup development env for solar
     - shell: pip install -e . chdir=/vagrant
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
-    - include: tasks/ssh_conf.yaml
+    - include: centos/tasks/ssh_conf.yaml
+      when: lookup('env', 'OSTYPE') == "centos"
+    - include: ubuntu/tasks/ssh_conf.yaml
+      when: lookup('env', 'OSTYPE') == "ubuntu"
 
 - hosts: localhost
   tasks:
@@ -65,4 +68,7 @@
     # shared stuff for all databases
     - include: databases.yaml
 
-    - include: tasks/worker_upstart.yaml
+    - include: centos/tasks/worker_upstart.yaml
+      when: lookup('env', 'OSTYPE') == "centos"
+    - include: ubuntu/tasks/worker_upstart.yaml
+      when: lookup('env', 'OSTYPE') == "ubuntu"
