@@ -8,14 +8,14 @@ FAQ
 .. _faq_hardcoded_params:
 
 Why nodes/transports have hardcoded keys, ips and other inputs ?
---------------------------------------------------------------
+----------------------------------------------------------------
 
 This is temporary situation, we will improve it in near future.
 
 .. _faq_different_ssh_keys:
 
 I want to use different SSH keys
-----------------------------
+--------------------------------
 
 Just update resource for example::
 
@@ -36,8 +36,8 @@ Just update resource::
 How can I run solar worker ?
 -----------------------------------
 
-- If you use `vagrant` then you can just `sudo start solar-worker`
-as `vagrant` user.
+- If you use `vagrant` then you can just `sudo start solar-worker` 
+  as `vagrant` user.
 
 How can I configure solar ?
 ---------------------------
@@ -45,11 +45,11 @@ How can I configure solar ?
 There are several places where we search for config values:
 
 1. `.config` file in CWD or in path from `SOLAR_CONFIG` env variable
-2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override previous
-values
+2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override 
+   previous values
 3. `.config.override` in CWD
-4. You can also set upper-cased env variable which matches one of those in
-config
+4. You can also set upper-cased env variable which matches one of those in 
+   config
 
 .. _faq_what_database:
 
