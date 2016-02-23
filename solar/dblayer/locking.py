@@ -25,6 +25,7 @@ if _connection.mode == 'riak':
 from solar.core.log import log
 from solar.dblayer.model import DBLayerNotFound
 from solar.dblayer.model import ModelMeta
+from solar.dblayer.model import Model
 from solar.dblayer.solar_models import Lock as DBLock
 
 from threading import RLock
