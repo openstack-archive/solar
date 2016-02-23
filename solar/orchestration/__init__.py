@@ -55,6 +55,7 @@ def construct_tasks(extensions, clients):
 def main():
     # NOTE(mkwiek): no arguments should be supplied to solar-worker
     argparse.ArgumentParser().parse_args()
+    log.info('Database in use: {}'.format(C.solar_db))
     runner = loader.get_runner(C.runner)
     constructors = loader.get_constructors()
     clients = loader.get_clients()
