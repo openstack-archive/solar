@@ -6,9 +6,10 @@
   vars:
     ssh_ip_mask: "10.*.*.*"
   tasks:
-    - include: tasks/base.yaml
-    - include: tasks/puppet.yaml
-    - include: tasks/docker.yaml
-    - include: tasks/cloud_archive.yaml
-    - include: tasks/ssh_conf.yaml
+    {% for val in ['base', 'puppet', 'docker', 'cloud_archive', 'ssh_conf' ] %}
+    - include: centos/tasks/{{val}}.yaml
+      when: lookup('env', 'OSTYPE') == "centos"
+    - include: ubuntu/tasks/{{val}}.yaml
+      when: lookup('env', 'OSTYPE') == "ubuntu"
+    {% endfor %}
 

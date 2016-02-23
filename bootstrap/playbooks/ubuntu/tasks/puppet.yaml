@@ -1,0 +1,8 @@
+---
+
+# Puppet related
+- template: src=files/hiera.yaml dest=/etc/puppet/hiera.yaml
+- file: path=/etc/puppet/hieradata state=directory
+# Make paths puppet 4 compatible
+- file: path=/etc/puppetlabs/code/ state=directory
+- file: src=/etc/puppet/hiera.yaml dest=/etc/puppetlabs/code/hiera.yaml state=link
