@@ -51,6 +51,8 @@ class Scheduler(base.Worker):
         ):
             log.debug('Received *next* event for %s', plan_uid)
             plan = graph.get_graph(plan_uid)
+            if len(plan) == 0:
+                raise ValueError('Plan {} is empty'.format(plan_uid))
             rst = self._next(plan)
             for task_name in rst:
                 self._do_scheduling(plan, task_name)

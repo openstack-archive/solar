@@ -51,6 +51,7 @@ def construct_tasks(extensions, clients):
 
 
 def main():
+    log.info('Database in use: {}'.format(C.solar_db))
     runner = loader.get_runner(C.runner)
     constructors = loader.get_constructors()
     clients = loader.get_clients()
