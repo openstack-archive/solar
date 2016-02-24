@@ -17,7 +17,7 @@ from collections import defaultdict
 
 import errno
 import os
-import semver
+import semantic_version
 import shutil
 import yaml
 
@@ -80,9 +80,8 @@ class Repository(object):
             if os.path.exists(meta_path):
                 # single normal
                 pth = os.path.split(source)[-1]
-                try:
-                    semver.parse(pth)
-                except ValueError:
+                valid = semantic_version.validate(pth)
+                if not valid:
                     name = pth
                 else:
                     # if it was semver then single_path may look like
@@ -101,9 +100,8 @@ class Repository(object):
                 pth = pth[:-5]
                 yield RES_TYPE.Composer, pth, single_path
             elif os.path.exists(os.path.join(single_path, 'meta.yaml')):
-                try:
-                    semver.parse(pth)
-                except ValueError:
+                valid = semantic_version.validate(pth)
+                if not valid:
                     name = pth
                 else:
                     # if it was semver then single_path may look like
@@ -123,9 +121,8 @@ class Repository(object):
                 if not os.path.isdir(single_path):
                     continue
                 for single in os.listdir(single_path):
-                    try:
-                        semver.parse(single)
-                    except ValueError:
+                    valid = semantic_version.validate(single)
+                    if not valid:
                         fp = os.path.join(single_path, single)
                         raise RepositoryException(
                             "Unexpected repository content "
@@ -299,7 +296,7 @@ class Repository(object):
             return os.path.join(self.fpath, spec['resource_name'], version)
         found = self.iter_contents(resource_name)
         if version is None:
-            sc = semver.compare
+            sc = semantic_version.compare
             sorted_vers = sorted(found,
                                  cmp=lambda a, b: sc(a['version'],
                                                      b['version']),
@@ -309,14 +306,16 @@ class Repository(object):
             version = sorted_vers[0]['version']
         else:
             version = '{}{}'.format(version_sign, version)
-            matched = filter(lambda x: semver.match(x['version'], version),
+            matched = filter(lambda x: semantic_version.match(version,
+                                                              x['version']),
                              found)
             sorted_vers = sorted(matched,
-                                 cmp=lambda a, b: semver.compare(a['version'],
-                                                                 b['version']),
+                                 cmp=lambda a, b: semantic_version.compare(
+                                     a['version'],
+                                     b['version']),
                                  reverse=True)
             version = next((x['version'] for x in sorted_vers
-                            if semver.match(x['version'], version)),
+                            if semantic_version.match(version, x['version'])),
                            None)
         if version is None:
             raise ResourceNotFound(spec)

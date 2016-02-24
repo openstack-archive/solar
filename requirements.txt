@@ -22,7 +22,7 @@ peewee >= 2.8.0
 # lupa>=1.2
 
 # if you want to use complex version check in repositories
-semver>=2.4.0
+semantic_version>=2.3.1
 
 # plugins
 stevedore>=1.5.0
