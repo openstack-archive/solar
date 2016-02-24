@@ -335,19 +335,21 @@ def parse_inputs(inputs):
 
 def parse_list_input(r_input, args):
     connections = []
-    assignments = {}
+    assignments = []
     for arg in args:
         if isinstance(arg, dict):
             n_connections, n_assign = parse_dict_input(
                 r_input, arg)
             connections.extend(n_connections)
             if n_assign:
-                add_assignment(assignments, r_input, n_assign)
+                assignments.append(n_assign[r_input])
         elif is_connection(arg):
             c = parse_connection(r_input, arg)
             connections.append(c)
         else:
-            add_assignment(assignments, r_input, arg)
+            assignments.append(arg)
+    if assignments:
+        assignments = {r_input: assignments}
     return connections, assignments
 
 
@@ -386,13 +388,6 @@ def parse_computable_input(r_input, arg):
     return computable, connections
 
 
-def add_assignment(assignments, r_input, arg):
-    try:
-        assignments[r_input].append(arg)
-    except KeyError:
-        assignments[r_input] = [arg]
-
-
 def is_connection(arg):
     if isinstance(arg, basestring) and '::' in arg:
         return True
@@ -422,6 +417,9 @@ def dump_back_to_file(data):
     if val.endswith('\n...\n'):
         # yaml dumps in that way, when we operate on single value
         val = val[:-5]
+    if val.endswith('\n'):
+        # yaml dumps in that way, when we operate on single value
+        val = val[:-1]
     return val
 
 VR_ENV.globals['dump_back'] = dump_back_to_file
