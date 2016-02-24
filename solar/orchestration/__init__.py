@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import argparse
+
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
@@ -51,6 +53,8 @@ def construct_tasks(extensions, clients):
 
 
 def main():
+    # NOTE(mkwiek): no arguments should be supplied to solar-worker
+    argparse.ArgumentParser().parse_args()
     runner = loader.get_runner(C.runner)
     constructors = loader.get_constructors()
     clients = loader.get_clients()
