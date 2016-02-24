@@ -189,8 +189,19 @@ def test_parse_dict_input():
                             'events': None,
                             'parent': 'node1',
                             'parent_input': 'ip'}]
-    connections, assigments = cr.parse_dict_input('env', {'host': 'node1::ip'})
+    connections, _ = cr.parse_dict_input('env', {'host': 'node1::ip'})
     assert correct_connections == connections
+
+
+def test_parse_list_of_dicts1():
+    _, assigments, _ = cr.parse_inputs({'map': [{'a': 1, 'b': 3},
+                                                {'a': 2, 'b': 4}]})
+    assert assigments == {'map': [{'a': 1, 'b': 3}, {'a': 2, 'b': 4}]}
+
+
+def test_parse_simple_list():
+    _, assigments, _ = cr.parse_inputs({'map': [1, 2, 3]})
+    assert assigments == {'map': [1, 2, 3]}
 
 
 def test_parse_computable_input():
