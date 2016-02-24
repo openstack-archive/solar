@@ -27,8 +27,9 @@ semver>=2.4.0
 # plugins
 stevedore>=1.5.0
 
-#zerorpc doesnt consume messages with >13.0.2, need to debug
-pyzmq==13.0.2
+# NOTE(jnowak): there is a bug in zerorpc, if pyzmq>13.0.2
+# working workaround included
+pyzmq>=13.0.2
 zerorpc>=0.5.2
 
 
