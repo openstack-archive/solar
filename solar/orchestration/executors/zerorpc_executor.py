@@ -15,10 +15,21 @@
 import sys
 
 import gevent
-import zerorpc
 
-from solar.core.log import log
-from solar.orchestration.executors import base
+# NOTE(jnowak): this is a workaround for bug in zerorpc.gevent_zmq
+# it's broken on gevent patched environments and when
+# pyzmq > 13.0.2
+import zmq.green as zmq
+if tuple(map(int, zmq.__version__.split('.'))) > (13, 0, 2):
+    sys.modules['zmq'] = zmq
+else:
+    del zmq
+
+# NOTE(jnowak): NOQA because of workaround above (E402)
+import zerorpc  # NOQA
+
+from solar.core.log import log  # NOQA
+from solar.orchestration.executors import base  # NOQA
 
 
 class PoolBasedPuller(zerorpc.Puller):
