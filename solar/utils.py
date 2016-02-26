@@ -39,6 +39,12 @@ def to_pretty_json(data):
     return json.dumps(data, indent=4)
 
 
+def to_nice_yaml(data):
+    data = yaml.safe_dump(data, indent=4, allow_unicode=True,
+                     default_flow_style=False)
+    return data
+
+
 def communicate(command, data):
     popen = subprocess.Popen(
         command,
@@ -63,6 +69,7 @@ def execute(command, shell=False, env=None):
 jinja_env_with_filters = Environment()
 jinja_env_with_filters.filters['to_json'] = to_json
 jinja_env_with_filters.filters['to_pretty_json'] = to_pretty_json
+jinja_env_with_filters.filters['to_nice_yaml'] = to_nice_yaml
 
 
 def create_dir(dir_path):
