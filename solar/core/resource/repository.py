@@ -47,6 +47,8 @@ def read_meta(base_path):
 
     metadata = utils.yaml_load(base_meta_file)
     metadata.setdefault('version', '1.0.0')
+    # NOTE(jnowak): when `version: 0.1` then it's float
+    metadata['version'] = str(metadata['version'])
     metadata['base_path'] = os.path.abspath(base_path)
     actions_path = os.path.join(metadata['base_path'], 'actions')
     metadata['actions_path'] = actions_path
@@ -191,6 +193,11 @@ class Repository(object):
                     "meta.yaml not found: %s" % e.filename)
             raise
         version = metadata['version']
+        valid = semantic_version.validate(version)
+        if not valid:
+            raise RepositoryException("Invalid version "
+                                      "%s for %s" % (version,
+                                                     source))
         # TODO: (jnowak) sanitize version
         target_path = os.path.join(self.fpath, name, version)
         try:
