@@ -23,7 +23,7 @@ import threading
 import urlparse
 import uuid
 
-from bunch import Bunch
+from munch import Munch
 from jinja2 import Environment
 import yaml
 
@@ -168,7 +168,7 @@ def parse_database_conn(name):
     if m is not None:
         groups = m.groupdict()
         groups['type'] = 'riak' if groups['mode'] == 'riak' else 'sql'
-        return Bunch(groups), Bunch(opts)
+        return Munch(groups), Munch(opts)
     else:
         raise Exception("Invalid database connection string: %r "
                         "It should be in RFC 1738 format. " % name)
