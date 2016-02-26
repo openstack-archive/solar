@@ -21,6 +21,7 @@ import shutil
 import pytest
 
 from solar.core.resource.repository import Repository
+from solar.core.resource.repository import RepositoryException
 from solar.core.resource.repository import RES_TYPE
 
 
@@ -49,24 +50,27 @@ resources: []"""
 _VERSIONS = ('0.0.1', '0.0.2', '1.0.0', '1.4.7', '2.0.0')
 
 
-def generate_structure(target, versions='1.0.0', r_type=0):
+def generate_structure(target, versions='1.0.0', r_type=0,
+                       versions_meta=None):
     if isinstance(versions, basestring):
         versions = (versions)
     elif isinstance(versions, int):
         versions = _VERSIONS[:versions]
 
+    versions_meta = versions_meta or versions
+
     if r_type == 0:
         for name in ('first', 'second', 'third'):
-            for version in versions:
-                cnt = _META_CONTENT.format(version, name)
+            for version_meta, version in zip(versions_meta, versions):
+                cnt = _META_CONTENT.format(version_meta, version, name)
                 fp = os.path.join(target, name, version)
                 os.makedirs(fp)
                 with open(os.path.join(fp, 'meta.yaml'), 'wb') as f:
                     f.write(cnt)
     else:
         for name in ('first', 'second', 'third'):
-            for version in versions:
-                cnt = _VR_CONTENT.format(version)
+            for version_meta, version in zip(versions_meta, versions):
+                cnt = _VR_CONTENT.format(version_meta)
                 fp = os.path.join(target, name, version)
                 os.makedirs(fp)
                 with open(os.path.join(fp, "{}.yaml".format(name)), 'wb') as f:
@@ -279,3 +283,21 @@ def test_create_from_src(mock_mkdtemp, mock_rename, _):
 
     mock_rename.assert_called_with(tmp_dir, real_path)
     assert repo.fpath == real_path
+
+
+def test_detect_invalid_version_in_dir(repo_w, tmpdir):
+    rp = str(tmpdir) + '/r1'
+    generate_structure(rp, ['0.1.0', '0.1'])
+    repo = Repository("repo_in_dir")
+    with pytest.raises(RepositoryException) as ex:
+        repo.create(rp)
+    assert 'r1/first' in str(ex)
+
+
+def test_detect_invalid_version_in_meta(repo_w, tmpdir):
+    rp = str(tmpdir) + '/r1'
+    generate_structure(rp, ['0.1.0'], versions_meta=['0.1'])
+    repo = Repository('repo_in_meta')
+    with pytest.raises(RepositoryException) as ex:
+        repo.create(rp)
+    assert 'r1/first/0.1.0' in str(ex)
