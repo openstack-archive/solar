@@ -40,7 +40,7 @@ Requires:    PyYAML
 Requires:    python-psycogreen
 Requires:    python-pydotplus
 Requires:    python-semantic_version >= 2.3.1
-Requires:    python-pyzmq
+Requires:    python-zmq
 Requires:    python-zerorpc >= 0.5.2
 
 
