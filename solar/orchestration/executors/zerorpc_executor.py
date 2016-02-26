@@ -12,9 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import gevent
 import sys
 
-import gevent
+from functools import update_wrapper
 
 # NOTE(jnowak): this is a workaround for bug in zerorpc.gevent_zmq
 # it's broken on gevent patched environments and when
@@ -23,6 +24,7 @@ import zmq.green as zmq
 if tuple(map(int, zmq.__version__.split('.'))) > (13, 0, 2):
     sys.modules['zmq'] = zmq
 else:
+    del sys.modules['zmq']
     del zmq
 
 # NOTE(jnowak): NOQA because of workaround above (E402)
@@ -30,6 +32,24 @@ import zerorpc  # NOQA
 
 from solar.core.log import log  # NOQA
 from solar.orchestration.executors import base  # NOQA
+
+
+# NOTE(jnowak): this is there because of __del__ in zerorpc Events
+# without that patch you may have:
+# TypeError("'NoneType' object is not callable",)
+# during interpreter shutdown
+# see #1549384 bug for more info
+def patch_events():
+    def fixed_del(obj):
+        try:
+            obj.__orig_del__()
+        except TypeError:
+            pass
+    update_wrapper(fixed_del, zerorpc.events.Events.__del__)
+    zerorpc.events.Events.__orig_del__ = zerorpc.events.Events.__del__
+    zerorpc.events.Events.__del__ = fixed_del
+
+patch_events()
 
 
 class PoolBasedPuller(zerorpc.Puller):
