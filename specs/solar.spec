@@ -20,7 +20,7 @@ BuildArch: noarch
 Requires:    ansible >= 2.0
 Requires:    python
 Requires:    python-fabric >= 1.10.2
-Requires:    python-bunch
+Requires:    python-munch
 Requires:    python-click >= 6
 Requires:    python-dictdiffer >= 0.4.0
 Requires:    python-enum34 >= 1.0.4

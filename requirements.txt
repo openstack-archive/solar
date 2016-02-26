@@ -34,7 +34,7 @@ zerorpc>=0.5.2
 
 
 # Packages beyond this comment are not in OS Global Requirements
-bunch>=1.0.1
+munch>=1.0.1
 click>=6.2
 dictdiffer>=0.4.0
 Fabric>=1.10.2
