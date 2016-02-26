@@ -16,14 +16,14 @@
 
 import os
 
-from bunch import Bunch
+from munch import Munch
 import yaml
 
 
 CWD = os.getcwd()
 
 
-C = Bunch(solar_db="")
+C = Munch(solar_db="")
 C.riak_ensemble = False
 C.lock_bucket_type = None
 C.counter_bucket_type = None
@@ -45,7 +45,7 @@ def _lookup_vals(setter, config, prefix=None):
             sub = [key]
         else:
             sub = prefix + [key]
-        if isinstance(val, Bunch):
+        if isinstance(val, Munch):
             _lookup_vals(setter, val, sub)
         else:
             setter(config, sub)
