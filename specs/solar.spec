@@ -19,6 +19,7 @@ BuildArch: noarch
 
 Requires:    ansible >= 2.0
 Requires:    python
+Requires:    python-backports-ssl_match_hostname
 Requires:    python-fabric >= 1.10.2
 Requires:    python-munch
 Requires:    python-click >= 6
