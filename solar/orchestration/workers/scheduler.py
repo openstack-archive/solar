@@ -100,6 +100,7 @@ class Scheduler(base.Worker):
         task_type = plan.node[task_name]['type']
         plan.node[task_name]['status'] = states.INPROGRESS.name
         plan.node[task_name]['start_time'] = time.time()
+        plan.node[task_name]['end_time'] = 0.0
         timelimit = plan.node[task_name].get('timelimit', 0)
         timeout = plan.node[task_name].get('timeout', 0)
         ctxt = {
