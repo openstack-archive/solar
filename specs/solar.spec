@@ -19,12 +19,13 @@ BuildArch: noarch
 
 Requires:    ansible >= 2.0
 Requires:    python
+Requires:    python-backports-ssl_match_hostname
 Requires:    python-fabric >= 1.10.2
 Requires:    python-munch
 Requires:    python-click >= 6
 Requires:    python-dictdiffer >= 0.4.0
 Requires:    python-enum34 >= 1.0.4
-Requires:    python-gevent >= 1.0
+Requires:    python-gevent >= 1.0.2
 Requires:    python-jinja2 >= 2.7.3
 Requires:    python-jsonschema >= 2.3
 Requires:    python-mock
