@@ -124,7 +124,10 @@ def total_delta(graph):
     for n in graph:
         node_start = graph.node[n]['start_time']
         node_end = graph.node[n]['end_time']
-        if node_start is 0.0 or node_end is 0.0:
+        # NOTE(mkwiek) we are dealing with float timestamps here, this check
+        # is good enough to make sure that timestamps are indeed 0 (or as close
+        # to it as float can be)
+        if node_start < 1 or node_end < 1:
             continue
         delta += node_end - node_start
     return delta
