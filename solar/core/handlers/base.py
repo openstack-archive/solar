@@ -174,7 +174,9 @@ class TempFileHandler(BaseHandler):
         args['resource_dir'] = resource.db_obj.base_path
         args['templates_dir'] = 'templates/'
         args['scripts_dir'] = 'scripts/'
-        args.update(resource.args)
+        resource_args = resource.args
+        args['resource_args'] = resource_args
+        args.update(resource_args)
         return args
 
 
