@@ -115,7 +115,7 @@ class React(Event):
             changes_graph.add_edge(
                 self.parent_node, self.child_node, state=self.state)
             changed_resources.append(self.child_node)
-
+            return True
 
 class StateChange(Event):
 
