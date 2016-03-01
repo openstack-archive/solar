@@ -103,8 +103,8 @@ def longest_path_time(graph):
     """We are not interested in the path itself, just get the start
     of execution and the end of it.
     """
-    start = None
-    end = None
+    start = float('inf')
+    end = 0
     for n in graph:
         node_start = graph.node[n]['start_time']
         node_end = graph.node[n]['end_time']
