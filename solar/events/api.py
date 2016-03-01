@@ -143,17 +143,20 @@ def build_edges(changes_graph, events):
     visited = set()
     while stack:
         event_name = stack.pop(0)
-
         if event_name in events_graph:
             log.debug('Next events after %s are %s', event_name,
                       events_graph.successors(event_name))
         else:
             log.debug('No outgoing events based on %s', event_name)
-
         if event_name not in visited:
             for parent, child, data in events_graph.edges(event_name,
                                                           data=True):
                 succ_ev = data['event']
-                succ_ev.insert(stack, changes_graph)
+                # FIXME(dshulyak) interface of events should be changed
+                if succ_ev.insert(stack, changes_graph):
+                    new_events = all_events(succ_ev.child)
+                    for ev in new_events:
+                        events_graph.add_edge(
+                            ev.parent_node, ev.child_node, event=ev)
         visited.add(event_name)
     return changes_graph

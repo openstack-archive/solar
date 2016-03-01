@@ -56,30 +56,30 @@ def test_single_event(events_example):
 
 @fixture
 def nova_deps():
-    rst = [
-        evapi.Dep('nova', 'run', 'success', 'nova_api', 'run'),
-        evapi.Dep('nova', 'update', 'success', 'nova_api', 'update'),
-        evapi.React('nova', 'update', 'success', 'nova_api', 'update')
-    ]
-    return {'nova': rst}
+    for name in ['nova', 'nova_api', 'nova_sch']:
+        r = Resource.from_dict(dict(key=name, name=name))
+        r.inputs.add_new('location_id', '1')
+        r.save()
+    rst = {
+        'nova':
+        [evapi.Dep('nova', 'run', 'success', 'nova_sch', 'run'),
+         evapi.React('nova', 'run', 'success', 'nova_api', 'update')],
+        'nova_api':
+        [evapi.React('nova_api', 'update', 'success', 'nova', 'reboot')]}
+    evapi.add_events('nova', rst['nova'])
+    evapi.add_events('nova_api', rst['nova_api'])
+    return rst
 
 
-def test_nova_api_run_after_nova(nova_deps):
+def test_nova_api(nova_deps):
     changes_graph = nx.DiGraph()
     changes_graph.add_node('nova.run')
-    changes_graph.add_node('nova_api.run')
+    changes_graph.add_node('nova_sch.run')
     evapi.build_edges(changes_graph, nova_deps)
 
-    assert changes_graph.successors('nova.run') == ['nova_api.run']
-
-
-def test_nova_api_react_on_update(nova_deps):
-    """Test that nova_api:update will be called even if there is no changes in nova_api"""  # NOQA
-    changes_graph = nx.DiGraph()
-    changes_graph.add_node('nova.update')
-    evapi.build_edges(changes_graph, nova_deps)
-
-    assert changes_graph.successors('nova.update') == ['nova_api.update']
+    assert set(changes_graph.successors('nova.run')) == {
+        'nova_sch.run', 'nova_api.update'}
+    assert changes_graph.successors('nova_api.update') == ['nova.reboot']
 
 
 @fixture
@@ -142,6 +142,11 @@ def test_riak():
                         'commit')
         ],
     }
+    for name in events:
+        res = Resource.from_dict({'key': name, 'name': name})
+        res.save()
+        res.inputs.add_new('location_id', '1')
+        evapi.add_events(name, events[name])
 
     changes_graph = nx.MultiDiGraph()
     changes_graph.add_node('riak_service1.run')
