@@ -1,9 +1,11 @@
+- file: path=/var/tmp/vagrant state=directory
+- copy: src=/vagrant/utils/riak/app.config dest=/var/tmp/vagrant/riak-app.config
 - name: start riak container
   docker:
     name: vagrant_riak_1
     image: solarproject/riak
     volumes:
-        - /vagrant/utils/riak/app.config:/etc/riak/app.config
+      - /var/tmp/vagrant/riak-app.config:/etc/riak/app.config
     ports:
       - 8087:8087
       - 8098:8098

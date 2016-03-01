@@ -92,13 +92,12 @@ fix_six = shell_script("/vagrant/bootstrap/playbooks/fix_centos7_six.sh")
 solar_exec =  shell_script("#{solar_script}", ["SOLAR_DB_BACKEND=#{SOLAR_DB_BACKEND}"])
 
 if provider == :docker
-  # TODO(bogdando) use https://github.com/jpetazzo/pipework for multi net.
-  # Hereafter, we will use only the 1st IP address and a single interface.
-  # Also prepare docker volumes and workaround missing machines' ssh_keys
+  # Prepare docker volumes and workaround missing machines' ssh_keys
   # and virtualbox hardcoded paths in Solar
   key=get_machine_key
   docker_volumes = ["-v", "#{INSECURE_KEY}:#{KEY_PATH1}:ro"]
   docker_volumes << ["-v", "#{INSECURE_KEY}:#{key}:ro",
+    "-v", "/var/tmp/vagrant:/var/tmp/vagrant",
     "-v", "/sys/fs/cgroup:/sys/fs/cgroup",
     "-v", "/var/run/docker.sock:/var/run/docker.sock" ]
   SLAVES_COUNT.times do |i|
@@ -106,7 +105,7 @@ if provider == :docker
     key = get_machine_key index.to_s
     docker_volumes << ["-v", "#{INSECURE_KEY}:#{key}:ro"]
   end
-  docker_volumes.flatten
+  docker_volumes.flatten!
   @logger.info("Crafted docker volumes: #{docker_volumes}")
 end
 
@@ -115,6 +114,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # W/a unimplemented docker networking, see
     # https://github.com/mitchellh/vagrant/issues/6667.
     # Create or delete the solar net (depends on the vagrant action)
+    # TODO(bogdando) use https://github.com/jpetazzo/pipework for multi net.
+    # Hereafter, we will use only the 1st IP address and a single interface.
     config.trigger.before :up do
       system <<-SCRIPT
       if ! docker network inspect solar >/dev/null 2>&1 ; then
