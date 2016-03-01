@@ -20,6 +20,8 @@ require 'yaml'
 
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
+# FIXME(bogdando) more natively to distinguish a provider specific logic
+provider = (ARGV[2] || ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_sym
 
 # configs, custom updates _defaults
 defaults_cfg = YAML.load_file('vagrant-settings.yaml_defaults')
@@ -67,6 +69,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: solar_script, privileged: true, env: {"SOLAR_DB_BACKEND": SOLAR_DB_BACKEND}
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
+    if provider != :virtualbox
+      # FIXME(bogdando) w/a virtualbox hardcoded paths for keys in Solar examples
+      config.trigger.after :up do
+        index = ''
+        (SLAVES_COUNT+1).times do |i|
+          dir=Dir.pwd
+          path="#{dir}/.vagrant/machines/solar-dev#{index}"
+          system <<-SCRIPT
+            mkdir -p "#{path}/virtualbox"
+            cp -f "#{path}/#{provider.to_s}/private_key" "#{path}/virtualbox/"
+          SCRIPT
+          index = i + 1
+        end
+      end
+    end
     config.vm.host_name = "solar-dev"
 
     config.vm.provider :virtualbox do |v|
