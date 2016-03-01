@@ -5,7 +5,8 @@ Please note that currently Solar is in a beta stage and it shouldn't be used in
 production environments.
 
 We also recommend testing Solar using a vagrant where fully working development
-environment will be created.
+environment will be created. Note that the vagrant-libvirt and vagrant-triggers
+plugins are required for the vagrant libvirt provider.
 
 If you want to try Solar outside Vagrant jump to `Local environment`_
 
