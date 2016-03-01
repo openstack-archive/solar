@@ -103,20 +103,20 @@ def longest_path_time(graph):
     """We are not interested in the path itself, just get the start
     of execution and the end of it.
     """
-    start = None
-    end = None
+    start = float('inf')
+    end = float('-inf')
     for n in graph:
         node_start = graph.node[n]['start_time']
         node_end = graph.node[n]['end_time']
         if node_start is 0.0 or node_end is 0.0:
             continue
 
-        if node_start < start or start is None:
+        if node_start < start:
             start = node_start
 
-        if node_end > end or end is None:
+        if node_end > end:
             end = node_end
-    return end - start
+    return max(end - start, 0.0)
 
 
 def total_delta(graph):
