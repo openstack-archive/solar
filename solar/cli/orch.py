@@ -74,6 +74,9 @@ def click_report(uid):
         'NOOP': 'black'}
 
     report = graph.report_progress(uid)
+    if len(report['tasks']) == 0:
+        click.echo('Nothing to report')
+
     for item in report['tasks']:
         msg = '{} -> {}'.format(item[0], item[1])
         if item[2]:
