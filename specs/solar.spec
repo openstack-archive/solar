@@ -49,7 +49,7 @@ Requires:    python-zerorpc >= 0.5.2
 Solar is a resource manager and orchestration engine for distributed systems.
 
 %prep
-%setup -cq -n %{name}-%{version}
+%setup -q -n %{name}-%{version}
 
 %build
 cd %{_builddir}/%{name}-%{version} && PBR_VERSION=%{version} python setup.py build
