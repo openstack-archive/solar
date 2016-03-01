@@ -36,7 +36,7 @@ Just update resource::
 How can I run solar worker ?
 -----------------------------------
 
-- If you use `vagrant` then you can just `sudo start solar-worker` 
+- If you use `vagrant` then you can just `sudo start solar-worker`
   as `vagrant` user.
 
 How can I configure solar ?
@@ -45,10 +45,10 @@ How can I configure solar ?
 There are several places where we search for config values:
 
 1. `.config` file in CWD or in path from `SOLAR_CONFIG` env variable
-2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override 
+2. if env `SOLAR_CONFIG_OVERRIDE` contains valid path then it override
    previous values
 3. `.config.override` in CWD
-4. You can also set upper-cased env variable which matches one of those in 
+4. You can also set upper-cased env variable which matches one of those in
    config
 
 .. _faq_what_database:
