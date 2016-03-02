@@ -26,5 +26,11 @@ class NaiveSync(BaseHandler):
         # this src seems not intuitive to me, wo context it is impossible
         # to understand where src comes from
         for item in args['sources']:
-            self.transport_sync.copy(resource, item['src'], item['dst'])
+            _from = item.pop('src')
+            _to = item.pop('dst')
+            self.transport_sync.copy(
+                resource,
+                _from, _to,
+                **item
+            )
         self.transport_sync.sync_all()

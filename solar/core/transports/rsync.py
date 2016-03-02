@@ -52,7 +52,7 @@ class RsyncSyncTransport(SyncTransport):
         else:
             raise Exception("No key and no password given")
 
-    def copy(self, resource, _from, _to, use_sudo=False):
+    def copy(self, resource, _from, _to, use_sudo=False, **kwargs):
         log.debug("RSYNC: %s -> %s", _from, _to)
         if os.path.isdir(_from):
             r_dir_path = _to
@@ -87,5 +87,5 @@ class RsyncSyncTransport(SyncTransport):
 
         executor = Executor(resource=resource,
                             executor=rsync_executor,
-                            params=(_from, _to, use_sudo))
+                            params=(_from, _to, use_sudo, kwargs))
         self.executors.append(executor)

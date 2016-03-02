@@ -43,12 +43,12 @@ class TorrentSyncTransport(SyncTransport):
         self._sync_helper.bind_with(other)
         super(TorrentSyncTransport, self).bind_with(other)
 
-    def copy(self, resource, _from, _to, use_sudo=False):
+    def copy(self, resource, _from, _to, use_sudo=False, **kwargs):
         log.debug("TORRENT: %s -> %s", _from, _to)
 
         executor = Executor(resource=resource,
                             executor=None,
-                            params=(_from, _to, use_sudo))
+                            params=(_from, _to, use_sudo, kwargs))
         self.executors.append(executor)
 
     def _create_single_torrent(self, resource, _from, _to, use_sudo):
@@ -132,7 +132,7 @@ class TorrentSyncTransport(SyncTransport):
         self.other(resource).run(resource, *cmd, use_sudo=use_sudo)
 
     def preprocess(self, executor):
-        _from, _to, use_sudo = executor.params
+        _from, _to, use_sudo = executor.params[:3]
         self._create_single_torrent(executor.resource, _from, _to, use_sudo)
 
     def run_all(self):

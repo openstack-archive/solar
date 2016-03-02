@@ -43,14 +43,14 @@ class SolarAgentSyncTransport(SyncTransport, SolarAgentTransport):
 
     preffered_transport_name = 'solar_agent'
 
-    def copy(self, resource, _from, _to, use_sudo=False):
+    def copy(self, resource, _from, _to, use_sudo=False, **kwargs):
         log.debug("SolarAgent copy: %s -> %s", _from, _to)
 
         client = self.get_client(resource)
         executor = lambda transport: client.copy(_from, _to, use_sudo)
         executor = Executor(resource=resource,
                             executor=executor,
-                            params=(_from, _to, use_sudo))
+                            params=(_from, _to, use_sudo, kwargs))
         self.executors.append(executor)
 
 
