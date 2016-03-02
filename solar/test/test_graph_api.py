@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-
 import networkx as nx
 from pytest import fixture
 
@@ -21,43 +19,35 @@ from solar.orchestration import graph
 from solar.orchestration.traversal import states
 
 
-@fixture
-def simple():
-    simple_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
-        'simple.yaml')
-    return graph.create_plan(simple_path)
-
-
-def test_simple_plan_created_and_loaded(simple):
-    plan = graph.get_plan(simple.graph['uid'])
+def test_simple_plan_plan_created_and_loaded(simple_plan):
+    plan = graph.get_plan(simple_plan.graph['uid'])
     assert set(plan.nodes()) == {'just_fail', 'echo_stuff'}
 
 
-def test_reset_all_states(simple):
-    for n in simple:
-        simple.node[n]['status'] == states.ERROR.name
-    graph.reset(simple)
+def test_reset_all_states(simple_plan):
+    for n in simple_plan:
+        simple_plan.node[n]['status'] == states.ERROR.name
+    graph.reset(simple_plan)
 
-    for n in simple:
-        assert simple.node[n]['status'] == states.PENDING.name
-
-
-def test_reset_only_provided(simple):
-    simple.node['just_fail']['status'] = states.ERROR.name
-    simple.node['echo_stuff']['status'] = states.SUCCESS.name
-
-    graph.reset(simple, [states.ERROR.name])
-
-    assert simple.node['just_fail']['status'] == states.PENDING.name
-    assert simple.node['echo_stuff']['status'] == states.SUCCESS.name
+    for n in simple_plan:
+        assert simple_plan.node[n]['status'] == states.PENDING.name
 
 
-def test_wait_finish(simple):
-    for n in simple:
-        simple.node[n]['status'] = states.SUCCESS.name
-    graph.update_graph(simple)
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+def test_reset_only_provided(simple_plan):
+    simple_plan.node['just_fail']['status'] = states.ERROR.name
+    simple_plan.node['echo_stuff']['status'] = states.SUCCESS.name
+
+    graph.reset(simple_plan, [states.ERROR.name])
+
+    assert simple_plan.node['just_fail']['status'] == states.PENDING.name
+    assert simple_plan.node['echo_stuff']['status'] == states.SUCCESS.name
+
+
+def test_wait_finish(simple_plan):
+    for n in simple_plan:
+        simple_plan.node[n]['status'] = states.SUCCESS.name
+    graph.update_graph(simple_plan)
+    assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
         'SUCCESS': 2,
         'NOOP': 0,
@@ -68,11 +58,11 @@ def test_wait_finish(simple):
     }
 
 
-def test_several_updates(simple):
-    simple.node['just_fail']['status'] = states.ERROR.name
-    graph.update_graph(simple)
+def test_several_updates(simple_plan):
+    simple_plan.node['just_fail']['status'] = states.ERROR.name
+    graph.update_graph(simple_plan)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+    assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
         'SUCCESS': 0,
         'NOOP': 0,
@@ -82,10 +72,10 @@ def test_several_updates(simple):
         'ERROR_RETRY': 0,
     }
 
-    simple.node['echo_stuff']['status'] = states.ERROR.name
-    graph.update_graph(simple)
+    simple_plan.node['echo_stuff']['status'] = states.ERROR.name
+    graph.update_graph(simple_plan)
 
-    assert next(graph.wait_finish(simple.graph['uid'], 10)) == {
+    assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
         'SUCCESS': 0,
         'NOOP': 0,

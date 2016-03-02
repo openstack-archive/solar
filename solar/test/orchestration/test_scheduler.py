@@ -14,6 +14,8 @@
 
 import pytest
 
+from solar.orchestration import graph
+from solar.orchestration.traversal import states
 from solar.orchestration.workers.scheduler import Scheduler
 
 
@@ -21,3 +23,15 @@ def test_scheduler_next_fails_with_empty_plan():
     scheduler = Scheduler(None)
     with pytest.raises(ValueError):
         scheduler.next({}, 'nonexistent_uid')
+
+
+def test_soft_stop(simple_plan):
+    # graph.save_graph(simple_plan)
+    uid = simple_plan.graph['uid']
+
+    scheduler = Scheduler(None)
+    scheduler.soft_stop({}, uid)
+
+    plan = graph.get_graph(uid)
+    for n in plan:
+        assert plan.node[n]['status'] == states.SKIPPED.name
