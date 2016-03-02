@@ -61,7 +61,7 @@ class Scheduler(base.Worker):
             # process tasks with tasks client
             return rst
 
-    def soft_stop(self, ctxt, plan_uid):
+    def soft_stop(self, plan_uid):
         with Lock(
                 plan_uid,
                 str(get_current_ident()),
@@ -71,7 +71,7 @@ class Scheduler(base.Worker):
             plan = graph.get_graph(plan_uid)
             for n in plan:
                 if plan.node[n]['status'] in (
-                        states.PENDING.name, states.PENDING_RETRY.name):
+                        states.PENDING.name, states.ERROR_RETRY.name):
                     plan.node[n]['status'] = states.SKIPPED.name
             graph.update_graph(plan)
 

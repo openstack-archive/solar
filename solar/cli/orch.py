@@ -136,7 +136,7 @@ def stop(uid):
     # using revoke(terminate=True) will lead to inability to restart execution
     # research possibility of customizations
     # app.control and Panel.register in celery
-    SCHEDULER_CLIENT.soft_stop({}, uid)
+    SCHEDULER_CLIENT.soft_stop(uid)
 
 
 @orchestration.command()
