@@ -108,7 +108,7 @@ def longest_path_time(graph):
     for n in graph:
         node_start = graph.node[n]['start_time']
         node_end = graph.node[n]['end_time']
-        if node_start is 0.0 or node_end is 0.0:
+        if int(node_start) == 0 or int(node_end) == 0:
             continue
 
         if node_start < start or start is None:
@@ -124,7 +124,7 @@ def total_delta(graph):
     for n in graph:
         node_start = graph.node[n]['start_time']
         node_end = graph.node[n]['end_time']
-        if node_start is 0.0 or node_end is 0.0:
+        if int(node_start) == 0 or int(node_end) == 0:
             continue
         delta += node_end - node_start
     return delta
