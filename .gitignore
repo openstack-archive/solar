@@ -13,6 +13,7 @@ tmp/
 
 .eggs
 build
+publish-docs
 docs/_build
 
 state/
