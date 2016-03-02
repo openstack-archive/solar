@@ -98,7 +98,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
             )
         return wrp
 
-    def copy(self, resource, _from, _to, use_sudo=False):
+    def copy(self, resource, _from, _to, use_sudo=False, **kwargs):
         log.debug('SCP: %s -> %s', _from, _to)
 
         if os.path.isfile(_from):
@@ -108,7 +108,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
 
         executor = ExecutorForFabric(resource=resource,
                                      executor=executor,
-                                     params=(_from, _to, use_sudo))
+                                     params=(_from, _to, use_sudo, kwargs))
         self.executors.append(executor)
 
     def run_all(self):

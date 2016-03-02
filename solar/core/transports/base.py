@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
+
 from solar.core.log import log
 from solar.core.resource.resource import load
 from solar.core.resource.resource import load_by_names
@@ -153,6 +155,8 @@ class SyncTransport(SolarTransport):
     """Transport that is responsible for file / directory syncing."""
 
     preffered_transport_name = None
+    # NOTE(jnowak): reserved `supports_attrs` API for future use
+    supports_attrs = False
     _mode = 'sync'
 
     def __init__(self):
@@ -176,9 +180,62 @@ class SyncTransport(SolarTransport):
         for executor in self.executors:
             self.preprocess(executor)
 
+    def apply_attrs(self):
+        cmds = []
+        single_res = self.executors[0].resource
+        for executor in self.executors:
+            _from, _to, use_sudo, args = executor.params
+            if args.get('group') and args.get('owner'):
+                cmds.append((use_sudo, 'chown {}:{} {}'.format(args['owner'],
+                                                               args['group'],
+                                                               _to)))
+            elif args.get('group'):
+                cmds.append((use_sudo, 'chgrp {} {}'.format(args['group'],
+                                                            _to)))
+            elif args.get('owner'):
+                cmds.append((use_sudo, 'chown {} {}'.format(args['owner'],
+                                                            _to)))
+            elif args.get('permissions'):
+                if os.path.isdir(_from):
+                    cmds.append((use_sudo, 'chmod {} {}'.format(
+                        args['permissions'],
+                        _to
+                    )))
+                elif os.path.isfile(_from):
+                    cmds.append((use_sudo, 'chmod {} {}'.format(
+                        args['permissions'],
+                        _to)))
+        sudo_cmds = map(lambda (s, c): c if s else None, cmds)
+        non_sudo_cmds = map(lambda (s, c): c if not s else None, cmds)
+        sudo_cmds = filter(None, sudo_cmds)
+        non_sudo_cmds = filter(None, non_sudo_cmds)
+        if sudo_cmds:
+            sudo_cmd = ' && '.join(sudo_cmds)
+        else:
+            sudo_cmd = None
+        if non_sudo_cmds:
+            non_sudo_cmd = ' && '.join(non_sudo_cmds)
+        else:
+            non_sudo_cmd = None
+        # resource will be the same for all executors
+        if sudo_cmd:
+            self.other(single_res).run(
+                single_res,
+                sudo_cmd,
+                use_sudo=True
+            )
+        if non_sudo_cmd:
+            self.other(single_res).run(
+                single_res,
+                non_sudo_cmd,
+                use_sudo=False
+            )
+
     def run_all(self):
         for executor in self.executors:
             executor.run(self)
+        if not self.supports_attrs:
+            self.apply_attrs()
 
     def sync_all(self):
         """Syncs all
