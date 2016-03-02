@@ -54,10 +54,14 @@ class RsyncSyncTransport(SyncTransport):
 
     def copy(self, resource, _from, _to, use_sudo=False):
         log.debug("RSYNC: %s -> %s", _from, _to)
-        if use_sudo:
-            rsync_path = "sudo rsync"
+        if os.path.isdir(_from):
+            r_dir_path = _to
         else:
-            rsync_path = "rsync"
+            r_dir_path = _to.rsplit('/', 1)[0]
+        if use_sudo:
+            rsync_path = "sudo mkdir -p {} && sudo rsync".format(r_dir_path)
+        else:
+            rsync_path = "mkdir -p {} && rsync".format(r_dir_path)
 
         rsync_props = self._rsync_props(resource)
         ssh_cmd = ' '.join(self._ssh_cmd(rsync_props))

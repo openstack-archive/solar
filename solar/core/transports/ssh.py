@@ -65,21 +65,38 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
         _SSHTransport.__init__(self)
         SyncTransport.__init__(self)
 
+    def _ensure_remote_dir_exists(self, resource, _from, _to, use_sudo=False):
+        # NOTE(jnowak): it's not efficient way to do so, but also this
+        # transport is not that efficient
+        if os.path.isdir(_from):
+            r_dir_path = _to
+        else:
+            r_dir_path = _to.rsplit('/', 1)[0]
+        self.other(resource).run(resource,
+                                 'mkdir',
+                                 '-p',
+                                 r_dir_path,
+                                 use_sudo=use_sudo)
+
     def _copy_file(self, resource, _from, _to, use_sudo=False):
-        executor = lambda transport: fabric_project.put(
-            remote_path=_to,
-            local_path=_from,
-            use_sudo=use_sudo
-        )
-        return executor
+        def wrp(transport):
+            self._ensure_remote_dir_exists(resource, _from, _to, use_sudo)
+            return fabric_project.put(
+                remote_path=_to,
+                local_path=_from,
+                use_sudo=use_sudo
+            )
+        return wrp
 
     def _copy_directory(self, resource, _from, _to, use_sudo=False):
-        executor = lambda transport: fabric_project.upload_project(
-            remote_dir=_to,
-            local_dir=_from,
-            use_sudo=use_sudo
-        )
-        return executor
+        def wrp(transport):
+            self._ensure_remote_dir_exists(resource, _from, _to, use_sudo)
+            return fabric_project.upload_project(
+                remote_dir=_to,
+                local_dir=_from,
+                use_sudo=use_sudo
+            )
+        return wrp
 
     def copy(self, resource, _from, _to, use_sudo=False):
         log.debug('SCP: %s -> %s', _from, _to)
