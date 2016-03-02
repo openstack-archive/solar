@@ -71,7 +71,7 @@ class Scheduler(base.Worker):
             plan = graph.get_graph(plan_uid)
             for n in plan:
                 if plan.node[n]['status'] in (
-                        states.PENDING.name, states.PENDING_RETRY.name):
+                        states.PENDING.name, states.ERROR_RETRY.name):
                     plan.node[n]['status'] = states.SKIPPED.name
             graph.update_graph(plan)
 
