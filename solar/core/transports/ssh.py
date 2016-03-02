@@ -23,6 +23,13 @@ from solar.core.transports.base import Executor
 from solar.core.transports.base import RunTransport
 from solar.core.transports.base import SolarTransportResult
 from solar.core.transports.base import SyncTransport
+from solar import errors
+
+
+class ExecutorForFabric(Executor):
+
+    def _abort_exception(self, output):
+        raise errors.SolarError(output)
 
 
 class _SSHTransport(object):
@@ -82,17 +89,18 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
         else:
             executor = self._copy_directory(resource, _from, _to, use_sudo)
 
-        # with fabric_api.settings(**self._fabric_settings(resource)):
-        #     return executor()
-        executor = Executor(resource=resource,
-                            executor=executor,
-                            params=(_from, _to, use_sudo))
+        executor = ExecutorForFabric(resource=resource,
+                                     executor=executor,
+                                     params=(_from, _to, use_sudo))
         self.executors.append(executor)
 
     def run_all(self):
         for executor in self.executors:
             resource = executor.resource
-            with fabric_api.settings(**self.settings(resource)):
+            with fabric_api.settings(
+                    abort_exception=executor._abort_exception,
+                    **self.settings(resource)
+            ):
                 executor.run(self)
 
 
