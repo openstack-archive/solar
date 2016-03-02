@@ -1,0 +1,160 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#    Copyright 2015 Mirantis, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+Vagrant.require_version ">= 1.7.4"
+
+require 'etc'
+require 'log4r'
+require 'yaml'
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+ENV['VAGRANT_DEFAULT_PROVIDER'] = "docker"
+HOME=Etc.getpwuid.dir
+# Solar examples specific key paths mappings
+INSECURE_KEY="#{HOME}/.vagrant.d/insecure_private_key"
+KEY_PATH1="/vagrant/tmp/keys/ssh_private"
+def get_machine_key (index = '')
+  "/vagrant/.vagrant/machines/solar-dev#{index}/virtualbox/private_key"
+end
+
+# configs, custom updates _defaults
+@logger = Log4r::Logger.new("vagrant::docker::driver")
+defaults_cfg = YAML.load_file('vagrant-settings.yaml_defaults')
+if File.exist?('vagrant-settings.yaml')
+  custom_cfg = YAML.load_file('vagrant-settings.yaml')
+  cfg = defaults_cfg.merge(custom_cfg)
+else
+  cfg = defaults_cfg
+end
+
+SLAVES_COUNT = cfg["slaves_count"]
+SLAVES_IPS = cfg["slaves_ips"]
+MASTER_IPS = cfg["master_ips"]
+DOCKER_MASTER_IMAGE=cfg['docker_master_image']
+DOCKER_SLAVES_IMAGE=cfg['docker_slaves_image']
+DOCKER_CMD=cfg['docker_cmd']
+SOLAR_DB_BACKEND = cfg.fetch('solar_db_backend', 'riak')
+
+def ansible_playbook_command(filename, args=[])
+  ansible_script_crafted = "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
+  @logger.info("Crafted ansible-script: #{ansible_script_crafted})")
+  ansible_script_crafted
+end
+
+def shell_script(filename, env=[], args=[])
+  shell_script_crafted = "/bin/bash -c \"#{env.join ' '} #{filename} #{args.join ' '} 2>/dev/null\""
+  @logger.info("Crafted shell-script: #{shell_script_crafted})")
+  shell_script_crafted
+end
+
+# FIXME(bogdando) w/a unimplemented docker-exec
+# see https://github.com/mitchellh/vagrant/issues/4179
+# Use docker exec instead of the SSH provisioners
+def docker_exec (name, script)
+  @logger.info("Executing docker-exec at #{name}: #{script}")
+  system "docker exec -it #{name} #{script}"
+end
+
+solar_script = ansible_playbook_command("solar.yaml")
+solar_agent_script = ansible_playbook_command("solar-agent.yaml")
+solar_exec =  shell_script("#{solar_script}", ["SOLAR_DB_BACKEND=#{SOLAR_DB_BACKEND}"])
+# NOTE(bogdando) w/a for a centos7 issue
+fix_six = shell_script("/vagrant/bootstrap/playbooks/fix_centos7_six.sh")
+
+# TODO(bogdando) use https://github.com/jpetazzo/pipework for multi net.
+# Hereafter, we will use only the 1st IP address and a single interface.
+# Define the solar net with the given gateway, ip-range, subnet.
+docker_pre = shell_script("bootstrap/playbooks/docker_pre.sh", [],
+  [ "#{SLAVES_IPS[0]}1", "#{SLAVES_IPS[0]}0/24", "#{SLAVES_IPS[0]}0/24" ])
+# Destroy the solar net and do additional teardown steps
+docker_post = shell_script("bootstrap/playbooks/docker_post.sh")
+
+# Prepare docker volumes and workaround missing machines' ssh_keys
+# and virtualbox hardcoded paths in Solar
+key=get_machine_key
+docker_volumes = ["-v", "#{INSECURE_KEY}:#{KEY_PATH1}:ro"]
+docker_volumes << ["-v", "#{INSECURE_KEY}:#{key}:ro",
+  "-v", "/var/tmp/vagrant:/var/tmp/vagrant",
+  "-v", "/sys/fs/cgroup:/sys/fs/cgroup",
+  "-v", "/var/run/docker.sock:/var/run/docker.sock" ]
+SLAVES_COUNT.times do |i|
+  index = i + 1
+  key = get_machine_key index.to_s
+  docker_volumes << ["-v", "#{INSECURE_KEY}:#{key}:ro"]
+end
+docker_volumes.flatten!
+@logger.info("Crafted docker volumes: #{docker_volumes}")
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.trigger.before :up do
+    @logger.info("Executing docker network create steps")
+    system "#{docker_pre}"
+  end
+  config.trigger.after :destroy do
+    @logger.info("Executing docker teardown steps")
+    system "#{docker_post}"
+  end
+
+  config.vm.provider :docker do |d, override|
+    d.image = DOCKER_MASTER_IMAGE
+    d.remains_running = false
+    d.has_ssh = false
+    d.cmd = DOCKER_CMD.split(' ')
+  end
+
+  # disable nfs, we use volume mounts instead
+  config.nfs.functional = false
+  config.vm.synced_folder ".", "/vagrant", :nfs => false
+
+  # Configure the solar-dev node
+  config.vm.define "solar-dev", primary: true do |config|
+    config.vm.host_name = "solar-dev"
+    config.vm.provider :docker do |d, override|
+      d.name = "solar-dev"
+      d.create_args = ["-i", "-t", "--privileged", "--ip=#{MASTER_IPS[0]}", "--net=solar",
+        docker_volumes].flatten
+    end
+    # NOTE(bogdando) ssh provisioners are not wellcome here
+    config.trigger.after :up, :option => { :vm => 'solar-dev'} do
+      docker_exec("solar-dev","/usr/sbin/rsyslogd >/dev/null 2>&1")
+      docker_exec("solar-dev","/usr/sbin/sshd >/dev/null 2>&1")
+      docker_exec("solar-dev","#{fix_six} >/dev/null 2>&1")
+      docker_exec("solar-dev","#{solar_exec}")
+    end
+  end
+
+  # Configure the rest of the solar nodes
+  SLAVES_COUNT.times do |i|
+    index = i + 1
+    ip_index = i + 3
+    config.vm.define "solar-dev#{index}" do |config|
+      config.vm.host_name = "solar-dev#{index}"
+      config.vm.provider :docker do |d, override|
+        d.name = "solar-dev#{index}"
+        d.image = DOCKER_SLAVES_IMAGE
+        d.create_args = ["-i", "-t", "--privileged", "--ip=#{SLAVES_IPS[0]}#{ip_index}", "--net=solar",
+          docker_volumes].flatten
+      end
+      config.trigger.after :up, :option => { :vm => "solar-dev#{index}" } do
+        docker_exec("solar-dev#{index}","/usr/sbin/rsyslogd >/dev/null 2>&1")
+        docker_exec("solar-dev#{index}","/usr/sbin/sshd >/dev/null 2>&1")
+        docker_exec("solar-dev#{index}","#{fix_six} >/dev/null 2>&1")
+        docker_exec("solar-dev#{index}","#{solar_agent_script}")
+      end
+    end
+  end
+end
