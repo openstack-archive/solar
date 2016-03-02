@@ -73,24 +73,27 @@ https://github.com/openstack/solar-resources
 Can I run solar nodes with docker ?
 -----------------------------------
 
-Yes, although that is an experimental feature and currently supports only
-a single network interface per a container. Note, that before to run the
-``vagrant up --provider docker`` command, the following preparations must be
-done at the host system:
+Yes, the docker >=1.10.0 and the vagrant-triggers plugin are required.
+Note that the vagrant docker provider is an *experimental* and supports
+only a single network interface per a container. There is a separate
+``Vagrantfile_docker`` file. Before using the
+``vagrant up --provider docker`` command, rename it to the ``Vagrantfile``
+and do the following preparations at the host system as well:
 
 .. code-block:: bash
 
-  # docker pull solarproject/riak
+  $ docker pull solarproject/riak
 
-or, depending on the configured DB backend:
+or, depending on the configured DB backend (this also requires the
+packages make, autoconf, gcc-c++ or g++):
 
 .. code-block:: bash
 
-  # git clone https://github.com/kiasaki/docker-alpine-postgres.git
-  # cd docker-alpine-postgres
-  # make build && cd -
+  $ git clone https://github.com/kiasaki/docker-alpine-postgres.git
+  $ cd docker-alpine-postgres
+  $ make build && cd -
 
-This will allow the solar nodes to run required nested DB containers.
+Those will allow the solar nodes to run required nested DB containers.
 
 .. note ::
   The command ``vagrant ssh`` will not be working for the docker case.
@@ -98,11 +101,21 @@ This will allow the solar nodes to run required nested DB containers.
 
   .. code-block:: bash
 
-    # ssh vagrant@10.0.0.2
-    # docker exec -it solar-dev bash
+    $ ssh vagrant@10.0.0.2
+    $ docker exec -it solar-dev bash
 
 .. note ::
   The command ``vagrant destroy`` only cleans up containers for solar nodes
   and does not clean up other containers launched, like riak, postgres,
   kolla or the like. You should stop and remove them from the host system
-  manually!
+  manually! Also make sure there are no shared artifacts left in the `tmp`,
+  `.vagrant` and `solar` directoories, otherwise other vagrant providers
+  may fail to provision nodes or Solar CLI to behave in unexpected way:
+
+  .. code-block:: bash
+
+    # rm -f /tmp/solar-*
+    # rm -rf /tmp/solar_local
+    # rm -rf tmp
+    # rm -rf .vagrant/machines
+    # find solar -name "*.pyc" -delete
