@@ -18,12 +18,12 @@ Note: Make sure that `Vagrant VirtualBox Guest plugin
 
 .. code-block:: bash
 
-  vagrant plugin install vagrant-vbguest
+  $ vagrant plugin install vagrant-vbguest
 
 Note: If you are using VirtualBox 5.0 on Linux system, it's worth uncommenting
 paravirtprovider setting in `vagrant-settings.yaml` for speed improvements:
 
-.. code-block:: bash
+.. code-block:: yaml
 
   paravirtprovider: kvm
 
@@ -36,22 +36,22 @@ Setup environment:
 
 .. code-block:: bash
 
-  git clone https://github.com/openstack/solar
-  cd solar
-  vagrant up
+  $ git clone https://github.com/openstack/solar
+  $ cd solar
+  $ vagrant up
 
 Login into vm, the code is available in /vagrant directory
 
 .. code-block:: bash
 
-  vagrant ssh
-  solar --help
+  $ vagrant ssh
+  $ solar --help
 
 Get ssh details for running slave nodes (vagrant/vagrant):
 
 .. code-block:: bash
 
-  vagrant ssh-config
+  $ vagrant ssh-config
 
 You can make/restore snapshots of boxes (this is way faster than reprovisioning
 them)
@@ -59,20 +59,20 @@ with the `snapshotter.py` script:
 
 .. code-block:: bash
 
-  ./snapshotter.py take -n my-snapshot
-  ./snapshotter.py show
-  ./snapshotter.py restore -n my-snapshot
+  $ ./snapshotter.py take -n my-snapshot
+  $ ./snapshotter.py show
+  $ ./snapshotter.py restore -n my-snapshot
 
 `snapshoter.py` to run requires python module `click`.
 
 * On debian based systems you can install it via
- `sudo aptitude install python-click-cli`,
-* On fedora 22 you can install it via `sudo dnf install python-click`,
+ ``sudo aptitude install python-click-cli``,
+* On fedora 22 you can install it via ``sudo dnf install python-click``,
 * If you use virtualenv or similar tool then you can install it just with
- `pip install click`,
+ ``pip install click``,
 * If you don't have virtualenv and your operating system does not provide
- package for it then `sudo pip install click`.
-* If you don't have `pip` then
+ package for it then ``sudo pip install click``.
+* If you don't have the `pip` tool then
  [install it](https://pip.pypa.io/en/stable/installing/) and then execute
  command step 4.
 
@@ -89,10 +89,13 @@ Image based provisioning with Solar
 
 * In `vagrant-setting.yaml_defaults` or `vagrant-settings.yaml` file uncomment
   `preprovisioned: false` line.
-* Run `vagrant up`, it will take some time because it builds image for
+* Run ``vagrant up``, it will take some time because it builds image for
   bootstrap and IBP images.
 * Now you can run provisioning
-  `/vagrant/solar-resources/examples/provisioning/provision.sh`
+
+  .. code-block:: bash
+
+    $ /vagrant/solar-resources/examples/provisioning/provision.sh
 
 To develop Solar we use Vagrant
 
@@ -107,7 +110,7 @@ To use Libvirt with vagrant just run:
 
 .. code-block:: bash
 
-  vagrant up --provider libvirt
+  $ vagrant up --provider libvirt
 
 This will download libvirt image for vagrant.
 
@@ -116,7 +119,7 @@ Virtualbox is used. You need to copy keys to vagrant libvirt dir:
 
 .. code-block:: bash
 
-  cp /vagrant/.vagrant/machines/solar-dev1/libvirt/private_key /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key
+  $ cp /vagrant/.vagrant/machines/solar-dev1/libvirt/private_key /vagrant/.vagrant/machines/solar-dev1/virtualbox/private_key
 
 Or you can change path in node transport as described in
 :ref:`FAQ <faq_different_ssh_keys>`.
@@ -126,8 +129,23 @@ do it for each solar-dev* machine.
 .. note::
 
   Libvirt by default is using KVM. You cannot run KVM and Virtualbox
-  at the same time.
+  at the same time. Also remove conflicting virtualbox virtual networks,
+  otherwise the libvirt provider fails (and vice versa).
 
+Troubleshooting
+~~~~~~~~~~~~~~~
+
+Sometimes, vagrant providers may fail some steps while doing nodes provision.
+Or Solar CLI may behave in unexpected way. Try to do the following steps:
+
+.. code-block:: bash
+
+  $ vagrant destroy --force
+  $ sudo rm -rf tmp
+  $ sudo rm -rf .vagrant/machines
+  $ sudo find solar -name "*.pyc" -delete
+
+After that retry the vailed ``vagrant up`` command.
 
 Contribution
 ------------
