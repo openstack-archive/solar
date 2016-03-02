@@ -128,6 +128,20 @@ do it for each solar-dev* machine.
   Libvirt by default is using KVM. You cannot run KVM and Virtualbox
   at the same time.
 
+Troubleshooting
+~~~~~~~~~~~~~~~
+
+Sometimes, vagrant providers may fail some steps while doing nodes provision.
+Or Solar CLI may behave in unexpected way. Try to do the following steps:
+
+.. code-block:: bash
+
+  # vagrant destroy --force
+  # sudo rm -rf tmp
+  # sudo rm -rf .vagrant/machines
+  # find solar -name "*.pyc" -delete
+
+After that retry the vailed ``vagrant up`` command.
 
 Contribution
 ------------
