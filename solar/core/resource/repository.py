@@ -14,15 +14,15 @@
 #    under the License.
 
 from collections import defaultdict
+import tempfile
 
+from enum import Enum
 import errno
 import os
 import semantic_version
 import shutil
 import yaml
 
-
-from enum import Enum
 from solar import utils
 
 
@@ -146,15 +146,19 @@ class Repository(object):
             os.mkdir(self.fpath)
             return
         if not link_only:
+            if os.path.isdir(self.fpath):
+                raise RepositoryExists("Repository %s "
+                                       "already exists" % self.name)
+            old_fpath = self.fpath
+            self.fpath = tempfile.mkdtemp()
             try:
-                os.mkdir(self.fpath)
-            except OSError as e:
-                if e.errno == errno.EEXIST:
-                    raise RepositoryExists("Repository %s "
-                                           "already exists" % self.name)
-                else:
-                    raise
-            self._add_contents(source)
+                self._add_contents(source)
+                os.rename(self.fpath, old_fpath)
+            except Exception as e:
+                shutil.rmtree(self.fpath)
+                raise
+            finally:
+                self.fpath = old_fpath
         else:
             try:
                 os.symlink(source, self.fpath)
