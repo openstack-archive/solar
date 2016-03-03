@@ -14,15 +14,15 @@
 #    under the License.
 
 from collections import defaultdict
+import tempfile
 
+from enum import Enum
 import errno
 import os
 import semantic_version
 import shutil
 import yaml
 
-
-from enum import Enum
 from solar import utils
 
 
@@ -63,6 +63,7 @@ class Repository(object):
 
     db_obj = None
     _REPOS_LOCATION = '/var/lib/solar/repositories'
+    _TMP_DIRNAME = '.tmp'
 
     def __init__(self, name):
         self.name = name
@@ -146,15 +147,23 @@ class Repository(object):
             os.mkdir(self.fpath)
             return
         if not link_only:
+            if os.path.isdir(self.fpath):
+                raise RepositoryExists("Repository %s "
+                                       "already exists" % self.name)
+
+            if not os.path.isdir(self.tmp_dir):
+                os.makedirs(self.tmp_dir)
+
+            old_fpath = self.fpath
+            self.fpath = tempfile.mkdtemp(dir=self.tmp_dir)
             try:
-                os.mkdir(self.fpath)
-            except OSError as e:
-                if e.errno == errno.EEXIST:
-                    raise RepositoryExists("Repository %s "
-                                           "already exists" % self.name)
-                else:
-                    raise
-            self._add_contents(source)
+                self._add_contents(source)
+                os.rename(self.fpath, old_fpath)
+            except Exception as e:
+                shutil.rmtree(self.fpath)
+                raise
+            finally:
+                self.fpath = old_fpath
         else:
             try:
                 os.symlink(source, self.fpath)
@@ -244,7 +253,7 @@ class Repository(object):
                 return
 
         if resource_name is None:
-            for single in os.listdir(self.fpath):
+            for single in self.list_repos():
                 for gen in _single(single):
                     yield gen
         else:
@@ -335,6 +344,10 @@ class Repository(object):
         spec = self._parse_spec(spec)
         return self._make_version_path(spec)
 
+    @property
+    def tmp_dir(self):
+        return os.path.join(self._REPOS_LOCATION, self._TMP_DIRNAME)
+
     @classmethod
     def get_metadata(cls, spec):
         spec = cls._parse_spec(spec)
@@ -365,10 +378,11 @@ class Repository(object):
 
     @classmethod
     def list_repos(cls):
-        return filter(lambda x:
-                      os.path.isdir(os.path.join(cls._REPOS_LOCATION,
-                                                 x)),
-                      os.listdir(cls._REPOS_LOCATION))
+        return filter(
+            lambda x: (os.path.isdir(os.path.join(cls._REPOS_LOCATION, x))
+                       and x != cls._TMP_DIRNAME),
+            os.listdir(cls._REPOS_LOCATION)
+        )
 
     @classmethod
     def parse(cls, spec):

@@ -42,9 +42,8 @@ def resources():
 @pytest.fixture(scope='session', autouse=True)
 def repos_path(tmpdir_factory):
     Repository._REPOS_LOCATION = str(tmpdir_factory.mktemp('repositories'))
-    path = Repository._REPOS_LOCATION
     repo = Repository('resources')
-    repo.create(path)
+    repo.create()
 
 
 def plan_from_fixture(name):
