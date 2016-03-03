@@ -14,9 +14,12 @@
 #    under the License.
 
 import itertools
+import mock
 import os
-import pytest
 import shutil
+
+import pytest
+
 from solar.core.resource.repository import Repository
 from solar.core.resource.repository import RES_TYPE
 
@@ -243,3 +246,17 @@ def test_create_empty():
     repo = Repository('empty')
     repo.create()
     assert 'empty' in Repository.list_repos()
+
+
+@mock.patch('solar.core.resource.repository.Repository._add_contents')
+@mock.patch('os.mkdir')
+@mock.patch('shutil.rmtree')
+def test_create_failed(mock_rmtree, mock_mkdir, mock_add_contents):
+    e = Exception()
+    mock_add_contents.side_effect = e
+    repo = Repository('empty')
+    with pytest.raises(Exception):
+        repo.create(source='source')
+
+    mock_mkdir.assert_called_with(repo.fpath)
+    mock_rmtree.assert_called_with(repo.fpath)

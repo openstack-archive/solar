@@ -154,7 +154,12 @@ class Repository(object):
                                            "already exists" % self.name)
                 else:
                     raise
-            self._add_contents(source)
+            try:
+                self._add_contents(source)
+            except Exception as e:
+                shutil.rmtree(self.fpath)
+                raise
+
         else:
             try:
                 os.symlink(source, self.fpath)
