@@ -56,9 +56,11 @@ cd %{_builddir}/%{name}-%{version} && PBR_VERSION=%{version} python setup.py bui
 
 %install
 cd %{_builddir}/%{name}-%{version} && PBR_VERSION=%{version} python setup.py install --single-version-externally-managed -O1 --root=$RPM_BUILD_ROOT --record=%{_builddir}/%{name}-%{version}/INSTALLED_FILES
+install -p -D -m 644 %{_builddir}/%{name}-%{version}/etc/solar/solar.yaml.sample  %{buildroot}%{_sysconfdir}/solar/solar.yaml
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files -f %{_builddir}/%{name}-%{version}/INSTALLED_FILES
+%config(noreplace) %{_sysconfdir}/solar/solar.yaml.sample
 

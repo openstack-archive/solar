@@ -1,0 +1,10 @@
+---
+celery_backend: "db+sqlite:////tmp/celery.db"
+celery_broker: "sqla+sqlite:////tmp/celery.db"
+counters_bucket_type: ""
+lock_bucket_type: ""
+riak_ensemble: false
+# solar_db: "sqlite:////tmp/solar.db"
+# Example:
+# solar_db: "postgresql:///postgres:password@10.0.0.2:5432/solardb"
+# solar_db: "riak://10.0.0.2:8087"
