@@ -14,9 +14,12 @@
 #    under the License.
 
 import itertools
+import mock
 import os
-import pytest
 import shutil
+
+import pytest
+
 from solar.core.resource.repository import Repository
 from solar.core.resource.repository import RES_TYPE
 
@@ -243,3 +246,36 @@ def test_create_empty():
     repo = Repository('empty')
     repo.create()
     assert 'empty' in Repository.list_repos()
+
+
+@mock.patch('solar.core.resource.repository.Repository._add_contents')
+@mock.patch('tempfile.mkdtemp')
+@mock.patch('shutil.rmtree')
+def test_create_from_src_failed(mock_rmtree, mock_mkdtemp, mock_add_contents):
+    tmp_dir = '/tmp/dir'
+    mock_mkdtemp.return_value = tmp_dir
+
+    mock_add_contents.side_effect = Exception()
+    repo = Repository('fail_create')
+    real_path = repo.fpath
+    with pytest.raises(Exception):
+        repo.create(source='source')
+
+    mock_rmtree.assert_called_with(tmp_dir)
+    assert repo.fpath == real_path
+
+
+@mock.patch('solar.core.resource.repository.Repository._add_contents')
+@mock.patch('os.rename')
+@mock.patch('tempfile.mkdtemp')
+def test_create_from_src(mock_mkdtemp, mock_rename, _):
+    tmp_dir = '/tmp/dir'
+    mock_mkdtemp.return_value = tmp_dir
+
+    repo = Repository('create_from_src')
+    real_path = repo.fpath
+
+    repo.create(source='source')
+
+    mock_rename.assert_called_with(tmp_dir, real_path)
+    assert repo.fpath == real_path
