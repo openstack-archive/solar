@@ -54,6 +54,7 @@ def _lookup_vals(setter, config, prefix=None):
 def from_configs():
 
     paths = [
+        '/etc/solar/solar.yaml',
         os.getenv('SOLAR_CONFIG', os.path.join(CWD, '.config')),
         os.getenv('SOLAR_CONFIG_OVERRIDE', None),
         os.path.join(CWD, '.config.override')
