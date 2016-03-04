@@ -828,6 +828,18 @@ class Resource(Model):
 
     updated = IndexedField(StrInt)
 
+    @classmethod
+    def _pre_from_dict_check(cls, key, data=None):
+        # NOTE(jnowak): it's a bit naive implementation, we will
+        # introduce something smarter instead based on conflict
+        # resolution.
+        ret = super(Resource, cls)._pre_from_dict_check(key, data)
+        robj = cls.bucket.get(key)
+        if robj.exists:
+            raise DBLayerException("Object already exists in "
+                                   "database cannot create second")
+        return ret
+
     def _connect_single(self, other_inputs, other_name, my_name):
         if isinstance(other_name, (list, tuple)):
             # XXX: could be paralelized
