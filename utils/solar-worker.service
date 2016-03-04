@@ -4,7 +4,7 @@ After=syslog.target network.target remote-fs.target nss-lookup.target
 
 [Service]
 Type=simple
-ExecStart=solar-worker
+ExecStart=/usr/bin/solar-worker
 PrivateTmp=true
 KillSignal=SIGQUIT
 Restart=always
