@@ -6,6 +6,11 @@
 - shell: curl -sSL https://get.docker.com/ | sudo sh
   when: docker_version | failed
 
+# enable docker and socker activation, mask exit codes for the nested host OS docker case
+- shell: systemctl start docker || /bin/true
+- shell: systemctl enable docker || /bin/true
+- shell: systemctl enable docker.socket || /bin/true
+
 # pre download riak image
 - shell: docker pull solarproject/riak
 

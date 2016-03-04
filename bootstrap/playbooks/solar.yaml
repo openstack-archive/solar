@@ -11,9 +11,9 @@
     - shell: pip install -e . chdir=/vagrant
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
     - include: centos/tasks/ssh_conf.yaml
-      when: lookup('env', 'OSTYPE') == "centos"
+      ignore_errors: yes
     - include: ubuntu/tasks/ssh_conf.yaml
-      when: lookup('env', 'OSTYPE') == "ubuntu"
+      ignore_errors: yes
 
 - hosts: localhost
   tasks:
@@ -69,6 +69,6 @@
     - include: databases.yaml
 
     - include: centos/tasks/worker_upstart.yaml
-      when: lookup('env', 'OSTYPE') == "centos"
+      ignore_errors: yes
     - include: ubuntu/tasks/worker_upstart.yaml
-      when: lookup('env', 'OSTYPE') == "ubuntu"
+      ignore_errors: yes
