@@ -13,33 +13,72 @@
     "ftp_proxy": "{{env `ftp_proxy`}}",
     "rsync_proxy": "{{env `rsync_proxy`}}",
     "no_proxy": "{{env `no_proxy`}}",
-    "cleanup": "false",
+    "iso_url": "http://centos1.hti.pl/7/isos/x86_64/CentOS-7-x86_64-NetInstall-1511.iso",
+    "iso_checksum": "99d305fa40ec9e28ef8450c3bcc45f85",
+    "disk_size": "4500",
+    "mem_size": "512",
+    "vcpu_num": "1",
+    "cleanup": "true",
     "ansible_config_path": "/etc/ansible",
     "ansible_config_file": "ansible.cfg",
     "ansible_log_file": "/var/tmp/ansible.log"
   },
   "builders": [{
-    "type": "docker",
-    "image": "centos:centos7",
-    "commit": true,
-    "run_command": [
-      "-ti",
-      "--privileged",
-      "-v",
-      "/sys/fs/cgroup:/sys/fs/cgroup",
-      "-v",
-      "/var/run/docker.sock:/var/run/docker.sock",
-      "-d",
-      "{{.Image}}",
-      "/bin/bash"
+    "vm_name": "centos7",
+    "type": "qemu",
+    "format": "qcow2",
+    "accelerator": "kvm",
+    "http_directory": "http",
+    "iso_url": "{{ user `iso_url` }}",
+    "iso_checksum": "{{ user `iso_checksum` }}",
+    "iso_checksum_type": "md5",
+    "ssh_username": "{{ user `ssh_username` }}",
+    "ssh_password": "{{ user `ssh_password` }}",
+    "ssh_wait_timeout": "10000s",
+    "headless": "{{ user `headless` }}",
+    "boot_wait": "30s",
+    "boot_command": [
+      "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+    ],
+    "shutdown_command": "echo 'vagrant' | sudo -S /sbin/halt -h -p",
+    "disk_size": "{{ user `disk_size`}}",
+    "qemuargs": [
+      [
+        "-m",
+        "{{user `mem_size`}}M"
+      ],
+      [
+        "-smp",
+        "{{ user `vcpu_num`}}"
+      ]
+    ]
+  },
+  {
+    "vm_name": "centos7",
+    "type": "virtualbox-iso",
+    "http_directory": "http",
+    "iso_url": "{{ user `iso_url` }}",
+    "iso_checksum": "{{ user `iso_checksum` }}",
+    "iso_checksum_type": "md5",
+    "guest_os_type": "RedHat_64",
+    "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+    "virtualbox_version_file": ".vbox_version",
+    "headless": "{{ user `headless` }}",
+    "ssh_username": "{{ user `ssh_username` }}",
+    "ssh_password": "{{ user `ssh_password` }}",
+    "ssh_wait_timeout": "10000s",
+    "boot_wait": "30s",
+    "boot_command": [
+      "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+    ],
+    "shutdown_command": "echo 'vagrant' | sudo -S /sbin/halt -h -p",
+    "disk_size": "{{ user `disk_size`}}",
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--memory", "{{ user `mem_size`}}"],
+      ["modifyvm", "{{.Name}}", "--cpus", "{{ user `vcpu_num`}}"]
     ]
   }],
   "provisioners": [{
-    "type": "shell",
-    "execute_command": "echo 'vagrant' | sh '{{.Path}}'",
-    "scripts": [
-      "playbooks/centos/files/sudo.sh"
-    ]}, {
       "type": "shell",
       "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
       "inline": [
@@ -100,6 +139,8 @@
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
       "scripts": [
+        "playbooks/centos/files/vagrant_fix_nfs.sh",
+        "playbooks/centos/files/vmtool.sh",
         "playbooks/centos/files/minimize.sh",
         "playbooks/centos/files/cleanup.sh"
       ]
@@ -107,10 +148,16 @@
   "post-processors": [
     [
       {
-        "type": "docker-tag",
-        "repository": "bogdando/solar-master-centos",
-        "tag": "latest",
-        "keep_input_artifact": false
+        "type": "vagrant",
+        "keep_input_artifact": true,
+        "only": ["qemu"],
+        "output": "solar-master-centos-libvirt.box"
+      },
+      {
+        "type": "vagrant",
+        "keep_input_artifact": false,
+        "only": ["virtualbox-iso"],
+        "output": "solar-master-centos-virtualbox.box"
       }
     ]
   ]
