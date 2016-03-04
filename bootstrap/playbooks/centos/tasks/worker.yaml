@@ -1,0 +1,5 @@
+---
+
+- copy: src=/vagrant/utils/solar-worker.service dest=/usr/lib/systemd/system/solar-worker.service
+- shell: systemctl daemon-reload
+- service: name=solar-worker state=started enabled=yes

@@ -34,9 +34,13 @@ celery*.log
 resources_compiled.py
 
 # bootstrap
+bootstrap/playbooks/*.retry
 bootstrap/packer_cache
+bootstrap/output-qemu
 bootstrap/trusty64
 bootstrap/solar-master.box
+bootstrap/solar-master-centos-virtualbox.box
+bootstrap/solar-master-centos-libvirt.box
 vagrant-settings.yaml
 
 .solar_cli_uids
