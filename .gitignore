@@ -34,8 +34,10 @@ resources_compiled.py
 
 # bootstrap
 bootstrap/packer_cache
+bootstrap/output-qemu
 bootstrap/trusty64
 bootstrap/solar-master.box
+bootstrap/solar-master-centos.box
 vagrant-settings.yaml
 
 .solar_cli_uids
