@@ -81,6 +81,22 @@ def test_nova_api(nova_deps):
     assert changes_graph.successors('nova_api.update') == ['nova.reboot']
 
 
+def test_mandatory_revisit():
+    events = {
+        'e1': [evapi.Dep('e1', 'run', 'success', 'e2', 'run'),
+               evapi.React('e1', 'run', 'success', 'e2', 'start')],
+        'e2': [evapi.React('e2', 'start', 'success', 'e2', 'run')]}
+    for name in events:
+        r = Resource.from_dict(dict(key=name, name=name))
+        r.inputs.add_new('location_id', '1')
+        r.save()
+        evapi.add_events(name, events[name])
+    changes_graph = nx.DiGraph()
+    changes_graph.add_node('e1.run')
+    evapi.build_edges(changes_graph, events)
+    assert set(changes_graph.predecessors('e2.run')) == {'e1.run', 'e2.start'}
+
+
 @fixture
 def rmq_deps():
     """Example of a case when defaults are not good enough.
@@ -125,8 +141,9 @@ def test_riak():
     events = {
         'riak_service1': [
             evapi.React('riak_service1', 'run', 'success', 'riak_service2',
-                        'run'), evapi.React('riak_service1', 'run', 'success',
-                                            'riak_service3', 'run')
+                        'run'),
+            evapi.React('riak_service1', 'run', 'success',
+                        'riak_service3', 'run')
         ],
         'riak_service3': [
             evapi.React('riak_service3', 'join', 'success', 'riak_service1',

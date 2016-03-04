@@ -98,7 +98,7 @@ class React(Event):
     etype = 'react_on'
 
     def insert(self, changed_resources, changes_graph):
-
+        created = False
         if self.parent_node in changes_graph:
             if self.child_node not in changes_graph:
                 try:
@@ -111,11 +111,11 @@ class React(Event):
                     target=location_id,
                     errmsg='', type='solar_resource',
                     args=[self.child, self.child_action])
-
+                created = True
             changes_graph.add_edge(
                 self.parent_node, self.child_node, state=self.state)
             changed_resources.append(self.child_node)
-            return True
+        return created
 
 
 class StateChange(Event):
