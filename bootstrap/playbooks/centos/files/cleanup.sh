@@ -1,72 +1,33 @@
-#!/bin/bash -eux
+#!/bin/sh -eux
+# Remove Linux headers
+yum -y remove gcc kernel-devel kernel-headers
+yum -y clean all
 
-# TODO(bogdando) add centos7 support
-exit 0
-CLEANUP_PAUSE=${CLEANUP_PAUSE:-0}
-echo "==> Pausing for ${CLEANUP_PAUSE} seconds..."
-sleep ${CLEANUP_PAUSE}
+# Remove Virtualbox specific files
+rm -rf /usr/src/vboxguest* /usr/src/virtualbox-ose-guest*
+rm -rf *.iso *.iso.? /tmp/vbox /home/vagrant/.vbox_version
 
-# Make sure udev does not block our network - http://6.ptmc.org/?p=164
-echo "==> Cleaning up udev rules"
-rm -rf /dev/.udev/
-rm /lib/udev/rules.d/75-persistent-net-generator.rules
-rm /etc/udev/rules.d/70-persistent-net.rules
-mkdir /etc/udev/rules.d/70-persistent-net.rules
-
-echo "==> Cleaning up leftover dhcp leases"
-# Ubuntu 10.04
-if [ -d "/var/lib/dhcp3" ]; then
-    rm /var/lib/dhcp3/*
-fi
-# Ubuntu 12.04 & 14.04
-if [ -d "/var/lib/dhcp" ]; then
-    rm /var/lib/dhcp/*
-fi
-
-# Add delay to prevent "vagrant reload" from failing
-echo "pre-up sleep 2" >> /etc/network/interfaces
-
-echo "==> Cleaning up tmp"
-rm -rf /tmp/*
-
-# Cleanup apt cache
-apt-get -y autoremove --purge
-apt-get -y clean
-apt-get -y autoclean
-
-echo "==> Installed packages"
-dpkg --get-selections | grep -v deinstall
-
-# Remove Bash history
-unset HISTFILE
-rm -f /root/.bash_history
-rm -f /home/vagrant/.bash_history
-
-# Clean up log files
+# Cleanup log files
 find /var/log -type f | while read f; do echo -ne '' > $f; done;
 
-echo "==> Clearing last login information"
->/var/log/lastlog
->/var/log/wtmp
->/var/log/btmp
+rm -rf /usr/share/doc/* /tmp/* /tmp/.*
 
-if [ "${cleanup}" = "true" ] ; then
-    # Whiteout root
-    count=$(df --sync -kP / | tail -n1  | awk -F ' ' '{print $4}')
-    let count--
-    dd if=/dev/zero of=/tmp/whitespace bs=1024 count=$count
-    rm /tmp/whitespace
+# remove interface persistent
+rm -f /etc/udev/rules.d/70-persistent-net.rules
 
-    # Whiteout /boot
-    count=$(df --sync -kP /boot | tail -n1 | awk -F ' ' '{print $4}')
-    let count--
-    dd if=/dev/zero of=/boot/whitespace bs=1024 count=$count
-    rm /boot/whitespace
+/bin/systemctl stop NetworkManager.service
+for ifcfg in $(ls /etc/sysconfig/network-scripts/ifcfg-*)
+do
+    if [ "$(basename ${ifcfg})" != "ifcfg-lo" ]
+    then
+        sed -i '/^UUID/d'   /etc/sysconfig/network-scripts/ifcfg-eth0
+        sed -i '/^HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+    fi
+done
+rm -f /var/lib/NetworkManager/*
 
-    # Zero out the free space to save space in the final image
-    dd if=/dev/zero of=/EMPTY bs=1M
-    rm -f /EMPTY
-fi
+dd if=/dev/zero of=/EMPTY bs=1M
+rm -rf /EMPTY
 
 # Make sure we wait until all the data is written to disk, otherwise
 # Packer might quite too early before the large files are deleted
