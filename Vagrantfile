@@ -53,8 +53,16 @@ def ansible_playbook_command(filename, args=[])
   "ansible-playbook -v -i \"localhost,\" -c local /vagrant/bootstrap/playbooks/#{filename} #{args.join ' '}"
 end
 
+def shell_script(filename, env=[], args=[])
+  shell_script_crafted = "/bin/bash -c \"#{env.join ' '} #{filename} #{args.join ' '} 2>/dev/null\""
+  @logger.info("Crafted shell-script: #{shell_script_crafted})")
+  shell_script_crafted
+end
+
 solar_script = ansible_playbook_command("solar.yaml")
 solar_agent_script = ansible_playbook_command("solar-agent.yaml")
+# NOTE(bogdando) w/a for a centos7 issue
+fix_six = shell_script("/vagrant/bootstrap/playbooks/fix_centos7_six.sh")
 
 master_pxe = ansible_playbook_command("pxe.yaml")
 
@@ -65,6 +73,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.box_version = MASTER_IMAGE_VERSION
 
     config.vm.provision "shell", inline: solar_script, privileged: true, env: {"SOLAR_DB_BACKEND": SOLAR_DB_BACKEND}
+    config.vm.provision "shell", inline: fix_six, privileged: true
     config.vm.provision "shell", inline: master_pxe, privileged: true unless PREPROVISIONED
     config.vm.provision "file", source: "~/.vagrant.d/insecure_private_key", destination: "/vagrant/tmp/keys/ssh_private"
     config.vm.host_name = "solar-dev"
@@ -121,6 +130,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       if PREPROVISIONED
         config.vm.provision "shell", inline: solar_agent_script, privileged: true
+        config.vm.provision "shell", inline: fix_six, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
         SLAVES_IPS.each do |ip|
