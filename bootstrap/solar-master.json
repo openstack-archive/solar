@@ -127,7 +127,6 @@
     ]}, {
       "type": "shell",
       "environment_vars": [
-        "OSTYPE=ubuntu",
         "CM={{user `cm`}}",
         "CM_VERSION={{user `cm_version`}}",
         "CLEANUP_PAUSE={{user `cleanup_pause`}}",
@@ -152,7 +151,6 @@
     }, {
       "type": "shell",
       "environment_vars": [
-        "OSTYPE=ubuntu",
         "CM=ansible",
         "CM_VERSION=latest"
       ],
@@ -162,12 +160,10 @@
       "type": "ansible-local",
       "playbook_dir": "playbooks",
       "playbook_file": "playbooks/build-main.yaml",
-      "extra_arguments": ["--verbose"],
-      "command": "OSTYPE=ubuntu ansible-playbook"
+      "extra_arguments": ["--verbose"]
     }, {
       "type": "shell",
       "environment_vars": [
-        "OSTYPE=ubuntu",
         "cleanup={{user `cleanup`}}"
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",

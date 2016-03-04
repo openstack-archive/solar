@@ -11,9 +11,9 @@
     - shell: pip install -e . chdir=/vagrant
     - shell: pip install git+git://github.com/Mirantis/solar-agent.git
     - include: centos/tasks/ssh_conf.yaml
-      when: lookup('env', 'OSTYPE') == "centos"
+      when: ansible_os_family == "RedHat"
     - include: ubuntu/tasks/ssh_conf.yaml
-      when: lookup('env', 'OSTYPE') == "ubuntu"
+      when: ansible_os_family == "Debian"
 
 - hosts: localhost
   tasks:
@@ -68,7 +68,7 @@
     # shared stuff for all databases
     - include: databases.yaml
 
-    - include: centos/tasks/worker_upstart.yaml
-      when: lookup('env', 'OSTYPE') == "centos"
-    - include: ubuntu/tasks/worker_upstart.yaml
-      when: lookup('env', 'OSTYPE') == "ubuntu"
+    - include: centos/tasks/worker.yaml
+      when: ansible_os_family == "RedHat"
+    - include: ubuntu/tasks/worker.yaml
+      when: ansible_os_family == "Debian"
