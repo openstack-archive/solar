@@ -852,7 +852,7 @@ class Model(object):
         return cache.get(riak_obj.key)
 
     @classmethod
-    def from_dict(cls, key, data=None):
+    def _pre_from_dict_check(cls, key, data=None):
         if isinstance(key, dict) and data is None:
             data = key
             try:
@@ -866,6 +866,11 @@ class Model(object):
         if key in cls._c.obj_cache:
             raise DBLayerException("Object already exists in cache"
                                    " cannot create second")
+        return key, data
+
+    @classmethod
+    def from_dict(cls, key, data=None):
+        key, data = cls._pre_from_dict_check(key, data)
         data['key'] = key
 
         with cls._c.obj_cache._lock:
