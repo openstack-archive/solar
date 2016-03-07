@@ -18,6 +18,7 @@
 import json
 import sys
 import uuid
+import yaml
 
 from peewee import BlobField
 from peewee import CharField
@@ -416,6 +417,16 @@ class SqlClient(object):
             fromlist = db_class_str
         __import__(mod, fromlist=[fromlist])
         db_class = getattr(sys.modules[mod], fromlist)
+        args = map(yaml.safe_load, args)
+        kwargs = {k: yaml.safe_load(v) if isinstance(v, basestring) else v
+                  for k, v in kwargs.items()}
+        # use_pool is defaulted to True with PG backend
+        use_pool = kwargs.pop('solar_pool', False)
+        if use_pool:
+            from solar.dblayer.sql_pool import get_pooled_db
+            db_class = get_pooled_db(db_class,
+                                     kwargs.pop('solar_pool_size', 7),
+                                     kwargs.pop('solar_pool_overflow', 20))
         session = db_class(*args, **kwargs)
         self._sql_session = session
         self.buckets = {}
