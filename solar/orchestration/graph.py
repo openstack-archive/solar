@@ -192,6 +192,8 @@ def reset(graph, state_list=None):
     for n in graph:
         if state_list is None or graph.node[n]['status'] in state_list:
             graph.node[n]['status'] = states.PENDING.name
+            graph.node[n]['start_time'] = 0.0
+            graph.node[n]['end_time'] = 0.0
     update_graph(graph)
 
 
