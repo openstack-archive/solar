@@ -20,3 +20,13 @@ from solar.orchestration import graph
 def test_longest_path_time_returns_0_for_empty_graph():
     g = nx.MultiDiGraph()
     assert graph.longest_path_time(g) == 0.0
+
+
+def test_longest_path_time_doesnt_fail_for_tasks_missing_time():
+    g = nx.MultiDiGraph()
+    g.add_node('task1', start_time=1)
+    g.add_node('task2', end_time=2)
+    g.add_node('task3')
+    g.add_node('task4', start_time=1, end_time=2)
+
+    graph.longest_path_time(g)
