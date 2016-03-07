@@ -81,6 +81,7 @@ elif _connection.mode == 'postgresql':
     opts["password"] = _connection.password
     # TODO: allow set Postgresql classes from playhouse
     opts.setdefault('db_class', 'PostgresqlDatabase')
+    opts.setdefault('solar_pool', True)
     client = SqlClient(_connection.database,
                        **opts)
 else:
