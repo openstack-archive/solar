@@ -81,11 +81,16 @@ done at the host system:
 .. code-block:: bash
 
   # docker pull solarproject/riak
+
+or, depending on the configured DB backend:
+
+.. code-block:: bash
+
   # git clone https://github.com/kiasaki/docker-alpine-postgres.git
   # cd docker-alpine-postgres
   # make build && cd -
 
-This will allow the solar nodes to run required nested docker containers.
+This will allow the solar nodes to run required nested DB containers.
 
 .. note ::
   The command ``vagrant ssh`` will not be working for the docker case.
@@ -95,3 +100,9 @@ This will allow the solar nodes to run required nested docker containers.
 
     # ssh vagrant@10.0.0.2
     # docker exec -it solar-dev bash
+
+.. note ::
+  The command ``vagrant destroy`` only cleans up containers for solar nodes
+  and does not clean up other containers launched, like riak, postgres,
+  kolla or the like. You should stop and remove them from the host system
+  manually!

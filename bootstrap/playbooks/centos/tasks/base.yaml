@@ -1,0 +1,57 @@
+---
+
+- name: Base packages
+  yum: name={{ item }} state=present
+  with_items:
+  - git
+  - subversion
+  - python-keystoneclient
+  - MySQL-python
+  - python-setuptools
+  - ruby-devel
+  - unzip
+  # Graph drawing
+  #- python-pygraphviz
+  # Other tools
+  - htop
+  - jq
+  - tmux
+    #- vim-nox
+  - mc
+  # Dev
+  - python-ipython-console
+  - python-devel
+  - python-virtualenv
+  # for torrent transport
+  - rb_libtorrent-python
+  # for riak python package
+  - libffi-devel
+  - openssl-devel
+
+  # computable inputs lua
+  - luajit-devel
+  # for tests on jenkins
+  - sshpass
+
+  # for pg backend
+  - python-psycopg2
+
+- name: Uninstall packages
+  yum: name={{ item }} state=absent
+  with_items:
+  - python-pbr
+
+# PIP
+- pip: name={{item}} state=present
+  with_items:
+  - httpie
+  - docker-py==1.1.0
+  - ujson
+  - tox
+  - riak
+  - pbr
+
+# pre install solare requirements
+- shell: pip install pudb
+- shell: pip install -r https://raw.githubusercontent.com/openstack/solar/master/requirements.txt
+- shell: pip install -r https://raw.githubusercontent.com/Mirantis/solar-agent/master/requirements.txt
