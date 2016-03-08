@@ -13,7 +13,7 @@
 #    under the License.
 
 
-from stevedore import extension
+from stevedore import enabled
 
 from solar.core.transports.base import RunTransport
 from solar.core.transports.base import SolarTransport
@@ -22,27 +22,37 @@ from solar.core.transports.base import SyncTransport
 from operator import itemgetter
 
 
-def suppress_stevedore_errors(manager, entrypoint, exception):
-    pass
+TRANSPORTS_DATA = {
+    'run': {'transports': {}, 'order': []},
+    'sync': {'transports': {}, 'order': []}
+}
 
 
-def _find_transports(mode):
-    # instead of suppressing errors we may consider switching to
-    # EnabledExtensionManager
-    mgr = extension.ExtensionManager(
+def _find_transports(mode, wanted_transports):
+    transports_data = TRANSPORTS_DATA[mode]
+
+    def check_transport(extension):
+        return (extension.name in wanted_transports and
+                extension.name not in transports_data['transports'])
+
+    mgr = enabled.EnabledExtensionManager(
         namespace='solar.transports.%s' % mode,
-        on_load_failure_callback=suppress_stevedore_errors
+        check_func=check_transport
     )
+
     extensions = mgr.extensions
-    transports = dict(map(lambda x: (x.name, x.plugin), extensions))
+    new_transports = dict(map(lambda x: (x.name, x.plugin), extensions))
+    transports_data['transports'].update(new_transports)
     orders = map(lambda x: (getattr(x.plugin, '_priority', -1),
-                            x.name), extensions)
-    order = map(itemgetter(1), sorted(orders, reverse=True))
+                            x.name), transports_data['transports'])
+    transports_data['order'] = map(itemgetter(1),
+                                   sorted(orders, reverse=True))
+
+    transports = {k: v for (k, v) in
+                  transports_data['transports'].iteritems
+                  if k in wanted_transports}
+    order = [x for x in transports_data['order'] if x in wanted_transports]
     return transports, order
-
-
-KNOWN_RUN_TRANSPORTS, ORDER_RUN_TRANSPORTS = _find_transports('run')
-KNOWN_SYNC_TRANSPORTS, ORDER_SYNC_TRANSPORTS = _find_transports('sync')
 
 
 class OnAll(object):
@@ -60,6 +70,7 @@ class OnAll(object):
 class BatTransport(SolarTransport):
 
     _order = ()
+    _transport_mode = ''
 
     def __init__(self, *args, **kwargs):
         super(BatTransport, self).__init__(*args, **kwargs)
@@ -73,6 +84,10 @@ class BatTransport(SolarTransport):
             return getattr(resource, key_name)
         except AttributeError:
             transports = resource.transports()
+
+            self._bat_transports, self._order = _find_transports(
+                self._transport_mode, transports)
+
             for pref in self._order:
                 selected = next(
                     (x for x in transports if x['name'] == pref), None)
@@ -90,7 +105,6 @@ class BatTransport(SolarTransport):
             self._used_transports.append(instance)
             instance.bind_with(self._other_remember)
             return instance
-            # return self._bat_transports[selected['name']]
 
     def get_transport_data(self, resource, *args, **kwargs):
         self.select_valid_transport(resource)
@@ -104,8 +118,7 @@ class BatTransport(SolarTransport):
 class BatSyncTransport(SyncTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ORDER_SYNC_TRANSPORTS
-    _bat_transports = KNOWN_SYNC_TRANSPORTS
+    _transport_mode = 'sync'
 
     def __init__(self, *args, **kwargs):
         BatTransport.__init__(self)
@@ -122,8 +135,7 @@ class BatSyncTransport(SyncTransport, BatTransport):
 class BatRunTransport(RunTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ORDER_RUN_TRANSPORTS
-    _bat_transports = KNOWN_RUN_TRANSPORTS
+    _transport_mode = 'run'
 
     def __init__(self, *args, **kwargs):
         BatTransport.__init__(self)
