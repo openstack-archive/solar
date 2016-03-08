@@ -22,27 +22,15 @@ from solar.core.transports.base import SyncTransport
 from operator import itemgetter
 
 
-def suppress_stevedore_errors(manager, entrypoint, exception):
-    pass
-
-
 def _find_transports(mode):
-    # instead of suppressing errors we may consider switching to
-    # EnabledExtensionManager
-    mgr = extension.ExtensionManager(
-        namespace='solar.transports.%s' % mode,
-        on_load_failure_callback=suppress_stevedore_errors
-    )
+    mgr = extension.ExtensionManager(namespace='solar.transports.%s' % mode)
+
     extensions = mgr.extensions
     transports = dict(map(lambda x: (x.name, x.plugin), extensions))
     orders = map(lambda x: (getattr(x.plugin, '_priority', -1),
                             x.name), extensions)
     order = map(itemgetter(1), sorted(orders, reverse=True))
     return transports, order
-
-
-KNOWN_RUN_TRANSPORTS, ORDER_RUN_TRANSPORTS = _find_transports('run')
-KNOWN_SYNC_TRANSPORTS, ORDER_SYNC_TRANSPORTS = _find_transports('sync')
 
 
 class OnAll(object):
@@ -60,12 +48,16 @@ class OnAll(object):
 class BatTransport(SolarTransport):
 
     _order = ()
+    _transport_mode = ''
 
     def __init__(self, *args, **kwargs):
         super(BatTransport, self).__init__(*args, **kwargs)
         self._cache = {}
         self._used_transports = []
         self._other_remember = None
+
+        self._order, self._bat_transports = _find_transports(
+            self._transport_mode)
 
     def select_valid_transport(self, resource, *args, **kwargs):
         key_name = '_bat_transport_%s' % self._mode
@@ -104,8 +96,7 @@ class BatTransport(SolarTransport):
 class BatSyncTransport(SyncTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ORDER_SYNC_TRANSPORTS
-    _bat_transports = KNOWN_SYNC_TRANSPORTS
+    _transport_mode = 'sync'
 
     def __init__(self, *args, **kwargs):
         BatTransport.__init__(self)
@@ -122,8 +113,7 @@ class BatSyncTransport(SyncTransport, BatTransport):
 class BatRunTransport(RunTransport, BatTransport):
 
     preffered_transport_name = None
-    _order = ORDER_RUN_TRANSPORTS
-    _bat_transports = KNOWN_RUN_TRANSPORTS
+    _transport_mode = 'run'
 
     def __init__(self, *args, **kwargs):
         BatTransport.__init__(self)
