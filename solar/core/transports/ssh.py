@@ -59,7 +59,7 @@ class _SSHTransport(object):
 
 class SSHSyncTransport(SyncTransport, _SSHTransport):
 
-    preffered_transport_name = 'ssh'
+    preferred_transport_name = 'ssh'
 
     def __init__(self):
         _SSHTransport.__init__(self)
@@ -123,7 +123,7 @@ class SSHSyncTransport(SyncTransport, _SSHTransport):
 
 class SSHRunTransport(RunTransport, _SSHTransport):
 
-    preffered_transport_name = 'ssh'
+    preferred_transport_name = 'ssh'
 
     def get_result(self, output):
         """Needed for compatibility with other handlers / transports"""

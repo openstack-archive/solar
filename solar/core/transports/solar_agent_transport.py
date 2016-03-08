@@ -41,7 +41,7 @@ class SolarAgentTransport(object):
 
 class SolarAgentSyncTransport(SyncTransport, SolarAgentTransport):
 
-    preffered_transport_name = 'solar_agent'
+    preferred_transport_name = 'solar_agent'
 
     def copy(self, resource, _from, _to, use_sudo=False):
         log.debug("SolarAgent copy: %s -> %s", _from, _to)
@@ -56,7 +56,7 @@ class SolarAgentSyncTransport(SyncTransport, SolarAgentTransport):
 
 class SolarAgentRunTransport(RunTransport, SolarAgentTransport):
 
-    preffered_transport_name = 'solar_agent'
+    preferred_transport_name = 'solar_agent'
 
     def get_result(self, result):
         obj = SolarTransportResult()

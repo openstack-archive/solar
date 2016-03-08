@@ -107,7 +107,7 @@ def find_named_transport(resource, req_name):
     return transport
 
 
-def locate_named_transport_resoruce(resource, name):
+def locate_named_transport_resource(resource, name):
     transports = resource.db_obj.inputs._get_field_val('transports_id',
                                                        other='_key')
     transports_resource = load(transports)
@@ -135,7 +135,7 @@ class SolarTransport(object):
             transport = getattr(resource, key)
         except AttributeError:
             if name is None:
-                name = self.preffered_transport_name
+                name = self.preferred_transport_name
             transport = next(x for x in resource.transports()
                              if x['name'] == name)
             setattr(resource, key, transport)
@@ -151,7 +151,7 @@ class SolarTransport(object):
 class SyncTransport(SolarTransport):
     """Transport that is responsible for file / directory syncing."""
 
-    preffered_transport_name = None
+    preferred_transport_name = None
     _mode = 'sync'
 
     def __init__(self):
@@ -197,7 +197,7 @@ class RunTransport(SolarTransport):
     rpc like thing
     """
 
-    preffered_transport_name = None
+    preferred_transport_name = None
     _mode = 'run'
 
     def __init__(self):
