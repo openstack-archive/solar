@@ -108,7 +108,7 @@ class Resource(object):
         if isinstance(kwargs[args_names[0]], basestring) and \
            isinstance(kwargs[args_names[1]], basestring):
             return self.create_from_spec(**kwargs)
-        raise RuntimeError("Failed to create Resoruce object "
+        raise RuntimeError("Failed to create Resource object "
                            "from args: %r and kwargs: %r" % (args, kwargs))
 
     def auto_extend_inputs(self, inputs):

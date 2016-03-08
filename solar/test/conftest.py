@@ -47,10 +47,10 @@ def repos_path(tmpdir_factory):
 
 
 def plan_from_fixture(name):
-    riak_path = os.path.join(
+    path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
         '%s.yaml' % name)
-    return graph.create_plan(riak_path)
+    return graph.create_plan(path)
 
 
 @pytest.fixture

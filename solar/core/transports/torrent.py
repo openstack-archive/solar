@@ -22,7 +22,7 @@ import libtorrent as lt
 from solar.core.handlers.base import SOLAR_TEMP_LOCAL_LOCATION
 from solar.core.log import log
 from solar.core.transports.base import Executor
-from solar.core.transports.base import locate_named_transport_resoruce
+from solar.core.transports.base import locate_named_transport_resource
 from solar.core.transports.base import SyncTransport
 from solar.core.transports.ssh import SSHSyncTransport
 
@@ -94,7 +94,7 @@ class TorrentSyncTransport(SyncTransport):
         # XXX: naive naive naive
         # we don't need use sudo there for now
         from fabric import api as fabric_api
-        torrent_t = locate_named_transport_resoruce(resource, 'torrent')
+        torrent_t = locate_named_transport_resource(resource, 'torrent')
 
         solar_torrent = torrent_t.get_file_path('scripts/solar_torrent.py')
         torrents = self._torrents + self._sudo_torrents
