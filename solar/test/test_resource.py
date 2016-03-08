@@ -15,6 +15,8 @@
 import base
 from solar.core import resource
 from solar.core import signals
+from solar.dblayer.model import clear_cache
+from solar.dblayer.model import DBLayerException
 
 
 class TestResource(base.BaseResourceTest):
@@ -111,6 +113,35 @@ input:
         sample2 = resource.load('sample2')
         sample1.delete()
         self.assertEqual(sample2.args['value'], 0)
+
+    def test_double_create(self):
+        sample_meta_dir = self.make_resource_meta("""
+id: sample
+handler: ansible
+version: 1.0.0
+input:
+  value:
+    schema: int
+    value: 0
+        """)
+
+        self.create_resource('sample1', sample_meta_dir,
+                             {'value': 1})
+        with self.assertRaisesRegexp(
+                DBLayerException,
+                "Object already exists in cache cannot create second"
+        ):
+            self.create_resource('sample1', sample_meta_dir,
+                                 {'value': 1})
+
+        clear_cache()
+
+        with self.assertRaisesRegexp(
+                DBLayerException,
+                "Object already exists in database cannot create second"
+        ):
+            self.create_resource('sample1', sample_meta_dir,
+                                 {'value': 1})
 
     def test_computable_input(self):
         """Test that connection removed with resource."""
