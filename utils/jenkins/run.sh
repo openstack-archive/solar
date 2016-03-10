@@ -59,7 +59,7 @@ sudo rm -rf /vagrant
 sudo mv /home/vagrant/solar /vagrant
 
 sudo chown -R ${ADMIN_USER} ${INSTALL_DIR}
-sudo SOLAR_DB_BACKEND=${SOLAR_DB_BACKEND} ansible-playbook -v -i \"localhost,\" -c local ${INSTALL_DIR}/bootstrap/playbooks/solar.yaml
+sudo SOLAR_DB_BACKEND=${SOLAR_DB_BACKEND} OSTYPE="ubuntu" ansible-playbook -v -i \"localhost,\" -c local ${INSTALL_DIR}/bootstrap/playbooks/solar.yaml
 
 set -e
 
