@@ -49,7 +49,7 @@ Requires:    python-zerorpc >= 0.5.2
 Solar is a resource manager and orchestration engine for distributed systems.
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -cq -n %{name}-%{version}
 
 %build
 cd %{_builddir}/%{name}-%{version} && PBR_VERSION=%{version} python setup.py build
@@ -62,5 +62,5 @@ install -p -D -m 644 %{_builddir}/%{name}-%{version}/etc/solar/solar.yaml.sample
 rm -rf $RPM_BUILD_ROOT
 
 %files -f %{_builddir}/%{name}-%{version}/INSTALLED_FILES
-%config(noreplace) %{_sysconfdir}/solar/solar.yaml.sample
+%config(noreplace) %{_sysconfdir}/solar/solar.yaml
 
