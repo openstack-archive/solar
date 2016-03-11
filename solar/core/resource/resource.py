@@ -34,6 +34,7 @@ from solar.dblayer.model import NONE
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
+from solar.dblayer.solar_models import LogItem
 from solar.events import api
 from solar import utils
 
@@ -90,6 +91,10 @@ class Resource(object):
         self.create_inputs(args)
 
         self.db_obj.save()
+        LogItem.new({
+            'resource': self.name,
+            'action': 'run',
+            'log': 'staged'}).save_lazy()
 
     # Load
     def create_from_db(self, resource_db):
@@ -209,6 +214,10 @@ class Resource(object):
         for k, v in args.items():
             self.db_obj.inputs[k] = v
         self.db_obj.save_lazy()
+        LogItem.new(
+            {'resource': self.name,
+             'action': 'update',
+             'log': 'staged'}).save_lazy()
 
     def delete(self):
         return self.db_obj.delete()
@@ -219,6 +228,10 @@ class Resource(object):
         else:
             self.db_obj.state = RESOURCE_STATE.removed.name
             self.db_obj.save_lazy()
+            LogItem.new(
+                {'resource': self.name,
+                 'action': 'remove',
+                 'log': 'staged'}).save_lazy()
 
     def set_operational(self):
         self.db_obj.state = RESOURCE_STATE.operational.name
@@ -355,10 +368,10 @@ def load_updated(since=None, with_childs=True):
         startkey = StrInt.p_min()
     else:
         startkey = since
-    candids = DBResource.updated.filter(startkey, StrInt.p_max())
+    updated_resources = DBResource.updated.filter(startkey, StrInt.p_max())
     if with_childs:
-        candids = DBResource.childs(candids)
-    return [Resource(r) for r in DBResource.multi_get(candids)]
+        updated_resources = DBResource.childs(updated_resources)
+    return [Resource(r) for r in DBResource.multi_get(updated_resources)]
 
 # TODO
 
@@ -385,6 +398,24 @@ def load_by_tags(query):
     nodes = filter(
         lambda n: Expression(query, n.tags).evaluate(), candids)
     return nodes
+
+
+def stage_resources(resources_query, action):
+    """
+    :param resources_query: iterable with tags or basestring
+    :param action: basestring
+    """
+    if isinstance(resources_query, basestring):
+        resources = [load(resources_query)]
+    else:
+        resources = load_by_tags(resources_query)
+    for resource in resources:
+        # save - cache doesnt cover all query in the same sesssion
+        # and this query will be triggered right after staging resources
+        LogItem.new(
+            {'resource': resource.name,
+             'action': action,
+             'log': 'staged'}).save()
 
 
 def load_by_names(names):

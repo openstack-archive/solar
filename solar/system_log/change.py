@@ -53,15 +53,28 @@ def create_diff(staged, commited):
     return listify(res)
 
 
-def create_logitem(resource, action, diffed, connections_diffed,
-                   base_path=''):
+def create_logitem(resource, action):
+    """Create log item in staged log
+    :param resource: basestring
+    :param action: basestring
+    """
     return LogItem.new(
         {'resource': resource,
          'action': action,
-         'diff': diffed,
-         'connections_diff': connections_diffed,
-         'base_path': base_path,
          'log': 'staged'})
+
+
+def create_update(resource):
+    # TODO consts
+    return create_logitem(resource, 'update')
+
+
+def create_run(resource):
+    return create_logitem(resource, 'run')
+
+
+def create_remove(resource):
+    return create_logitem(resource, 'remove')
 
 
 def create_sorted_diff(staged, commited):
@@ -70,9 +83,10 @@ def create_sorted_diff(staged, commited):
     return create_diff(staged, commited)
 
 
-def make_single_stage_item(resource_obj):
+def populate_log_item(log_item):
+    resource_obj = resource.load(log_item.resource)
     commited = resource_obj.load_commited()
-    base_path = resource_obj.base_path
+    log_item.base_path = resource_obj.base_path
 
     if resource_obj.to_be_removed():
         resource_args = {}
@@ -88,34 +102,31 @@ def make_single_stage_item(resource_obj):
         commited_args = commited.inputs
         commited_connections = commited.connections
 
-    inputs_diff = create_diff(resource_args, commited_args)
-    connections_diff = create_sorted_diff(
+    log_item.diff = create_diff(resource_args, commited_args)
+    log_item.connections_diff = create_sorted_diff(
         resource_connections, commited_connections)
-
-    # if new connection created it will be reflected in inputs
-    # but using inputs to reverse connections is not possible
-    if inputs_diff:
-        li = create_logitem(
-            resource_obj.name,
-            guess_action(commited_args, resource_args),
-            inputs_diff,
-            connections_diff,
-            base_path=base_path)
-        li.save()
-        return li
-    return None
+    log_item.save()
+    return log_item
 
 
-def stage_changes():
-    for li in data.SL():
-        li.delete()
-
-    last = LogItem.history_last()
-    since = StrInt.greater(last.updated) if last else None
-    staged_log = utils.solar_map(make_single_stage_item,
-                                 resource.load_updated(since), concurrency=10)
-    staged_log = filter(None, staged_log)
-    return staged_log
+def staged_log(populate_with_changes=False):
+    """Staging procedure takes manually created log items, populate them
+    with diff and connections diff
+    """
+    tracked = set()
+    staged_log = data.SL()
+    without_duplicates = []
+    for log_item in staged_log:
+        if log_item.log_action in tracked:
+            log_item.delete()
+            continue
+        tracked.add(log_item.log_action)
+        without_duplicates.append(log_item)
+    if populate_with_changes:
+        utils.solar_map(populate_log_item, without_duplicates,
+                        concurrency=10)
+    # TODO stage changes for childs
+    return without_duplicates
 
 
 def send_to_orchestration():

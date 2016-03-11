@@ -19,6 +19,7 @@ from solar.core.resource.resource import load_updated
 from solar.core.resource.resource import Resource
 from solar.core.resource.resource import RESOURCE_STATE
 from solar.core.resource.resource import validate_resources
+from solar.core.resource.resource import stage_resources
 
 __all__ = [
     'RESOURCE_STATE',
@@ -27,5 +28,6 @@ __all__ = [
     'load_all',
     'load_by_tags',
     'load_updated',
-    'validate_resources'
+    'validate_resources',
+    'stage_resources',
 ]

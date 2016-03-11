@@ -1125,6 +1125,10 @@ class LogItem(Model):
     log = Field(basestring)  # staged/history
 
     composite = CompositeIndexField(fields=('log', 'resource', 'action'))
+    # based on tags we will filter staged log items during process part
+    # of staging changes procedure, it will allow to isolate graphs for
+    # different parts of infrastructure managed by solar (e.g. cluster)
+    tags = TagsField(default=list)
 
     @property
     def log_action(self):

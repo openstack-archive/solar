@@ -39,10 +39,14 @@ def validate():
 
 
 @changes.command()
+@click.option('--action', '-a', default=None, help='resource action')
+@click.option('--name', '-n', default=None, help='resource name')
+@click.option('--tag', '-t', multiple=True, help='resource tags')
 @click.option('-d', default=False, is_flag=True, help='detailed view')
-def stage(d):
-    log = change.stage_changes()
-    log.reverse()
+def stage(action, name, tag, d):
+    if action and (name or tag):
+        resource.stage_resources(name or tag, action)
+    log = change.staged_log(populate_with_changes=True)
     for item in log:
         click.echo(data.compact(item))
         if d:
