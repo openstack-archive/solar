@@ -33,6 +33,7 @@ if no changes noticed on dependent resource.
 """
 
 from solar.dblayer.model import DBLayerNotFound
+from solar.dblayer.solar_models import DBLayerSolarException
 from solar.dblayer.solar_models import Resource
 
 
@@ -104,7 +105,7 @@ class React(Event):
                 try:
                     location_id = Resource.get(self.child).inputs[
                         'location_id']
-                except DBLayerNotFound:
+                except (DBLayerNotFound, DBLayerSolarException):
                     location_id = None
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
@@ -126,7 +127,7 @@ class StateChange(Event):
         changed_resources.append(self.parent_node)
         try:
             location_id = Resource.get(self.parent).inputs['location_id']
-        except DBLayerNotFound:
+        except (DBLayerNotFound, DBLayerSolarException):
             location_id = None
         changes_graph.add_node(
             self.parent_node, status='PENDING',
