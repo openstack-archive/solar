@@ -20,6 +20,7 @@ import pytest
 from solar.config import C  # NOQA
 from solar.core.resource import composer
 from solar.dblayer.model import clear_cache
+from solar.dblayer.model import ModelMeta
 from solar.errors import ExecutionTimeout
 from solar import orchestration
 from solar.orchestration.graph import wait_finish
@@ -57,7 +58,8 @@ def test_concurrent_sequences_with_no_handler(scale, clients):
     timeout = scale * 2
     scheduler_client = clients['scheduler']
 
-    assert len(change.stage_changes()) == total_resources
+    assert len(change.staged_log()) == total_resources
+    ModelMeta.session_end()
     plan = change.send_to_orchestration()
     scheduler_client.next({}, plan.graph['uid'])
 
@@ -75,4 +77,4 @@ def test_concurrent_sequences_with_no_handler(scale, clients):
     assert res[states.SUCCESS.name] == total_resources
     assert len(data.CL()) == total_resources
     clear_cache()
-    assert len(change.stage_changes()) == 0
+    assert len(change.staged_log()) == 0
