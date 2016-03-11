@@ -12,18 +12,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
+from solar.dblayer.solar_models import HistoryItem
 from solar.dblayer.solar_models import LogItem
 
 
 def SL():
-    rst = LogItem.composite.filter({'log': 'staged'})
+    rst = LogItem.bucket.get_index('$bucket',
+                                   startkey='_',
+                                   max_results=100000).results
     return LogItem.multi_get(rst)
 
 
 def CL():
-    rst = LogItem.composite.filter({'log': 'history'})
-    return LogItem.multi_get(rst)
+    rst = HistoryItem.bucket.get_index('$bucket',
+                                       startkey='_',
+                                       max_results=100000).results
+    return HistoryItem.multi_get(rst)
 
 
 def compact(logitem):
