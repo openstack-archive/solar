@@ -182,7 +182,7 @@ def _get_template(name, content, kwargs, inputs):
 
 
 def create_resources(base_path, resources, tags=None):
-
+    add_tags = tags
     created_resources = []
     for r in resources:
         resource_name = r['id']
@@ -191,6 +191,8 @@ def create_resources(base_path, resources, tags=None):
         values_from = r.get('values_from')
         spec = r.get('from', None)
         tags = r.get('tags', [])
+        if add_tags:
+            tags.extend(add_tags)
         is_composer_file = False
         if spec.startswith('./') or spec.endswith('.yaml'):
             spec = os.path.join(base_path, '..', spec)

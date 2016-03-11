@@ -33,6 +33,7 @@ from solar.core import validation
 from solar.dblayer.model import NONE
 from solar.dblayer.model import StrInt
 from solar.dblayer.solar_models import CommitedResource
+from solar.dblayer.solar_models import LogItem
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.events import api
 from solar import utils
@@ -90,6 +91,11 @@ class Resource(object):
         self.create_inputs(args)
 
         self.db_obj.save()
+        LogItem.new({
+            'resource': self.name,
+            'action': 'run',
+            'log': 'staged',
+            'tags': self.tags}).save_lazy()
 
     # Load
     def create_from_db(self, resource_db):
@@ -209,6 +215,12 @@ class Resource(object):
         for k, v in args.items():
             self.db_obj.inputs[k] = v
         self.db_obj.save_lazy()
+        # run and update are same things from solar pov
+        # so lets remove this redundancy
+        LogItem.new(
+            {'resource': self.name,
+             'action': 'run',
+             'tags': self.tags}).save_lazy()
 
     def delete(self):
         return self.db_obj.delete()
@@ -219,6 +231,11 @@ class Resource(object):
         else:
             self.db_obj.state = RESOURCE_STATE.removed.name
             self.db_obj.save_lazy()
+            LogItem.new(
+                {'resource': self.name,
+                 'action': 'remove',
+                 'log': 'staged',
+                 'tags': self.tags}).save_lazy()
 
     def set_operational(self):
         self.db_obj.state = RESOURCE_STATE.operational.name
@@ -312,6 +329,9 @@ class Resource(object):
                             use_defaults=False):
         mapping = get_mapping(self, receiver, mapping)
         self._connect_inputs(receiver, mapping)
+        LogItem.new({'resource': receiver.name,
+                     'action': 'run',
+                     'tags': receiver.tags}).save_lazy()
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         if use_defaults:
@@ -350,17 +370,9 @@ def load(name):
     return Resource(r)
 
 
-def load_updated(since=None, with_childs=True):
-    if since is None:
-        startkey = StrInt.p_min()
-    else:
-        startkey = since
-    candids = DBResource.updated.filter(startkey, StrInt.p_max())
-    if with_childs:
-        candids = DBResource.childs(candids)
-    return [Resource(r) for r in DBResource.multi_get(candids)]
-
-# TODO
+def load_childs(parents):
+    return [Resource(r) for r in
+            DBResource.multi_get(DBResource.childs(parents))]
 
 
 def load_all(startswith=None):
@@ -380,11 +392,33 @@ def load_by_tags(query):
     parsed_tags = get_string_tokens(query)
     r_with_tags = [DBResource.tags.filter(tag) for tag in parsed_tags]
     r_with_tags = set(itertools.chain(*r_with_tags))
-    candids = [Resource(r) for r in DBResource.multi_get(r_with_tags)]
+    resources = [Resource(r) for r in DBResource.multi_get(r_with_tags)]
 
-    nodes = filter(
-        lambda n: Expression(query, n.tags).evaluate(), candids)
-    return nodes
+    return filter(lambda n: Expression(query, n.tags).evaluate(), resources)
+
+
+def stage_resources(resources_query, action):
+    """Create log items for resources selected by query
+    :param resources_query: iterable with tags or basestring
+    :param action: basestring
+    """
+    if isinstance(resources_query, basestring):
+        resources = [load(resources_query)]
+    else:
+        resources = load_by_tags(resources_query)
+    created = []
+    for resource in resources:
+        # save - cache doesnt cover all query in the same sesssion
+        # and this query will be triggered right after staging resources
+
+        log_item = LogItem.new(
+            {'resource': resource.name,
+             'action': action,
+             'log': 'staged',
+             'tags': resource.tags})
+        log_item.save()
+        created.append(log_item)
+    return created
 
 
 def load_by_names(names):
