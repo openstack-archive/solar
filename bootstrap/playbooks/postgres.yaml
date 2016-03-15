@@ -18,6 +18,6 @@
 - shell: docker exec vagrant_pg_1 psql -h localhost -U solar postgres -c "CREATE DATABASE solar WITH owner=postgres LC_COLLATE='C' TEMPLATE template0;"
 - lineinfile:
     dest: /.solar_config_override
-    line: "solar_db: postgresql://solar:solar@127.0.0.1:5432/solar"
+    line: "solar_db: postgresql://solar:solar@127.0.0.1:5432/solar?solar_pool=True"
     state: present
     create: yes
