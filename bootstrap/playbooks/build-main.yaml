@@ -7,19 +7,19 @@
     ssh_ip_mask: "10.*.*.*"
   tasks:
   - include: centos/tasks/{{ item }}.yaml
-    when: lookup('env', 'OSTYPE') == "centos"
+    when: ansible_os_family == "RedHat"
     with_items:
-      - cloud_archive
+      - rho
       - base
       - puppet
       - docker
       - ssh_conf
 
   - include: ubuntu/tasks/{{ item }}.yaml
-    when: lookup('env', 'OSTYPE') == "ubuntu"
+    when: ansible_os_family == "Debian"
     with_items:
       - base
       - puppet
       - docker
-      - cloud_archive
+      - uca
       - ssh_conf
