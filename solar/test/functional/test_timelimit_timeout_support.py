@@ -39,14 +39,17 @@ def test_timelimit_plan(timelimit_plan, scheduler, tasks):
     waiter = gevent.spawn(wait_function, 3)
     waiter.join(timeout=3)
     finished_plan = graph.get_graph(timelimit_plan.graph['uid'])
-    assert 'ExecutionTimeout' in finished_plan.node['t1']['errmsg']
-    assert finished_plan.node['t2']['status'] == states.PENDING.name
+    t1 = graph.get_task_by_name(finished_plan, 't1')
+    t2 = graph.get_task_by_name(finished_plan, 't2')
+    assert 'ExecutionTimeout' in t1.errmsg
+    assert t2.status == states.PENDING.name
 
 
 @pytest.fixture
 def timeout_plan(simple_plan):
-    simple_plan.node['echo_stuff']['timeout'] = 1
-    graph.update_graph(simple_plan, force=True)
+    echo_task = graph.get_task_by_name(simple_plan, 'echo_stuff')
+    echo_task.timeout = 1
+    echo_task.save()
     return simple_plan
 
 
@@ -65,5 +68,5 @@ def test_timeout_plan(timeout_plan, scheduler):
     waiter = gevent.spawn(wait_function, 2)
     waiter.get(block=True, timeout=2)
     timeout_plan = graph.get_graph(timeout_plan.graph['uid'])
-    assert (timeout_plan.node['echo_stuff']['status']
-            == states.ERROR.name)
+    echo_task = graph.get_task_by_name(timeout_plan, 'echo_stuff')
+    assert echo_task.status == states.ERROR.name

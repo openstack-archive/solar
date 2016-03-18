@@ -26,7 +26,6 @@ def test_scheduler_next_fails_with_empty_plan():
 
 
 def test_soft_stop(simple_plan):
-    # graph.save_graph(simple_plan)
     uid = simple_plan.graph['uid']
 
     scheduler = Scheduler(None)
@@ -34,4 +33,4 @@ def test_soft_stop(simple_plan):
 
     plan = graph.get_graph(uid)
     for n in plan:
-        assert plan.node[n]['status'] == states.SKIPPED.name
+        assert n.status == states.SKIPPED.name

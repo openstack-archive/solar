@@ -24,8 +24,10 @@ from solar.orchestration.traversal import states
 
 @pytest.fixture
 def simple_plan_retries(simple_plan):
-    simple_plan.node['just_fail']['retry'] = 1
-    graph.update_graph(simple_plan, force=True)
+    fail_task = next(t for t in simple_plan.nodes()
+                     if t.name == 'just_fail')
+    fail_task.retry = 1
+    fail_task.save()
     return simple_plan
 
 
