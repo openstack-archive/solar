@@ -29,7 +29,7 @@ class DBLayerProxy(wrapt.ObjectProxy):
     def __hash__(self):
         # id is there by intention
         # we override __has__ in model
-        return hash(id(self.__wrapped__))
+        return hash(self.__wrapped__)
 
     def __eq__(self, other):
         if not isinstance(other, DBLayerProxy):

@@ -1054,7 +1054,7 @@ class Task(Model):
     name = Field(basestring)
     status = Field(basestring)
     target = Field(basestring, default=str)
-    task_type = Field(basestring)
+    type = Field(basestring)
     args = Field(list)
     errmsg = Field(basestring, default=str)
     timelimit = Field(int, default=int)
@@ -1072,6 +1072,16 @@ class Task(Model):
         key = '%s~%s' % (data['execution'], data['name'])
         return Task.from_dict(key, data)
 
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        if isinstance(other, basestring):
+            return self.key == other
+        return self.key == other.key
+
+    def __repr__(self):
+        return 'Task(execution={} name={})'.format(self.execution, self.name)
 
 """
 system log

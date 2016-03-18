@@ -16,6 +16,7 @@ import time
 import uuid
 
 from collections import Counter
+from itertools import chain
 
 import networkx as nx
 
@@ -34,25 +35,12 @@ def save_graph(graph):
     # TODO(dshulyak) remove duplication of parameters
     # in solar_models.Task and this object
     for n in nx.topological_sort(graph):
-        t = Task.new(
-            {'name': n,
-             'execution': uid,
-             'status': graph.node[n].get('status', ''),
-             'target': graph.node[n].get('target', '') or '',
-             'task_type': graph.node[n].get('type', ''),
-             'args': graph.node[n].get('args', []),
-             'errmsg': graph.node[n].get('errmsg', '') or '',
-             'timelimit': graph.node[n].get('timelimit', 0),
-             'retry': graph.node[n].get('retry', 0),
-             'timeout': graph.node[n].get('timeout', 0),
-             'start_time': 0.0,
-             'end_time': 0.0})
-        graph.node[n]['task'] = t
+        values = {'name': n, 'execution': uid}
+        values.update(graph.node[n])
+        t = Task.new(values)
         for pred in graph.predecessors(n):
-            pred_task = graph.node[pred]['task']
-            t.parents.add(pred_task)
-            pred_task.save()
-        t.save()
+            t.parents.add('{}~{}'.format(uid, pred))
+        t.save_lazy()
 
 
 def update_graph(graph, force=False):
@@ -84,19 +72,35 @@ def get_graph(uid):
     tasks = map(Task.get, Task.execution.filter(uid))
     for t in tasks:
         dg.add_node(
-            t.name, status=t.status,
-            type=t.task_type, args=t.args,
-            target=t.target or None,
-            errmsg=t.errmsg or None,
-            task=t,
-            timelimit=t.timelimit,
-            retry=t.retry,
-            timeout=t.timeout,
-            start_time=t.start_time,
-            end_time=t.end_time)
+            t.name, task=t, **t.to_dict())
         for u in t.parents.all_names():
             dg.add_edge(u, t.name)
     return dg
+
+
+def subgraph_from_task(graph_uid, task_name):
+    """Builds subgraph with:
+    - provided task id
+    - all successors of this task
+    - all predecessors for all successors
+    - all inprogress tasks
+    The main goal is to correctly schedule successors of provided task
+    """
+    task_uid = '{}~{}'.format(graph_uid, task_name)
+    mdg = nx.MultiDiGraph()
+    task = Task.get(task_uid)
+    childs = Task.multi_get(task.childs.all())
+    parents = Task.multi_get(
+        chain.from_iterable([c.parents.all() for c in childs]))
+    # TODO add index based on state, and filter inprogress tasks
+    inprogress = []
+    mdg.add_nodes_from(childs)
+    # original task will be included in parents
+    mdg.add_nodes_from(parents)
+    edges = [(parent, child) for parent in parents
+             for child in parent.childs.all()]
+    mdg.add_edges_from(edges)
+    return mdg
 
 
 def longest_path_time(graph):
