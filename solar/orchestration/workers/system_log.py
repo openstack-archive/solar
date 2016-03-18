@@ -21,10 +21,10 @@ from solar.system_log.operations import set_error
 class SystemLog(base.Worker):
 
     def commit(self, ctxt, *args, **kwargs):
-        return move_to_commited(ctxt['task_id'].rsplit(':', 1)[-1])
+        return move_to_commited(ctxt['task_id'].rsplit('~', 1)[-1])
 
     def error(self, ctxt, *args, **kwargs):
-        return set_error(ctxt['task_id'].rsplit(':', 1)[-1])
+        return set_error(ctxt['task_id'].rsplit('~', 1)[-1])
 
 
 def tasks_subscribe(tasks, clients):
