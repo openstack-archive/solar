@@ -260,7 +260,7 @@ class Repository(object):
                 return
 
         if resource_name is None:
-            for single in self.list_repos():
+            for single in os.listdir(self.fpath):
                 for gen in _single(single):
                     yield gen
         else:
