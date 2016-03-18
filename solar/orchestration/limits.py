@@ -52,27 +52,25 @@ def type_based_rule(dg, inprogress, item):
     condition should be specified like:
         type_limit: 2
     """
-    _type = dg.node[item].get('resource_type')
-    if 'type_limit' not in dg.node[item]:
+    if not item.type_limit:
         return True
-    if not _type:
+    if not item.resource_type:
         return True
 
     type_count = 0
-    for n in inprogress:
-        if dg.node[n].get('resource_type') == _type:
+    for task in inprogress:
+        if task.resource_type == _type:
             type_count += 1
-    return dg.node[item]['type_limit'] > type_count
+    return task.type_limit > type_count
 
 
 def target_based_rule(dg, inprogress, item, limit=1):
-    target = dg.node[item].get('target')
-    if not target:
+    if not item.target:
         return True
 
     target_count = 0
     for n in inprogress:
-        if dg.node[n].get('target') == target:
+        if n.target == target:
             target_count += 1
     return limit > target_count
 

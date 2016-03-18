@@ -21,7 +21,7 @@ from solar.dblayer.locking import Waiter
 from solar.orchestration import graph
 from solar.orchestration import limits
 from solar.orchestration.traversal import states
-from solar.orchestration.traversal import traverse
+from solar.orchestration.traversal import find_visitable_tasks
 from solar.orchestration.traversal import VISITED
 from solar.orchestration.workers import base
 from solar.utils import get_current_ident
@@ -34,13 +34,10 @@ class Scheduler(base.Worker):
         super(Scheduler, self).__init__()
 
     def _next(self, plan):
-        tasks = traverse(plan)
-        filtered_tasks = list(limits.get_default_chain(
+        return list(limits.get_default_chain(
             plan,
-            [t for t in plan
-             if plan.node[t]['status'] == states.INPROGRESS.name],
-            tasks))
-        return filtered_tasks
+            [t for t in plan if t.status == states.INPROGRESS.name],
+            find_visitable_tasks(plan)))
 
     def next(self, ctxt, plan_uid):
         with Lock(
@@ -54,11 +51,9 @@ class Scheduler(base.Worker):
             if len(plan) == 0:
                 raise ValueError('Plan {} is empty'.format(plan_uid))
             rst = self._next(plan)
-            for task_name in rst:
-                self._do_scheduling(plan, task_name)
-            graph.update_graph(plan)
+            for task in rst:
+                self._do_scheduling(plan, task)
             log.debug('Scheduled tasks %r', rst)
-            # process tasks with tasks client
             return rst
 
     def soft_stop(self, ctxt, plan_uid):
@@ -69,74 +64,68 @@ class Scheduler(base.Worker):
                 waiter=Waiter(1)
         ):
             plan = graph.get_graph(plan_uid)
-            for n in plan:
-                if plan.node[n]['status'] in (
+            for task in plan:
+                if task.status in (
                         states.PENDING.name, states.ERROR_RETRY.name):
-                    plan.node[n]['status'] = states.SKIPPED.name
-            graph.update_graph(plan)
+                    task.status = states.SKIPPED.name
+                    task.save_lazy()
 
-    def _do_update(self, plan, task_name, status, errmsg=''):
+    def _do_update(self, task, status, errmsg=''):
         """For single update correct state and other relevant data."""
-        old_status = plan.node[task_name]['status']
-        if old_status in VISITED:
+        if task.status in VISITED:
             log.debug(
                 'Task %s already in visited status %s'
                 ', skipping update to %s',
-                task_name, old_status, status)
+                task.name, task.status, status)
             return
-        retries_count = plan.node[task_name]['retry']
 
-        if status == states.ERROR.name and retries_count > 0:
-            retries_count -= 1
+        if status == states.ERROR.name and task.retry > 0:
+            task.retry -= 1
             status = states.ERROR_RETRY.name
             log.debug('Retry task %s in plan %s, retries left %s',
-                      task_name, plan.graph['uid'], retries_count)
+                      task.name, task.execution, task.retry)
         else:
-            plan.node[task_name]['end_time'] = time.time()
-        plan.node[task_name]['status'] = status
-        plan.node[task_name]['errmsg'] = errmsg
-        plan.node[task_name]['retry'] = retries_count
+            task.end_time = time.time()
+        task.status = status
+        task.errmsg = errmsg
+        task.save_lazy()
 
-    def _do_scheduling(self, plan, task_name):
-        task_id = '{}:{}'.format(plan.graph['uid'], task_name)
-        task_type = plan.node[task_name]['type']
-        plan.node[task_name]['status'] = states.INPROGRESS.name
-        plan.node[task_name]['start_time'] = time.time()
-        plan.node[task_name]['end_time'] = 0.0
-        timelimit = plan.node[task_name].get('timelimit', 0)
-        timeout = plan.node[task_name].get('timeout', 0)
+    def _do_scheduling(self, task):
+        task.status = states.INPROGRESS.name
+        task.start_time = time.time()
         ctxt = {
-            'task_id': task_id,
-            'task_name': task_name,
-            'plan_uid': plan.graph['uid'],
-            'timelimit': timelimit,
-            'timeout': timeout}
+            'task_id': task.key,
+            'task_name': task.name,
+            'plan_uid': task.execution,
+            'timelimit': task.timelimit,
+            'timeout': task.timeout}
         log.debug(
             'Timelimit for task %s - %s, timeout - %s',
-            task_id, timelimit, timeout)
+            task, task.timelimit, task.timeout)
+        task.save_lazy()
         self._tasks(
-            task_type, ctxt,
-            *plan.node[task_name]['args'])
+            task.type, ctxt,
+            *task.args)
         if timeout:
-            self._configure_timeout(ctxt, timeout)
+            self._configure_timeout(ctxt, task.timeout)
 
     def update_next(self, ctxt, status, errmsg):
         log.debug(
             'Received update for TASK %s - %s %s',
             ctxt['task_id'], status, errmsg)
-        plan_uid, task_name = ctxt['task_id'].rsplit(':', 1)
+        plan_uid, task_name = ctxt['task_id'].rsplit('~', 1)
         with Lock(
                 plan_uid,
                 str(get_current_ident()),
                 retries=20,
                 waiter=Waiter(1)
         ):
-            plan = graph.get_graph(plan_uid)
-            self._do_update(plan, task_name, status, errmsg=errmsg)
+            plan = graph.get_subgraph_based_on_task(plan_uid, task_name)
+            task = plan.node[ctxt['task_id']]
+            self._do_update(plan, task, status, errmsg=errmsg)
             rst = self._next(plan)
             for task_name in rst:
-                self._do_scheduling(plan, task_name)
-            graph.update_graph(plan)
+                self._do_scheduling(plan, task)
             log.debug('Scheduled tasks %r', rst)
             return rst
 

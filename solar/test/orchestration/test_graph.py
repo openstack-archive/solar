@@ -30,4 +30,11 @@ def test_reset_resets_times():
                start_time=1, end_time=4)
     graph.reset(g)
     assert int(g.node['task1']['start_time']) == 0
-    assert int(g.node['task1']['start_time']) == 0
+
+
+def test_subgraph_from_task(simple_plan):
+    mdg = graph.get_subgraph_based_on_task(
+        simple_plan.graph['uid'], 'echo_stuff')
+    echo_id = '{}~{}'.format(simple_plan.graph['uid'], 'echo_stuff')
+    just_fail_id = '{}~just_fail'.format(simple_plan.graph['uid'])
+    assert mdg.successors(echo_id) == [just_fail_id]
