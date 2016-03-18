@@ -833,12 +833,12 @@ class Resource(Model):
         # NOTE(jnowak): it's a bit naive implementation, we will
         # introduce something smarter instead based on conflict
         # resolution.
-        ret = super(Resource, cls)._pre_from_dict_check(key, data)
+        key, data = super(Resource, cls)._pre_from_dict_check(key, data)
         robj = cls.bucket.get(key)
         if robj.exists:
             raise DBLayerException("Object already exists in "
                                    "database cannot create second")
-        return ret
+        return key, data
 
     def _connect_single(self, other_inputs, other_name, my_name):
         if isinstance(other_name, (list, tuple)):
@@ -1054,7 +1054,7 @@ class Task(Model):
     name = Field(basestring)
     status = Field(basestring)
     target = Field(basestring, default=str)
-    task_type = Field(basestring)
+    type = Field(basestring)
     args = Field(list)
     errmsg = Field(basestring, default=str)
     timelimit = Field(int, default=int)
@@ -1067,11 +1067,23 @@ class Task(Model):
     parents = ParentField(default=list)
     childs = ChildField(default=list)
 
+    type_limit = Field(int, default=int)
+
     @classmethod
     def new(cls, data):
         key = '%s~%s' % (data['execution'], data['name'])
         return Task.from_dict(key, data)
 
+    def __hash__(self):
+        return hash(self.key)
+
+    def __eq__(self, other):
+        if isinstance(other, basestring):
+            return self.key == other
+        return self.key == other.key
+
+    def __repr__(self):
+        return 'Task(execution={} name={})'.format(self.execution, self.name)
 
 """
 system log

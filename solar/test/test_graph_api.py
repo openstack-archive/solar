@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from mock import Mock
 import networkx as nx
 from pytest import fixture
 
@@ -21,32 +22,39 @@ from solar.orchestration.traversal import states
 
 def test_simple_plan_plan_created_and_loaded(simple_plan):
     plan = graph.get_plan(simple_plan.graph['uid'])
-    assert set(plan.nodes()) == {'just_fail', 'echo_stuff'}
+    expected_names = {n.name for n in plan.nodes()}
+    assert expected_names == {'just_fail', 'echo_stuff'}
 
 
 def test_reset_all_states(simple_plan):
     for n in simple_plan:
-        simple_plan.node[n]['status'] == states.ERROR.name
+        n.status == states.ERROR.name
     graph.reset(simple_plan)
 
     for n in simple_plan:
-        assert simple_plan.node[n]['status'] == states.PENDING.name
+        assert n.status == states.PENDING.name
 
 
 def test_reset_only_provided(simple_plan):
-    simple_plan.node['just_fail']['status'] = states.ERROR.name
-    simple_plan.node['echo_stuff']['status'] = states.SUCCESS.name
+    for n in simple_plan.nodes():
+        if n.name == 'just_fail':
+            n.status = states.ERROR.name
+        elif n.name == 'echo_stuff':
+            n.status = states.SUCCESS.name
 
     graph.reset(simple_plan, [states.ERROR.name])
 
-    assert simple_plan.node['just_fail']['status'] == states.PENDING.name
-    assert simple_plan.node['echo_stuff']['status'] == states.SUCCESS.name
+    for n in simple_plan.nodes():
+        if n.name == 'just_fail':
+            assert n.status == states.PENDING.name
+        elif n.name == 'echo_stuff':
+            assert n.status == states.SUCCESS.name
 
 
 def test_wait_finish(simple_plan):
     for n in simple_plan:
-        simple_plan.node[n]['status'] = states.SUCCESS.name
-    graph.update_graph(simple_plan)
+        n.status = states.SUCCESS.name
+        n.save()
     assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
         'SUCCESS': 2,
@@ -59,8 +67,10 @@ def test_wait_finish(simple_plan):
 
 
 def test_several_updates(simple_plan):
-    simple_plan.node['just_fail']['status'] = states.ERROR.name
-    graph.update_graph(simple_plan)
+    just_fail_task = next(t for t in simple_plan.nodes()
+                          if t.name == 'just_fail')
+    just_fail_task.status = states.ERROR.name
+    just_fail_task.save()
 
     assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
@@ -72,8 +82,10 @@ def test_several_updates(simple_plan):
         'ERROR_RETRY': 0,
     }
 
-    simple_plan.node['echo_stuff']['status'] = states.ERROR.name
-    graph.update_graph(simple_plan)
+    echo_task = next(t for t in simple_plan.nodes()
+                     if t.name == 'echo_stuff')
+    echo_task.status = states.ERROR.name
+    echo_task.save()
 
     assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
@@ -89,18 +101,19 @@ def test_several_updates(simple_plan):
 @fixture
 def times():
     rst = nx.DiGraph()
-    rst.add_node('t1', start_time=1.0, end_time=12.0,
-                 status='', errmsg='')
-    rst.add_node('t2', start_time=1.0, end_time=3.0,
-                 status='', errmsg='')
-    rst.add_node('t3', start_time=3.0, end_time=7.0,
-                 status='', errmsg='')
-    rst.add_node('t4', start_time=7.0, end_time=13.0,
-                 status='', errmsg='')
-    rst.add_node('t5', start_time=12.0, end_time=14.0,
-                 status='', errmsg='')
-    rst.add_path(['t1', 't5'])
-    rst.add_path(['t2', 't3', 't4'])
+    t1 = Mock(name='t1', start_time=1.0, end_time=12.0,
+              status='', errmsg='')
+    t2 = Mock(name='t2', start_time=1.0, end_time=3.0,
+              status='', errmsg='')
+    t3 = Mock(name='t3', start_time=3.0, end_time=7.0,
+              status='', errmsg='')
+    t4 = Mock(name='t4', start_time=7.0, end_time=13.0,
+              status='', errmsg='')
+    t5 = Mock(name='t5', start_time=12.0, end_time=14.0,
+              status='', errmsg='')
+    rst.add_nodes_from([t1, t2, t3, t4, t5])
+    rst.add_path([t1, t5])
+    rst.add_path([t2, t3, t4])
     return rst
 
 

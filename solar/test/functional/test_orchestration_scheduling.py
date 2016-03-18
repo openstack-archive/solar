@@ -31,7 +31,7 @@ def test_simple_fixture(simple_plan, scheduler, tasks):
     expected = [['echo_stuff'], ['just_fail'], []]
 
     def register(ctxt, rst, *args, **kwargs):
-        scheduling_results.append(rst)
+        scheduling_results.append([t.name for t in rst])
     worker.for_all.on_success(register)
 
     def _result_waiter():
@@ -47,7 +47,7 @@ def test_sequential_fixture(sequential_plan, scheduler, tasks):
     expected = {('s1',), ('s2',), ('s3',), ()}
 
     def register(ctxt, rst, *args, **kwargs):
-        scheduling_results.add(tuple(rst))
+        scheduling_results.add(tuple(t.name for t in rst))
     worker.for_all.on_success(register)
 
     def _result_waiter():
