@@ -22,6 +22,7 @@ from solar.dblayer.solar_models import CommitedResource
 from solar.dblayer.solar_models import Resource as DBResource
 from solar.system_log import change
 from solar.system_log import operations
+from solar.test.base import compare_task_to_names
 
 
 def create_resource(name, tags=None):
@@ -260,12 +261,12 @@ def test_stage_and_process_partially():
 
     a_graph = change.send_to_orchestration(a)
     a_expected = set(['%s.restart' % n for n in range_a])
-    assert set(a_graph.nodes()) == a_expected
+    compare_task_to_names(set(a_graph.nodes()), a_expected)
     b_graph = change.send_to_orchestration(b)
     b_expected = set(['%s.restart' % n for n in range_b])
-    assert set(b_graph.nodes()) == b_expected
+    compare_task_to_names(set(b_graph.nodes()), b_expected)
     both_graph = change.send_to_orchestration(both)
-    assert set(both_graph.nodes()) == a_expected | b_expected
+    compare_task_to_names(set(both_graph.nodes()), a_expected | b_expected)
 
 
 def test_childs_added_on_stage():

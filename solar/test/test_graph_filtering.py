@@ -12,15 +12,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-
 import networkx as nx
 from pytest import fixture
 from pytest import mark
 
 from solar.orchestration import filters
-from solar.orchestration import graph
 from solar.orchestration.traversal import states
+from solar.test.base import compare_task_to_names
 
 
 @fixture
@@ -39,80 +37,55 @@ def dg_ex1():
     (['n4', 'n5'], {'n1', 'n2', 'n3', 'n4', 'n5'}),
 ])
 def test_end_at(dg_ex1, end_nodes, visited):
-    assert set(filters.end_at(dg_ex1, end_nodes)) == visited
-
-
-@mark.parametrize("start_nodes,visited", [
-    (['n3'], {'n3'}), (['n1'], {'n1', 'n2', 'n4'}),
-    (['n1', 'n3'], {'n1', 'n2', 'n3', 'n4', 'n5'})
-])
-def test_start_from(dg_ex1, start_nodes, visited):
-    assert set(filters.start_from(dg_ex1, start_nodes)) == visited
-
-
-@fixture
-def dg_ex2():
-    dg = nx.DiGraph()
-    dg.add_nodes_from(['n1', 'n2', 'n3', 'n4', 'n5'])
-    dg.add_edges_from([('n1', 'n3'), ('n2', 'n3'), ('n3', 'n4'), ('n3', 'n5')])
-    return dg
-
-
-@fixture
-def riak_plan():
-    riak_path = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'orch_fixtures',
-        'riak.yaml')
-    return graph.create_plan(riak_path, save=False)
+    assert filters.end_at(dg_ex1, end_nodes) == visited
 
 
 def test_riak_start_node1(riak_plan):
-    assert filters.start_from(riak_plan, ['node1.run']) == {
-        'node1.run', 'hosts_file1.run', 'riak_service1.run'
-    }
+    start_tasks = filters.get_tasks_from_names(riak_plan, ['node1.run'])
+    compare_task_to_names(
+        filters.start_from(riak_plan, start_tasks),
+        {'node1.run', 'hosts_file1.run', 'riak_service1.run'})
 
 
 def test_riak_end_hosts_file1(riak_plan):
-    assert filters.end_at(riak_plan, ['hosts_file1.run']) == {
-        'node1.run', 'hosts_file1.run'
-    }
+    compare_task_to_names(filters.end_at(
+        riak_plan,
+        filters.get_tasks_from_names(riak_plan, ['hosts_file1.run'])),
+        {'node1.run', 'hosts_file1.run'})
 
 
 def test_start_at_two_nodes(riak_plan):
-    assert filters.start_from(riak_plan, ['node1.run', 'node2.run']) == \
+    compare_task_to_names(filters.start_from(
+        riak_plan,
+        filters.get_tasks_from_names(riak_plan, ['node1.run', 'node2.run'])),
         {'hosts_file1.run', 'riak_service2.run', 'riak_service2.join',
-         'hosts_file2.run', 'node2.run', 'riak_service1.run', 'node1.run'}
+         'hosts_file2.run', 'node2.run', 'riak_service1.run', 'node1.run'})
 
 
 def test_initial_from_node1_traverse(riak_plan):
     filters.filter(riak_plan, start=['node1.run'])
-    pending = {n
-               for n in riak_plan
-               if riak_plan.node[
-                   n]['status'] == states.PENDING.name}
-    assert pending == {'hosts_file1.run', 'riak_service1.run', 'node1.run'}
+    compare_task_to_names(
+        {t for t in riak_plan if t.status == states.PENDING.name},
+        {'hosts_file1.run', 'riak_service1.run', 'node1.run'})
 
 
 def test_second_from_node2_with_node1_walked(riak_plan):
     success = {'hosts_file1.run', 'riak_service1.run', 'node1.run'}
-    for n in success:
-        riak_plan.node[n]['status'] = states.SUCCESS.name
+    for task in riak_plan.nodes():
+        if task.name in success:
+            task.status = states.SUCCESS.name
+
     filters.filter(riak_plan, start=['node2.run'])
-    pending = {n
-               for n in riak_plan
-               if riak_plan.node[
-                   n]['status'] == states.PENDING.name}
-    assert pending == {'hosts_file2.run', 'riak_service2.run', 'node2.run',
-                       'riak_service2.join'}
+    compare_task_to_names(
+        {t for t in riak_plan if t.status == states.PENDING.name},
+        {'hosts_file2.run', 'riak_service2.run', 'node2.run',
+         'riak_service2.join'})
 
 
 def test_end_joins(riak_plan):
     filters.filter(riak_plan,
                    start=['node1.run', 'node2.run', 'node3.run'],
                    end=['riak_service2.join', 'riak_service3.join'])
-    skipped = {n
-               for n in riak_plan
-               if riak_plan.node[
-                   n]['status'] == states.SKIPPED.name}
-
-    assert skipped == {'riak_service1.commit'}
+    compare_task_to_names(
+        {n for n in riak_plan if n.status == states.SKIPPED.name},
+        {'riak_service1.commit'})

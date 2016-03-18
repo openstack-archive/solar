@@ -39,20 +39,12 @@ VISITED = (states.SUCCESS.name, states.NOOP.name)
 BLOCKED = (states.INPROGRESS.name, states.SKIPPED.name, states.ERROR.name)
 
 
-def traverse(dg):
-
-    visited = set()
-    for node in dg:
-        data = dg.node[node]
-        if data['status'] in VISITED:
-            visited.add(node)
-    rst = []
-    for node in dg:
-        data = dg.node[node]
-
-        if node in visited or data['status'] in BLOCKED:
-            continue
-
-        if set(dg.predecessors(node)) <= visited:
-            rst.append(node)
-    return rst
+def find_visitable_tasks(dg):
+    """Filter to find tasks that satisfy next conditions:
+    - task is not in VISITED or BLOCKED state
+    - all predecessors of task can be considered visited
+    """
+    visited = set([t for t in dg if t.status in VISITED])
+    return [t for t in dg
+            if (not (t in visited or t.status in BLOCKED)
+                and set(dg.predecessors(t)) <= visited)]

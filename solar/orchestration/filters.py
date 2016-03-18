@@ -18,11 +18,19 @@ from solar.orchestration.traversal import states
 from solar.orchestration.traversal import VISITED
 
 
+def make_full_name(graph, name):
+    return '{}~{}'.format(graph.graph['uid'], name)
+
+
+def get_tasks_from_names(graph, names):
+    return [t for t in graph.nodes() if t.name in names]
+
+
 def get_dfs_postorder_subgraph(dg, nodes):
     result = set()
     for node in nodes:
         result.update(nx.dfs_postorder_nodes(dg, source=node))
-    return dg.subgraph(result)
+    return {n for n in dg if n in result}
 
 
 def end_at(dg, nodes):
@@ -31,12 +39,12 @@ def end_at(dg, nodes):
     dg - directed graph
     nodes - iterable with node names
     """
-    return set(get_dfs_postorder_subgraph(dg.reverse(), nodes).nodes())
+    return get_dfs_postorder_subgraph(dg.reverse(copy=False), nodes)
 
 
 def start_from(dg, start_nodes):
     """Ensures that all paths starting from specific *nodes* will be visited"""
-    visited = {n for n in dg if dg.node[n].get('status') in VISITED}
+    visited = {t for t in dg if t.status in VISITED}
 
     # sorting nodes in topological order will guarantee that all predecessors
     # of current node were already walked, when current going to be considered
@@ -58,10 +66,10 @@ def validate(dg, start_nodes, end_nodes, err_msgs):
     error_msgs = err_msgs[:]
     not_in_the_graph_msg = 'Node {} is not present in graph {}'
     for n in start_nodes:
-        if n not in dg:
+        if make_full_name(dg, n) not in dg:
             error_msgs.append(not_in_the_graph_msg.format(n, dg.graph['uid']))
     for n in end_nodes:
-        if n not in dg:
+        if make_full_name(dg, n) not in dg:
             if start_nodes:
                 error_msgs.append(
                     'No path from {} to {}'.format(start_nodes, n))
@@ -82,25 +90,22 @@ def filter(dg, start=None, end=None, tasks=(), skip_with=states.SKIPPED.name):
     error_msgs = []
     subpath = dg.nodes()
     if tasks:
-        subpath = tasks
+        subpath = get_tasks_from_names(dg, tasks)
     else:
-
         subgraph = dg
         if start:
             error_msgs = validate(subgraph, start, [], error_msgs)
             if error_msgs:
                 return error_msgs
-
-            subpath = start_from(subgraph, start)
+            subpath = start_from(subgraph, get_tasks_from_names(dg, start))
             subgraph = dg.subgraph(subpath)
         if end:
             error_msgs = validate(subgraph, start, end, error_msgs)
             if error_msgs:
                 return error_msgs
+            subpath = end_at(subgraph, get_tasks_from_names(dg, end))
 
-            subpath = end_at(subgraph, end)
-
-    for node in dg:
-        if node not in subpath:
-            dg.node[node]['status'] = skip_with
+    for task in dg.nodes():
+        if task not in subpath:
+            task.status = skip_with
     return None
