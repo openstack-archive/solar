@@ -28,43 +28,16 @@ from solar import utils
 
 
 def save_graph(graph):
-    # maybe it is possible to store part of information in AsyncResult backend
-    uid = graph.graph['uid']
-
-    # TODO(dshulyak) remove duplication of parameters
-    # in solar_models.Task and this object
     for n in nx.topological_sort(graph):
-        t = Task.new(
-            {'name': n,
-             'execution': uid,
-             'status': graph.node[n].get('status', ''),
-             'target': graph.node[n].get('target', '') or '',
-             'task_type': graph.node[n].get('type', ''),
-             'args': graph.node[n].get('args', []),
-             'errmsg': graph.node[n].get('errmsg', '') or '',
-             'timelimit': graph.node[n].get('timelimit', 0),
-             'retry': graph.node[n].get('retry', 0),
-             'timeout': graph.node[n].get('timeout', 0),
-             'start_time': 0.0,
-             'end_time': 0.0})
+        values = {'name': n, 'execution': graph.graph['uid']}
+        values.update(graph.node[n])
+        t = Task.new(values)
         graph.node[n]['task'] = t
         for pred in graph.predecessors(n):
             pred_task = graph.node[pred]['task']
             t.parents.add(pred_task)
             pred_task.save()
-        t.save()
-
-
-def update_graph(graph, force=False):
-    for n in graph:
-        task = graph.node[n]['task']
-        task.status = graph.node[n]['status']
-        task.errmsg = graph.node[n]['errmsg'] or ''
-        task.retry = graph.node[n].get('retry', 0)
-        task.timeout = graph.node[n].get('timeout', 0)
-        task.start_time = graph.node[n].get('start_time', 0.0)
-        task.end_time = graph.node[n].get('end_time', 0.0)
-        task.save(force=force)
+        t.save_lazy()
 
 
 def set_states(uid, tasks):
@@ -72,31 +45,22 @@ def set_states(uid, tasks):
     for t in tasks:
         if t not in plan.node:
             raise Exception("No task %s in plan %s", t, uid)
-        plan.node[t]['task'].status = states.NOOP.name
-        plan.node[t]['task'].save_lazy()
-    ModelMeta.save_all_lazy()
+        plan.node[t].status = states.NOOP.name
+        plan.node[t].save_lazy()
+
+
+def get_task_by_name(dg, task_name):
+    return next(t for t in dg.nodes() if t.name == task_name)
 
 
 def get_graph(uid):
-    dg = nx.MultiDiGraph()
-    dg.graph['uid'] = uid
-    dg.graph['name'] = uid.split(':')[0]
-    tasks = map(Task.get, Task.execution.filter(uid))
-    for t in tasks:
-        dg.add_node(
-            t.name, status=t.status,
-            type=t.task_type, args=t.args,
-            target=t.target or None,
-            errmsg=t.errmsg or None,
-            task=t,
-            timelimit=t.timelimit,
-            retry=t.retry,
-            timeout=t.timeout,
-            start_time=t.start_time,
-            end_time=t.end_time)
-        for u in t.parents.all_names():
-            dg.add_edge(u, t.name)
-    return dg
+    mdg = nx.MultiDiGraph()
+    mdg.graph['uid'] = uid
+    mdg.graph['name'] = uid.split(':')[0]
+    mdg.add_nodes_from(Task.multi_get(Task.execution.filter(uid)))
+    mdg.add_edges_from([(parent, task) for task in mdg.nodes()
+                        for parent in task.parents.all()])
+    return mdg
 
 
 def longest_path_time(graph):
@@ -106,8 +70,8 @@ def longest_path_time(graph):
     start = float('inf')
     end = float('-inf')
     for n in graph:
-        node_start = graph.node[n]['start_time']
-        node_end = graph.node[n]['end_time']
+        node_start = n.start_time
+        node_end = n.end_time
         if int(node_start) == 0 or int(node_end) == 0:
             continue
 
@@ -122,8 +86,8 @@ def longest_path_time(graph):
 def total_delta(graph):
     delta = 0.0
     for n in graph:
-        node_start = graph.node[n]['start_time']
-        node_end = graph.node[n]['end_time']
+        node_start = n.start_time
+        node_end = n.end_time
         if int(node_start) == 0 or int(node_end) == 0:
             continue
         delta += node_end - node_start
@@ -153,11 +117,13 @@ def parse_plan(plan_path):
     return dg
 
 
-def create_plan_from_graph(dg, save=True):
+def create_plan_from_graph(dg):
     dg.graph['uid'] = "{0}:{1}".format(dg.graph['name'], str(uuid.uuid4()))
-    if save:
-        save_graph(dg)
-    return dg
+    # FIXME change save_graph api to return new graph with Task objects
+    # included
+    save_graph(dg)
+    ModelMeta.save_all_lazy()
+    return get_graph(dg.graph['uid'])
 
 
 def show(uid):
@@ -166,21 +132,19 @@ def show(uid):
     tasks = []
     result['uid'] = dg.graph['uid']
     result['name'] = dg.graph['name']
-    for n in nx.topological_sort(dg):
-        data = dg.node[n]
+    for task in nx.topological_sort(dg):
         tasks.append(
-            {'uid': n,
-             'parameters': data,
-             'before': dg.successors(n),
-             'after': dg.predecessors(n)
+            {'uid': task.name,
+             'parameters': task.to_dict(),
+             'before': dg.successors(task),
+             'after': dg.predecessors(task)
              })
     result['tasks'] = tasks
     return utils.yaml_dump(result)
 
 
-def create_plan(plan_path, save=True):
-    dg = parse_plan(plan_path)
-    return create_plan_from_graph(dg, save=save)
+def create_plan(plan_path):
+    return create_plan_from_graph(parse_plan(plan_path))
 
 
 def reset_by_uid(uid, state_list=None):
@@ -190,11 +154,11 @@ def reset_by_uid(uid, state_list=None):
 
 def reset(graph, state_list=None):
     for n in graph:
-        if state_list is None or graph.node[n]['status'] in state_list:
-            graph.node[n]['status'] = states.PENDING.name
-            graph.node[n]['start_time'] = 0.0
-            graph.node[n]['end_time'] = 0.0
-    update_graph(graph)
+        if state_list is None or n.status in state_list:
+            n.status = states.PENDING.name
+            n.start_time = 0.0
+            n.end_time = 0.0
+            n.save_lazy()
 
 
 def reset_filtered(uid):
@@ -212,14 +176,14 @@ def report_progress_graph(dg):
         'total_delta': total_delta(dg),
         'tasks': tasks}
 
+    # FIXME just return topologically sorted list of tasks
     for task in nx.topological_sort(dg):
-        data = dg.node[task]
         tasks.append([
-            task,
-            data['status'],
-            data['errmsg'],
-            data.get('start_time'),
-            data.get('end_time')])
+            task.name,
+            task.status,
+            task.errmsg,
+            task.start_time,
+            task.end_time])
 
     return report
 
@@ -237,7 +201,7 @@ def wait_finish(uid, timeout):
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})
-        summary.update([s['status'] for s in dg.node.values()])
+        summary.update([task.status for task in dg.nodes()])
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return

@@ -32,7 +32,7 @@ class DBLayerProxy(wrapt.ObjectProxy):
     def __eq__(self, other):
         if not isinstance(other, DBLayerProxy):
             return self.__wrapped__ == other
-        return self.__wrapped__ == self.__wrapped__
+        return self.__wrapped__ == other.__wrapped__
 
     def __repr__(self):
         return "<P: %r>" % self.__wrapped__

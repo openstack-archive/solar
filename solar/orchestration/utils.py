@@ -22,6 +22,10 @@ def write_graph(plan):
 
     :param plan: networkx Graph object
     """
+    names_only = nx.MultiDiGraph()
+    names_only.add_nodes_from([n.name for n in plan.nodes()])
+    names_only.add_edges_from([(n.name, s.name) for n in plan.nodes()
+                               for s in plan.successors(n)])
     colors = {
         'PENDING': 'cyan',
         'ERROR': 'red',
@@ -30,11 +34,11 @@ def write_graph(plan):
         'SKIPPED': 'blue',
         'NOOP': 'black'}
 
-    for n in plan:
-        color = colors[plan.node[n]['status']]
-        plan.node[n]['color'] = color
+    for n in plan.nodes():
+        names_only.node[n.name]['color'] = colors[n.status]
 
-    nx.nx_pydot.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    nx.nx_pydot.write_dot(names_only,
+                          '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
         'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(
             name=plan.graph['name']),
