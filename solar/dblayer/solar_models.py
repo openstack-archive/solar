@@ -836,12 +836,12 @@ class Resource(Model):
         # NOTE(jnowak): it's a bit naive implementation, we will
         # introduce something smarter instead based on conflict
         # resolution.
-        ret = super(Resource, cls)._pre_from_dict_check(key, data)
+        key, data = super(Resource, cls)._pre_from_dict_check(key, data)
         robj = cls.bucket.get(key)
         if robj.exists:
             raise DBLayerException("Object already exists in "
                                    "database cannot create second")
-        return ret
+        return key, data
 
     def _connect_single(self, other_inputs, other_name, my_name):
         if isinstance(other_name, (list, tuple)):
