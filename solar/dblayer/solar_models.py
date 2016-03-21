@@ -1072,6 +1072,8 @@ class Task(Model):
 
     type_limit = Field(int, default=int)
 
+    weight = Field(int, default=int)
+
     @classmethod
     def new(cls, data):
         key = '%s~%s' % (data['execution'], data['name'])

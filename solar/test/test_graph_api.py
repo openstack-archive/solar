@@ -102,15 +102,15 @@ def test_several_updates(simple_plan):
 def times():
     rst = nx.DiGraph()
     t1 = Mock(name='t1', start_time=1.0, end_time=12.0,
-              status='', errmsg='')
+              status='', errmsg='', weight=0)
     t2 = Mock(name='t2', start_time=1.0, end_time=3.0,
-              status='', errmsg='')
+              status='', errmsg='', weight=0)
     t3 = Mock(name='t3', start_time=3.0, end_time=7.0,
-              status='', errmsg='')
+              status='', errmsg='', weight=0)
     t4 = Mock(name='t4', start_time=7.0, end_time=13.0,
-              status='', errmsg='')
+              status='', errmsg='', weight=0)
     t5 = Mock(name='t5', start_time=12.0, end_time=14.0,
-              status='', errmsg='')
+              status='', errmsg='', weight=0)
     rst.add_nodes_from([t1, t2, t3, t4, t5])
     rst.add_path([t1, t5])
     rst.add_path([t2, t3, t4])
@@ -122,3 +122,16 @@ def test_report_progress(times):
     assert report['total_time'] == 13.0
     assert report['total_delta'] == 25.0
     assert len(report['tasks']) == 5
+
+
+def test_assigned_weights():
+    dg = nx.DiGraph()
+    t1 = Mock(name='t1', weight=0)
+    t2 = Mock(name='t2', weight=0)
+    t3 = Mock(name='t3', weight=0)
+    dg.add_nodes_from([t1, t2, t3])
+    dg.add_path([t1, t2, t3])
+    graph.assign_weights_nested(dg)
+    assert t1.weight == 2
+    assert t2.weight == 1
+    assert t3.weight == 0
