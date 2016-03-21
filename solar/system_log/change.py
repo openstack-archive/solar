@@ -159,10 +159,11 @@ def send_to_orchestration(tags=None):
         state_change.insert(changed_nodes, dg)
 
     evapi.build_edges(dg, events)
-
     # what `name` should be?
     dg.graph['name'] = 'system_log'
-    return graph.create_plan_from_graph(dg)
+    built_graph = graph.create_plan_from_graph(dg)
+    graph.assign_weights_nested(built_graph)
+    return built_graph
 
 
 def parameters(res, action, data):

@@ -13,6 +13,7 @@
 #    under the License.
 
 from functools import partial
+from operator import attrgetter
 import time
 
 from solar.core.log import log
@@ -37,7 +38,8 @@ class Scheduler(base.Worker):
         return list(limits.get_default_chain(
             plan,
             [t for t in plan if t.status == states.INPROGRESS.name],
-            find_visitable_tasks(plan)))
+            sorted(find_visitable_tasks(plan),
+                   key=attrgetter('weight'), reverse=True)))
 
     def next(self, ctxt, plan_uid):
         with Lock(
