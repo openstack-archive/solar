@@ -97,6 +97,20 @@ def total_delta(graph):
 get_plan = get_graph
 
 
+def assign_weights_nested(dg):
+    """Based on number of childs assign weights that will be
+    used later for scheduling.
+    """
+    #: NOTE reverse(copy=False) swaps successors and predecessors
+    # on same copy of graph, thus before returning it - reverse it back
+    reversed_graph = dg.reverse(copy=False)
+    for task in nx.topological_sort(reversed_graph):
+        task.weight = sum([t.weight + 1 for t
+                           in reversed_graph.predecessors(task)])
+        task.save_lazy()
+    return reversed_graph.reverse(copy=False)
+
+
 def parse_plan(plan_path):
     """parses yaml definition and returns graph"""
     plan = utils.yaml_load(plan_path)
