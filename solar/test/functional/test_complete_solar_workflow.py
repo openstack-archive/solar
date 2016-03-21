@@ -59,8 +59,9 @@ def test_concurrent_sequences_with_no_handler(scale, clients):
     scheduler_client = clients['scheduler']
 
     assert len(change.staged_log()) == total_resources
-    ModelMeta.session_end()
+    ModelMeta.save_all_lazy()
     plan = change.send_to_orchestration()
+    ModelMeta.save_all_lazy()
     scheduler_client.next({}, plan.graph['uid'])
 
     def wait_function(timeout):

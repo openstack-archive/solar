@@ -79,6 +79,11 @@ def timelimit_plan():
 
 
 @pytest.fixture
+def concurrent_choice_plan():
+    return plan_from_fixture('concurrent_choice')
+
+
+@pytest.fixture
 def sequence_vr(tmpdir):
     base_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
