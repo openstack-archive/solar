@@ -25,6 +25,9 @@ from enum import Enum
 from solar.computable_inputs import ComputablePassedTypes
 from solar.computable_inputs.processor import get_processor
 from solar.config import C
+from solar.core.tags_set_parser import Expression
+from solar.core.tags_set_parser import get_string_tokens
+from solar.dblayer.conflict_resolution import naive_resolver
 from solar.dblayer.model import check_state_for
 from solar.dblayer.model import CompositeIndexField
 from solar.dblayer.model import DBLayerException
@@ -1129,36 +1132,17 @@ class LogItem(Model):
     action = Field(basestring)
     diff = Field(list)
     connections_diff = Field(list)
-    state = Field(basestring)
     base_path = Field(basestring)  # remove me
-    updated = Field(StrInt)
 
-    history = IndexedField(StrInt)
-    log = Field(basestring)  # staged/history
-
-    composite = CompositeIndexField(fields=('log', 'resource', 'action'))
+    state = Field(basestring)
+    # based on tags we will filter staged log items during process part
+    # of staging changes procedure, it will allow to isolate graphs for
+    # different parts of infrastructure managed by solar (e.g. cluster)
+    tags = TagsField(default=list)
 
     @property
     def log_action(self):
         return '.'.join((self.resource, self.action))
-
-    @classmethod
-    def history_last(cls):
-        items = cls.history.filter(StrInt.n_max(),
-                                   StrInt.n_min(),
-                                   max_results=1)
-        if not items:
-            return None
-        return cls.get(items[0])
-
-    def save(self):
-        if any(f in self._modified_fields for f in LogItem.composite.fields):
-            self.composite.reset()
-
-        if 'log' in self._modified_fields and self.log == 'history':
-            self.history = StrInt(next(NegativeCounter.get_or_create(
-                'history')))
-        return super(LogItem, self).save()
 
     @classmethod
     def new(cls, data):
@@ -1166,7 +1150,78 @@ class LogItem(Model):
         if 'uid' not in vals:
             vals['uid'] = cls.uid.default
         vals.update(data)
-        return LogItem.from_dict(vals['uid'], vals)
+        return LogItem.from_dict(
+            '{}.{}'.format(vals['resource'], vals['action']), vals)
+
+    @classmethod
+    def from_dict(cls, key, *args, **kwargs):
+        if key in cls._c.obj_cache:
+            return cls._c.obj_cache[key]
+        return super(LogItem, cls).from_dict(key, *args, **kwargs)
+
+    @classmethod
+    def get(cls, key):
+        try:
+            return super(LogItem, cls).get(key)
+        except DBLayerException:
+            return None
+
+    def to_history(self):
+        return HistoryItem.new(
+            self.uid,
+            {'uid': self.uid,
+             'resource': self.resource,
+             'action': self.action,
+             'base_path': self.base_path,
+             'diff': self.diff,
+             'connections_diff': self.connections_diff})
+
+    @classmethod
+    def log_items_by_tags(cls, tags):
+        query = '|'.join(tags)
+        parsed_tags = get_string_tokens(query)
+        log_items = set(map(
+            cls.get,
+            chain.from_iterable(
+                [cls.tags.filter(tag) for tag in parsed_tags])))
+        return filter(lambda li: Expression(query, li.tags).evaluate(),
+                      log_items)
+
+    @staticmethod
+    def conflict_resolver(riak_object):
+        #: it is safe to pick any log item with data, because the key
+        # if particular log_action
+        for sibling in riak_object.siblings:
+            if sibling.encoded_data:
+                riak_object.siblings = [sibling]
+                return
+        naive_resolver(riak_object)
+
+
+class HistoryItem(Model):
+
+    uid = IndexedField(basestring)
+    resource = Field(basestring)
+    action = Field(basestring)
+    diff = Field(list)
+    connections_diff = Field(list)
+    base_path = Field(basestring)  # remove me
+    history = IndexedField(StrInt)
+
+    composite = CompositeIndexField(fields=('resource', 'action'))
+
+    @property
+    def log_action(self):
+        return '.'.join((self.resource, self.action))
+
+    def save(self):
+        if any(f in self._modified_fields for
+               f in HistoryItem.composite.fields):
+            self.composite.reset()
+
+        self.history = StrInt(next(NegativeCounter.get_or_create(
+            'history')))
+        return super(HistoryItem, self).save()
 
 
 class Lock(Model):
