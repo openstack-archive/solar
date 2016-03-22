@@ -16,25 +16,32 @@ import subprocess
 
 import networkx as nx
 
+STATE_COLORS = {
+    'PENDING': 'cyan',
+    'ERROR': 'red',
+    'SUCCESS': 'green',
+    'INPROGRESS': 'yellow',
+    'SKIPPED': 'blue',
+    'NOOP': 'black',
+    'ERROR_RETRY': 'red',
+    'POLICY_BLOCKED': 'cyan'}
+
 
 def write_graph(plan):
     """Writes graph to dot then to svg
 
     :param plan: networkx Graph object
     """
-    colors = {
-        'PENDING': 'cyan',
-        'ERROR': 'red',
-        'SUCCESS': 'green',
-        'INPROGRESS': 'yellow',
-        'SKIPPED': 'blue',
-        'NOOP': 'black'}
+    simplified = nx.MultiDiGraph()
 
-    for n in plan:
-        color = colors[plan.node[n]['status']]
-        plan.node[n]['color'] = color
+    for n in plan.nodes():
+        simplified.add_node(n.name)
+        simplified.node[n.name]['color'] = STATE_COLORS[n.status]
+        simplified.add_edges_from(
+            [(n.name, s.name) for s in plan.successors(n)])
 
-    nx.nx_pydot.write_dot(plan, '{name}.dot'.format(name=plan.graph['name']))
+    nx.nx_pydot.write_dot(
+        simplified, '{name}.dot'.format(name=plan.graph['name']))
     subprocess.call(
         'tred {name}.dot | dot -Tsvg -o {name}.svg'.format(
             name=plan.graph['name']),

@@ -123,7 +123,7 @@ class Scheduler(base.Worker):
                 retries=20,
                 waiter=Waiter(1)
         ):
-            plan = graph.get_graph(plan_uid)
+            plan = graph.get_subgraph_based_on_task(plan_uid, task_name)
             task = next(t for t in plan.nodes() if t.name == task_name)
             self._do_update(task, status, errmsg=errmsg)
             tasks_to_schedule = self._next(plan)

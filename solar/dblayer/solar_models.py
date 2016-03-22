@@ -1074,13 +1074,19 @@ class Task(Model):
 
     weight = Field(int, default=int)
 
+    # this field will be used to filter tasks in particular state
+    # for single execution
+    execution_status = IndexedField(basestring)
+
     @classmethod
     def new(cls, data):
         key = '%s~%s' % (data['execution'], data['name'])
         return Task.from_dict(key, data)
 
-    def __hash__(self):
-        return hash(self.key)
+    def save(self):
+        if 'status' in self._modified_fields:
+            self.execution_status = '%s~%s' % (self.execution, self.status)
+        return super(Task, self).save()
 
     def __eq__(self, other):
         if isinstance(other, basestring):

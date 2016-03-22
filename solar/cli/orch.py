@@ -69,19 +69,11 @@ def click_report(uid):
     if len(report['tasks']) == 0:
         click.echo('Nothing to report')
     else:
-        colors = {
-            'PENDING': 'cyan',
-            'ERROR': 'red',
-            'SUCCESS': 'green',
-            'INPROGRESS': 'yellow',
-            'SKIPPED': 'blue',
-            'NOOP': 'black'}
-
         for item in report['tasks']:
             msg = '{} -> {}'.format(item[0], item[1])
             if item[2]:
                 msg += ' :: {}'.format(item[2])
-            click.echo(click.style(msg, fg=colors[item[1]]))
+            click.echo(click.style(msg, fg=utils.STATE_COLORS[item[1]]))
         click.echo('Total Delta: {}'.format(report['total_delta']))
         click.echo('Total Time: {}'.format(report['total_time']))
 

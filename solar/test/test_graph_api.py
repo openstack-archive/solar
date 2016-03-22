@@ -16,6 +16,7 @@ from mock import Mock
 import networkx as nx
 from pytest import fixture
 
+from solar.dblayer.model import ModelMeta
 from solar.orchestration import graph
 from solar.orchestration.traversal import states
 
@@ -63,6 +64,7 @@ def test_wait_finish(simple_plan):
         'INPROGRESS': 0,
         'PENDING': 0,
         'ERROR_RETRY': 0,
+        'POLICY_BLOCKED': 0
     }
 
 
@@ -80,6 +82,7 @@ def test_several_updates(simple_plan):
         'INPROGRESS': 0,
         'PENDING': 1,
         'ERROR_RETRY': 0,
+        'POLICY_BLOCKED': 0
     }
 
     echo_task = next(t for t in simple_plan.nodes()
@@ -95,6 +98,7 @@ def test_several_updates(simple_plan):
         'INPROGRESS': 0,
         'PENDING': 0,
         'ERROR_RETRY': 0,
+        'POLICY_BLOCKED': 0
     }
 
 
@@ -165,3 +169,30 @@ def test_weights_multi_path():
     # two subtree are equal
     for s1, s2 in zip(tasks[1:half], tasks[half:]):
         assert s1.weight == s2.weight
+
+
+def test_subgraph_childs_and_parents():
+    dg = nx.DiGraph()
+    dg.graph['uid'] = 'test'
+    dg.add_nodes_from(['t1', 't2', 't3'])
+    dg.add_edges_from([('t1', 't3'), ('t2', 't3')])
+    graph.save_graph(dg)
+    ModelMeta.save_all_lazy()
+
+    subgraph = graph.get_subgraph_based_on_task(dg.graph['uid'], 't2')
+    assert {t.name for t in subgraph.nodes()} == {'t1', 't2', 't3'}
+    assert {t.name for t in subgraph.predecessors('test~t3')} == \
+        {'t1', 't2'}
+
+
+def test_status_based_subgraph():
+    dg = nx.DiGraph()
+    dg.graph['uid'] = 'test'
+    dg.add_node('t1', status=states.INPROGRESS.name)
+    dg.add_node('t2', status=states.POLICY_BLOCKED.name)
+    dg.add_node('t3')
+    graph.save_graph(dg)
+    ModelMeta.save_all_lazy()
+
+    subgraph = graph.get_subgraph_based_on_task(dg.graph['uid'], 't3')
+    assert {t.name for t in subgraph.nodes()} == {'t1', 't2', 't3'}

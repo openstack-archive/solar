@@ -21,10 +21,16 @@ task can be scheduled for execution if it is not yet visited, and state
 not in SKIPPED, INPROGRESS
 
 PENDING - task that is scheduled to be executed
-ERROR_RETRY - task was in error but will be re-executed
-ERROR - visited node, but failed, can be failed by timeout
-SUCCESS - visited node, successfull
-INPROGRESS - task already scheduled, can be moved to ERROR or SUCCESS
+POLICY_BLOCKED - task wasnt scheduled because of some concurrency
+policy, an example with node-based concurrency polcy (with limit=1):
+two tasks were returned by *find_visitable_tasks* but only one of them
+can be scheduled, so the other one will be updated as POLICY_BLOCKED
+This is an optimisation that is required for more efficient scheduling.
+ERROR - runtime failure, or task timed-out
+ERROR_RETRY - task was in error but will be retried
+SUCCESS - successfully executed task
+INPROGRESS - task was scheduled, eventually state will be changed
+to SUCCESS or ERROR
 SKIPPED - not visited, and should be skipped from execution
 NOOP - task wont be executed, but should be treated as visited
 """
@@ -33,7 +39,7 @@ from enum import Enum
 
 states = Enum(
     'States',
-    'SUCCESS ERROR NOOP INPROGRESS SKIPPED PENDING ERROR_RETRY')
+    'SUCCESS ERROR NOOP INPROGRESS SKIPPED PENDING POLICY_BLOCKED ERROR_RETRY')
 
 VISITED = (states.SUCCESS.name, states.NOOP.name)
 BLOCKED = (states.INPROGRESS.name, states.SKIPPED.name, states.ERROR.name)
@@ -45,6 +51,11 @@ def find_visitable_tasks(dg):
     - all predecessors of task can be considered visited
     """
     visited = set([t for t in dg if t.status in VISITED])
-    return [t for t in dg
-            if (not (t in visited or t.status in BLOCKED)
-                and set(dg.predecessors(t)) <= visited)]
+    visitable_tasks = []
+    for t in dg.nodes():
+        if (not (t in visited or t.status in BLOCKED) and
+                set(dg.predecessors(t)) <= visited):
+            visitable_tasks.append(t)
+            t.status = states.POLICY_BLOCKED.name
+            t.save_lazy()
+    return visitable_tasks

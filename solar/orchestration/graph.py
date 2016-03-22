@@ -16,6 +16,7 @@ import time
 import uuid
 
 from collections import Counter
+from itertools import chain
 
 import networkx as nx
 
@@ -53,15 +54,43 @@ def get_task_by_name(dg, task_name):
     return next(t for t in dg.nodes() if t.name == task_name)
 
 
-def get_graph(uid):
+def init_graph(uid):
     mdg = nx.MultiDiGraph()
     mdg.graph['uid'] = uid
     mdg.graph['name'] = uid.split(':')[0]
+    return mdg
+
+
+def get_graph(uid):
+    mdg = init_graph(uid)
     tasks_by_uid = {t.key: t for t
                     in Task.multi_get(Task.execution.filter(uid))}
     mdg.add_nodes_from(tasks_by_uid.values())
     mdg.add_edges_from([(tasks_by_uid[parent], task) for task in mdg.nodes()
                         for parent in task.parents.all()])
+    return mdg
+
+
+def get_subgraph_based_on_task(plan_uid, task_name):
+    mdg = init_graph(plan_uid)
+    task = Task.get('{}~{}'.format(plan_uid, task_name))
+    childs = Task.multi_get(task.childs.all())
+    parents = Task.multi_get(chain.from_iterable(
+        [t.parents.all() for t in childs]))
+    parents_by_key = {p.key: p for p in parents}
+    inprogress = Task.multi_get(
+        Task.execution_status.filter(
+            '{}~{}'.format(plan_uid, states.INPROGRESS.name)))
+    policy_blocked = Task.multi_get(
+        Task.execution_status.filter(
+            '{}~{}'.format(plan_uid, states.POLICY_BLOCKED.name)))
+    mdg.add_node(task)
+    mdg.add_nodes_from(childs)
+    mdg.add_nodes_from(parents)
+    mdg.add_nodes_from(inprogress)
+    mdg.add_nodes_from(policy_blocked)
+    mdg.add_edges_from([(parents_by_key[parent], child) for child in childs
+                        for parent in child.parents.all()])
     return mdg
 
 
