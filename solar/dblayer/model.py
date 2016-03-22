@@ -91,7 +91,7 @@ class SingleClassCache(object):
         self.obj_cache = LFUCache(origin_class, 200)
         self.db_ch_state = {'index': set()}
         self.lazy_save = set()
-        self.refs = defaultdict(weakref.WeakSet)
+        self.refs = defaultdict(weakref.WeakValueDictionary)
         self.origin_class = origin_class
 
 

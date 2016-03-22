@@ -21,15 +21,13 @@ class DBLayerProxy(wrapt.ObjectProxy):
     def __init__(self, wrapped):
         super(DBLayerProxy, self).__init__(wrapped)
         refs = wrapped._c.refs
-        refs[wrapped.key].add(self)
+        refs[wrapped.key][id(wrapped)] = wrapped
 
     def next(self, *args, **kwargs):
         return self.__wrapped__.next(*args, **kwargs)
 
     def __hash__(self):
-        # id is there by intention
-        # we override __has__ in model
-        return hash(id(self.__wrapped__))
+        return hash(self.__wrapped__)
 
     def __eq__(self, other):
         if not isinstance(other, DBLayerProxy):
