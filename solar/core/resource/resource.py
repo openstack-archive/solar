@@ -38,9 +38,14 @@ from solar.dblayer.solar_models import Resource as DBResource
 from solar.events import api
 from solar import utils
 
-
+"""
+created - resource is created by user
+operational - set in commit part of system_log
+removed - removed by user, will be deleted from database during commit
+error - set in commit, if there was errors in task execution
+"""
 RESOURCE_STATE = Enum(
-    'ResourceState', 'created operational removed error updated')
+    'ResourceState', 'created operational removed error')
 
 
 class Resource(object):
@@ -208,18 +213,17 @@ class Resource(object):
         return
 
     def update(self, args):
-        # TODO: disconnect input when it is updated and end_node
-        #       for some input_to_input relation
-        self.db_obj.state = RESOURCE_STATE.updated.name
-
         for k, v in args.items():
             self.db_obj.inputs[k] = v
         self.db_obj.save_lazy()
-        # run and update are same things from solar pov
-        # so lets remove this redundancy
+        # created state will be changed during commit
+        if self.db_obj.state != RESOURCE_STATE.created.name:
+            action = 'update'
+        else:
+            action = 'run'
         LogItem.new(
             {'resource': self.name,
-             'action': 'run',
+             'action': action,
              'tags': self.tags}).save_lazy()
 
     def delete(self):

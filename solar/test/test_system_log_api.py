@@ -25,16 +25,16 @@ from solar.system_log import operations
 
 
 def create_resource(name, tags=None):
-    resource = DBResource.from_dict(
+    res = DBResource.from_dict(
         name,
         {'name': name,
          'base_path': 'x',
-         'state': '',
+         'state': resource.RESOURCE_STATE.created.name,
          'tags': tags or [],
          'meta_inputs': {'a': {'value': None,
                                'schema': 'str'}}})
-    resource.save_lazy()
-    return resource
+    res.save_lazy()
+    return res
 
 
 def test_revert_update():
@@ -280,3 +280,12 @@ def test_childs_added_on_stage():
     child_log_item = next(li for li in staged_log
                           if li.resource == res_1.name)
     assert child_log_item.action == 'run'
+
+
+def test_update_action_after_commit():
+    res = resource.load(create_resource('1').name)
+    res.set_operational()
+    res.update({'a': 10})
+    ModelMeta.save_all_lazy()
+    staged_log = change.staged_log()
+    assert staged_log[0].action == 'update'
