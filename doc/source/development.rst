@@ -1,3 +1,5 @@
+.. _development_environment:
+
 Developement environment
 =================================
 
