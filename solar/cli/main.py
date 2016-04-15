@@ -123,13 +123,21 @@ def init_cli_connect():
     @main.command()
     @click.argument('emitter')
     @click.argument('receiver')
-    def disconnect(receiver, emitter):
-        click.echo('Disconnect {} from {}'.format(emitter, receiver))
+    @click.option('-i', '--input', multiple=True, default=None)
+    def disconnect(receiver, emitter, input):
+        if not input:
+            click.echo('Disconnect {} from {}'.format(emitter, receiver))
+        else:
+            click.echo('Disconnect {} from {} only {}'.format(
+                emitter,
+                receiver,
+                input
+            ))
         emitter = sresource.load(emitter)
         receiver = sresource.load(receiver)
         click.echo(emitter)
         click.echo(receiver)
-        emitter.disconnect(receiver)
+        emitter.disconnect(receiver, input)
 
         show_emitter_connections(emitter)
 
