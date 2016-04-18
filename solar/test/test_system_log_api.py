@@ -24,54 +24,57 @@ from solar.system_log import change
 from solar.system_log import operations
 
 
-def create_resource(name, tags=None):
+def create_resource(name, tags=None, inputs=None):
+    if inputs is None:
+        inputs = {'a': ''}
+    meta_inputs = {}
+    for key, value in inputs.items():
+        if not isinstance(value, basestring):
+            raise Exception('Only strings are allowed')
+        meta_inputs[key] = {'value': value, 'schema': 'str'}
     res = DBResource.from_dict(
         name,
         {'name': name,
          'base_path': 'x',
          'state': resource.RESOURCE_STATE.created.name,
          'tags': tags or [],
-         'meta_inputs': {'a': {'value': None,
-                               'schema': 'str'}}})
+         'meta_inputs': meta_inputs,
+         'inputs': meta_inputs})
     res.save_lazy()
-    return res
+    return resource.Resource(res)
 
 
 def test_revert_update():
     prev = {'a': '9'}
     new = {'a': '10'}
     res = create_resource('test1')
-    res.save()
-    action = 'run'
-    resource_obj = resource.load(res.name)
+    ModelMeta.save_all_lazy()
 
-    resource_obj.update(prev)
-    logitem = change.create_logitem(res.name, action)
+    res.update(prev)
+    ModelMeta.save_all_lazy()
+    logitem = change.staged_log()[0]
     operations.commit_log_item(logitem)
-    resource_obj.update(new)
-
-    logitem = change.create_logitem(res.name, action)
+    res.update(new)
+    ModelMeta.save_all_lazy()
+    logitem = change.staged_log()[0]
     uid = logitem.uid
     assert logitem.diff == [['change', 'a', ['9', '10']]]
     operations.commit_log_item(logitem)
-    assert resource_obj.args == new
+    assert res.args == new
 
     change.revert(uid)
-    assert resource_obj.args == {'a': '9'}
+    assert res.args == {'a': '9'}
 
 
 def test_revert_update_connected():
     res1 = create_resource('test1')
-    res1.inputs['a'] = '9'
-    res1.save_lazy()
+    res1.update({'a': '9'})
 
     res2 = create_resource('test2')
-    res2.inputs['a'] = ''
-    res2.save_lazy()
+    res2.update({'a': ''})
 
     res3 = create_resource('test3')
-    res3.inputs['a'] = ''
-    res3.save_lazy()
+    res3.update({'a': ''})
 
     res1 = resource.load('test1')
     res2 = resource.load('test2')
@@ -80,17 +83,15 @@ def test_revert_update_connected():
     res2.connect(res3)
     ModelMeta.save_all_lazy()
 
-    staged_log = map(lambda res: change.create_run(res.name),
-                     (res1, res2, res3))
-    assert len(staged_log) == 3
+    staged_items = change.staged_log()
+    assert len(staged_items) == 3
 
-    for item in staged_log:
+    for item in staged_items:
         assert item.action == 'run'
         operations.commit_log_item(item)
 
     res1.disconnect(res2)
-    staged_log = map(lambda res: change.create_run(res.name),
-                     (res2, res3))
+    staged_log = change.staged_log()
     to_revert = []
 
     for item in staged_log:
@@ -101,18 +102,54 @@ def test_revert_update_connected():
     change.revert_uids(sorted(to_revert, reverse=True))
     ModelMeta.save_all_lazy()
 
-    staged_log = map(lambda res: change.create_run(res.name),
-                     (res2, res3))
+    staged_log = change.staged_log()
 
     for item in staged_log:
         assert item.diff == [['change', 'a', ['', '9']]]
 
 
+def test_only_relevant_child_updated():
+    res1, res2, res3 = (
+        create_resource(
+            name, inputs={'a': '', 'b': ''}) for name in ('t1', 't2', 't3'))
+    res1.update({'a': '9', 'b': '10'})
+    res1.connect(res2, {'a': 'a'})
+    res1.connect(res3, {'b': 'b'})
+    ModelMeta.save_all_lazy()
+    # currently childs added as a side effect of staged log, thus we need
+    # to run it before commiting changes
+    assert set(s.resource for s in change.staged_log()) == {'t1', 't2', 't3'}
+    change.commit_all()
+    res1.update({'a': '12'})
+    ModelMeta.save_all_lazy()
+    # t3 not updated because "a" connected only to t2
+    assert set(s.resource for s in change.staged_log()) == {'t1', 't2'}
+
+
+def test_discard_removed_with_childs_not_affected():
+    res1, res2, res3 = (
+        create_resource(
+            name, inputs={'a': '', 'b': ''}) for name in ('t1', 't2', 't3'))
+    res1.update({'a': '9', 'b': '10'})
+    res1.connect(res2, {'a': 'a'})
+    res1.connect(res3, {'b': 'b'})
+    ModelMeta.save_all_lazy()
+    change.staged_log()
+    change.commit_all()
+    res1.remove()
+    ModelMeta.save_all_lazy()
+    staged_items = change.staged_log()
+    assert len(staged_items) == 1
+    assert staged_items[0].log_action == 't1.remove'
+    change.discard_all()
+    assert not res1.to_be_removed()
+    assert not res2.to_be_removed()
+    assert not res3.to_be_removed()
+    assert change.staged_log() == []
+
+
 def test_revert_removal():
     res = create_resource('test1')
-    res.inputs['a'] = '9'
-    res.save_lazy()
-
     commited = CommitedResource.from_dict('test1', {'inputs': {'a': '9'},
                                                     'state': 'operational'})
     commited.save_lazy()
@@ -121,8 +158,9 @@ def test_revert_removal():
     resource_obj.remove()
     ModelMeta.save_all_lazy()
 
-    log_item = change.create_remove(resource_obj.name)
-    log_item.save()
+    staged_items = change.staged_log()
+    assert len(staged_items) == 1
+    log_item = staged_items[0]
     uid = log_item.uid
     assert log_item.diff == [['remove', '', [['a', '9']]]]
     operations.commit_log_item(log_item)
@@ -150,10 +188,8 @@ def test_revert_removal():
 
 def test_revert_create():
     res = create_resource('test1')
-    res.inputs['a'] = '9'
-    res.save_lazy()
-
-    logitem = change.create_run(res.name)
+    res.db_obj.inputs['a'] = '9'
+    logitem = change.create_run(res)
     assert logitem.diff == [['add', '', [['a', '9']]]]
     uid = logitem.uid
     operations.commit_log_item(logitem)
@@ -173,13 +209,13 @@ def test_revert_create():
 
 def test_discard_all_pending_changes_resources_created():
     res1 = create_resource('test1')
-    res1.inputs['a'] = '9'
-    res1.save_lazy()
+    res1.db_obj.inputs['a'] = '9'
+    res1.db_obj.save_lazy()
 
     res2 = create_resource('test2')
-    res2.inputs['a'] = '0'
-    res2.save_lazy()
-    staged_log = map(change.create_run, (res1.name, res2.name))
+    res2.db_obj.inputs['a'] = '0'
+    res2.db_obj.save_lazy()
+    staged_log = map(change.create_run, (res1, res2))
 
     change.discard_all()
     staged_log = change.staged_log()
@@ -189,14 +225,14 @@ def test_discard_all_pending_changes_resources_created():
 
 def test_discard_connection():
     res1 = create_resource('test1')
-    res1.inputs['a'] = '9'
-    res1.save_lazy()
+    res1.db_obj.inputs['a'] = '9'
+    res1.db_obj.save_lazy()
 
     res2 = create_resource('test2')
-    res2.inputs['a'] = '0'
-    res2.save_lazy()
+    res2.db_obj.inputs['a'] = '0'
+    res2.db_obj.save_lazy()
 
-    staged_log = map(change.create_run, (res1.name, res2.name))
+    staged_log = map(change.create_run, (res1, res2))
     for item in staged_log:
         operations.commit_log_item(item)
 
@@ -214,8 +250,8 @@ def test_discard_connection():
 
 def test_discard_removed():
     res1 = create_resource('test1')
-    res1.inputs['a'] = '9'
-    res1.save_lazy()
+    res1.db_obj.inputs['a'] = '9'
+    res1.db_obj.save_lazy()
 
     res1 = resource.load('test1')
     res1.remove()
@@ -231,16 +267,14 @@ def test_discard_removed():
 
 def test_discard_update():
     res1 = create_resource('test1')
-    res1.inputs['a'] = '9'
-    res1.save_lazy()
-    operations.commit_log_item(change.create_run(res1.name))
-    res1 = resource.load('test1')
+    res1.db_obj.inputs['a'] = '9'
+    operations.commit_log_item(change.create_run(res1))
     res1.update({'a': '11'})
     ModelMeta.save_all_lazy()
     assert len(change.staged_log()) == 1
     assert res1.args == {'a': '11'}
 
-    change.discard_all()
+    change.discard_single(change.staged_log()[0])
     assert res1.args == {'a': '9'}
 
 
@@ -270,16 +304,20 @@ def test_stage_and_process_partially():
 
 def test_childs_added_on_stage():
     res_0, res_1 = [create_resource(str(n)) for n in range(2)]
-    res_0.connect(res_1, {'a': 'a'})
     ModelMeta.save_all_lazy()
-    created_log_items = stage_resources(res_0.name, 'run')
-    assert len(created_log_items) == 1
-    assert created_log_items[0].resource == res_0.name
+    for res in (res_0, res_1):
+        change.create_run(res)
+    res_0.connect(res_1, {'a': 'a'})
+    change.staged_log()
+    ModelMeta.save_all_lazy()
+    change.commit_all()
+    res_0.update({'a': '10'})
+    ModelMeta.save_all_lazy()
     staged_log = change.staged_log()
     assert len(staged_log) == 2
     child_log_item = next(li for li in staged_log
                           if li.resource == res_1.name)
-    assert child_log_item.action == 'run'
+    assert child_log_item.action == 'update'
 
 
 def test_update_action_after_commit():
