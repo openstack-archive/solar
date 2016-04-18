@@ -279,7 +279,7 @@ def test_childs_added_on_stage():
     assert len(staged_log) == 2
     child_log_item = next(li for li in staged_log
                           if li.resource == res_1.name)
-    assert child_log_item.action == 'run'
+    assert child_log_item.action == 'update'
 
 
 def test_update_action_after_commit():

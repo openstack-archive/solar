@@ -95,6 +95,10 @@ def create_run(resource):
     return create_logitem(resource, 'run')
 
 
+def create_update(resource):
+    return create_logitem(resource, 'update')
+
+
 def create_remove(resource):
     return create_logitem(resource, 'remove')
 
@@ -136,7 +140,8 @@ def staged_log(populate_with_changes=True):
                     resource.load_childs(list(resources_names)))
     child_log_items = filter(
         lambda li: li.diff or li.connections_diff,
-        utils.solar_map(create_run, [c.name for c in childs], concurrency=10))
+        utils.solar_map(create_update,
+                        [c.name for c in childs], concurrency=10))
     for log_item in child_log_items + without_duplicates:
         log_item.save_lazy()
     return without_duplicates + child_log_items
