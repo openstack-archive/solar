@@ -12,6 +12,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections import namedtuple
+
 import dictdiffer
 import networkx as nx
 
@@ -53,50 +55,69 @@ def create_diff(staged, commited):
     return listify(res)
 
 
-def populate_log_item(log_item):
-    resource_obj = resource.load(log_item.resource)
-    commited = resource_obj.load_commited()
-    log_item.base_path = resource_obj.base_path
-    if resource_obj.to_be_removed():
-        resource_args = {}
-        resource_connections = []
-    else:
-        resource_args = resource_obj.args
-        resource_connections = resource_obj.connections
+class Diff(namedtuple('Diff', ['resource', 'diff', 'connections', 'path'])):
 
-    if commited.state == RESOURCE_STATE.removed.name:
-        commited_args = {}
-        commited_connections = []
-    else:
-        commited_args = commited.inputs
-        commited_connections = commited.connections
+    def to_log_item(self, action):
+        return LogItem.new(
+            {'resource': self.resource,
+             'diff': self.diff,
+             'connections_diff': self.connections,
+             'base_path': self.path,
+             'action': action,
+             'log': 'staged'})
 
-    log_item.diff = create_diff(resource_args, commited_args)
-    log_item.connections_diff = create_sorted_diff(
-        resource_connections, commited_connections)
+    def to_update(self):
+        return self.to_log_item('update')
+
+    def to_run(self):
+        return self.to_log_item('run')
+
+    def to_remove(self):
+        return self.to_log_item('remove')
+
+    @classmethod
+    def create_from_resource(cls, resource_obj):
+        commited = resource_obj.load_commited()
+        if resource_obj.to_be_removed():
+            resource_args = {}
+            resource_connections = []
+        else:
+            resource_args = resource_obj.args
+            resource_connections = resource_obj.connections
+
+        if commited.state == RESOURCE_STATE.removed.name:
+            commited_args = {}
+            commited_connections = []
+        else:
+            commited_args = commited.inputs
+            commited_connections = commited.connections
+
+        return cls(resource_obj.name,
+                   create_diff(resource_args, commited_args),
+                   create_sorted_diff(
+                       resource_connections, commited_connections),
+                   resource_obj.base_path)
+
+
+def create_run(resource_obj):
+    return Diff.create_from_resource(resource_obj).to_run()
+
+
+def create_remove(resource_obj):
+    return Diff.create_from_resource(resource_obj).to_remove()
+
+
+def create_update(resource_obj):
+    return Diff.create_from_resource(resource_obj).to_update()
+
+
+def populate_log_item(log_item, diff=None):
+    if diff is None:
+        diff = Diff.create_from_resource(resource.load(log_item.resource))
+    log_item.diff = diff.diff
+    log_item.connections_diff = diff.connections
+    log_item.base_path = diff.path
     return log_item
-
-
-def create_logitem(resource, action, populate=True):
-    """Create log item in staged log
-    :param resource: basestring
-    :param action: basestring
-    """
-    log_item = LogItem.new(
-        {'resource': resource,
-         'action': action,
-         'log': 'staged'})
-    if populate:
-        populate_log_item(log_item)
-    return log_item
-
-
-def create_run(resource):
-    return create_logitem(resource, 'run')
-
-
-def create_remove(resource):
-    return create_logitem(resource, 'remove')
 
 
 def create_sorted_diff(staged, commited):
@@ -105,7 +126,7 @@ def create_sorted_diff(staged, commited):
     return create_diff(staged, commited)
 
 
-def staged_log(populate_with_changes=True):
+def staged_log():
     """Staging procedure takes manually created log items, populate them
     with diff and connections diff
 
@@ -127,19 +148,20 @@ def staged_log(populate_with_changes=True):
         resources_names.add(log_item.resource)
         log_actions.add(log_item.log_action)
         without_duplicates.append(log_item)
-
     utils.solar_map(lambda li: populate_log_item(li),
                     without_duplicates, concurrency=10)
     # this is backward compatible change, there might better way
     # to "guess" child actions
     childs = filter(lambda child: child.name not in resources_names,
                     resource.load_childs(list(resources_names)))
-    child_log_items = filter(
-        lambda li: li.diff or li.connections_diff,
-        utils.solar_map(create_run, [c.name for c in childs], concurrency=10))
-    for log_item in child_log_items + without_duplicates:
+    diffs = filter(
+        lambda d: d.diff or d.connections,
+        utils.solar_map(Diff.create_from_resource, childs, concurrency=10))
+    update_items = utils.solar_map(
+        lambda d: d.to_update(), diffs, concurrency=10)
+    for log_item in update_items + without_duplicates:
         log_item.save_lazy()
-    return without_duplicates + child_log_items
+    return without_duplicates + update_items
 
 
 def send_to_orchestration(tags=None):
@@ -184,11 +206,11 @@ def _get_args_to_update(args, connections):
 
 
 def is_create(logitem):
-    return all((item[0] == 'add' for item in logitem.diff))
+    return logitem.action == 'run'
 
 
 def is_update(logitem):
-    return any((item[0] == 'change' for item in logitem.diff))
+    return logitem.action == 'update'
 
 
 def revert_uids(uids):
@@ -301,19 +323,23 @@ def _discard_run(item):
     resource.load(item.resource).remove(force=True)
 
 
+def discard_single(item):
+    if is_update(item):
+        _discard_update(item)
+    elif item.action == CHANGES.remove.name:
+        _discard_remove(item)
+    elif is_create(item):
+        _discard_run(item)
+    else:
+        log.debug('Action %s for resource %s is a side'
+                  ' effect of another action', item.action, item.res)
+    item.delete()
+
+
 def discard_uids(uids):
     items = filter(bool, LogItem.multi_get(uids))
     for item in items:
-        if is_update(item):
-            _discard_update(item)
-        elif item.action == CHANGES.remove.name:
-            _discard_remove(item)
-        elif is_create(item):
-            _discard_run(item)
-        else:
-            log.debug('Action %s for resource %s is a side'
-                      ' effect of another action', item.action, item.res)
-        item.delete()
+        discard_single(item)
 
 
 def discard_uid(uid):
