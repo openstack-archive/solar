@@ -13,8 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 from solar.core.handlers.ansible import AnsibleHandlerRemote
+from solar.core.handlers.ansible import complement_playbook
 from solar.core.log import log
+from solar.utils import jinja_env_with_filters
 
 
 class AnsibleTemplate(AnsibleHandlerRemote):
@@ -33,3 +36,13 @@ class AnsibleTemplate(AnsibleHandlerRemote):
         args = super(AnsibleTemplate, self)._make_args(resource)
         args['host'] = 'localhost'
         return args
+
+    def _render_action(self, resource, action):
+        log.debug('Rendering %s %s', resource.name, action)
+        action_file = resource.actions[action]
+        log.debug('action file: %s', action_file)
+        args = self._make_args(resource)
+        with open(action_file) as f:
+            data = f.read()
+        data = complement_playbook(data)
+        return jinja_env_with_filters.from_string(data).render(**args)

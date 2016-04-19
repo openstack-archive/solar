@@ -16,6 +16,7 @@
 
 import json
 import os
+import re
 import shutil
 import tempfile
 
@@ -26,6 +27,32 @@ from solar.core.provider import SVNProvider
 from solar.core.transports.base import find_named_transport
 
 ROLES_PATH = '/etc/ansible/roles'
+
+YAML_HEAD_RE = re.compile(
+    r'(?P<head>(%YAML 1.\d\s*\n)?(---\s*\n)?)(?P<body>.*)',
+    re.DOTALL
+)
+YAML_HOSTS_RE = re.compile(r'^\s*-?\s*hosts:.*$', re.MULTILINE)
+
+
+def complement_playbook(playbook):
+    """Complements a playbook with "hosts" information and transforms
+    it into a list if necessary
+    """
+    head_m = YAML_HEAD_RE.match(playbook)  # Always matches
+    head = head_m.group('head')
+    body = head_m.group('body')
+    is_list = body.strip().startswith('-')
+    if not is_list:
+        lines = iter(body.split('\n'))
+        body_list = ['- ' + next(lines)]
+        for line in lines:
+            body_list.append('  ' + line)
+        body = '\n'.join(body_list)
+    has_hosts = YAML_HOSTS_RE.search(body)
+    if not has_hosts:
+        body = body[0:2] + 'hosts: [{{host}}]\n  ' + body[2:]
+    return head + body
 
 
 class AnsibleHandlerBase(TempFileHandler):
@@ -70,7 +97,8 @@ class AnsibleHandlerBase(TempFileHandler):
     def _make_playbook(self, resource, action, action_path):
         dir_path = self.dirs[resource.name]
         dest_file = tempfile.mkstemp(text=True, prefix=action, dir=dir_path)[1]
-        shutil.copyfile(action_path, dest_file)
+        with open(action_path) as inf, open(dest_file, 'w') as ouf:
+            ouf.write(complement_playbook(inf.read()))
         return dest_file
 
     def _make_inventory(self, resource):
