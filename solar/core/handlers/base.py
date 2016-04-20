@@ -117,6 +117,7 @@ class TempFileHandler(BaseHandler):
             **args)
 
     def _render_dir(self, resource, _path):
+        rendered = []
         args = self._make_args(resource)
         for f in os.listdir(_path):
             if f.endswith('.jinja'):
@@ -132,6 +133,8 @@ class TempFileHandler(BaseHandler):
                     tmpl_f.write(tpl)
                 log.debug("Rendered: %s", full_target)
                 os.remove(full_src)
+                rendered.append(full_target)
+        return rendered
 
     def _copy_templates_and_scripts(self, resource, action):
         # TODO: we might need to optimize it later, like provide list
