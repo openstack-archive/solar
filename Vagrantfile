@@ -127,8 +127,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       config.vm.host_name = "solar-dev#{index}"
 
       if PREPROVISIONED
-        config.vm.provision "shell", inline: fix_six, privileged: true
-        config.vm.provision "shell", inline: solar_agent_script, privileged: true
+        # config.vm.provision "shell", inline: fix_six, privileged: true
+        # config.vm.provision "shell", inline: solar_agent_script, privileged: true
         #TODO(bogdando) figure out how to configure multiple interfaces when was not PREPROVISIONED
         ind = 0
         SLAVES_IPS.each do |ip|
