@@ -1,6 +1,13 @@
-required_plugins = %w(vagrant-vbguest)
+required_plugins = %w()
 
 requires_restart = false
+
+# Add vagrant-vbguest plugin only if using VirtualBox
+Vagrant.configure("2") do |config|
+  config.vm.provider :virtualbox do
+    required_plugins.push("vagrant-vbguest")
+  end
+end
 
 required_plugins.each do |plugin|
   unless Vagrant.has_plugin? plugin
