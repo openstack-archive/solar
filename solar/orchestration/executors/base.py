@@ -26,7 +26,11 @@ class Client(object):
         return getattr(self.client, method)(ctxt, *args, **kwargs)
 
 
-class Executor(object):
+class Pusher(Client):
+    pass
+
+
+class _Executor(object):
 
     def __init__(self, worker, bind_to):
         self.worker = worker
@@ -49,3 +53,11 @@ class Executor(object):
 
     def run(self):
         raise NotImplemented()
+
+
+class ExecutorReply(_Executor):
+     pass
+
+
+class ExecutorPull(_Executor):
+     pass
