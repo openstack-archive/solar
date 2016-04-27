@@ -12,7 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import solar.orchestration.workers.scheduler  # NOQA
-import solar.orchestration.workers.system_log  # NOQA
-import solar.orchestration.workers.tasks  # NOQA
-import solar.orchestration.workers.maint  # NOQA
+from solar.orchestration.workers import base
+
+
+class Maint(base.Worker):
+
+    def ping(self, ctxt, *args, **kwargs):
+        return 'pong'

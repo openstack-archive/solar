@@ -17,11 +17,13 @@ import argparse
 from solar.config import C
 from solar.core.log import log
 from solar.dblayer import ModelMeta
-from solar.orchestration.executors import Executor
+from solar.orchestration.executors import ExecutorPull
+from solar.orchestration.executors import ExecutorReply
 from solar.orchestration import extensions as loader
 
 
 SCHEDULER_CLIENT = loader.get_client('scheduler')
+MAINT_CLIENT = loader.get_client('maint')
 
 
 def wrap_session(extension, clients):
@@ -33,7 +35,7 @@ def wrap_session(extension, clients):
 def construct_scheduler(extensions, clients):
     scheduler = extensions['scheduler']
     loader.load_contruct_hooks('scheduler', extensions, clients)
-    scheduler_executor = Executor(
+    scheduler_executor = ExecutorPull(
         scheduler, clients['scheduler'].connect_to)
     scheduler_executor.run()
 
@@ -41,23 +43,34 @@ def construct_scheduler(extensions, clients):
 def construct_system_log(extensions, clients):
     syslog = extensions['system_log']
     loader.load_contruct_hooks('system_log', extensions, clients)
-    Executor(syslog, clients['system_log'].connect_to).run()
+    ExecutorPull(syslog, clients['system_log'].connect_to).run()
 
 
 def construct_tasks(extensions, clients):
     tasks = extensions['tasks']
     loader.load_contruct_hooks('tasks', extensions, clients)
-    tasks_executor = Executor(tasks, clients['tasks'].connect_to)
+    tasks_executor = ExecutorPull(tasks, clients['tasks'].connect_to)
     tasks.for_all.before(tasks_executor.register_task)
     tasks_executor.run()
+
+
+def construct_maint(extensions, clients):
+    maint = extensions['maint']
+    loader.load_contruct_hooks('maint', extensions, clients)
+    maint_executor = ExecutorReply(maint, clients['maint'].connect_to)
+    maint_executor.run()
+
+
+def start_worker():
+    runner = loader.get_runner(C.runner)
+    constructors = loader.get_constructors()
+    clients = loader.get_clients()
+    exts = loader.get_extensions(clients)
+    runner.driver(constructors, exts, clients)
 
 
 def main():
     # NOTE(mkwiek): no arguments should be supplied to solar-worker
     argparse.ArgumentParser().parse_args()
     log.info('Database in use: {}'.format(C.solar_db))
-    runner = loader.get_runner(C.runner)
-    constructors = loader.get_constructors()
-    clients = loader.get_clients()
-    exts = loader.get_extensions(clients)
-    runner.driver(constructors, exts, clients)
+    start_worker()

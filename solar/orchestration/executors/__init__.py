@@ -25,4 +25,6 @@ mgr = driver.DriverManager(
 )
 
 Client = mgr.driver.Client
-Executor = mgr.driver.Executor
+Pusher = mgr.driver.Pusher
+ExecutorPull = mgr.driver.ExecutorPull
+ExecutorReply = mgr.driver.ExecutorReply
