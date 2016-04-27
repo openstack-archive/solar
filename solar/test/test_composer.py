@@ -174,6 +174,20 @@ def test_add_list_values(mocker, resources):
     assert mocked_signals.call_count == 1
 
 
+def test_double_parent_input(mocker, resources):
+    mocked_signals = mocker.patch(
+        'solar.core.resource.resource.Resource.connect_with_events')
+    args = {'ip': 'node1::ip',
+            'servers': ['server1', 'server2'],
+            'alias': 'ser1',
+            'private_ip': 'node1::ip'
+            }
+    cr.update_inputs('service1', args)
+    call_args = mocked_signals.call_args[0][1]
+    assert 'ip' in call_args['ip']
+    assert 'private_ip' in call_args['ip']
+
+
 def test_parse_connection():
     correct_connection = {'child_input': 'ip',
                           'parent': 'node1',
