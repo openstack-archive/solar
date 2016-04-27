@@ -31,7 +31,7 @@ from solar.system_log import data
 
 @pytest.fixture
 def scheduler_client(scheduler_address):
-    return orchestration.Client(scheduler_address)
+    return orchestration.Pusher(scheduler_address)
 
 
 @pytest.fixture(autouse=True)

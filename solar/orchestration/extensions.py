@@ -19,15 +19,21 @@ from stevedore import extension
 
 from solar.config import C
 from solar.orchestration.executors import Client
+from solar.orchestration.executors import Pusher
 
 
-def client(address):
-    return Client(address)
+def pusher(address):
+    return Pusher(address)
 
 
-tasks_client = partial(client, C.tasks_address)
-scheduler_client = partial(client, C.scheduler_address)
-system_log_client = partial(client, C.system_log_address)
+def client(address, timeout):
+    return Client(address, timeout=timeout)
+
+
+tasks_client = partial(pusher, C.tasks_address)
+scheduler_client = partial(pusher, C.scheduler_address)
+system_log_client = partial(pusher, C.system_log_address)
+maint_client = partial(client, C.maint_address, timeout=0.1)
 
 
 def get_driver(extension, implementation):
@@ -41,6 +47,10 @@ def get_driver(extension, implementation):
 
 def tasks(clients):
     return get_driver('tasks', C.tasks_driver)()
+
+
+def maint(clients):
+    return get_driver('maint', C.maint_driver)()
 
 
 def scheduler(clients):

@@ -127,13 +127,15 @@ class LimitedExecutionPuller(PoolBasedPuller):
             self._timeout_group.join(raise_error=True)
 
 
-class Executor(base.Executor):
+class _Executor(base._Executor):
+
+    server_class = None
 
     def __init__(self, worker, bind_to):
-        super(Executor, self).__init__(worker, bind_to)
+        super(_Executor, self).__init__(worker, bind_to)
         self._tasks_register = {}
         worker._executor = self
-        self._server = LimitedExecutionPuller(methods=self.worker)
+        self._server = self.server_class(methods=self.worker)
 
     def register_task(self, ctxt):
         if 'task_id' in ctxt:
@@ -153,9 +155,27 @@ class Executor(base.Executor):
         self._server.run()
 
 
-class Client(base.Client):
+class ExecutorPull(_Executor):
+
+    server_class = LimitedExecutionPuller
+
+
+class ExecutorReply(_Executor):
+
+    server_class = zerorpc.Server
+
+
+class Pusher(base.Pusher):
 
     def __init__(self, connect_to):
-        super(Client, self).__init__(connect_to)
+        super(Pusher, self).__init__(connect_to)
         self.client = zerorpc.Pusher()
+        self.client.connect(connect_to)
+
+
+class Client(base.Client):
+
+    def __init__(self, connect_to, timeout=None):
+        super(Client, self).__init__(connect_to)
+        self.client = zerorpc.Client(timeout=timeout)
         self.client.connect(connect_to)

@@ -32,11 +32,14 @@ C.system_log_address = 'ipc:///tmp/solar_system_log'
 C.tasks_address = 'ipc:///tmp/solar_tasks'
 C.scheduler_address = 'ipc:///tmp/solar_scheduler'
 C.timewatcher_address = 'ipc:///tmp/solar_timewatcher'
+C.maint_address = 'ipc:///tmp/solar_worker_maint'
 C.executor = 'zerorpc'
 C.tasks_driver = 'solar'
 C.scheduler_driver = 'solar'
 C.system_log_driver = 'solar'
+C.maint_driver = 'solar'
 C.runner = 'gevent'
+C.small_worker = False
 
 
 def _lookup_vals(setter, config, prefix=None):

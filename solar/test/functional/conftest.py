@@ -52,7 +52,7 @@ def scheduler(request, scheduler_address):
     tasks_client = None
 
     if 'tasks' in request.node.fixturenames:
-        tasks_client = executors.Client(
+        tasks_client = executors.Pusher(
             request.getfuncargvalue('tasks_address'))
 
     worker = workers.scheduler.Scheduler(tasks_client)
@@ -68,35 +68,35 @@ def scheduler(request, scheduler_address):
     worker.for_all.before(session_start)
     worker.for_all.after(session_end)
 
-    executor = executors.Executor(worker, scheduler_address)
+    executor = executors.ExecutorPull(worker, scheduler_address)
     gevent.spawn(executor.run)
-    return worker, executors.Client(scheduler_address)
+    return worker, executors.Pusher(scheduler_address)
 
 
 @pytest.fixture
 def tasks(request, tasks_address):
     worker = workers.tasks.Tasks()
-    executor = executors.Executor(worker, tasks_address)
+    executor = executors.ExecutorPull(worker, tasks_address)
     worker.for_all.before(executor.register_task)
     if 'scheduler' in request.node.fixturenames:
         scheduler_client = workers.scheduler.SchedulerCallbackClient(
-            executors.Client(request.getfuncargvalue(
+            executors.Pusher(request.getfuncargvalue(
                 'scheduler_address')))
         worker.for_all.on_success(scheduler_client.update)
         worker.for_all.on_error(scheduler_client.error)
 
     gevent.spawn(executor.run)
-    return worker, executors.Client(tasks_address)
+    return worker, executors.Pusher(tasks_address)
 
 
 @pytest.fixture
 def clients(request):
     rst = {}
-    rst['tasks'] = executors.Client(request.getfuncargvalue(
+    rst['tasks'] = executors.Pusher(request.getfuncargvalue(
         'tasks_address'))
-    rst['scheduler'] = executors.Client(request.getfuncargvalue(
+    rst['scheduler'] = executors.Pusher(request.getfuncargvalue(
         'scheduler_address'))
-    rst['system_log'] = executors.Client(request.getfuncargvalue(
+    rst['system_log'] = executors.Pusher(request.getfuncargvalue(
         'system_log_address'))
     return rst
 
