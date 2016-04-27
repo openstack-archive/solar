@@ -252,8 +252,10 @@ def update_inputs(child, inputs):
     connections, assignments, computable = parse_inputs(inputs)
     parents = defaultdict(lambda: defaultdict(dict))
     for c in connections:
-        mapping = {c['parent_input']: c['child_input']}
-        parents[c['parent']]['mapping'].update(mapping)
+        if not parents[c['parent']]['mapping'].get(c['parent_input']):
+            parents[c['parent']]['mapping'][c['parent_input']] = []
+        mapping = parents[c['parent']]['mapping']
+        mapping[c['parent_input']].append(c['child_input'])
         if parents[c['parent']].get('events', None) is None:
             parents[c['parent']]['events'] = c['events']
 
