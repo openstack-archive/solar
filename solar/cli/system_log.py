@@ -16,6 +16,7 @@ import sys
 
 import click
 
+from solar.cli.base import BaseGroup
 from solar.cli.uids_history import remember_uid
 from solar.core import resource
 from solar.core import testing
@@ -24,7 +25,11 @@ from solar.system_log import change
 from solar.system_log import data
 
 
-@click.group()
+class SystemLogGroup(BaseGroup):
+    pass
+
+
+@click.group(cls=SystemLogGroup)
 def changes():
     pass
 

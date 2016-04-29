@@ -16,29 +16,17 @@ import json
 import os
 
 import click
-from functools import wraps
 import yaml
 
-from solar.cli.base import EGroup
+from solar.cli.base import BaseGroup
 from solar.cli import executors
 from solar.core import actions
 from solar.core import resource as sresource
 from solar.core.resource import composer as cr
-from solar import errors
 
 
-class ResourceGroup(EGroup):
-
-    def error_wrapper(self, f):
-        @wraps(f)
-        def _in(*args, **kwargs):
-            try:
-                return f(*args, **kwargs)
-            except errors.SolarError as e:
-                if self.error_wrapper_enabled:
-                    raise click.ClickException(str(e))
-                raise
-        return _in
+class ResourceGroup(BaseGroup):
+    pass
 
 
 @click.group(cls=ResourceGroup)
