@@ -13,32 +13,17 @@
 #    under the License.
 
 import click
-from functools import wraps
 import os
 import yaml
 
+from solar.cli.base import BaseGroup
 from solar.core.resource.repository import Repository
-from solar.core.resource.repository import RepositoryException
-
-from solar.cli.base import EGroup
 
 
-class RepoGroup(EGroup):
-
-    def error_wrapper(self, f):
-        @wraps(f)
-        def _in(*args, **kwargs):
-            try:
-                return f(*args, **kwargs)
-            except OSError as e:
-                if self.error_wrapper_enabled:
-                    raise click.ClickException(str(e))
-                raise
-            except RepositoryException as e:
-                if self.error_wrapper_enabled:
-                    raise click.ClickException(str(e))
-                raise
-        return _in
+class RepoGroup(BaseGroup):
+    def handle_exception(self, e):
+        if e is OSError:
+            raise click.ClickException(str(e))
 
 
 @click.group(help="Manages Solar repositories", cls=RepoGroup)

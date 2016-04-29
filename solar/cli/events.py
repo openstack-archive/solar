@@ -17,10 +17,15 @@ import subprocess
 import click
 import networkx as nx
 
+from solar.cli.base import BaseGroup
 from solar.events import api as evapi
 
 
-@click.group()
+class EventsGroup(BaseGroup):
+    pass
+
+
+@click.group(cls=EventsGroup)
 def events():
     pass
 

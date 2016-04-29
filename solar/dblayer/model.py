@@ -25,15 +25,20 @@ from threading import RLock
 
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
 from solar.dblayer.lfu_cache import LFUCache
+from solar.errors import SolarError
 from solar.utils import get_local
 
 
-class DBLayerException(Exception):
+class DBLayerException(SolarError):
     pass
 
 
 class DBLayerNotFound(DBLayerException):
-    pass
+    def __init__(self, spec):
+        self.message = 'Object {} not found in db layer'.format(spec)
+
+    def __str__(self):
+        return str(self.message)
 
 
 class DBLayerNoRiakObj(DBLayerException):
