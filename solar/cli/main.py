@@ -63,7 +63,7 @@ def show_emitter_connections(res):
 def main(debug):
     debug = debug or os.getenv("SOLAR_CLI_DEBUG")
     if not debug:
-        base.EGroup.error_wrapper_enabled = True
+        base.BaseGroup.error_wrapper_enabled = True
 
 
 def init_actions():

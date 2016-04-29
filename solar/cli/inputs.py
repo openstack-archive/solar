@@ -15,11 +15,16 @@
 import click
 import yaml
 
+from solar.cli.base import BaseGroup
 from solar.core import resource as sresource
 from solar.dblayer.model import NONE
 
 
-@click.group(help="Manages raw resource inputs")
+class InputsGroup(BaseGroup):
+    pass
+
+
+@click.group(help="Manages raw resource inputs", cls=InputsGroup)
 def inputs():
     pass
 

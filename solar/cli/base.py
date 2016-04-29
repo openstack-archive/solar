@@ -12,7 +12,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from functools import wraps
+
 import click
+
+from solar.dblayer.model import DBLayerException
+from solar.errors import SolarError
 
 
 class AliasedGroup(click.Group):
@@ -40,13 +45,27 @@ class AliasedGroup(click.Group):
         ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
 
 
-class EGroup(click.Group):
-
+class BaseGroup(click.Group):
     error_wrapper_enabled = False
 
-    error_wrapper = None
-
     def add_command(self, cmd, name=None):
-        if self.error_wrapper:
-            cmd.callback = self.error_wrapper(cmd.callback)
-        return super(EGroup, self).add_command(cmd, name)
+        cmd.callback = self.error_wrapper(cmd.callback)
+        return super(BaseGroup, self).add_command(cmd, name)
+
+    def error_wrapper(self, f):
+        @wraps(f)
+        def _in(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except (SolarError, DBLayerException) as e:
+                self.handle_exception(e)
+                if self.error_wrapper_enabled:
+                    raise click.ClickException(str(e))
+                raise
+            except Exception as e:
+                self.handle_exception(e)
+                raise
+        return _in
+
+    def handle_exception(self, e):
+        pass

@@ -18,6 +18,7 @@ import time
 
 import click
 
+from solar.cli.base import BaseGroup
 from solar.cli.uids_history import remember_uid
 from solar.cli.uids_history import SOLARUID
 from solar.dblayer.locking import DBLock
@@ -29,7 +30,11 @@ from solar.orchestration.traversal import states
 from solar.orchestration import utils
 
 
-@click.group(name='orch')
+class OrchGroup(BaseGroup):
+    pass
+
+
+@click.group(name='orch', cls=OrchGroup)
 def orchestration():
     pass
 
@@ -55,10 +60,10 @@ def wait_report(uid, timeout, interval=3):
                 in_progress = states.INPROGRESS.name
                 if summary[pending] + summary[in_progress] != 0:
                     time.sleep(interval)
-    except errors.SolarError:
+    except errors.SolarError as e:
         click.echo('')
         click_report(uid)
-        sys.exit(1)
+        raise
     else:
         click.echo('')
         click_report(uid)

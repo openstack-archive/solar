@@ -33,7 +33,11 @@ class DBLayerException(Exception):
 
 
 class DBLayerNotFound(DBLayerException):
-    pass
+    def __init__(self, spec):
+        self.message = 'Object {} not found in db layer'.format(spec)
+
+    def __str__(self):
+        return str(self.message)
 
 
 class DBLayerNoRiakObj(DBLayerException):

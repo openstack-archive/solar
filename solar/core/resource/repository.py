@@ -23,13 +23,14 @@ import semantic_version
 import shutil
 import yaml
 
+from solar import errors
 from solar import utils
 
 
 RES_TYPE = Enum("Resource Types", 'Normal Composer')
 
 
-class RepositoryException(Exception):
+class RepositoryException(errors.SolarError):
     pass
 
 
