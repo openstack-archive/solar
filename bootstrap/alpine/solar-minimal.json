@@ -1,0 +1,147 @@
+{
+    "description": "Build base Alpine Linux x86_64",
+    "provisioners": [
+        {
+            "type": "shell",
+            "scripts": [
+                "scripts/00base.sh",
+                "scripts/01alpine.sh",
+                "scripts/01networking.sh",
+                "scripts/02sshd.sh",
+                "scripts/03vagrant.sh",
+                "scripts/04sudoers.sh",
+                "scripts/90virtualbox.sh",
+                "scripts/98solar.sh",
+                "scripts/99minimize.sh"
+            ],
+            "override": {
+                "virtualbox-iso": {
+                    "execute_command": "/bin/sh '{{.Path}}'"
+                }
+            }
+        }
+    ],
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "virtualbox_version_file": ".vbox_version",
+
+            "guest_additions_mode": "disable",
+            "guest_os_type": "Linux26_64",
+            "headless": true,
+            "disk_size": 1024,
+            "http_directory": "http",
+
+            "iso_url": "http://wiki.alpinelinux.org/cgi-bin/dl.cgi/v3.3/releases/x86_64/alpine-3.3.3-x86_64.iso",
+            "iso_checksum": "af766ac6221c6f5b471ca388be22df81ac6f21be37486ba6846f115d1798528a",
+            "iso_checksum_type": "sha256",
+
+            "communicator": "ssh",
+            "ssh_username": "root",
+            "ssh_password": "vagrant",
+            "ssh_wait_timeout": "30m",
+            "shutdown_command": "/sbin/poweroff",
+
+            "boot_wait": "30s",
+            "boot_command": [
+                "root<enter><wait>",
+                "ifconfig eth0 up && udhcpc -i eth0<enter><wait>",
+                "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answers_vbox<enter><wait>",
+                "setup-alpine -f answers_vbox<enter><wait5>",
+                "vagrant<enter><wait>",
+                "vagrant<enter><wait>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "y<enter>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "rc-service sshd stop<enter>",
+                "mount /dev/sda3 /mnt<enter>",
+                "echo 'PermitRootLogin yes' >> /mnt/etc/ssh/sshd_config<enter>",
+                "umount /mnt<enter>",
+                "reboot<enter>"
+            ],
+
+            "hard_drive_interface": "sata",
+            "vboxmanage": [
+                ["modifyvm", "{{.Name}}", "--memory", "512"],
+                ["modifyvm", "{{.Name}}", "--cpus", "1"]
+            ]
+
+        }, {
+            "type": "qemu",
+            "headless": true,
+            "disk_size": 1024,
+            "accelerator": "kvm",
+            "format": "qcow2",
+            "http_directory": "http",
+
+            "iso_url": "http://wiki.alpinelinux.org/cgi-bin/dl.cgi/v3.3/releases/x86_64/alpine-3.3.3-x86_64.iso",
+            "iso_checksum": "af766ac6221c6f5b471ca388be22df81ac6f21be37486ba6846f115d1798528a",
+            "iso_checksum_type": "sha256",
+
+            "communicator": "ssh",
+            "ssh_username": "root",
+            "ssh_password": "vagrant",
+            "ssh_wait_timeout": "30m",
+            "shutdown_command": "/sbin/poweroff",
+
+            "boot_wait": "30s",
+            "boot_command": [
+                "root<enter><wait>",
+                "ifconfig eth0 up && udhcpc -i eth0<enter><wait>",
+                "wget http://{{ .HTTPIP }}:{{ .HTTPPort }}/answers_qemu<enter><wait>",
+                "setup-alpine -f answers_qemu<enter><wait5>",
+                "vagrant<enter><wait>",
+                "vagrant<enter><wait>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "y<enter>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "<wait10><wait10><wait10>",
+                "rc-service sshd stop<enter>",
+                "mount /dev/sda3 /mnt<enter>",
+                "echo 'PermitRootLogin yes' >> /mnt/etc/ssh/sshd_config<enter>",
+                "umount /mnt<enter>",
+                "reboot<enter>"
+            ],
+            "qemuargs": [
+                [
+                    "-m",
+                    "512M"
+                ],
+                [
+                    "-smp",
+                    "1"
+                ]
+            ]
+        }
+    ],
+    "post-processors": [
+        [{
+            "type": "vagrant",
+            "keep_input_artifact": false,
+            "only": ["virtualbox-iso"],
+            "output": "solar-minimal-virtualbox.box"
+        },{
+            "type": "vagrant",
+            "keep_input_artifact": false,
+            "only": ["qemu"],
+            "output": "solar-minimal-qemu.box"
+        }]
+    ]
+}
