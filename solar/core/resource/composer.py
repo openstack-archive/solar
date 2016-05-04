@@ -31,6 +31,7 @@ from solar.core.resource import load as load_resource
 from solar.core.resource import load_by_tags
 from solar.core.resource.repository import Repository
 from solar.core.resource import Resource
+from solar.dblayer.utils import atomic as db_atomic
 from solar.events.api import add_event
 from solar.events.controls import Dep
 from solar.events.controls import React
@@ -100,8 +101,12 @@ def create(name, spec, inputs=None, tags=None):
     else:
         r = create_resource(name, spec, inputs=inputs, tags=tags)
         rs = [r]
-
     return CreatedResources(rs)
+
+
+@db_atomic
+def atomic_create(*args, **kwargs):
+    return create(*args, **kwargs)
 
 
 def create_resource(name, spec, inputs=None, tags=None):

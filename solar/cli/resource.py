@@ -97,7 +97,7 @@ def create(args, base_path, name):
         except ValueError:
             k, v = arg.split('=')
             args_parsed.update({k: yaml.safe_load(v)})
-    resources = cr.create(name, base_path, inputs=args_parsed)
+    resources = cr.atomic_create(name, base_path, inputs=args_parsed)
     for res in resources:
         click.echo(res.color_repr())
 
