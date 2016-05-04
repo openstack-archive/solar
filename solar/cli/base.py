@@ -17,6 +17,7 @@ from functools import wraps
 import click
 
 from solar.dblayer.model import DBLayerException
+from solar.dblayer.utils import Atomic
 from solar.errors import SolarError
 
 
@@ -45,10 +46,19 @@ class AliasedGroup(click.Group):
         ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
 
 
+class AtomicCommand(click.Command):
+
+    def invoke(self, *args, **kwargs):
+        with Atomic():
+            return super(AtomicCommand, self).invoke(*args, **kwargs)
+
+
 class BaseGroup(click.Group):
+
     error_wrapper_enabled = False
 
     def add_command(self, cmd, name=None):
+
         cmd.callback = self.error_wrapper(cmd.callback)
         return super(BaseGroup, self).add_command(cmd, name)
 
@@ -69,3 +79,7 @@ class BaseGroup(click.Group):
 
     def handle_exception(self, e):
         pass
+
+    def command(self, *args, **kwargs):
+        kwargs.setdefault('cls', AtomicCommand)
+        return super(BaseGroup, self).command(*args, **kwargs)
