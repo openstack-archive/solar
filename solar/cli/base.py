@@ -14,6 +14,8 @@
 
 import click
 
+from solar.dblayer.utils import Atomic
+
 
 class AliasedGroup(click.Group):
     """This class introduces iproute2-like behaviour,
@@ -40,6 +42,13 @@ class AliasedGroup(click.Group):
         ctx.fail('Too many matches: %s' % ', '.join(sorted(matches)))
 
 
+class AtomicCommand(click.Command):
+
+    def invoke(self, *args, **kwargs):
+        with Atomic():
+            return super(AtomicCommand, self).invoke(*args, **kwargs)
+
+
 class EGroup(click.Group):
 
     error_wrapper_enabled = False
@@ -50,3 +59,7 @@ class EGroup(click.Group):
         if self.error_wrapper:
             cmd.callback = self.error_wrapper(cmd.callback)
         return super(EGroup, self).add_command(cmd, name)
+
+    def command(self, *args, **kwargs):
+        kwargs.setdefault('cls', AtomicCommand)
+        return super(EGroup, self).command(*args, **kwargs)
