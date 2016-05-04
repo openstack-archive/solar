@@ -100,7 +100,6 @@ def create(name, spec, inputs=None, tags=None):
     else:
         r = create_resource(name, spec, inputs=inputs, tags=tags)
         rs = [r]
-
     return CreatedResources(rs)
 
 

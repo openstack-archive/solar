@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: default
+data:
+  default.user: user
+  default.password: password
+  default.vhost: vhost
+  cookie: "my secret cookie"
