@@ -617,6 +617,13 @@ class ModelMeta(type):
             cls._c.lazy_save.clear()
 
     @classmethod
+    def find_non_empty_lazy_saved(mcs):
+        for cls in mcs._defined_models:
+            if cls._c.lazy_save:
+                return cls._c.lazy_save
+        return None
+
+    @classmethod
     def session_end(mcs, result=True):
         mcs.save_all_lazy()
         mcs.riak_client.session_end(result)
