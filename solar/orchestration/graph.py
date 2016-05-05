@@ -57,8 +57,10 @@ def get_graph(uid):
     mdg = nx.MultiDiGraph()
     mdg.graph['uid'] = uid
     mdg.graph['name'] = uid.split(':')[0]
-    mdg.add_nodes_from(Task.multi_get(Task.execution.filter(uid)))
-    mdg.add_edges_from([(parent, task) for task in mdg.nodes()
+    tasks_by_uid = {t.key: t for t
+                    in Task.multi_get(Task.execution.filter(uid))}
+    mdg.add_nodes_from(tasks_by_uid.values())
+    mdg.add_edges_from([(tasks_by_uid[parent], task) for task in mdg.nodes()
                         for parent in task.parents.all()])
     return mdg
 
@@ -95,6 +97,20 @@ def total_delta(graph):
 
 
 get_plan = get_graph
+
+
+def assign_weights_nested(dg):
+    """Based on number of childs assign weights that will be
+    used later for scheduling.
+    """
+    #: NOTE reverse(copy=False) swaps successors and predecessors
+    # on same copy of graph, thus before returning it - reverse it back
+    reversed_graph = dg.reverse(copy=False)
+    for task in nx.topological_sort(reversed_graph):
+        task.weight = sum([t.weight + 1 for t
+                           in reversed_graph.predecessors(task)])
+        task.save_lazy()
+    return reversed_graph.reverse(copy=False)
 
 
 def parse_plan(plan_path):
