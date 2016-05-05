@@ -75,7 +75,6 @@ class Resource(object):
         tags.append('resource={}'.format(name))
 
         inputs = metadata.get('input', {})
-
         self.auto_extend_inputs(inputs)
         self.db_obj = DBResource.from_dict(
             name,
@@ -212,19 +211,22 @@ class Resource(object):
         self.db_obj.save_lazy()
         return
 
-    def update(self, args):
-        for k, v in args.items():
-            self.db_obj.inputs[k] = v
-        self.db_obj.save_lazy()
+    def _guess_log_item(self, resource_obj):
         # created state will be changed during commit
-        if self.db_obj.state != RESOURCE_STATE.created.name:
+        if resource_obj.db_obj.state != RESOURCE_STATE.created.name:
             action = 'update'
         else:
             action = 'run'
         LogItem.new(
-            {'resource': self.name,
+            {'resource': resource_obj.name,
              'action': action,
-             'tags': self.tags}).save_lazy()
+             'tags': resource_obj.tags}).save_lazy()
+
+    def update(self, args):
+        for k, v in args.items():
+            self.db_obj.inputs[k] = v
+        self.db_obj.save_lazy()
+        self._guess_log_item(self)
 
     def delete(self):
         return self.db_obj.delete()
@@ -333,9 +335,7 @@ class Resource(object):
                             use_defaults=False):
         mapping = get_mapping(self, receiver, mapping)
         self._connect_inputs(receiver, mapping)
-        LogItem.new({'resource': receiver.name,
-                     'action': 'run',
-                     'tags': receiver.tags}).save_lazy()
+        self._guess_log_item(receiver)
         # signals.connect(self, receiver, mapping=mapping)
         # TODO: implement events
         if use_defaults:
