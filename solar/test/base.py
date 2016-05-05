@@ -18,6 +18,7 @@ import tempfile
 import time
 import unittest
 
+import networkx as nx
 import yaml
 
 from solar.core.resource import composer as cr
@@ -57,3 +58,9 @@ class BaseResourceTest(unittest.TestCase):
     def create_resource(self, name, src, args=None):
         args = args or {}
         return cr.create(name, src, inputs=args)[0]
+
+
+def compare_task_to_names(tasks, names):
+    if isinstance(tasks, nx.DiGraph):
+        tasks = tasks.nodes()
+    assert {t.name for t in tasks} == names

@@ -26,8 +26,12 @@ def test_longest_path_time_returns_0_for_empty_graph():
 
 def test_reset_resets_times():
     g = nx.MultiDiGraph()
-    g.add_node('task1', task=mock.Mock(), status='status', errmsg='',
-               start_time=1, end_time=4)
+    task = mock.Mock(
+        name='task1',
+        status='status',
+        errmsg='',
+        start_time=1, end_time=4)
+    g.add_node(task)
     graph.reset(g)
-    assert int(g.node['task1']['start_time']) == 0
-    assert int(g.node['task1']['start_time']) == 0
+    for n in g.nodes():
+        assert n.start_time == 0

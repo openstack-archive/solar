@@ -106,7 +106,7 @@ class React(Event):
                     location_id = Resource.get(self.child).inputs[
                         'location_id']
                 except (DBLayerNotFound, DBLayerSolarException):
-                    location_id = None
+                    location_id = ''
                 changes_graph.add_node(
                     self.child_node, status='PENDING',
                     target=location_id,
@@ -128,7 +128,7 @@ class StateChange(Event):
         try:
             location_id = Resource.get(self.parent).inputs['location_id']
         except (DBLayerNotFound, DBLayerSolarException):
-            location_id = None
+            location_id = ''
         changes_graph.add_node(
             self.parent_node, status='PENDING',
             target=location_id,
