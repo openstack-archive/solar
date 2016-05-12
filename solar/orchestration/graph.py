@@ -19,7 +19,6 @@ from collections import Counter
 
 import networkx as nx
 
-from solar.dblayer.model import clear_cache
 from solar.dblayer.model import ModelMeta
 from solar.dblayer.solar_models import Task
 from solar import errors
@@ -212,8 +211,6 @@ def wait_finish(uid, timeout):
     start_time = time.time()
 
     while start_time + timeout >= time.time():
-        # need to clear cache before fetching updated status
-        clear_cache()
         dg = get_graph(uid)
         summary = Counter()
         summary.update({s.name: 0 for s in states})
@@ -221,6 +218,12 @@ def wait_finish(uid, timeout):
         yield summary
         if summary[states.PENDING.name] + summary[states.INPROGRESS.name] == 0:
             return
+        else:
+            # on db backends with snapshot isolation level and higher
+            # updates wont be visible after start of transaction,
+            # in order to report state correctly we will "refresh" transcation
+            ModelMeta.session_end()
+            ModelMeta.session_start()
 
     else:
         raise errors.ExecutionTimeout(
