@@ -47,15 +47,23 @@ def create(plan):
     click.echo(uid)
 
 
-def wait_report(uid, timeout, interval=3):
+def wait_report(uid, timeout, stop_on_error=False, interval=3):
     try:
         if timeout:
+            initial_error_count = None
             for summary in graph.wait_finish(uid, timeout=timeout):
                 stringified_summary = '\r' + ' '.join(
                     ['{}: {}'.format(state, count)
                         for state, count in summary.items()])
                 click.echo(stringified_summary, nl=False)
                 sys.stdout.flush()
+
+                error = states.ERROR.name
+                if initial_error_count is None:
+                    initial_error_count = summary[error]
+                if initial_error_count < summary[error] and stop_on_error:
+                    raise errors.SolarError('Error encountered. Stopping')
+
                 pending = states.PENDING.name
                 in_progress = states.INPROGRESS.name
                 if summary[pending] + summary[in_progress] != 0:
@@ -94,8 +102,9 @@ def click_report(uid):
 @orchestration.command()
 @click.argument('uid', type=SOLARUID, default='last')
 @click.option('-w', 'wait', default=0)
-def report(uid, wait):
-    wait_report(uid, wait)
+@click.option('--stop-on-error', is_flag=True, default=False)
+def report(uid, wait, stop_on_error):
+    wait_report(uid, wait, stop_on_error)
 
 
 @orchestration.command()
@@ -123,18 +132,20 @@ def noop(uid, task):
 @orchestration.command(name='run-once')
 @click.argument('uid', type=SOLARUID, default='last')
 @click.option('-w', 'wait', default=0)
-def run_once(uid, wait):
+@click.option('--stop-on-error', is_flag=True, default=False)
+def run_once(uid, wait, stop_on_error):
     SCHEDULER_CLIENT.next({}, uid)
-    wait_report(uid, wait)
+    wait_report(uid, wait, stop_on_error)
 
 
 @orchestration.command()
 @click.argument('uid', type=SOLARUID)
 @click.option('-w', 'wait', default=0)
-def restart(uid, wait):
+@click.option('--stop-on-error', is_flag=True, default=False)
+def restart(uid, wait, stop_on_error):
     graph.reset_by_uid(uid)
     SCHEDULER_CLIENT.next({}, uid)
-    wait_report(uid, wait)
+    wait_report(uid, wait, stop_on_error)
 
 
 @orchestration.command()
