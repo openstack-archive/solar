@@ -16,6 +16,7 @@ from mock import Mock
 import networkx as nx
 from pytest import fixture
 
+from solar.dblayer.model import clear_cache
 from solar.orchestration import graph
 from solar.orchestration.traversal import states
 
@@ -86,7 +87,7 @@ def test_several_updates(simple_plan):
                      if t.name == 'echo_stuff')
     echo_task.status = states.ERROR.name
     echo_task.save()
-
+    clear_cache()
     assert next(graph.wait_finish(simple_plan.graph['uid'], 10)) == {
         'SKIPPED': 0,
         'SUCCESS': 0,
