@@ -76,7 +76,7 @@ class PoolBasedPuller(zerorpc.Puller):
             self._context.hook_load_task_context(event.header)
             self._context.hook_server_before_exec(event)
             self._methods[event.name](*event.args)
-            # In Push/Pull their is no reply to send, hence None for the
+            # In Push/Pull there is no reply to send, hence None for the
             # reply_event argument
             self._context.hook_server_after_exec(event, None)
         except Exception:
