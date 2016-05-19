@@ -3,4 +3,4 @@ try:
 except ImportError:
     pass
 else:
-    monkey.patch_all()
+    monkey.patch_all(thread=False)

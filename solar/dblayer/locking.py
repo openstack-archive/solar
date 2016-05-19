@@ -267,7 +267,7 @@ class RiakEnsembleLock(_Lock):
             raise
 
 
-if _connection.type == 'sql':
+if _connection.type in ('sql', 'etcd'):
     Lock = SQLLock
 elif _connection.mode == 'riak':
     if C.riak_ensemble:

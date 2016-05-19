@@ -298,6 +298,7 @@ class Bucket(object):
         """Required for complience with riak bucket."""
 
     def get(self, key):
+        import ipdb; ipdb.set_trace()
         try:
             ret = self._sql_model.get(self._sql_model.key == key)
         except self._sql_model.DoesNotExist:
@@ -454,6 +455,7 @@ class SqlClient(object):
         setattr(sess, '_started', True)
 
     def session_end(self, result=True):
+        import ipdb; ipdb.set_trace()
         sess = self._sql_session
         if result:
             sess.commit()

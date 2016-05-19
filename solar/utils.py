@@ -174,7 +174,10 @@ def parse_database_conn(name):
     m = regex.match(name)
     if m is not None:
         groups = m.groupdict()
-        groups['type'] = 'riak' if groups['mode'] == 'riak' else 'sql'
+        groups['type'] = {
+            'etcd': 'etcd',
+            'riak': 'riak',
+        }.get(groups['mode'], 'sql')
         return Munch(groups), Munch(opts)
     else:
         raise Exception("Invalid database connection string: %r "

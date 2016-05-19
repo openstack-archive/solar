@@ -11,7 +11,7 @@ mock>=1.2
 pbr>=1.6
 
 # if you want to use riak backend then
-# riak>=2.1
+riak>=2.1
 # if you want to use sql backend then
 peewee >= 2.8.0
 # if you want to use sql + postgresql then
@@ -32,6 +32,11 @@ stevedore>=1.5.0
 pyzmq>=13.0.2
 zerorpc>=0.5.2
 
+# Etcd API
+protobuf==3.0.0b2.post2
+hyper==0.6.0
+etcd-apiv3==2.3.0.2
+
 
 # Packages beyond this comment are not in OS Global Requirements
 munch>=1.0.1
@@ -42,3 +47,4 @@ gevent>=1.0.2
 ply>=3.8
 pydotplus>=2.0.2
 wrapt>=1.7.0
+

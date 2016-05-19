@@ -84,6 +84,12 @@ elif _connection.mode == 'postgresql':
     opts.setdefault('solar_pool', True)
     client = SqlClient(_connection.database,
                        **opts)
+elif _connection.mode == 'etcd':
+    from solar.dblayer.etcd_client import EtcdClient
+    client = EtcdClient(
+        host=_connection.host,
+        port=int(_connection.port or 2378),
+    )
 else:
     raise Exception('Unknown dblayer backend %s', C.solar_db)
 
