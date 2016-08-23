@@ -6,6 +6,8 @@ pytest-mock
 tox
 pytest-subunit
 os-testr
+doc8  # Apache-2.0
+sphinx
 
 ## for computable inputs
 # temporary disabled
