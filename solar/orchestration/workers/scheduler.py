@@ -137,7 +137,7 @@ class Scheduler(base.Worker):
 
     def _configure_timeout(self, ctxt, timeout):
         if not hasattr(self._executor, 'register_timeout'):
-            raise NotImplemented('Timeout is not supported')
+            raise NotImplementedError('Timeout is not supported')
         self._executor.register_timeout(
             timeout,
             partial(self.update_next, ctxt,

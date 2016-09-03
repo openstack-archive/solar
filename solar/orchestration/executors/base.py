@@ -34,18 +34,18 @@ class Executor(object):
         self.worker._executor = self
 
     def register_task(self, ctxt):
-        raise NotImplemented(
+        raise NotImplementedError(
             'Register task should be implemented'
             ' to support task interruption.')
 
     def register_timeout(self, timeout, callable_):
-        raise NotImplemented(
+        raise NotImplementedError(
             'Should be implemented to propagate errors by timeout')
 
     def kill(self, task_id, exc):
-        raise NotImplemented(
+        raise NotImplementedError(
             'Kill should be implemented'
             ' to support task interruption.')
 
     def run(self):
-        raise NotImplemented()
+        raise NotImplementedError()

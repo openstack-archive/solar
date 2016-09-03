@@ -33,7 +33,7 @@ class SubControl(object):
         self.add_subscriber(sub, 'before')
 
     def add_subscriber(self, sub, event):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class FuncSubControl(SubControl):

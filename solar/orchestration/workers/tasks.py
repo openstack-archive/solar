@@ -44,6 +44,6 @@ class Tasks(base.Worker):
     def kill(self, ctxt, task_id):
         log.debug('Received kill request for task_id %s', task_id)
         if not hasattr(self._executor, 'kill'):
-            raise NotImplemented(
+            raise NotImplementedError(
                 'Current executor doesnt support interruping tasks')
         self._executor.kill(task_id, ExecutionTimeout)
