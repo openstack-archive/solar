@@ -1,4 +1,4 @@
-#    Copyright 2015 Mirantis, Inc.
+   #    Copyright 2015 Mirantis, Inc.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -44,6 +44,6 @@ class Tasks(base.Worker):
     def kill(self, ctxt, task_id):
         log.debug('Received kill request for task_id %s', task_id)
         if not hasattr(self._executor, 'kill'):
-            raise NotImplemented(
+            raise NotImplementedError(
                 'Current executor doesnt support interruping tasks')
         self._executor.kill(task_id, ExecutionTimeout)

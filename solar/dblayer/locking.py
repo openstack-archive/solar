@@ -130,7 +130,7 @@ class _Lock(object):
 
     @classmethod
     def _acquire(cls, uid, identity):
-        raise NotImplemented(
+        raise NotImplementedError(
             'Different strategies for handling collisions')
 
     @classmethod
