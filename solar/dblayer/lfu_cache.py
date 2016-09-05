@@ -68,6 +68,9 @@ class LFUCache(object):
         else:
             return self == other
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __setitem__(self, item, value):
         self.set(item, value)
 

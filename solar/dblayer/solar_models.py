@@ -1087,6 +1087,9 @@ class Task(Model):
             return self.key == other
         return self.key == other.key
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return 'Task(execution={} name={})'.format(self.execution, self.name)
 

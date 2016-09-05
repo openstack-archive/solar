@@ -34,5 +34,8 @@ class DBLayerProxy(wrapt.ObjectProxy):
             return self.__wrapped__ == other
         return self.__wrapped__ == other.__wrapped__
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __repr__(self):
         return "<P: %r>" % self.__wrapped__
