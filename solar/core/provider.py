@@ -136,7 +136,7 @@ class RemoteZipProvider(BaseProvider):
 
 
 class SVNProvider(BaseProvider):
-    """With git you cant checkout only directory from repo,
+    """With git you can't checkout only directory from repo,
 
     but with svn you can
     """

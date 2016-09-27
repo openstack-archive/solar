@@ -7,7 +7,7 @@ configuration management executed on resource, and changes were found,
 both ansible and puppet is able to know if there were any changes
 
 2. failed, error
-error - corresponds to problems in infrastructure, and probably cant be remediated in any way
+error - corresponds to problems in infrastructure, and probably can't be remediated in any way
 failed - process of configuring resource failed
 Does it make sense to create such separation?
 
