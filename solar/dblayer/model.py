@@ -21,6 +21,7 @@ import weakref
 
 from collections import defaultdict
 from random import getrandbits
+import six
 from threading import RLock
 
 from solar.dblayer.conflict_resolution import dblayer_conflict_resolver
@@ -661,9 +662,9 @@ class NestedField(FieldBase):
         obj.delete()
 
 
+@six.add_metaclass(ModelMeta)
 class NestedModel(object):
 
-    __metaclass__ = ModelMeta
 
     _nested_value = None
 
@@ -738,9 +739,9 @@ class NestedModelHash(object):
         self[hk] = data
 
 
+@six.add_metaclass(ModelMeta)
 class Model(object):
 
-    __metaclass__ = ModelMeta
 
     _c = ClassCache()
 
