@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Solar documentation build configuration file, created by
 # sphinx-quickstart on Thu Nov 26 12:41:37 2015.
 #
