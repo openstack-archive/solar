@@ -127,7 +127,7 @@ input:
 
         self.create_resource('sample1', sample_meta_dir,
                              {'value': 1})
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 DBLayerException,
                 "Object already exists in cache cannot create second"
         ):
@@ -136,7 +136,7 @@ input:
 
         clear_cache()
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 DBLayerException,
                 "Object already exists in database cannot create second"
         ):

@@ -34,8 +34,8 @@ input:
         sample = self.create_resource('sample', sample_meta_dir,
                                       {'value': 'x'})
 
-        with self.assertRaisesRegexp(Exception,
-                                     'Trying to connect value-.* to itself'):
+        with self.assertRaisesRegex(Exception,
+                                    'Trying to connect value-.* to itself'):
             xs.connect(sample, sample, {'value'})
 
     def test_input_dict_type(self):
