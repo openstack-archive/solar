@@ -86,7 +86,7 @@ account not only changes, but also arbitrary actions for resources in solar.
 
 Good example of usage is provisioning procedure, where reboot must be
 done only after node is provisioned, and dnsmasq configuration changes to
-reflect that that node is now using statically allocated address.
+reflect that node is now using statically allocated address.
 We can specify such ordering as ::
 
     React node1.run -> node1.reboot
