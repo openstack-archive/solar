@@ -1,8 +1,0 @@
----
-
-- shell: sudo apt-get update
-- shell: sudo apt-get -y upgrade
-- shell: sudo apt-get -y install python-software-properties software-properties-common
-- shell: sudo add-apt-repository -y cloud-archive:juno
-- shell: sudo apt-get update
-- shell: sudo apt-get update --fix-missing

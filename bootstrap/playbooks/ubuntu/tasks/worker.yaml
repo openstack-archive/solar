@@ -1,7 +1,0 @@
----
-
-- copy: src=/vagrant/utils/solar-worker-defaults dest=/etc/default/solar-worker
-- copy: src=/vagrant/utils/solar-worker.conf dest=/etc/init/solar-worker.conf
-- shell: stop solar-worker
-  ignore_errors: yes
-- shell: start solar-worker

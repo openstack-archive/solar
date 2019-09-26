@@ -1,8 +1,0 @@
----
-
-# NOTE(bogdando) no Juno support for the Centos7! Openstack example may not be working!
-# The CentOS 7 Kilo repository may be found at http://mirror.centos.org/centos/7/cloud/x86_64/
-# The Juno CentOS 6 repository may be found at http://mirror.centos.org/centos/6/cloud/x86_64/
-# you can yum install centos-release-openstack-kilo for Kilo and yum install centos-release-openstack-juno
-- shell: rpm -ivh http://mirror.centos.org/centos/7/cloud/x86_64/openstack-kilo/centos-release-openstack-kilo-2.el7.noarch.rpm
-- yum: name=centos-release-openstack-kilo state=present

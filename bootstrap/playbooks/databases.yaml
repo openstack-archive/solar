@@ -1,7 +1,0 @@
-- include: riak.yaml
-  when: lookup('env', 'SOLAR_DB_BACKEND') == "riak"
-- include: postgres.yaml
-  when: lookup('env', 'SOLAR_DB_BACKEND') == "postgres"
-- fail: msg="Invalid SOLAR_DB_BACKEND set"
-  when: (lookup('env', 'SOLAR_DB_BACKEND') != "riak") and
-        (lookup('env', 'SOLAR_DB_BACKEND') != "postgres")
